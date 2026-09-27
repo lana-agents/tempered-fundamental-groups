@@ -4,5 +4,7 @@ import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.Etale
+import TemperedFundamentalGroups.Tempered.EtaleMathlib
+import TemperedFundamentalGroups.Tempered.EtaleProfinite
 import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Topology.CoveringCode

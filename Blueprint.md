@@ -183,7 +183,7 @@ semistable reduction.
 | D1 | Finite levels, `G_T`, Galois condition | `Tempered/Level.lean` | [P] |
 | D2 | The category `𝒞`, fibre functor `Φ`, `π₁^temp := Aut Φ` | `Tempered/Category.lean` | [P] |
 | D3 | `π₁^fin`, the functor `𝒞^fin → 𝒞`, continuous comparison `π₁^temp → π₁^fin` | `Tempered/Finite.lean` | [P] |
-| E1 | `π₁^fin([Y/A]) ≅ Aut` of the fibre functor on `A`-equivariant finite étale covers (Galois theory; with `A = 1`, `pi1`'s `FiniteEtale` fundamental group) | — | [P] |
+| E1 | `π₁^fin([Y/A]) ≅ Aut` of the fibre functor on `A`-equivariant finite étale covers (Galois theory; with `A = 1`, `pi1`'s `FiniteEtale` fundamental group) | `Tempered/EtaleProfinite.lean` (profinite), `Tempered/EtaleMathlib.lean` (`A = 1`: `≃ₜ*` Mathlib's `Aut (FiniteEtale.fiber R Ω)`) | [P] |
 | E2 | Step 3 of §4 (abstract comparison of automorphism groups) | — | [P] |
 | E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | — | [P] |
 | F1 | Orbicurve presentation: `Y = E ∖ E[ℓ] = Spec R[1/ψ_ℓ]`, `A = M ⋊ {±1}` acting by translations and negation | shared with the étale π₁ construction | [P] |
