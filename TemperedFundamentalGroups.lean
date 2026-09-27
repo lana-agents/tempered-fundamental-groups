@@ -2,6 +2,7 @@ import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.Topology
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
+import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Valuation
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
