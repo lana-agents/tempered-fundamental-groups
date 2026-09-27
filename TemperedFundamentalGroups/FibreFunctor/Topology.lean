@@ -183,6 +183,17 @@ instance : T2Space (FibreAut F) := by
     exact this ⟨c, x⟩ (Finset.mem_singleton_self _)
   · rfl
 
+/-- The pointwise stabilizer of a finite set of fibre elements, as an open subgroup. -/
+def openStabilizer (S : Finset (Σ c : C, F.obj c)) : OpenSubgroup (FibreAut F) :=
+  ⟨stabilizer F S, isOpen_stabilizer F S⟩
+
+/-- `FibreAut F` is a non-archimedean (prodiscrete) group: open subgroups form a basis of
+neighbourhoods of `1`. -/
+instance : NonarchimedeanGroup (FibreAut F) where
+  is_nonarchimedean U hU := by
+    obtain ⟨S, -, hS⟩ := (nhds_one_hasBasis F).mem_iff.1 hU
+    exact ⟨openStabilizer F S, hS⟩
+
 /-- A homomorphism into `FibreAut F` is continuous as soon as the preimage of every
 pointwise stabilizer is a neighbourhood of `1`. -/
 lemma continuous_of_stabilizer {H : Type*} [Group H] [TopologicalSpace H]
