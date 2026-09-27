@@ -4,15 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Tempered.Category
+import TemperedFundamentalGroups.Tempered.Etale
 
 /-!
 # The comparison homomorphism from the tempered to the étale fundamental group
 
-A finite étale cover of `[Spec R / A]`, presented as a finite `G_L`-set `S` over a Galois level
-`L`, is the tempered covering attached to the *trivial* model `Spec O` (`ModelCode.trivial`) with
-the trivial covering `|Spec k| × S` of its special fibre. This defines a functor
-`finiteToTemp : FiniteObj ⥤ TempObj` together with an isomorphism of fibre functors
-`finiteToTemp ⋙ tempFibre ≅ finFibre`, and hence the continuous comparison homomorphism
+An `A`-equivariant finite étale `R`-algebra `B` (a finite étale cover of `[Spec R / A]`) is the
+tempered covering attached to the level `(B, image of A)`, the *trivial* model `Spec O`
+(`ModelCode.trivial`) and the trivial one-sheeted covering of its special fibre. This defines a
+functor `etaleToTemp : EquivEtale R A ⥤ TempObj O R A` together with an isomorphism of fibre
+functors `etaleToTemp ⋙ tempFibre ≅ etaleFibre`, and hence the continuous comparison homomorphism
 
 `temperedToEtale : temperedPi1 →* etalePi1`
 
@@ -30,15 +31,14 @@ noncomputable section
 variable {K : Type u} [Field K] (O : ValuationSubring K)
   (R : Type u) [CommRing R] [Algebra K R] (A : Type u) [Group A] [MulSemiringAction A R]
   [SMulCommClass A K R]
-  {Ω : Type u} [Field Ω] [Algebra R Ω]
 
-/-- Semilinear automorphisms of a level fix the image of `O`. -/
-lemma levelStructureMap_σ (L : FiniteLevel R A Ω) (g : L.G) (x : O) :
+/-- Semilinear automorphisms fix the image of `O`. -/
+lemma levelStructureMap_σ (L : FiniteLevel R A) (g : SemilinearAut R A L.B) (x : O) :
     g.σ (levelStructureMap O R A L x) = levelStructureMap O R A L x := by
   simp [levelStructureMap, g.map_algebraMap]
 
 omit [SMulCommClass A K R] in
-lemma spec_levelStructureMap {L L' : FiniteLevel R A Ω} (φ : L ⟶ L') :
+lemma spec_levelStructureMap {L L' : FiniteLevel R A} (φ : L ⟶ L') :
     Spec.map (CommRingCat.ofHom (levelStructureMap O R A L)) =
       Spec.map (CommRingCat.ofHom (φ.f : L'.B →+* L.B)) ≫
         Spec.map (CommRingCat.ofHom (levelStructureMap O R A L')) := by
@@ -47,9 +47,8 @@ lemma spec_levelStructureMap {L L' : FiniteLevel R A Ω} (φ : L ⟶ L') :
   ext x
   simp [levelStructureMap]
 
-/-- **The trivial level** over a finite level: the model `Spec O` (`ℙ⁰_O`) with the trivial
-action. -/
-def trivialLevel (L : FiniteLevel R A Ω) : Level O R A (Ω := Ω) where
+/-- **The trivial model** over a level: `Spec O` (`ℙ⁰_O`) with the trivial action. -/
+def trivialLevel (L : FiniteLevel R A) : Level O R A where
   L := L
   c := ModelCode.trivial O
   j := Spec.map (CommRingCat.ofHom (levelStructureMap O R A L)) ≫
@@ -63,67 +62,113 @@ def trivialLevel (L : FiniteLevel R A Ω) : Level O R A (Ω := Ω) where
     rw [Category.comp_id, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
     congr 3
     ext x
-    exact levelStructureMap_σ O R A L g⁻¹ x
+    exact levelStructureMap_σ O R A L (g : SemilinearAut R A L.B)⁻¹ x
 
-@[simp] lemma trivialLevel_ρs_apply (L : FiniteLevel R A Ω) (g : L.G)
-    (z : (trivialLevel O R A L).Z) : (trivialLevel O R A L).ρs g z = z := by
-  apply Subtype.ext
-  rw [Level.ρs_apply]
-  rfl
+variable {R A}
 
-/-- **The functor from finite covers to tempered covers**: the trivial model with the trivial
-covering `|𝒯_s| × Fin n`. -/
-def finiteToTemp : FiniteObj R A Ω ⥤ TempObj O R A (Ω := Ω) where
-  obj X := ⟨trivialLevel O R A X.L, CoveringCode.trivial _ X.n X.α⟩
+/-- The level `(B, image of A)` of an equivariant finite étale algebra. -/
+abbrev EquivEtale.level (X : EquivEtale R A) : FiniteLevel R A where
+  toEtaleCode := X.toEtaleCode
+  H := X.act.range
+  surjective a := ⟨X.act a, ⟨a, rfl⟩, X.act_a a⟩
+
+lemma EquivEtale.eq_act_of_mem (X : EquivEtale R A) {g : SemilinearAut R A X.B}
+    (hg : g ∈ X.act.range) : g = X.act g.a := by
+  obtain ⟨a, rfl⟩ := hg
+  rw [X.act_a]
+
+/-- The homomorphism of the groups `H` induced by an equivariant map. -/
+def EquivEtale.levelR {X Y : EquivEtale R A} : X.level.H →* Y.level.H where
+  toFun g := ⟨Y.act g.1.a, ⟨_, rfl⟩⟩
+  map_one' := by ext1; simp only [OneMemClass.coe_one, SemilinearAut.one_a, map_one]
+  map_mul' g h := by ext1; simp only [Subgroup.coe_mul, SemilinearAut.mul_a, map_mul]
+
+/-- The morphism of levels induced by an equivariant map. -/
+def EquivEtale.levelMap {X Y : EquivEtale R A} (m : X ⟶ Y) : X.level ⟶ Y.level where
+  f := m.f
+  r := EquivEtale.levelR
+  r_a g := Y.act_a _
+  f_σ g y := by
+    change m.f ((Y.act g.1.a).σ y) = _
+    rw [m.f_act, ← X.eq_act_of_mem g.2]
+
+lemma EquivEtale.H0_eq_one (X : EquivEtale R A) (g : X.level.H0) : g = 1 := by
+  have h1 := FiniteLevel.mem_H0.1 g.2
+  have h2 := X.eq_act_of_mem (g : X.level.H).2
+  rw [h1, map_one] at h2
+  exact Subtype.ext (Subtype.ext h2)
+
+variable (R A)
+
+/-- **The functor from finite étale covers to tempered covers**: the level `(B, image of A)`
+with the trivial model and the trivial one-sheeted covering. -/
+def etaleToTemp : EquivEtale R A ⥤ TempObj O R A where
+  obj X := ⟨trivialLevel O R A X.level, CoveringCode.trivial _ 1 1⟩
   map {X Y} m :=
-    { φ := m.φ
+    { φ := EquivEtale.levelMap m
       ψ := 𝟙 _
       ψ_toSpec := Category.id_comp _
       j_ψ := by
-        change (Spec.map (CommRingCat.ofHom (levelStructureMap O R A X.L)) ≫
+        change (Spec.map (CommRingCat.ofHom (levelStructureMap O R A X.level)) ≫
             inv (ModelCode.trivial O).toSpec) ≫ 𝟙 _ =
-          Spec.map (CommRingCat.ofHom (m.φ.f : Y.L.B →+* X.L.B)) ≫
-            (Spec.map (CommRingCat.ofHom (levelStructureMap O R A Y.L)) ≫
+          Spec.map (CommRingCat.ofHom (m.f : Y.B →+* X.B)) ≫
+            (Spec.map (CommRingCat.ofHom (levelStructureMap O R A Y.level)) ≫
               inv (ModelCode.trivial O).toSpec)
-        rw [Category.comp_id, spec_levelStructureMap O R A m.φ, Category.assoc]
-      h := fun x => ⟨(x.1.1, (m.h ⟨x.1.2, x.2.2⟩ : ℕ)), Set.mem_univ _, (m.h _).2⟩
-      continuous_h := by
-        apply Continuous.subtype_mk
-        refine Continuous.prodMk (by fun_prop) ?_
-        exact continuous_subtype_val.comp
-          ((continuous_of_discreteTopology (f := fun k : {k : ℕ | k < X.n} =>
-            (⟨(m.h ⟨k.1, k.2⟩ : ℕ), (m.h _).2⟩ : {k : ℕ | k < Y.n}))).comp
-          (Continuous.subtype_mk (by fun_prop) fun x => x.2.2))
+        rw [Category.comp_id, spec_levelStructureMap O R A (EquivEtale.levelMap m),
+          Category.assoc]
+        rfl
+      h := fun x => x
+      continuous_h := continuous_id
       fst_h := fun _ => rfl
       h_act := fun g x => by
         apply Subtype.ext
-        refine Prod.ext ?_ ?_
-        · rfl
-        · simp only [CoveringCode.trivial]
-          exact congrArg Fin.val (m.h_α g ⟨x.1.2, x.2.2⟩) }
-  map_id _ := rfl
-  map_comp _ _ := rfl
+        rfl }
+  map_id X := by
+    refine TempObj.Hom.ext (FiniteLevel.Hom.ext rfl (MonoidHom.ext fun g => ?_)) rfl rfl
+    exact Subtype.ext (X.eq_act_of_mem g.2).symm
+  map_comp {X Y Z} m n := by
+    refine TempObj.Hom.ext (FiniteLevel.Hom.ext rfl (MonoidHom.ext fun g => ?_)) ?_ rfl
+    · exact Subtype.ext (congrArg Z.act (Y.act_a _).symm)
+    · exact (Category.comp_id _).symm
 
-variable [Algebra K Ω] [IsScalarTower K R Ω] (V : ValuationSubring Ω)
-  (hV : V.comap (algebraMap K Ω) = O)
+variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
 
-/-- The fibre of the trivial covering over the specialized base point is the finite set. -/
-def finiteToTempFibreEquiv (X : FiniteObj R A Ω) :
-    ((finiteToTemp O R A) ⋙ tempFibre O R A V hV).obj X ≃ (finFibre R A Ω).obj X where
-  toFun x := ⟨⟨x.1.1.2, x.1.2.2⟩⟩
-  invFun k := ⟨⟨((trivialLevel O R A X.L).spPoint V hV, k.down), Set.mem_univ _, k.down.2⟩, rfl⟩
-  left_inv x := Subtype.ext (Subtype.ext (Prod.ext x.2.symm rfl))
+/-- The fibre of the tempered covering attached to a finite étale cover is its geometric
+fibre. -/
+def etaleToTempFibreEquiv (X : EquivEtale R A) :
+    ((etaleToTemp O R A) ⋙ tempFibre O R A V hV).obj X ≃ (etaleFibre R A Ω).obj X where
+  toFun := Quotient.lift (fun q => (q.1.1 : X.B →ₐ[R] Ω)) fun q q' ⟨g, hg⟩ => by
+    obtain rfl : g = 1 := X.H0_eq_one g
+    rw [← hg]
+    rfl
+  invFun t := Quotient.mk _
+    ⟨((t : X.B →ₐ[R] Ω), ⟨(((etaleToTemp O R A).obj X).Lv.sp V hV t, 0), Set.mem_univ _,
+      Nat.zero_lt_one⟩), rfl⟩
+  left_inv q := by
+    induction q using Quotient.inductionOn with
+    | h q =>
+      change Quotient.mk _ _ = Quotient.mk _ q
+      congr 1
+      apply Subtype.ext
+      refine Prod.ext rfl (Subtype.ext (Prod.ext (Subtype.ext q.2.symm) ?_))
+      have := q.1.2.2.2
+      simp only [Set.mem_setOf_eq, Nat.lt_one_iff] at this
+      exact this.symm
   right_inv _ := rfl
 
-/-- The fibre functors agree on finite covers. -/
-def finiteToTempFibreIso :
-    (finiteToTemp O R A) ⋙ tempFibre O R A V hV ≅ finFibre R A Ω :=
-  NatIso.ofComponents (fun X => (finiteToTempFibreEquiv O R A V hV X).toIso) fun _ => rfl
+/-- The fibre functors agree on finite étale covers. -/
+def etaleToTempFibreIso :
+    (etaleToTemp O R A) ⋙ tempFibre O R A V hV ≅ etaleFibre R A Ω :=
+  NatIso.ofComponents (fun X => (etaleToTempFibreEquiv O R A V hV X).toIso) fun {X Y} m => by
+    ext q
+    induction q using Quotient.inductionOn
+    rfl
 
 /-- **The comparison homomorphism** from the tempered fundamental group of `[Spec R / A]` to its
 étale fundamental group. -/
 def temperedToEtale : temperedPi1 O R A V hV →* etalePi1 R A Ω :=
-  FibreAut.restrict (finiteToTemp O R A) (finiteToTempFibreIso O R A V hV)
+  FibreAut.restrict (etaleToTemp O R A) (etaleToTempFibreIso O R A V hV)
 
 lemma continuous_temperedToEtale : Continuous (temperedToEtale O R A V hV) :=
   FibreAut.continuous_restrict _ _
