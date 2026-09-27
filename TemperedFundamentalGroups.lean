@@ -1,3 +1,8 @@
-import TemperedFundamentalGroups.Basic
+import TemperedFundamentalGroups.FibreFunctor.Topology
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
+import TemperedFundamentalGroups.Tempered.Category
+import TemperedFundamentalGroups.Tempered.Comparison
+import TemperedFundamentalGroups.Tempered.Finite
+import TemperedFundamentalGroups.Tempered.Level
+import TemperedFundamentalGroups.Topology.CoveringCode
