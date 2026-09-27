@@ -164,3 +164,34 @@ theorem temperedToEtale_galoisToTempered (σ : decompositionGroup R V) :
 end
 
 end TemperedFundamentalGroups
+
+namespace TemperedFundamentalGroups
+
+noncomputable section
+
+variable {K : Type u} [Field K] {O : ValuationSubring K}
+  {R : Type u} [CommRing R] [Algebra K R] {A : Type u} [Group A] [MulSemiringAction A R]
+  [SMulCommClass A K R]
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  {V : ValuationSubring Ω} (hV : V.comap (algebraMap K Ω) = O)
+
+/-- **Non-degeneracy**: the image of the tempered fundamental group in the étale fundamental group
+contains the Galois action of the decomposition group. -/
+lemma galoisToEtale_mem_range_temperedToEtale (σ : decompositionGroup R V) :
+    galoisToEtale R A Ω σ ∈ (temperedToEtale O R A V hV).range :=
+  ⟨galoisToTempered O R A hV σ, temperedToEtale_galoisToTempered hV σ⟩
+
+/-- An element of the decomposition group moving a geometric point of some finite étale cover
+gives a nontrivial element of the tempered fundamental group. -/
+lemma galoisToTempered_ne_one (σ : decompositionGroup R V) (X : EquivEtale R A)
+    (t : X.B →ₐ[R] Ω) (ht : (σ : Ω →ₐ[R] Ω).comp t ≠ t) :
+    galoisToTempered O R A hV σ ≠ 1 := by
+  intro h
+  apply ht
+  have := congrArg (fun τ => (temperedToEtale O R A V hV τ).app X t) h
+  simp only [map_one, FibreAut.one_app, temperedToEtale_galoisToTempered] at this
+  exact this
+
+end
+
+end TemperedFundamentalGroups
