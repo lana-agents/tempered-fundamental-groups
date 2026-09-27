@@ -189,7 +189,8 @@ semistable reduction.
 | D3 | `etalePi1` on `A`-equivariant finite étale algebras; functor `etaleToTemp`; continuous `temperedToEtale` | `Tempered/Etale.lean`, `Tempered/Comparison.lean` | [L] |
 | E1 | `etalePi1` is profinite; for `A = 1` it is `≃ₜ*` to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` | `Tempered/EtaleProfinite.lean`, `Tempered/EtaleMathlib.lean` | [L] |
 | E2 | Step 3 of §4: restriction along a realization (essentially surjective, morphisms realized after refinement) is `≃ₜ*` | `FibreFunctor/Realization.lean` | [L] (abstract lemma; its hypotheses for André's category are steps 1–2, [C]) |
-| E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | — | [P] |
+| E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | `Topology/CountableFibres.lean` | [L] (topological lemma; the resulting equivalence of categories after adding coproducts is argued, not formalized) |
+| E4 | Galois elements: the decomposition group `{σ ∈ Aut_R(Ω) : σV = V}` acts on `temperedPi1` (`[(t,p)] ↦ [(σ∘t, p)]`, specialization is Galois invariant), compatibly with its action on `etalePi1` | `Tempered/Galois.lean`, `Models/Specialization.lean` (`sp_galois`) | [L] |
 | F1 | Orbicurve presentation: `Y = E ∖ S` with `S = E(k)[ℓ] + M` (rational points; `= E[ℓ]` when `E[ℓ] ⊆ E(k)`, as at all places used by IUT), `A = M` or `M ⋊ {±1}` acting by translations and negation on the function field | `Orbicurve/` | [P] (in progress) |
 | F2 | Canonical valuation on `k` (the henselian DVR if one exists, else trivial); Chevalley extension to `Ω`; pointed affine orbifolds | `Setup/Valuation.lean`, `Setup/Orbifold.lean` | [L]; canonicity (F. K. Schmidt) [C] |
 | F3 | `TemperedPi1Theory` instance from the above and a continuous comparison `etalePi1 → Pi1.pi1` (the identity if the étale theory uses `AffineOrbifold.etalePi1Profinite`) | iut | [P] |
