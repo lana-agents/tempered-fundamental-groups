@@ -187,7 +187,7 @@ semistable reduction.
 | D1 | Levels `(B, H)`, `G_B`, `H⁰`, action on geometric fibres | `Tempered/Level.lean` | [L] |
 | D2 | The category `TempObj`, fibre functor `tempFibre`, `temperedPi1 := Aut` | `Tempered/Category.lean` | [L] |
 | D3 | `etalePi1` on `A`-equivariant finite étale algebras; functor `etaleToTemp`; continuous `temperedToEtale` | `Tempered/Etale.lean`, `Tempered/Comparison.lean` | [L] |
-| E1 | `etalePi1` is profinite; for `A = 1` it is `≃ₜ*` to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` | — | [P] |
+| E1 | `etalePi1` is profinite; for `A = 1` it is `≃ₜ*` to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` | `Tempered/EtaleProfinite.lean`, `Tempered/EtaleMathlib.lean` | [L] |
 | E2 | Step 3 of §4 (abstract comparison of automorphism groups) | — | [P] |
 | E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | — | [P] |
 | F1 | Orbicurve presentation: `Y = E ∖ E[ℓ] = Spec R[1/ψ_ℓ]`, `A = M ⋊ {±1}` acting by translations and negation | shared with the étale π₁ construction | [P] |
