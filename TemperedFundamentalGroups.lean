@@ -1,1 +1,3 @@
 import TemperedFundamentalGroups.Basic
+import TemperedFundamentalGroups.Models.Projective
+import TemperedFundamentalGroups.Models.Specialization
