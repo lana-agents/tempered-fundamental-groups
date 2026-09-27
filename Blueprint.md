@@ -1,0 +1,226 @@
+# Blueprint: the tempered fundamental group via integral models
+
+Status legend: **[L]** formalized in Lean in this repository (no `sorry`/`axiom`), **[P]** planned
+in Lean, **[C]** cited from the literature and *not* formalized (the precise statement is
+recorded here so that the gap is visible), **[✗]** out of reach with the present libraries.
+
+## 0. Target
+
+The consumer is `Iut.Anabelian.TemperedPi1Theory Pi1` (lana-agents/iut,
+`Iut/Anabelian/Geometry.lean`): for every model orbicurve `X = (E, ℓ, M, ±)` over a field `k`
+a topological group `tempPi1 X : Type u` and a continuous homomorphism
+`tempPi1 X →* Pi1.pi1 X` to the étale fundamental group supplied by the sibling construction.
+The interface is weak (a trivial instance type-checks), so the requirement is that
+`tempPi1 X` *is* André's tempered fundamental group of `X` for the curves IUT uses: Tate
+curves minus torsion `(E_q/M) ∖ (E_q[ℓ]/M)` over complete discretely valued fields `K` of
+characteristic 0 (residue characteristic 2 allowed), and their `{±1}`-quotients.
+
+## 1. André's definition and Lepage's formula
+
+Let `K` be a complete non-archimedean field and `X` a smooth `K`-variety.
+
+* A morphism of `K`-analytic spaces `S → X^an` is an *étale covering* (de Jong) if `X^an` is
+  covered by opens over which it is a disjoint union of finite étale maps.
+* It is *tempered* (André, *Period mappings*, III.2.1.1) if it becomes a topological covering
+  after pullback along some finite étale `T → X`.
+* `π₁^temp(X, x̄) := Aut(F_x̄)` for the fibre functor on tempered coverings, with the topology
+  for which the stabilizers of points of fibres form a basis of open subgroups.
+* (Lepage, §1.1, citing André III.2.1.5) If `(S_i)` is a cofinal system of pointed Galois
+  finite étale covers and `S_i^∞` the universal topological covering of `S_i^an`, then
+  `π₁^temp(X, x̄) ≅ lim_i Gal(S_i^∞ / X)`.
+
+Two facts make a model-theoretic description possible:
+
+* (André III.1.1.4) Topological coverings of `S^an` extend uniquely across a nowhere dense
+  Zariski closed subset. Hence for a curve `S = S̄ ∖ D` one may compute topological
+  coverings on the *proper* curve `S̄`.
+* (Raynaud, Berkovich) For a proper curve `C/K`, `C^an` is (up to maximal Hausdorff quotient)
+  the inverse limit of the special fibres `|𝒞_s|` of its proper models `𝒞/O_K`, and
+  topological coverings of `C^an` are exactly the pullbacks along the specialization map of
+  the Zariski covering spaces of `|𝒞_s|` for sufficiently fine models (semistable models with
+  loop-free dual graph suffice, e.g. by Berkovich's retraction onto the skeleton).
+
+## 2. Why integral models and not Berkovich/rigid spaces or formal generic fibres
+
+`formal-schemes` provides affine formal schemes, gluing, completions along closed subsets (affine
+case), separatedness, fibre products over an affine base and a formal Tate model (period `q²`).
+It does not provide Raynaud generic fibres, étale morphisms of formal schemes, normalization of
+formal schemes, Grothendieck existence, or admissible blow-ups. A literal "formal model +
+generic fibre" definition is therefore not available.
+
+It is also not needed: for a proper `O_K`-scheme `𝒞`, the formal completion `𝒞^` along the
+special fibre has underlying space `|𝒞_s|`, and a Zariski-locally trivial covering of the
+formal scheme `𝒞^` is the same thing as a covering space of the topological space `|𝒞_s|`
+(the structure sheaf is pulled back along the local homeomorphism). By formal GAGA every
+formal model of a proper curve is algebraizable. So "topological coverings of `C^an` read off
+from formal models" is literally "covering spaces of `|𝒞_s|` for proper `O_K`-models `𝒞`",
+which is expressible with Mathlib's schemes. This is the definition used below. The
+formal-scheme vocabulary enters through `|𝒞^| = |𝒞_s|`; nothing of `formal-schemes` is
+imported by the core, and it is not a Lake dependency yet.
+
+## 3. The definition formalized here
+
+### 3.1 Base data (`TemperedFundamentalGroups/Setup.lean`)
+
+* a field `K` with a valuation subring `O ⊆ K` (the ring of integers);
+* an algebraically closed field `Ω` with a valuation subring `V ⊆ Ω` and `K → Ω` with
+  `V ∩ K = O` (a geometric point with a chosen extension of the valuation — it fixes the
+  specialization of geometric points);
+* the curve as an orbifold `[Y/A]`: an affine `K`-scheme `Y = Spec R` with a finite group `A`
+  acting on `R` by `K`-algebra automorphisms (for IUT: `Y = E ∖ E[ℓ]`, `A = M` or `M ⋊ {±1}`;
+  `A` trivial gives the scheme `Y`);
+* a geometric point `ȳ : R →ₐ[K] Ω`.
+
+No completeness is required by the definition; it is the tempered group of `Y_{K^}` when `O`
+is henselian.
+
+### 3.2 Levels (Galois finite étale covers of `[Y/A]` with a model)
+
+A *finite level* is
+
+* a finite étale `R`-algebra `B` (so `T = Spec B → Y` is finite étale), presented as
+  `MvPolynomial (Fin n) R ⧸ I` so that levels form a `Type u`;
+* the group `G_T = {(a, σ) : a ∈ A, σ ∈ Aut_ring(B), σ ∘ (R → B) = (R → B) ∘ a}` and its
+  kernel `G_T⁰ = Aut_R(B)` of the projection to `A`;
+* a base point `t₀ : B →ₐ[R] Ω` over `ȳ`;
+* the *Galois condition*: `G_T⁰` acts simply transitively on `T_ȳ = (B →ₐ[R] Ω)` and
+  `G_T → A` is surjective (`T → [Y/A]` is a Galois (torsor-type) cover).
+
+A *level* is a finite level together with a *model*:
+
+* a proper `O`-scheme `𝒯` given as a closed subscheme of `ℙ^m_O = Proj O[x₀..x_m]`
+  (projective models are cofinal among normal proper models of curves: Lichtenbaum; codes
+  keep everything in `Type u`);
+* a morphism `j : Spec B → 𝒯` over `Spec O`;
+* an action `ρ : G_T →* Aut 𝒯` over `Spec O` with `j` equivariant.
+
+No flatness, normality or open-immersion hypothesis is imposed: any such datum produces a
+genuine topological covering of `T^an` (pull back along `j^an` and specialization), and the
+refinement argument of §4 shows that the extra models do not change the automorphism group.
+
+### 3.3 Specialization (`Models/Specialization.lean`)
+
+For a proper (universally closed and separated suffices) `𝒯 → Spec O` and a geometric point
+`t : Spec Ω → 𝒯` over `Spec K → Spec O`, the valuative criterion gives a unique lift
+`Spec V → 𝒯`; `sp(t)` is the image of the closed point. It lies in the special fibre
+`|𝒯_s| = 𝒯 ×_O k` (as a subspace of `|𝒯|`) and is natural for morphisms of models.
+
+### 3.4 Objects, morphisms, fibre functor
+
+An object over a level `L` is a `G_T`-equivariant covering space `P → |𝒯_s|`, coded with
+carrier a subset of `|𝒯_s| × ℕ` (connected covering spaces of a noetherian space have
+countable fibres, so this loses nothing up to isomorphism; §4).
+
+A morphism `(L', P') → (L, P)` is: a pointed `R`-algebra map `f : B → B'`, a compatible group
+homomorphism `r : G_{T'} → G_T` over `A`, a morphism of models `ψ : 𝒯' → 𝒯` over `O` with
+`j ∘ Spec f = ψ ∘ j'`, and a continuous `r`-equivariant map `h : P' → P` over `ψ_s`.
+
+The fibre functor is `Φ(L, P) = P_{sp(j ∘ t₀)}`, `Φ(h) = h|_fibre` (well defined by uniqueness
+of specialization). The realization `(P ×_{sp} T^an)/G_T⁰` is an `A`-equivariant tempered
+covering of `Y^an` with fibre `Φ(L, P)` over `ȳ` (Galois condition).
+
+### 3.5 The groups
+
+* `π₁^temp([Y/A], ȳ) := Aut Φ`, with the group topology whose basic open subgroups are the
+  stabilizers of finitely many fibre elements (pointwise convergence on discrete fibres). It
+  is a Hausdorff non-archimedean (prodiscrete) topological group.
+* `π₁^fin([Y/A], ȳ) := Aut Φ^fin` for the category of finite levels with finite `G_T`-sets,
+  `Φ^fin = the set`. This is the étale fundamental group of `[Y/A]` by Galois theory
+  (SGA 1 V; §5).
+* The comparison `π₁^temp → π₁^fin` is restriction along the functor "trivial model
+  `Spec O`, trivial covering `|𝒯_s| × Z`", which commutes with the fibre functors. It is
+  continuous.
+
+## 4. Why this is André's group (the identification chain)
+
+Let `R : 𝒞 → Temp_A(Y)` be the realization functor, `Φ ≅ F_ȳ ∘ R`.
+
+1. **[C]** (Raynaud–Berkovich comparison) Pulling back a covering space of `|𝒯_s|` along
+   `sp ∘ j^an` is a topological covering of `T^an`; every topological covering of `T^an`
+   arises this way for a sufficiently fine `G_T`-equivariant projective model (semistable
+   reduction of `T̄` after a finite extension, descended to `O_K` by taking quotients; blow-ups to
+   remove loops; Lichtenbaum for projectivity; André III.1.1.4 to pass from `T` to `T̄`).
+2. **[C]** (André III.2.1.5 / Lepage §1.1) every `A`-equivariant tempered covering is split by
+   some Galois cover of `[Y/A]`, and `π₁^temp = lim Gal(T^∞/[Y/A])`.
+3. **[P]** (formal) If a functor `R` with `Φ ≅ F ∘ R` is essentially surjective and every
+   morphism between realizations is realized after refinement, then whiskering
+   `Aut F → Aut Φ` is an isomorphism of topological groups. Refinements exist because levels
+   are directed (common Galois covers; closure of the diagonal image in a product of
+   projective models, which is again projective by the Segre embedding).
+4. **[P]** (countable fibres) Every connected covering space of a noetherian topological space
+   has countable fibres; hence the carrier restriction `⊆ |𝒯_s| × ℕ` gives an equivalent
+   category after adding coproducts, and does not change `Aut Φ`.
+
+Steps 1–2 are where Berkovich geometry would enter; they are the precise content of
+"owner-accepted formal-model definition à la Lepage". The definition itself uses no
+semistable reduction.
+
+### Semistable reduction and the Schottky route
+
+* The *definition* does not need semistable reduction; only the identification step 1
+  (essential surjectivity of `R`) does.
+* For `Y` itself (a Tate curve minus torsion) the Schottky/Tate uniformization makes
+  topological coverings explicit: the special fibre of a model with an `n`-gon (`n ≥ 2`)
+  reduction carries the `ℤ`-covering of the uniformization `𝔾_m → E_q`.
+* It does **not** avoid semistable reduction for the tempered group: tempered coverings are
+  topological coverings of *arbitrary* finite étale covers `T → Y`, and these are curves of
+  arbitrary genus which are in general not Mumford curves (their special fibres have
+  components of positive genus). No explicit cofinal family of covers with explicit stable
+  models is known. The Schottky route suffices only for specific quotients (e.g. the
+  `ℤ`-quotient `π₁^temp(E_q ∖ 0) ↠ ℤ` used for the étale theta function), not for the group.
+
+## 5. Lemma chain (Lean), with status
+
+| # | Statement | File | Status |
+|---|-----------|------|--------|
+| A1 | Pointwise-convergence group topology on `Aut F`, `F : C ⥤ Type`; stabilizers are an open basis; `T2` | `FibreFunctor/Topology.lean` | [P] |
+| A2 | Whiskering along `G : C' ⥤ C` with `F ∘ G ≅ F'` gives a continuous hom `Aut F → Aut F'` | same | [P] |
+| A3 | If every `F c` is finite, `Aut F` is compact (profinite) | same | [P] |
+| B1 | `ℙ^m_O := Proj O[x₀..x_m]`, proper over `Spec O`; model codes are proper | `Models/Projective.lean` | [P] |
+| B2 | Special fibre as a subspace; functoriality | `Models/Specialization.lean` | [P] |
+| B3 | Specialization of `Ω`-points via the valuative criterion; uniqueness; naturality | same | [P] |
+| C1 | Covering codes over a space, `G`-equivariance, fibres, trivial coverings | `Topology/CoveringCode.lean` | [P] |
+| D1 | Finite levels, `G_T`, Galois condition | `Tempered/Level.lean` | [P] |
+| D2 | The category `𝒞`, fibre functor `Φ`, `π₁^temp := Aut Φ` | `Tempered/Category.lean` | [P] |
+| D3 | `π₁^fin`, the functor `𝒞^fin → 𝒞`, continuous comparison `π₁^temp → π₁^fin` | `Tempered/Finite.lean` | [P] |
+| E1 | `π₁^fin([Y/A]) ≅ Aut` of the fibre functor on `A`-equivariant finite étale covers (Galois theory; with `A = 1`, `pi1`'s `FiniteEtale` fundamental group) | — | [P] |
+| E2 | Step 3 of §4 (abstract comparison of automorphism groups) | — | [P] |
+| E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | — | [P] |
+| F1 | Orbicurve presentation: `Y = E ∖ E[ℓ] = Spec R[1/ψ_ℓ]`, `A = M ⋊ {±1}` acting by translations and negation | shared with the étale π₁ construction | [P] |
+| F2 | Canonical valuation on `k` (the henselian DVR if one exists, else trivial); canonicity is F. K. Schmidt's theorem | — | [P]/[C] |
+| F3 | `TemperedPi1Theory` instance from the above and the sibling's comparison `π₁^fin ≅ Pi1.pi1` | iut | [P] |
+| G1 | Non-degeneracy witness: `π₁^temp(E_q ∖ E[ℓ]) ↠ ℤ` (discrete, not profinite) | — | [P], needs Galois theory of `𝒞` and an explicit 2-gon model |
+| G2 | Steps 1–2 of §4 | — | [✗] (needs Berkovich spaces / semistable reduction) |
+
+## 6. Interface findings (iut)
+
+* `TemperedPi1Theory` receives only `[Field k]`. The tempered group depends on the valuation.
+  For a field that is not separably closed there is at most one henselian rank-one valuation
+  (F. K. Schmidt), so a canonical choice exists (F2), but the interface would be more honest if
+  it carried the valued-field structure of `K_v`.
+* `tempPi1 X : Type u` forces a smallness argument: `Aut` of a fibre functor on a large category
+  lives in `Type (u+1)`. The codes of §3.2/§3.4 make `𝒞` a `Type u` category, so `Aut Φ : Type u`
+  without a `Small` argument. The sibling étale construction (`ProfiniteGrp.{u}`) needs the same
+  kind of argument.
+* `tempToEtale` goes to an arbitrary `Pi1.pi1`; a genuine map exists only for the genuine
+  étale construction. The instance is therefore built against the sibling's `EtalePi1Theory`
+  plus an identification `π₁^fin ≅ Pi1.pi1` (E1).
+
+## 7. What `formal-schemes` would have to provide for a literally formal-scheme version
+
+Generic fibres of admissible formal schemes (or at least the specialization map from
+`Ω`-points), Grothendieck existence for proper formal curves, and normalization of formal
+schemes. With those, `𝒯` in §3.2 could be replaced by an admissible formal model and `|𝒯_s|`
+by `|𝒯|`; the rest is unchanged. The existing formal Tate model (a Néron 2-gon, period `q²`)
+together with the covering `𝔾 → 𝔾/q^{2ℤ}` is precisely a level-`Y` object of §3.4 for
+`E_{q²}` once algebraized; it is the natural input for G1.
+
+## 8. Estimate
+
+* A1–A3, B1–B3, C1, D1–D3: the definition, topology, comparison map — 2–4k lines. In progress.
+* E1–E3: Galois-theoretic identifications — 4–8k lines.
+* F1–F3: orbicurve presentation (translations on the coordinate ring are the main cost) —
+  3–6k lines, shared with the étale π₁ work.
+* G1: the `ℤ`-quotient for Tate curves — 10k+ lines (Galois theory of `𝒞`, explicit model).
+* G2: not feasible without Berkovich geometry or the semistable reduction theorem for curves;
+  it is a literature citation in this design.
