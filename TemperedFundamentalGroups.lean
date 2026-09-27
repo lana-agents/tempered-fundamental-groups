@@ -10,4 +10,5 @@ import TemperedFundamentalGroups.Tempered.Etale
 import TemperedFundamentalGroups.Tempered.EtaleMathlib
 import TemperedFundamentalGroups.Tempered.EtaleProfinite
 import TemperedFundamentalGroups.Tempered.Level
+import TemperedFundamentalGroups.Topology.CountableFibres
 import TemperedFundamentalGroups.Topology.CoveringCode
