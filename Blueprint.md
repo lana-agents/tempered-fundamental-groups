@@ -188,12 +188,12 @@ semistable reduction.
 | D2 | The category `TempObj`, fibre functor `tempFibre`, `temperedPi1 := Aut` | `Tempered/Category.lean` | [L] |
 | D3 | `etalePi1` on `A`-equivariant finite étale algebras; functor `etaleToTemp`; continuous `temperedToEtale` | `Tempered/Etale.lean`, `Tempered/Comparison.lean` | [L] |
 | E1 | `etalePi1` is profinite; for `A = 1` it is `≃ₜ*` to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` | `Tempered/EtaleProfinite.lean`, `Tempered/EtaleMathlib.lean` | [L] |
-| E2 | Step 3 of §4 (abstract comparison of automorphism groups) | — | [P] |
+| E2 | Step 3 of §4: restriction along a realization (essentially surjective, morphisms realized after refinement) is `≃ₜ*` | `FibreFunctor/Realization.lean` | [L] (abstract lemma; its hypotheses for André's category are steps 1–2, [C]) |
 | E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | — | [P] |
-| F1 | Orbicurve presentation: `Y = E ∖ E[ℓ] = Spec R[1/ψ_ℓ]`, `A = M ⋊ {±1}` acting by translations and negation | shared with the étale π₁ construction | [P] |
-| F2 | Canonical valuation on `k` (the henselian DVR if one exists, else trivial); canonicity is F. K. Schmidt's theorem | — | [P]/[C] |
-| F3 | `TemperedPi1Theory` instance from the above and the sibling's comparison `π₁^fin ≅ Pi1.pi1` | iut | [P] |
-| G1 | Non-degeneracy witness: `π₁^temp(E_q ∖ E[ℓ]) ↠ ℤ` (discrete, not profinite) | — | [P], needs Galois theory of `𝒞` and an explicit 2-gon model |
+| F1 | Orbicurve presentation: `Y = E ∖ S` with `S = E(k)[ℓ] + M` (rational points; `= E[ℓ]` when `E[ℓ] ⊆ E(k)`, as at all places used by IUT), `A = M` or `M ⋊ {±1}` acting by translations and negation on the function field | `Orbicurve/` | [P] (in progress) |
+| F2 | Canonical valuation on `k` (the henselian DVR if one exists, else trivial); Chevalley extension to `Ω`; pointed affine orbifolds | `Setup/Valuation.lean`, `Setup/Orbifold.lean` | [L]; canonicity (F. K. Schmidt) [C] |
+| F3 | `TemperedPi1Theory` instance from the above and a continuous comparison `etalePi1 → Pi1.pi1` (the identity if the étale theory uses `AffineOrbifold.etalePi1Profinite`) | iut | [P] |
+| G1 | Non-degeneracy witness: `π₁^temp(E_q ∖ E[ℓ]) ↠ ℤ` (discrete, not profinite) | — | [✗] for now: exhibiting elements of `Aut Φ` requires acting compatibly on *all* objects, i.e. the classification of tempered coverings (steps 1–2) or analytic path lifting |
 | G2 | Steps 1–2 of §4 | — | [✗] (needs Berkovich spaces / semistable reduction) |
 
 ## 6. Interface findings (iut)
