@@ -74,25 +74,26 @@ imported by the core, and it is not a Lake dependency yet.
 No completeness is required by the definition; it is the tempered group of `Y_{K^}` when `O`
 is henselian.
 
-### 3.2 Levels (Galois finite étale covers of `[Y/A]` with a model)
+### 3.2 Levels (finite étale covers of `[Y/A]` with a model)
 
-A *finite level* is
+A *level* (`FiniteLevel`) is
 
 * a finite étale `R`-algebra `B` (so `T = Spec B → Y` is finite étale), presented as
   `MvPolynomial (Fin n) R ⧸ I` so that levels form a `Type u`;
-* the group `G_T = {(a, σ) : a ∈ A, σ ∈ Aut_ring(B), σ ∘ (R → B) = (R → B) ∘ a}` and its
-  kernel `G_T⁰ = Aut_R(B)` of the projection to `A`;
-* a base point `t₀ : B →ₐ[R] Ω` over `ȳ`;
-* the *Galois condition*: `G_T⁰` acts simply transitively on `T_ȳ = (B →ₐ[R] Ω)` and
-  `G_T → A` is surjective (`T → [Y/A]` is a Galois (torsor-type) cover).
+* a subgroup `H` of `G_B = {(a, σ) : a ∈ A, σ ∈ Aut_ring(B), σ ∘ (R → B) = (R → B) ∘ a}`
+  surjecting onto `A` (the lift of the `A`-action to `T` that is used); `H⁰ = ker(H → A)`.
 
-A *level* is a finite level together with a *model*:
+No Galois condition and no base point are needed: `(P ×_{sp} T^an)/H⁰` (below) is an
+`A`-equivariant tempered covering of `Y^an` for every level, and Galois levels are cofinal.
+
+A *level with a model* (`Level`) adds:
 
 * a proper `O`-scheme `𝒯` given as a closed subscheme of `ℙ^m_O = Proj O[x₀..x_m]`
   (projective models are cofinal among normal proper models of curves: Lichtenbaum; codes
   keep everything in `Type u`);
 * a morphism `j : Spec B → 𝒯` over `Spec O`;
-* an action `ρ : G_T →* Aut 𝒯` over `Spec O` with `j` equivariant.
+* an action `ρ : H →* Aut 𝒯` over `Spec O` with `j` equivariant (`g` acts on `Spec B` by
+  `Spec(σ_g⁻¹)`).
 
 No flatness, normality or open-immersion hypothesis is imposed: any such datum produces a
 genuine topological covering of `T^an` (pull back along `j^an` and specialization), and the
@@ -105,31 +106,34 @@ For a proper (universally closed and separated suffices) `𝒯 → Spec O` and a
 `Spec V → 𝒯`; `sp(t)` is the image of the closed point. It lies in the special fibre
 `|𝒯_s| = 𝒯 ×_O k` (as a subspace of `|𝒯|`) and is natural for morphisms of models.
 
-### 3.4 Objects, morphisms, fibre functor
+### 3.4 Objects, morphisms, fibre functor (`Tempered/Category.lean`)
 
-An object over a level `L` is a `G_T`-equivariant covering space `P → |𝒯_s|`, coded with
-carrier a subset of `|𝒯_s| × ℕ` (connected covering spaces of a noetherian space have
+An object over a level with a model `L` is an `H`-equivariant covering space `P → |𝒯_s|`,
+coded with carrier a subset of `|𝒯_s| × ℕ` (connected covering spaces of a noetherian space have
 countable fibres, so this loses nothing up to isomorphism; §4).
 
-A morphism `(L', P') → (L, P)` is: a pointed `R`-algebra map `f : B → B'`, a compatible group
-homomorphism `r : G_{T'} → G_T` over `A`, a morphism of models `ψ : 𝒯' → 𝒯` over `O` with
+A morphism `(L', P') → (L, P)` is: an `R`-algebra map `f : B → B'` with a compatible group
+homomorphism `r : H' → H` over `A`, a morphism of models `ψ : 𝒯' → 𝒯` over `O` with
 `j ∘ Spec f = ψ ∘ j'`, and a continuous `r`-equivariant map `h : P' → P` over `ψ_s`.
 
-The fibre functor is `Φ(L, P) = P_{sp(j ∘ t₀)}`, `Φ(h) = h|_fibre` (well defined by uniqueness
-of specialization). The realization `(P ×_{sp} T^an)/G_T⁰` is an `A`-equivariant tempered
-covering of `Y^an` with fibre `Φ(L, P)` over `ȳ` (Galois condition).
+The fibre functor is
+`Φ(L, P) = {(t, p) : t ∈ Hom_R(B, Ω), p ∈ P, p ↦ sp(j ∘ t)} / H⁰`, the fibre over `ȳ` of the
+realization `(P ×_{sp} T^an)/H⁰`, an `A`-equivariant tempered covering of `Y^an`.
+`Φ(f, ψ, h)[(t, p)] = [(t ∘ f, h p)]` (well defined by uniqueness of specialization and
+equivariance).
 
 ### 3.5 The groups
 
-* `π₁^temp([Y/A], ȳ) := Aut Φ`, with the group topology whose basic open subgroups are the
+* `temperedPi1 := Aut Φ`, with the group topology whose basic open subgroups are the
   stabilizers of finitely many fibre elements (pointwise convergence on discrete fibres). It
-  is a Hausdorff non-archimedean (prodiscrete) topological group.
-* `π₁^fin([Y/A], ȳ) := Aut Φ^fin` for the category of finite levels with finite `G_T`-sets,
-  `Φ^fin = the set`. This is the étale fundamental group of `[Y/A]` by Galois theory
-  (SGA 1 V; §5).
-* The comparison `π₁^temp → π₁^fin` is restriction along the functor "trivial model
-  `Spec O`, trivial covering `|𝒯_s| × Z`", which commutes with the fibre functors. It is
-  continuous.
+  is a Hausdorff, totally separated, non-archimedean (prodiscrete) topological group.
+* `etalePi1 := Aut` of the fibre functor `B ↦ Hom_R(B, Ω)` on `A`-equivariant finite étale
+  `R`-algebras (`Tempered/Etale.lean`). This is the étale fundamental group of `[Y/A]` by
+  definition (SGA 1 V for `A = 1`; equivariant covers for the quotient stack). It is compact
+  (profinite) since the fibres are finite.
+* `temperedToEtale : temperedPi1 →* etalePi1` (`Tempered/Comparison.lean`) is restriction along
+  the strict functor "level `(B, image of A)`, trivial model `Spec O`, one-sheeted covering",
+  which commutes with the fibre functors. It is continuous.
 
 ## 4. Why this is André's group (the identification chain)
 
@@ -173,17 +177,17 @@ semistable reduction.
 
 | # | Statement | File | Status |
 |---|-----------|------|--------|
-| A1 | Pointwise-convergence group topology on `Aut F`, `F : C ⥤ Type`; stabilizers are an open basis; `T2` | `FibreFunctor/Topology.lean` | [P] |
-| A2 | Whiskering along `G : C' ⥤ C` with `F ∘ G ≅ F'` gives a continuous hom `Aut F → Aut F'` | same | [P] |
-| A3 | If every `F c` is finite, `Aut F` is compact (profinite) | same | [P] |
-| B1 | `ℙ^m_O := Proj O[x₀..x_m]`, proper over `Spec O`; model codes are proper | `Models/Projective.lean` | [P] |
-| B2 | Special fibre as a subspace; functoriality | `Models/Specialization.lean` | [P] |
-| B3 | Specialization of `Ω`-points via the valuative criterion; uniqueness; naturality | same | [P] |
-| C1 | Covering codes over a space, `G`-equivariance, fibres, trivial coverings | `Topology/CoveringCode.lean` | [P] |
-| D1 | Finite levels, `G_T`, Galois condition | `Tempered/Level.lean` | [P] |
-| D2 | The category `𝒞`, fibre functor `Φ`, `π₁^temp := Aut Φ` | `Tempered/Category.lean` | [P] |
-| D3 | `π₁^fin`, the functor `𝒞^fin → 𝒞`, continuous comparison `π₁^temp → π₁^fin` | `Tempered/Finite.lean` | [P] |
-| E1 | `π₁^fin([Y/A]) ≅ Aut` of the fibre functor on `A`-equivariant finite étale covers (Galois theory; with `A = 1`, `pi1`'s `FiniteEtale` fundamental group) | — | [P] |
+| A1 | Pointwise-convergence group topology on `Aut F`, `F : C ⥤ Type`; stabilizers are an open basis; `T2`, totally separated | `FibreFunctor/Topology.lean` | [L] |
+| A2 | Restriction along `G : C' ⥤ C` with `G ⋙ F ≅ F'` gives a continuous hom `Aut F → Aut F'` | same | [L] |
+| A3 | If every `F c` is finite, `Aut F` is compact (profinite) | same | [L] |
+| B1 | `ℙ^m_O := Proj O[x₀..x_m]`, proper over `Spec O`; model codes are proper; `ℙ⁰_O ≅ Spec O` | `Models/Projective.lean` | [L] |
+| B2 | Special fibre as a subspace; functoriality | `Models/Specialization.lean` | [L] |
+| B3 | Specialization of `Ω`-points via the valuative criterion; uniqueness; naturality | same | [L] |
+| C1 | Covering codes over a space, `G`-equivariance, fibres, trivial coverings | `Topology/CoveringCode.lean` | [L] |
+| D1 | Levels `(B, H)`, `G_B`, `H⁰`, action on geometric fibres | `Tempered/Level.lean` | [L] |
+| D2 | The category `TempObj`, fibre functor `tempFibre`, `temperedPi1 := Aut` | `Tempered/Category.lean` | [L] |
+| D3 | `etalePi1` on `A`-equivariant finite étale algebras; functor `etaleToTemp`; continuous `temperedToEtale` | `Tempered/Etale.lean`, `Tempered/Comparison.lean` | [L] |
+| E1 | `etalePi1` is profinite; for `A = 1` it is `≃ₜ*` to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` | — | [P] |
 | E2 | Step 3 of §4 (abstract comparison of automorphism groups) | — | [P] |
 | E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | — | [P] |
 | F1 | Orbicurve presentation: `Y = E ∖ E[ℓ] = Spec R[1/ψ_ℓ]`, `A = M ⋊ {±1}` acting by translations and negation | shared with the étale π₁ construction | [P] |
