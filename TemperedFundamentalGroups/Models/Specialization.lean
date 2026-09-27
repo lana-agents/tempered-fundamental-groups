@@ -242,6 +242,50 @@ lemma coe_sp_comp {X' : Scheme.{u}} {f' : X' ⟶ Spec (CommRingCat.of O)}
   rw [sp_comp ψ hψ]
   rfl
 
+/-- The restriction to `V` of an automorphism of `Ω` preserving `V`. -/
+def restrictVal (σ : Ω ≃ₐ[K] Ω) (hσ : ∀ x, σ x ∈ V ↔ x ∈ V) : V →+* V :=
+  ((σ : Ω →+* Ω).comp V.subtype).codRestrict V.toSubring fun x ↦ (hσ x).2 x.2
+
+instance (σ : Ω ≃ₐ[K] Ω) (hσ : ∀ x, σ x ∈ V ↔ x ∈ V) : IsLocalHom (restrictVal σ hσ) := by
+  refine ⟨fun a ha ↦ ?_⟩
+  obtain ⟨u, hu⟩ := ha.exists_left_inv
+  have hu' : (u : Ω) * σ a = 1 := congrArg Subtype.val hu
+  have ha0 : (a : Ω) ≠ 0 := by
+    rintro h
+    simp [h] at hu'
+  refine isUnit_iff_exists_inv.mpr ⟨⟨σ.symm u, (hσ _).1 (by simp)⟩, Subtype.ext ?_⟩
+  change (a : Ω) * σ.symm u = 1
+  apply σ.injective
+  rw [map_mul, AlgEquiv.apply_symm_apply, map_one, mul_comm]
+  exact hu'
+
+/-- **Specialization is invariant under automorphisms of `Ω` over `K` preserving `V`.** -/
+lemma sp_galois [UniversallyClosed f] [IsSeparated f] (σ : Ω ≃ₐ[K] Ω)
+    (hσ : ∀ x, σ x ∈ V ↔ x ∈ V) (x : Spec (CommRingCat.of Ω) ⟶ X)
+    (hx : x ≫ f = Spec.map (CommRingCat.ofHom (valToField O))) :
+    sp f V hV (Spec.map (CommRingCat.ofHom (σ : Ω →+* Ω)) ≫ x) (by
+      rw [Category.assoc, hx, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+      congr 2
+      ext a
+      simp [valToField]) = sp f V hV x hx := by
+  ext
+  rw [sp_eq_of_lift _ _ (Spec.map (CommRingCat.ofHom (restrictVal σ hσ)) ≫
+    (spLift (hV := hV) x hx).l)]
+  · change (spLift (hV := hV) x hx).l _ = (spLift (hV := hV) x hx).l _
+    congr 1
+    exact comap_closedPoint (restrictVal σ hσ)
+  · have e : (algebraMap V Ω).comp (restrictVal σ hσ) = (σ : Ω →+* Ω).comp (algebraMap V Ω) := by
+      ext; rfl
+    rw [← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp, e,
+      CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc, spLift_fac_left]
+  · have e : (restrictVal σ hσ).comp (valToVal O V hV) = valToVal O V hV := by
+      ext a
+      exact σ.commutes (a : K)
+    rw [Category.assoc]
+    refine (congrArg (Spec.map (CommRingCat.ofHom (restrictVal σ hσ)) ≫ ·)
+      (spLift_fac_right (hV := hV) x hx)).trans ?_
+    rw [← Spec.map_comp, ← CommRingCat.ofHom_comp, e]
+
 end Specialization
 
 end TemperedFundamentalGroups
