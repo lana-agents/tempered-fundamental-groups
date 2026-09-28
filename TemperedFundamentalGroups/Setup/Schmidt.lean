@@ -198,4 +198,116 @@ theorem exists_eval_eq_zero_of_valuation_lt (O : ValuationSubring k) [HenselianL
 
 end ValuationSubring
 
+section Independence
+
+variable {k : Type*} [Field k]
+
+/-- Discrete valuation rings have rank one: if `v(x) < 1` and `δ ≠ 0`, then `v(x)ᴺ < v(δ)` for
+some `N`. -/
+lemma exists_valuation_pow_lt (O : ValuationSubring k) [IsDiscreteValuationRing O] {x δ : k}
+    (hx : O.valuation x < 1) (hδ : δ ≠ 0) : ∃ N, O.valuation x ^ N < O.valuation δ := by
+  have hδ0 : 0 < O.valuation δ := zero_lt_iff.2 ((Valuation.ne_zero_iff _).2 hδ)
+  by_cases hδO : δ ∈ O
+  swap
+  · refine ⟨1, ?_⟩
+    rw [pow_one]
+    exact hx.trans (not_le.1 fun h ↦ hδO ((O.valuation_le_one_iff δ).1 h))
+  by_cases hx0 : x = 0
+  · exact ⟨1, by simpa [hx0] using hδ0⟩
+  obtain ⟨π, hπ⟩ := IsDiscreteValuationRing.exists_irreducible O
+  have hxO : x ∈ O := (O.valuation_le_one_iff x).1 hx.le
+  obtain ⟨m, u, hu⟩ := IsDiscreteValuationRing.eq_unit_mul_pow_irreducible
+    (x := (⟨x, hxO⟩ : O)) (fun h ↦ hx0 (congrArg Subtype.val h)) hπ
+  obtain ⟨n, w, hw⟩ := IsDiscreteValuationRing.eq_unit_mul_pow_irreducible
+    (x := (⟨δ, hδO⟩ : O)) (fun h ↦ hδ (congrArg Subtype.val h)) hπ
+  set q := O.valuation π
+  have hq1 : q < 1 := (O.valuation_lt_one_iff π).1 ((mem_maximalIdeal π).2 hπ.not_isUnit)
+  have hq0 : 0 < q :=
+    zero_lt_iff.2 ((Valuation.ne_zero_iff _).2 fun h ↦ hπ.ne_zero (Subtype.ext h))
+  have hvx : O.valuation x = q ^ m := by
+    have := congrArg (fun y : O ↦ O.valuation (y : k)) hu
+    simpa [O.valuation_unit] using this
+  have hvδ : O.valuation δ = q ^ n := by
+    have := congrArg (fun y : O ↦ O.valuation (y : k)) hw
+    simpa [O.valuation_unit] using this
+  have hm : m ≠ 0 := by
+    rintro rfl
+    rw [hvx, pow_zero] at hx
+    exact lt_irrefl _ hx
+  refine ⟨n + 1, ?_⟩
+  rw [hvx, hvδ, ← pow_mul]
+  exact (pow_le_pow_right_of_le_one' hq1.le (Nat.le_mul_of_pos_left _ (Nat.pos_of_ne_zero hm))
+    ).trans_lt (pow_lt_pow_right_of_lt_one₀ hq0 hq1 (Nat.lt_succ_self n))
+
+/-- A discrete valuation ring of `k` is not all of `k`. -/
+lemma ne_top_of_isDiscreteValuationRing (O : ValuationSubring k) [IsDiscreteValuationRing O] :
+    O ≠ ⊤ := by
+  intro h
+  obtain ⟨π, hπ⟩ := IsDiscreteValuationRing.exists_irreducible O
+  apply hπ.not_isUnit
+  have hπ0 : (π : k) ≠ 0 := fun h0 ↦ hπ.ne_zero (Subtype.ext h0)
+  have hinv : (π : k)⁻¹ ∈ O := (SetLike.ext_iff.1 h _).2 (ValuationSubring.mem_top _)
+  exact IsUnit.of_mul_eq_one (b := ⟨_, hinv⟩) (Subtype.ext (mul_inv_cancel₀ hπ0))
+
+/-- Two distinct discrete valuation rings of a field are incomparable (a discrete valuation ring
+is maximal among the proper valuation subrings). -/
+lemma exists_mem_not_mem_of_ne {O₁ O₂ : ValuationSubring k} [IsDiscreteValuationRing O₁]
+    [IsDiscreteValuationRing O₂] (hne : O₁ ≠ O₂) : ∃ a ∈ O₁, a ∉ O₂ := by
+  by_contra! h
+  exact hne (ValuationSubring.eq_of_le_of_ne_top O₁ h (ne_top_of_isDiscreteValuationRing O₂))
+
+/-- **Approximation** for two distinct discrete valuation rings: there is `u ∈ k` which is
+arbitrarily close to `1` for `O₁` and arbitrarily close to `0` for `O₂`. -/
+lemma exists_valuation_one_sub_lt {O₁ O₂ : ValuationSubring k} [IsDiscreteValuationRing O₁]
+    [IsDiscreteValuationRing O₂] (hne : O₁ ≠ O₂) {δ β : k} (hδ : δ ≠ 0) (hβ : β ≠ 0) :
+    ∃ u : k, O₁.valuation (1 - u) < O₁.valuation δ ∧ O₂.valuation u < O₂.valuation β := by
+  obtain ⟨a, ha₁, ha₂⟩ := exists_mem_not_mem_of_ne hne
+  obtain ⟨b, hb₂, hb₁⟩ := exists_mem_not_mem_of_ne hne.symm
+  have hb0 : b ≠ 0 := by rintro rfl; exact hb₁ (zero_mem _)
+  have ha0 : a ≠ 0 := by rintro rfl; exact ha₂ (zero_mem _)
+  have hv₁b : 1 < O₁.valuation b := not_le.1 fun h ↦ hb₁ ((O₁.valuation_le_one_iff b).1 h)
+  have hv₂a : 1 < O₂.valuation a := not_le.1 fun h ↦ ha₂ ((O₂.valuation_le_one_iff a).1 h)
+  set x := a / b with hx
+  have hx0 : x ≠ 0 := div_ne_zero ha0 hb0
+  have hx₁ : O₁.valuation x < 1 := by
+    rw [hx, map_div₀, div_lt_one₀ (zero_lt_one.trans hv₁b)]
+    exact ((O₁.valuation_le_one_iff a).2 ha₁).trans_lt hv₁b
+  have hx₂ : O₂.valuation x⁻¹ < 1 := by
+    rw [hx, inv_div, map_div₀, div_lt_one₀ (zero_lt_one.trans hv₂a)]
+    exact ((O₂.valuation_le_one_iff b).2 hb₂).trans_lt hv₂a
+  obtain ⟨N₁, hN₁⟩ := exists_valuation_pow_lt O₁ hx₁ hδ
+  obtain ⟨N₂, hN₂⟩ := exists_valuation_pow_lt O₂ hx₂ hβ
+  set y := x ^ (N₁ + N₂ + 1) with hy
+  have hy0 : y ≠ 0 := pow_ne_zero _ hx0
+  have hy₁ : O₁.valuation y < O₁.valuation δ := by
+    rw [hy, map_pow]
+    exact (pow_le_pow_right_of_le_one' hx₁.le (by omega)).trans_lt hN₁
+  have hy₁' : O₁.valuation y < 1 := by
+    rw [hy, map_pow]
+    exact pow_lt_one₀ zero_le hx₁ (by omega)
+  have hy₂ : O₂.valuation y⁻¹ < O₂.valuation β := by
+    rw [hy, ← inv_pow, map_pow]
+    exact (pow_le_pow_right_of_le_one' hx₂.le (by omega)).trans_lt hN₂
+  have hy₂' : 1 < O₂.valuation y := by
+    have : O₂.valuation y⁻¹ < 1 := by
+      rw [hy, ← inv_pow, map_pow]
+      exact pow_lt_one₀ zero_le hx₂ (by omega)
+    rwa [map_inv₀, inv_lt_one₀ (zero_lt_iff.2 ((Valuation.ne_zero_iff _).2 hy0))] at this
+  have h1y₁ : O₁.valuation (1 + y) = 1 := by
+    rw [Valuation.map_add_eq_of_lt_left _ (by rwa [map_one]), map_one]
+  have h1y₂ : O₂.valuation (1 + y) = O₂.valuation y :=
+    Valuation.map_add_eq_of_lt_right _ (by rwa [map_one])
+  have h1y0 : 1 + y ≠ 0 := by
+    intro h
+    rw [h, map_zero] at h1y₁
+    exact zero_ne_one h1y₁
+  refine ⟨(1 + y)⁻¹, ?_, ?_⟩
+  · have : 1 - (1 + y)⁻¹ = y * (1 + y)⁻¹ := by field_simp; ring
+    rw [this, map_mul, map_inv₀, h1y₁, inv_one, mul_one]
+    exact hy₁
+  · rw [map_inv₀, h1y₂, ← map_inv₀]
+    exact hy₂
+
+end Independence
+
 end TemperedFundamentalGroups
