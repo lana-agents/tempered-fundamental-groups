@@ -536,6 +536,158 @@ lemma LevelHom.isBaseChange_id (Lv : Level O R A) : (LevelHom.id Lv).IsBaseChang
 
 end BaseChange
 
+
+section Core
+
+variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
+  [HenselianLocalRing O] {R : Type u} [CommRing R] [Algebra K R] [Algebra.Smooth K R]
+  {A : Type u} [Group A] [MulSemiringAction A R] [SMulCommClass A K R]
+
+set_option maxHeartbeats 1000000 in
+/-- **The core construction from W10**: for a finite étale `R`-algebra `B₀` with a group `G₀` of
+semilinear automorphisms, a finite étale `K`-algebra `M` with a group `Δ` of automorphisms and
+finitely many models of `Spec (B₀ ⊗_K M)`, W10 gives a finite Galois extension `K'/K` and a level
+with a semistable model on `B₀ ⊗_K (M ⊗_K K')` with group the image of `G₀ × Δ × Gal(K'/K)`,
+whose model dominates the given ones. -/
+theorem exists_core (hW : SemistableReduction.Statement.Strong.{u}) (hR : ringKrullDim R = 1)
+    (B₀ : Type u) [CommRing B₀] [Algebra R B₀] [Algebra K B₀] [IsScalarTower K R B₀]
+    [Algebra.Etale R B₀] [Module.Finite R B₀]
+    (G₀ : Type u) [Group G₀] [Finite G₀] (ν : G₀ →* SemilinearAut R A B₀)
+    (hν : ∀ a, ∃ g, (ν g).a = a)
+    (M : Type u) [CommRing M] [Algebra K M] [Algebra.Etale K M] [Module.Finite K M]
+    (Δ : Type u) [Group Δ] [Finite Δ] (θ : Δ →* (M ≃ₐ[K] M))
+    (ι : Type u) [Finite ι] (c₀ : ι → ModelCode O)
+    (j₀ : ∀ i, Spec (CommRingCat.of (TensorProduct K B₀ M)) ⟶ (c₀ i).scheme)
+    (hj₀ : ∀ i, j₀ i ≫ (c₀ i).toSpec = Spec.map (CommRingCat.ofHom
+      ((algebraMap K (TensorProduct K B₀ M)).comp O.subtype))) :
+    ∃ (K' : Type u) (_ : Field K') (_ : Algebra K K') (_ : FiniteDimensional K K')
+      (_ : IsGalois K K') (_ : Algebra.Etale K K') (_ : Algebra.Etale K (TensorProduct K M K'))
+      (_ : Module.Finite K (TensorProduct K M K'))
+      (_ : Algebra.Etale R (TensorProduct K B₀ (TensorProduct K M K')))
+      (_ : Module.Finite R (TensorProduct K B₀ (TensorProduct K M K')))
+      (D : LevelData R A O (TensorProduct K B₀ (TensorProduct K M K'))
+        (G₀ × (Δ × (K' ≃ₐ[K] K'))))
+      (dom : ∀ i, D.c.scheme ⟶ (c₀ i).scheme),
+      IsSemistableLevel D.level ∧ IsSchemeTheoreticallyDominant D.level.j ∧
+      (∀ x, D.Φ x = tensorAut (TensorProduct K M K')
+        (ν x.1, tensorAlgEquivHom M K' (θ x.2.1, x.2.2))) ∧
+      (∀ i, dom i ≫ (c₀ i).toSpec = D.c.toSpec) ∧
+      (∀ i, D.j ≫ dom i = Spec.map (CommRingCat.ofHom ((Algebra.TensorProduct.map
+        (AlgHom.id K B₀) (Algebra.TensorProduct.includeLeft : M →ₐ[K] TensorProduct K M K') :
+          TensorProduct K B₀ M →ₐ[K] TensorProduct K B₀ (TensorProduct K M K')).toRingHom)) ≫
+        j₀ i) := by
+  let B := TensorProduct K B₀ M
+  haveI : Algebra.Etale R B := Algebra.Etale.comp R B₀ B
+  haveI : Module.Finite R B := Module.Finite.trans B₀ B
+  let ν' : G₀ × Δ →* SemilinearAut R A B := (tensorAut M).comp (ν.prodMap θ)
+  letI := actionOf ν'
+  haveI := smulCommClass_actionOf (K := K) ν'
+  obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, he, -, hjd, hjS,
+    hact, hactj, hdom, hdomS, -⟩ := hW K O R hR B (G₀ × Δ) ι c₀ j₀ hj₀
+  haveI hK' : Algebra.Etale K K' :=
+    ⟨Algebra.FormallyEtale.of_isSeparable K K',
+      Algebra.FinitePresentation.of_finiteType.1 inferInstance⟩
+  let L := TensorProduct K M K'
+  haveI hL : Algebra.Etale K L := Algebra.Etale.comp K M L
+  haveI hLf : Module.Finite K L := Module.Finite.trans M L
+  let C := TensorProduct K B₀ L
+  haveI hC : Algebra.Etale R C := Algebra.Etale.comp R B₀ C
+  haveI hCf : Module.Finite R C := Module.Finite.trans B₀ C
+  let Φ : G₀ × (Δ × (K' ≃ₐ[K] K')) →* SemilinearAut R A C :=
+    (tensorAut L).comp (ν.prodMap ((tensorAlgEquivHom M K').comp
+      (θ.prodMap (MonoidHom.id _))))
+  let κ : TensorProduct K K' B ≃ₐ[K] C :=
+    (Algebra.TensorProduct.comm K K' B).trans (Algebra.TensorProduct.assoc K K K B₀ M K')
+  let ξ : G₀ × (Δ × (K' ≃ₐ[K] K')) ≃* (G₀ × Δ) × (K' ≃ₐ[K] K') := MulEquiv.prodAssoc.symm
+  have hring : ∀ γ, (κ : TensorProduct K K' B →+* C).comp (Algebra.TensorProduct.congr
+      (ξ γ).2⁻¹ (MulSemiringAction.toAlgAut (G₀ × Δ) K B (ξ γ).1⁻¹)).toRingEquiv.toRingHom =
+      ((Φ γ).σ.symm : C →+* C).comp κ := by
+    intro γ
+    refine RingHom.ext fun y => ?_
+    induction y using TensorProduct.induction_on with
+    | zero => simp only [map_zero]
+    | add y z hy hz => simp only [map_add, hy, hz]
+    | tmul k x =>
+      induction x using TensorProduct.induction_on with
+      | zero => simp only [TensorProduct.tmul_zero, map_zero]
+      | add y z hy hz => simp only [TensorProduct.tmul_add, map_add, hy, hz]
+      | tmul b m =>
+        simp [κ, Φ, ξ, B, L, C, MulSemiringAction.toAlgAut]
+        change (Algebra.TensorProduct.assoc K K K B₀ M K')
+          (((ν' (γ.1⁻¹, γ.2.1⁻¹)).σ (b ⊗ₜ[K] m)) ⊗ₜ[K] γ.2.2.symm k) = _
+        simp only [ν', MonoidHom.coe_comp, Function.comp_apply, MonoidHom.coe_prodMap, Prod.map,
+          map_inv]
+        rw [tensorAut_σ_tmul M ((ν γ.1)⁻¹, (θ γ.2.1)⁻¹) b m,
+          Algebra.TensorProduct.assoc_tmul]
+        rfl
+  have hj : (Spec.map (CommRingCat.ofHom (κ : TensorProduct K K' B →+* C)) ≫ j) ≫ c.toSpec =
+      Spec.map (CommRingCat.ofHom ((algebraMap R C).comp ((algebraMap K R).comp O.subtype))) := by
+    rw [Category.assoc, hjS, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    congr 2
+    ext o
+    change κ (algebraMap K (TensorProduct K K' B) o) = _
+    rw [κ.commutes]
+    exact IsScalarTower.algebraMap_apply K R C _
+  have hρj : ∀ γ, Spec.map (CommRingCat.ofHom ((Φ γ).σ.symm : C →+* C)) ≫
+      Spec.map (CommRingCat.ofHom (κ : TensorProduct K K' B →+* C)) ≫ j =
+      (Spec.map (CommRingCat.ofHom (κ : TensorProduct K K' B →+* C)) ≫ j) ≫
+        ((act.comp ξ.toMonoidHom) γ).hom := by
+    intro γ
+    change _ = _ ≫ (act (ξ γ)).hom
+    rw [Category.assoc, ← hactj, ← Category.assoc, ← Category.assoc, ← Spec.map_comp,
+      ← Spec.map_comp, ← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp, hring]
+  have hker : ∀ γ, Φ γ = 1 → (act.comp ξ.toMonoidHom) γ = 1 := by
+    intro γ hγ
+    have hid : (Algebra.TensorProduct.congr (ξ γ).2⁻¹
+        (MulSemiringAction.toAlgAut (G₀ × Δ) K B (ξ γ).1⁻¹)).toRingEquiv.toRingHom =
+        RingHom.id _ := by
+      have := hring γ
+      rw [hγ] at this
+      refine RingHom.ext fun y => κ.injective ?_
+      have := congr($this y)
+      simpa using this
+    apply Iso.ext
+    change (act (ξ γ)).hom = 𝟙 _
+    refine ext_of_isSchemeTheoreticallyDominant_of_isSeparated c.toSpec ?_ j ?_
+    · rw [hact, Category.id_comp]
+    · rw [← hactj, hid, Category.comp_id]
+      exact (congrArg (· ≫ j) (Spec.map_id _)).trans (Category.id_comp j)
+  have hsurj : ∀ a : A, ∃ γ, (Φ γ).a = a := fun a =>
+    let ⟨g, hg⟩ := hν a
+    ⟨(g, 1), hg⟩
+  let D : LevelData R A O C (G₀ × (Δ × (K' ≃ₐ[K] K'))) :=
+    { Φ := Φ, surjective := hsurj, c := c,
+      j := Spec.map (CommRingCat.ofHom (κ : TensorProduct K K' B →+* C)) ≫ j,
+      j_toSpec := hj, ρ := act.comp ξ.toMonoidHom, ρ_toSpec := fun γ => hact _,
+      ρ_ker := hker, ρ_j := hρj }
+  refine ⟨K', inferInstance, inferInstance, inferInstance, inferInstance, hK', hL, hLf, hC, hCf,
+    D, dom, ⟨K', inferInstance, inferInstance, inferInstance, O', hO', inferInstance, ϖ', hϖ', c',
+      e, hss, he⟩, ?_, fun x => rfl, hdomS, fun i => ?_⟩
+  · haveI : IsIso (CommRingCat.ofHom (κ : TensorProduct K K' B →+* C)) :=
+      κ.toRingEquiv.toCommRingCatIso.isIso_hom
+    haveI : IsIso (CommRingCat.ofHom ((LevelData.codeEquiv R C).symm :
+        C →+* (LevelData.code R C).B)) :=
+      (LevelData.codeEquiv R C).symm.toRingEquiv.toCommRingCatIso.isIso_hom
+    have h1 : IsSchemeTheoreticallyDominant
+        (Spec.map (CommRingCat.ofHom (κ : TensorProduct K K' B →+* C))) := inferInstance
+    have h2 : IsSchemeTheoreticallyDominant (Spec.map (CommRingCat.ofHom
+        ((LevelData.codeEquiv R C).symm : C →+* (LevelData.code R C).B))) := inferInstance
+    have h3 : IsSchemeTheoreticallyDominant
+        (Spec.map (CommRingCat.ofHom (κ : TensorProduct K K' B →+* C)) ≫ j) := inferInstance
+    exact (inferInstance : IsSchemeTheoreticallyDominant (Spec.map (CommRingCat.ofHom
+        ((LevelData.codeEquiv R C).symm : C →+* (LevelData.code R C).B)) ≫
+      Spec.map (CommRingCat.ofHom (κ : TensorProduct K K' B →+* C)) ≫ j))
+  · change (Spec.map (CommRingCat.ofHom (κ : TensorProduct K K' B →+* C)) ≫ j) ≫ dom i = _
+    rw [Category.assoc, hdom, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    congr 3
+    refine RingHom.ext fun y => ?_
+    induction y using TensorProduct.induction_on with
+    | zero => simp only [map_zero]
+    | add y z hy hz => simp only [map_add, hy, hz]
+    | tmul b m => rfl
+
+end Core
+
 end
 
 end TemperedFundamentalGroups
