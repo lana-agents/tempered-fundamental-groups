@@ -8,18 +8,27 @@ import TemperedFundamentalGroups.Setup.Valuation
 /-!
 # F. K. Schmidt's theorem for henselian discrete valuation rings
 
-We show that a field `k` which is not separably closed has at most one henselian discrete
-valuation ring (`eq_of_isHenselianDVR`); in particular `canonicalValuationSubring k` is this
-valuation ring whenever it exists (`canonicalValuationSubring_eq`).
+We show that a field `k` has at most one henselian discrete valuation ring
+(`eq_of_isHenselianDVR'`); in particular `canonicalValuationSubring k` is this valuation ring
+whenever it exists (`canonicalValuationSubring_eq_of_isHenselianDVR`). For the completion `K_v`
+of a number field at a finite place, `canonicalValuationSubring K_v = O_v`.
 
-## Main steps
+## Main results
 
 * `HenselianLocalRing.exists_isRoot_of_eval_eq`: **Newton's lemma** in a henselian local ring:
   if `f(r) = f'(r)² c` with `c` in the maximal ideal, then `f` has a root. This is deduced from
   the (monic, simple residue root) definition of henselianity by a reversal trick.
-* `ValuationSubring.exists_isRoot_of_valuation_lt`: the same for a henselian valuation subring
-  `O` of `k` and `f ∈ k[X]` with coefficients in `O`: if `v(f(r)) < v(f'(r))²`, then `f` has a
-  root in `O`.
+* `exists_eval_eq_zero_of_valuation_lt`: the same for a henselian valuation subring `O` of `k`
+  and `f ∈ k[X]` with coefficients in `O`: if `v(f(r)) < v(f'(r))²`, then `f` has a root in `O`.
+* `exists_mem_not_mem_of_ne`, `exists_valuation_one_sub_lt`: two distinct discrete valuation
+  rings are incomparable, and there are elements close to `1` for one and to `0` for the other.
+* `isSepClosed_of_isHenselianDVR_of_ne`: **F. K. Schmidt**: a field with two distinct
+  henselian discrete valuation rings is separably closed.
+* `eq_of_isHenselianDVR`: hence two henselian DVRs of a non-separably-closed field coincide.
+* `not_isSepClosed_of_isDiscreteValuationRing`: a field with a DVR is not separably closed
+  (a uniformizer has no square root, resp. cube root in characteristic `2`); hence
+  `eq_of_isHenselianDVR'` and `canonicalValuationSubring_eq_of_isHenselianDVR` need no
+  hypothesis on `k`.
 -/
 
 open Polynomial IsLocalRing
@@ -537,5 +546,62 @@ theorem eq_of_isHenselianDVR (hk : ¬ IsSepClosed k) {O₁ O₂ : ValuationSubri
   exact hk (isSepClosed_of_isHenselianDVR_of_ne h₁ h₂ hne)
 
 end Main
+
+section Corollaries
+
+variable {k : Type*} [Field k]
+
+/-- A field with a discrete valuation ring is not separably closed: a uniformizer `π` has no
+`n`-th root for `n ≥ 2`, and `X ^ n - π` is separable for `n = 2` or `n = 3` (whichever is
+nonzero in `k`). -/
+theorem not_isSepClosed_of_isDiscreteValuationRing (O : ValuationSubring k)
+    [IsDiscreteValuationRing O] : ¬ IsSepClosed k := by
+  intro hsc
+  obtain ⟨π, hπ⟩ := IsDiscreteValuationRing.exists_irreducible O
+  have key : ∀ n : ℕ, 2 ≤ n → (n : k) ≠ 0 → False := by
+    intro n hn hn0
+    haveI : NeZero (n : k) := ⟨hn0⟩
+    obtain ⟨z, hz⟩ := IsSepClosed.exists_pow_nat_eq (π : k) n
+    have hzO : z ∈ O := by
+      by_contra hz'
+      have h1 : 1 < O.valuation z := not_le.1 fun h ↦ hz' ((O.valuation_le_one_iff z).1 h)
+      have h2 : O.valuation (π : k) ≤ 1 := (O.valuation_le_one_iff _).2 π.2
+      rw [← hz, map_pow] at h2
+      exact not_le.2 (one_lt_pow₀ h1 (by omega)) h2
+    have hzπ : π = (⟨z, hzO⟩ : O) * (⟨z, hzO⟩ : O) ^ (n - 1) := by
+      apply Subtype.ext
+      rw [← pow_succ', Nat.sub_add_cancel (by omega : 1 ≤ n)]
+      exact hz.symm
+    have hzu : IsUnit (⟨z, hzO⟩ : O) := by
+      rcases hπ.isUnit_or_isUnit hzπ with h | h
+      · exact h
+      · exact (isUnit_pow_iff (by omega)).1 h
+    exact hπ.not_isUnit (hzπ ▸ hzu.mul (hzu.pow _))
+  by_cases h2 : (2 : k) = 0
+  · refine key 3 (by norm_num) ?_
+    rw [show ((3 : ℕ) : k) = 2 + 1 by norm_num, h2, zero_add]
+    exact one_ne_zero
+  · exact key 2 le_rfl (by exact_mod_cast h2)
+
+/-- **F. K. Schmidt's theorem** (discrete case): a field has at most one henselian discrete
+valuation ring. (A field with a discrete valuation ring is not separably closed.) -/
+theorem eq_of_isHenselianDVR' {O₁ O₂ : ValuationSubring k} (h₁ : IsHenselianDVR O₁)
+    (h₂ : IsHenselianDVR O₂) : O₁ = O₂ :=
+  haveI := h₁.1
+  eq_of_isHenselianDVR (not_isSepClosed_of_isDiscreteValuationRing O₁) h₁ h₂
+
+/-- If `k` is not separably closed and `O` is a henselian discrete valuation ring of `k`, then
+`O` is the canonical valuation subring of `k`. -/
+theorem canonicalValuationSubring_eq (hk : ¬ IsSepClosed k) {O : ValuationSubring k}
+    (hO : IsHenselianDVR O) : canonicalValuationSubring k = O :=
+  eq_of_isHenselianDVR hk (canonicalValuationSubring_isHenselianDVR ⟨O, hO⟩) hO
+
+/-- A henselian discrete valuation ring `O` of `k` (e.g. the valuation ring of the completion of
+a number field at a finite place) is the canonical valuation subring of `k`. -/
+theorem canonicalValuationSubring_eq_of_isHenselianDVR {O : ValuationSubring k}
+    (hO : IsHenselianDVR O) : canonicalValuationSubring k = O :=
+  eq_of_isHenselianDVR' (canonicalValuationSubring_isHenselianDVR ⟨O, hO⟩) hO
+
+end Corollaries
 
 end TemperedFundamentalGroups
