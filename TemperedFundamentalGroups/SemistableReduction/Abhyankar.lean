@@ -18,7 +18,16 @@ ramified at every maximal ideal `𝔓` of `B`: `e(𝔓) ∣ e` for some `e` inve
 `O'`:
 
 * `Abhyankar.maximalIdeal_atPrime_eq_span`: `y` generates the maximal ideal of `B'_𝔔`;
-* `Abhyankar.isSeparable_quotient`: `B' ⧸ 𝔔` is separable over `O ⧸ 𝔪`.
+* `Abhyankar.isSeparable_quotient`: `B' ⧸ 𝔔` is separable over `O ⧸ 𝔪`;
+* `Abhyankar.isUnramifiedAt`: with `O' = O[Y] ⧸ (Y ^ e - ϖ)` (a DVR with uniformizer `Y`,
+  `SemistableReduction/RootOfUniformizer`) acting on `B'` by `Y ↦ y`, `B'` is unramified over `O'`
+  at `𝔔` in Mathlib's sense (`Algebra.IsUnramifiedAt`);
+* `Abhyankar.ramificationIdx_eq_one`: `e(𝔔 | O') = 1`.
+
+Tameness is phrased with Mathlib's `Ideal.ramificationIdx` and `Ideal.LiesOver`: the hypothesis
+`htame` asks, for every prime `𝔓` of `B` over the maximal ideal `𝔪` of `O`, that
+`𝔓.ramificationIdx O ∣ e` and that `B ⧸ 𝔓` be separable over `O ⧸ 𝔪`; `e` is a unit of `O`
+(equivalently, nonzero in the residue field).
 
 The proof does not pass to the henselization: at `𝔔` over `𝔓`, write `ϖ = u π ^ n` in the DVR
 `R = B_𝔓` (`n = e(𝔓)`) and apply the local Kummer step
@@ -281,6 +290,143 @@ theorem isSeparable_quotient {ϖ : O} (hϖ : Irreducible ϖ) {e : ℕ} (he : IsU
     (IsIntegralClosure.mk' B' y (isIntegral_y he0 hy)) (IsIntegralClosure.algebraMap_mk' _ _ _)).2
 
 end Main
+
+section Unramified
+
+/-- The `O[Y] ⧸ (Y ^ e - ϖ)`-algebra structure on an `O`-algebra `A` with `Y ↦ a`, for
+`a ^ e = ϖ`. -/
+@[implicit_reducible]
+noncomputable def rootAlgebra {O A : Type*} [CommRing O] [CommRing A] [Algebra O A] {ϖ : O}
+    {e : ℕ} (a : A) (ha : a ^ e = algebraMap O A ϖ) : Algebra (RootOfUniformizer.Ring ϖ e) A :=
+  (AdjoinRoot.liftAlgHom _ (Algebra.ofId O A) a (by simp [ha])).toRingHom.toAlgebra
+
+lemma rootAlgebra_isScalarTower {O A : Type*} [CommRing O] [CommRing A] [Algebra O A] {ϖ : O}
+    {e : ℕ} (a : A) (ha : a ^ e = algebraMap O A ϖ) :
+    letI := rootAlgebra a ha
+    IsScalarTower O (RootOfUniformizer.Ring ϖ e) A :=
+  letI := rootAlgebra a ha
+  .of_algebraMap_eq fun x ↦
+    ((AdjoinRoot.liftAlgHom _ (Algebra.ofId O A) a (by simp [ha])).commutes x).symm
+
+lemma rootAlgebra_algebraMap_root {O A : Type*} [CommRing O] [CommRing A] [Algebra O A] {ϖ : O}
+    {e : ℕ} (a : A) (ha : a ^ e = algebraMap O A ϖ) :
+    letI := rootAlgebra a ha
+    algebraMap (RootOfUniformizer.Ring ϖ e) A (AdjoinRoot.root _) = a :=
+  AdjoinRoot.liftAlgHom_root _ _ _ _
+
+variable {O K L F B B' : Type*}
+  [CommRing O] [IsDomain O] [IsDiscreteValuationRing O]
+  [Field K] [Algebra O K] [IsFractionRing O K]
+  [Field L] [Algebra K L] [Algebra O L] [IsScalarTower O K L]
+  [FiniteDimensional K L] [Algebra.IsSeparable K L]
+  [CommRing B] [IsDomain B] [Algebra O B] [Algebra B L] [IsScalarTower O B L]
+  [IsIntegralClosure B O L]
+  [Field F] [Algebra K F] [Algebra L F] [Algebra O F] [IsScalarTower K L F] [IsScalarTower O L F]
+  [CommRing B'] [IsDomain B'] [Algebra O B'] [Algebra B' F] [IsScalarTower O B' F]
+  [IsIntegralClosure B' O F]
+
+omit [IsDomain B'] in
+include K L in
+/-- In the situation of Abhyankar's lemma, `B'` is finite over `O`. -/
+lemma finite_integralClosure {ϖ : O} (hϖ : Irreducible ϖ) {e : ℕ} (he : IsUnit (e : O)) {y : F}
+    (hy : y ^ e = algebraMap O F ϖ) (hF : Algebra.adjoin L {y} = ⊤) : Module.Finite O B' := by
+  have hOL : Function.Injective (algebraMap O L) := by
+    rw [IsScalarTower.algebraMap_eq O K L]
+    exact (algebraMap K L).injective.comp (IsFractionRing.injective O K)
+  have hϖL : algebraMap O L ϖ ≠ 0 := fun h ↦ hϖ.ne_zero (hOL (h.trans (map_zero _).symm))
+  obtain ⟨hfin, hsepLF⟩ := finite_and_isSeparable (isSeparable_y hϖL he hy) hF
+  haveI : IsScalarTower O K F := .of_algebraMap_eq fun x ↦ by
+    rw [IsScalarTower.algebraMap_apply O L F, IsScalarTower.algebraMap_apply O K L,
+      ← IsScalarTower.algebraMap_apply K L F]
+  haveI : FiniteDimensional K F := Module.Finite.trans L F
+  haveI : Algebra.IsSeparable K F := Algebra.IsSeparable.trans K L F
+  exact IsIntegralClosure.finite O K F B'
+
+include K L B in
+/-- **Abhyankar's lemma for a DVR.** Let `O` be a DVR with uniformizer `ϖ`, `L / K` a finite
+separable extension of its fraction field, `B` the integral closure of `O` in `L`, and suppose
+`L / K` is tamely ramified at every maximal ideal `𝔓` of `B` with `e(𝔓) ∣ e`, `e` invertible in
+`O`. Let `F = L[y]` be a field with `y ^ e = ϖ`, `B'` the integral closure of `O` in `F`, and
+`O' = O[Y] ⧸ (Y ^ e - ϖ)` acting on `B'` by `Y ↦ y`. Then `B'` is unramified over `O'` at every
+maximal ideal `𝔔`. -/
+theorem isUnramifiedAt {ϖ : O} (hϖ : Irreducible ϖ) {e : ℕ} (he : IsUnit (e : O)) (yB' : B')
+    (hyB' : yB' ^ e = algebraMap O B' ϖ) (hF : Algebra.adjoin L {algebraMap B' F yB'} = ⊤)
+    (htame : ∀ (𝔓 : Ideal B) [𝔓.IsPrime] [𝔓.LiesOver (maximalIdeal O)],
+      𝔓.ramificationIdx O ∣ e ∧ Algebra.IsSeparable (O ⧸ maximalIdeal O) (B ⧸ 𝔓))
+    (𝔔 : Ideal B') [𝔔.IsPrime] [𝔔.LiesOver (maximalIdeal O)] :
+    letI := rootAlgebra yB' hyB'
+    Algebra.IsUnramifiedAt (RootOfUniformizer.Ring ϖ e) 𝔔 := by
+  letI := rootAlgebra yB' hyB'
+  haveI := rootAlgebra_isScalarTower yB' hyB'
+  have he0 : 0 < e := Nat.pos_of_ne_zero (by rintro rfl; simp at he)
+  letI := RootOfUniformizer.isDomain hϖ he0
+  letI := RootOfUniformizer.isLocalRing hϖ he0
+  haveI := RootOfUniformizer.isLocalHom (ϖ := ϖ) he0
+  set O' := RootOfUniformizer.Ring ϖ e
+  set S := Localization.AtPrime 𝔔
+  have hy : (algebraMap B' F yB') ^ e = algebraMap O F ϖ := by
+    rw [← map_pow, hyB', ← IsScalarTower.algebraMap_apply]
+  obtain ⟨hmax, hsep⟩ :=
+    maximalIdeal_atPrime_eq_span_and_isSeparable (K := K) hϖ he hy hF htame 𝔔 yB' rfl
+  haveI : IsScalarTower O O' S := .of_algebraMap_eq fun x ↦ by
+    rw [IsScalarTower.algebraMap_apply O B' S, IsScalarTower.algebraMap_apply O O' B',
+      ← IsScalarTower.algebraMap_apply O' B' S]
+  have hroot : algebraMap O' S (AdjoinRoot.root _) = algebraMap B' S yB' := by
+    rw [IsScalarTower.algebraMap_apply O' B' S, rootAlgebra_algebraMap_root]
+  have hmap : (maximalIdeal O').map (algebraMap O' S) = maximalIdeal S := by
+    rw [RootOfUniformizer.maximalIdeal_eq hϖ he0, Ideal.map_span, Set.image_singleton, hroot,
+      hmax]
+  haveI : IsLocalHom (algebraMap O' S) := by
+    refine ⟨fun x hx ↦ ?_⟩
+    by_contra hnx
+    have : algebraMap O' S x ∈ maximalIdeal S := by
+      rw [← hmap]
+      exact Ideal.mem_map_of_mem _ ((mem_maximalIdeal x).2 hnx)
+    exact (mem_maximalIdeal _).1 this hx
+  -- finiteness
+  haveI : Module.Finite O B' := finite_integralClosure (K := K) (L := L) hϖ he hy hF
+  haveI : Algebra.FiniteType O' B' := Algebra.FiniteType.of_restrictScalars_finiteType O O' B'
+  -- separability of the residue field extension
+  haveI : Algebra.IsIntegral O B' := IsIntegralClosure.isIntegral_algebra O F
+  haveI : 𝔔.IsMaximal := Ideal.isMaximal_of_isIntegral_of_isMaximal_comap (R := O) 𝔔
+    (by rw [← Ideal.under_def, ← Ideal.over_def 𝔔 (maximalIdeal O)]; infer_instance)
+  haveI : IsLocalHom (algebraMap O S) := by
+    rw [IsScalarTower.algebraMap_eq O O' S]
+    infer_instance
+  letI := Ideal.Quotient.field (maximalIdeal O)
+  have hsepS : Algebra.IsSeparable (ResidueField O) (ResidueField S) := by
+    refine Algebra.IsSeparable.of_equiv_equiv (A₁ := O ⧸ maximalIdeal O) (B₁ := B' ⧸ 𝔔)
+      (RingEquiv.refl _)
+      (RingEquiv.ofBijective _ 𝔔.bijective_algebraMap_quotient_residueField) ?_
+    ext x
+    rfl
+  haveI := Algebra.isSeparable_tower_top_of_isSeparable (ResidueField O) (ResidueField O')
+    (ResidueField S)
+  exact Algebra.FormallyUnramified.of_map_maximalIdeal (R := O') (S := S) hmap
+
+include K L B in
+/-- **Abhyankar's lemma: ramification indices.** In the situation of `isUnramifiedAt`, every
+maximal ideal `𝔔` of `B'` has ramification index `e(𝔔 | O') = 1` over
+`O' = O[Y] ⧸ (Y ^ e - ϖ)`. -/
+theorem ramificationIdx_eq_one {ϖ : O} (hϖ : Irreducible ϖ) {e : ℕ} (he : IsUnit (e : O))
+    (yB' : B') (hyB' : yB' ^ e = algebraMap O B' ϖ)
+    (hF : Algebra.adjoin L {algebraMap B' F yB'} = ⊤)
+    (htame : ∀ (𝔓 : Ideal B) [𝔓.IsPrime] [𝔓.LiesOver (maximalIdeal O)],
+      𝔓.ramificationIdx O ∣ e ∧ Algebra.IsSeparable (O ⧸ maximalIdeal O) (B ⧸ 𝔓))
+    (𝔔 : Ideal B') [𝔔.IsPrime] [𝔔.LiesOver (maximalIdeal O)] :
+    letI := rootAlgebra yB' hyB'
+    𝔔.ramificationIdx (RootOfUniformizer.Ring ϖ e) = 1 := by
+  letI := rootAlgebra yB' hyB'
+  haveI := rootAlgebra_isScalarTower yB' hyB'
+  have hy : (algebraMap B' F yB') ^ e = algebraMap O F ϖ := by
+    rw [← map_pow, hyB', ← IsScalarTower.algebraMap_apply]
+  haveI : Module.Finite O B' := finite_integralClosure (K := K) (L := L) hϖ he hy hF
+  haveI : Algebra.FiniteType (RootOfUniformizer.Ring ϖ e) B' :=
+    Algebra.FiniteType.of_restrictScalars_finiteType O _ B'
+  haveI := isUnramifiedAt (K := K) hϖ he yB' hyB' hF htame 𝔔
+  exact Ideal.ramificationIdx_eq_one 𝔔 _
+
+end Unramified
 
 end Abhyankar
 
