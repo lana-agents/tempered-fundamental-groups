@@ -4,6 +4,7 @@ import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.Exact
 import TemperedFundamentalGroups.Orbicurve.GenericPoint
+import TemperedFundamentalGroups.Orbicurve.GeomModel
 import TemperedFundamentalGroups.Orbicurve.GeomStable
 import TemperedFundamentalGroups.Orbicurve.Model
 import TemperedFundamentalGroups.Orbicurve.Nullstellensatz

@@ -68,8 +68,9 @@ imported by the core, and it is not a Lake dependency yet.
   points; the definitions only need a field, the étale and tempered groups are the usual ones
   when `Ω` is algebraically closed, e.g. the algebraic closure of the function field of `Y`);
 * the curve as an orbifold `[Y/A]`: an affine `K`-scheme `Y = Spec R` with a group `A`
-  acting on `R` by `K`-algebra automorphisms (for IUT: `Y = E ∖ S` with `S = E(k)[ℓ] + M`,
-  `A = M` or `M ⋊ {±1}`; `A` trivial gives the scheme `Y`);
+  acting on `R` by `K`-algebra automorphisms (for IUT: `Y = E ∖ S` with `S = E[ℓ] + M` the
+  full closed subset of geometric points, `A = M` or `M ⋊ {±1}`; `A` trivial gives the scheme
+  `Y`);
 * a geometric point `ȳ : R → Ω` (an `R`-algebra structure on `Ω` compatible with `K`).
 
 `AffineOrbifold k` bundles `R, A, Ω, ȳ`; the valuation `V` is chosen by Chevalley's extension
@@ -195,7 +196,7 @@ semistable reduction.
 | E2 | Step 3 of §4: restriction along a realization (essentially surjective, morphisms realized after refinement) is `≃ₜ*` | `FibreFunctor/Realization.lean` | [L] (abstract lemma; its hypotheses for André's category are steps 1–2, [C]) |
 | E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | `Topology/CountableFibres.lean` | [L] (topological lemma; the resulting equivalence of categories after adding coproducts is argued, not formalized) |
 | E4 | Galois elements: the decomposition group `{σ ∈ Aut_R(Ω) : σV = V}` acts on `temperedPi1` (`[(t,p)] ↦ [(σ∘t, p)]`, specialization is Galois invariant), compatibly with its action on `etalePi1` | `Tempered/Galois.lean`, `Models/Specialization.lean` (`sp_galois`) | [L] |
-| F1 | Orbicurve presentation: `Y = E ∖ S` with `S = E(k)[ℓ] + M` (rational points; `= E[ℓ]` when `E[ℓ] ⊆ E(k)`, as at all places used by IUT), `A = M` or `M ⋊ {±1}` acting by translations and negation on the function field; `orbicurveOrbifold` | `Orbicurve/` | [L] (identification with `(E/M) ∖ (E[ℓ]/M)` when `E[ℓ] ⊄ E(k)` not claimed) |
+| F1 | Orbicurve presentation: `Y = E ∖ S` with `S = E[ℓ] + M ⊆ E(k̄)` (all geometric points, for every field `k`): `R = ringAway W S` = `k[E]` with the inverses of the functions vanishing only on `S` adjoined; `A = M` or `M ⋊ {±1}` acting by translations and negation (stability without Nullstellensatz); exactness: `R = k[E][Ψ(x)⁻¹]` with `Z(Ψ(x)) = S ∖ {0}` whenever `S` is finite (Nullstellensatz in `k[E]`), proved finite for `ℓ ≥ 1`, `M` finite, in char `0` and in char `p ∤ 2ℓ`; `orbicurveOrbifold` | `Orbicurve/` (`ZeroSet`, `GeomStable`, `Exact`, `GeomModel`, `Orbifold`) | [L] |
 | F2 | Canonical valuation on `k` (the henselian DVR if one exists, else trivial); Chevalley extension to `Ω`; pointed affine orbifolds | `Setup/Valuation.lean`, `Setup/Orbifold.lean` | [L]; canonicity (F. K. Schmidt) [C] |
 | F3 | `TemperedPi1Theory` instance from the above and a continuous comparison `etalePi1 → Pi1.pi1` (the identity if the étale theory uses `AffineOrbifold.etalePi1Profinite`) | iut branch `wp-tempered-iut`, `Iut/Anabelian/Tempered.lean` (`temperedTheory Pi1 C`) | [L] modulo the comparison `C`, which needs the sibling's étale construction |
 | G1 | Non-degeneracy witness: `π₁^temp(E_q ∖ E[ℓ]) ↠ ℤ` (discrete, not profinite) | — | [✗] for now: exhibiting elements of `Aut Φ` requires acting compatibly on *all* objects, i.e. the classification of tempered coverings (steps 1–2) or analytic path lifting |

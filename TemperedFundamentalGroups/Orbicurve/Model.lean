@@ -6,19 +6,18 @@ Authors: Christian Merten
 import TemperedFundamentalGroups.Orbicurve.Stable
 
 /-!
-# The affine presentation of IUT's model orbicurves
+# IUT's groups of affine automorphisms and the rational removed set
 
 IUT's orbicurve `(E, ℓ, M, ±)` over a field `k` (an elliptic curve `E`, a level `ℓ`, a subgroup
-`M ≤ E(k)` and a sign flag) stands for `(E / M) ∖ (E[ℓ] / M)`, possibly modulo `±1`. We present
-it as the quotient orbifold `[Y / A]` with
+`M ≤ E(k)` and a sign flag) stands for `(E / M) ∖ (E[ℓ] / M)`, possibly modulo `±1`. This file
+defines the group `A = affGroup W M pm` of affine automorphisms `P ↦ ε • P + m` with `m ∈ M` and
+`ε = 1` unless `pm = true`, and the set `removedSet W ℓ M = E(k)[ℓ] + M` of *rational* points,
+which is stable under `A`.
 
-* `Y = E ∖ S` for the set `S = removedSet W ℓ M = E(k)[ℓ] + M` of rational points, whose
-  coordinate ring is `orbicurveRing W ℓ M = ringOf W S`;
-* `A = affGroup W M pm`, the group of affine automorphisms `P ↦ ε • P + m` with `m ∈ M` and
-  `ε = 1` unless `pm = true`, acting on `orbicurveRing W ℓ M` by `k`-algebra automorphisms.
-
-When `M ≤ E(k)[ℓ]` (as in IUT), `S = E(k)[ℓ]` (`removedSet_eq_torsionSet`), and when moreover
-`E[ℓ] ⊆ E(k)` this is exactly IUT's orbicurve.
+The orbicurve itself is presented with the full closed subset `E[ℓ] + M` of geometric points
+removed (`geomRemovedSet`, `geomOrbicurveRing` in `Orbicurve/GeomStable.lean`); its rational
+points are `removedSet W ℓ M` (`bc_mem_removedSetIn_iff`). When `M ≤ E(k)[ℓ]` (as in IUT),
+`removedSet W ℓ M = E(k)[ℓ]` (`removedSet_eq_torsionSet`).
 -/
 
 universe u
@@ -92,24 +91,6 @@ lemma isAffStable_torsionSet {ℓ : ℕ} {M : AddSubgroup W.toAffine.Point}
     IsAffStable (torsionSet W ℓ) (affGroup W M pm) := by
   rw [← removedSet_eq_torsionSet hM]
   infer_instance
-
-variable (W)
-
-/-- The coordinate ring of `Y = E ∖ (E(k)[ℓ] + M)`, the affine curve presenting IUT's orbicurve
-`(E, ℓ, M, ±)` as `[Y / affGroup W M pm]`. -/
-abbrev orbicurveRing (ℓ : ℕ) (M : AddSubgroup W.toAffine.Point) : Subalgebra k (funField W) :=
-  ringOf W (removedSet W ℓ M)
-
-variable {W} in
-lemma orbicurveRing_eq_ringOf_torsionSet {ℓ : ℕ} {M : AddSubgroup W.toAffine.Point}
-    (hM : ∀ m ∈ M, ℓ • m = 0) : orbicurveRing W ℓ M = ringOf W (torsionSet W ℓ) := by
-  rw [orbicurveRing, removedSet_eq_torsionSet hM]
-
-example [W.IsElliptic] (ℓ : ℕ) (M : AddSubgroup W.toAffine.Point) (pm : Bool) :
-    MulSemiringAction (affGroup W M pm) (orbicurveRing W ℓ M) := inferInstance
-
-example [W.IsElliptic] (ℓ : ℕ) (M : AddSubgroup W.toAffine.Point) (pm : Bool) :
-    SMulCommClass (affGroup W M pm) k (orbicurveRing W ℓ M) := inferInstance
 
 end
 
