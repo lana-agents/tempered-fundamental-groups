@@ -310,4 +310,232 @@ lemma exists_valuation_one_sub_lt {O₁ O₂ : ValuationSubring k} [IsDiscreteVa
 
 end Independence
 
+section Main
+
+variable {k : Type*} [Field k]
+
+lemma C_mem_lifts_of_mem {O : ValuationSubring k} {a : k} (ha : a ∈ O) :
+    C a ∈ lifts (algebraMap O k) :=
+  C_mem_lifts (algebraMap O k) (⟨a, ha⟩ : O)
+
+lemma sub_mem_lifts_valuationSubring {O : ValuationSubring k} {P Q : k[X]}
+    (hP : P ∈ lifts (algebraMap O k)) (hQ : Q ∈ lifts (algebraMap O k)) :
+    P - Q ∈ lifts (algebraMap O k) := by
+  rw [lifts_iff_liftsRing] at *
+  exact sub_mem hP hQ
+
+/-- Rescaling the roots preserves separability (over a field, by a nonzero factor). -/
+lemma isCoprime_scaleRoots_derivative {p : k[X]} (hp : IsCoprime p (derivative p)) {s : k}
+    (hs : s ≠ 0) : IsCoprime (p.scaleRoots s) (derivative (p.scaleRoots s)) := by
+  have h := isCoprime_scaleRoots p (derivative p) s (IsUnit.mk0 s hs) hp
+  set m := (derivative p).natDegree
+  set n := p.natDegree
+  have key : C (s ^ (n - 1)) * (derivative p).scaleRoots s =
+      C (s ^ m) * derivative (p.scaleRoots s) := by
+    ext i
+    simp only [coeff_C_mul, coeff_derivative, coeff_scaleRoots]
+    by_cases hc : p.coeff (i + 1) * ((i : k) + 1) = 0
+    · linear_combination (s ^ (n - 1) * s ^ (m - i) - s ^ m * s ^ (n - (i + 1))) * hc
+    · have hi : i ≤ m := le_natDegree_of_ne_zero (by rwa [coeff_derivative])
+      have hi2 : i + 1 ≤ n := le_natDegree_of_ne_zero (left_ne_zero_of_mul hc)
+      have hpow : s ^ (n - 1) * s ^ (m - i) = s ^ m * s ^ (n - (i + 1)) := by
+        rw [← pow_add, ← pow_add]
+        congr 1
+        omega
+      linear_combination (p.coeff (i + 1) * ((i : k) + 1)) * hpow
+  have hu : ∀ j, IsUnit (C (s ^ j)) := fun j ↦ isUnit_C.2 (IsUnit.mk0 _ (pow_ne_zero _ hs))
+  rw [← isCoprime_mul_unit_left_right (hu (n - 1)), key,
+    isCoprime_mul_unit_left_right (hu m)] at h
+  exact h
+
+/-- The heart of **F. K. Schmidt's theorem**: if `k` has two distinct henselian discrete
+valuation rings `O₁, O₂`, then every separable monic polynomial `f` of positive degree with
+coefficients in `O₁` has a root in `k`.
+
+With `h = X (X - 1)ⁿ⁻¹` and `u` close to `1` for `O₁` and to `0` for `O₂`, the monic polynomial
+`g = h + u (f - h)` is close to `h` for `O₂`, hence has a root `ρ ∈ O₂` by Newton's lemma
+(at `0`). Then `ρ ∈ O₁` (`g` is monic with coefficients in `O₁`), and `f(ρ)` is so small for
+`O₁` that, by a Bézout relation `A f + B f' = d`, Newton's lemma for `O₁` applies at `ρ`. -/
+theorem exists_eval_eq_zero_of_ne {O₁ O₂ : ValuationSubring k} (h₁ : IsHenselianDVR O₁)
+    (h₂ : IsHenselianDVR O₂) (hne : O₁ ≠ O₂) {f : k[X]} (hm : f.Monic) (hdeg : 0 < f.natDegree)
+    (hf : f ∈ lifts (algebraMap O₁ k)) (hsep : IsCoprime f (derivative f)) :
+    ∃ a, f.eval a = 0 := by
+  haveI := h₁.1; haveI := h₁.2; haveI := h₂.1; haveI := h₂.2
+  set n := f.natDegree with hn
+  -- A Bézout relation `A f + B f' = d` with coefficients in `O₁`.
+  obtain ⟨A, B, hAB⟩ := hsep
+  obtain ⟨dA, hdA0, hdAO, hdA⟩ := exists_mul_mem_lifts O₁ A
+  obtain ⟨dB, hdB0, hdBO, hdB⟩ := exists_mul_mem_lifts O₁ B
+  set d := dA * dB with hd
+  have hd0 : d ≠ 0 := mul_ne_zero hdA0 hdB0
+  have hdv : O₁.valuation d ≤ 1 := (O₁.valuation_le_one_iff d).2 (mul_mem hdAO hdBO)
+  have hA₁ : C d * A ∈ lifts (algebraMap O₁ k) := by
+    rw [hd, C_mul, mul_comm (C dA), mul_assoc]
+    exact mul_mem (C_mem_lifts_of_mem hdBO) hdA
+  have hB₁ : C d * B ∈ lifts (algebraMap O₁ k) := by
+    rw [hd, C_mul, mul_assoc]
+    exact mul_mem (C_mem_lifts_of_mem hdAO) hdB
+  have hBez : (C d * A) * f + (C d * B) * derivative f = C d := by
+    rw [mul_assoc, mul_assoc, ← mul_add, hAB, mul_one]
+  -- Clearing the denominators of `f` for `O₂`.
+  obtain ⟨β, hβ0, hβO, hβ⟩ := exists_mul_mem_lifts O₂ f
+  have hβv : O₂.valuation β ≤ 1 := (O₂.valuation_le_one_iff β).2 hβO
+  -- The approximating element `u`.
+  obtain ⟨u, hu₁, hu₂⟩ := exists_valuation_one_sub_lt hne (pow_ne_zero 2 hd0) hβ0
+  have hd2 : O₁.valuation d ^ 2 ≤ O₁.valuation d := by
+    rw [sq]
+    exact mul_le_of_le_one_right' hdv
+  have hu₁' : O₁.valuation (1 - u) < 1 := by
+    rw [map_pow] at hu₁
+    exact (hu₁.trans_le hd2).trans_le hdv
+  have hu1 : O₁.valuation u = 1 := by
+    rw [show u = 1 + -(1 - u) by ring,
+      Valuation.map_add_eq_of_lt_left _ (by rwa [Valuation.map_neg, map_one]), map_one]
+  have huO₁ : u ∈ O₁ := (O₁.valuation_le_one_iff u).1 hu1.le
+  have hu0 : u ≠ 0 := by
+    rintro rfl
+    rw [map_zero] at hu1
+    exact zero_ne_one hu1
+  have hu₂' : O₂.valuation u < 1 := hu₂.trans_le hβv
+  -- The auxiliary polynomial `h = X (X - 1)ⁿ⁻¹`.
+  set h : k[X] := X * (X - C 1) ^ (n - 1) with hh
+  have hhO : ∀ O : ValuationSubring k, h ∈ lifts (algebraMap O k) := fun O ↦ by
+    have hX : (X : k[X]) ∈ liftsRing (algebraMap O k) :=
+      (lifts_iff_liftsRing _ _).1 (X_mem_lifts _)
+    have h1 : (C 1 : k[X]) ∈ liftsRing (algebraMap O k) :=
+      (lifts_iff_liftsRing _ _).1 (C_mem_lifts_of_mem (one_mem O))
+    rw [hh, lifts_iff_liftsRing]
+    exact mul_mem hX (pow_mem (sub_mem hX h1) _)
+  have hhm : h.Monic := monic_X.mul ((monic_X_sub_C 1).pow _)
+  have hhdeg : h.natDegree = n := by
+    rw [hh, (monic_X).natDegree_mul ((monic_X_sub_C 1).pow _), natDegree_X, natDegree_pow,
+      natDegree_X_sub_C]
+    omega
+  have hh0 : h.coeff 0 = 0 := by simp [hh]
+  have hh1 : h.coeff 1 = (-1) ^ (n - 1) := by
+    rw [hh, coeff_X_mul, coeff_zero_eq_eval_zero]
+    simp
+  have hhc : ∀ (O : ValuationSubring k) i, h.coeff i ∈ O := fun O ↦
+    (mem_lifts_iff_coeff_mem O h).1 (hhO O)
+  -- The polynomial `g = h + u (f - h)`.
+  set g : k[X] := h + C u * (f - h) with hg
+  have hg₁ : g ∈ lifts (algebraMap O₁ k) :=
+    add_mem (hhO O₁) (mul_mem (C_mem_lifts_of_mem huO₁) (sub_mem_lifts_valuationSubring hf
+      (hhO O₁)))
+  have hgm : g.Monic := by
+    refine hhm.add_of_left ?_
+    rw [degree_C_mul hu0]
+    have hdeg' : degree f = degree h := by
+      rw [degree_eq_natDegree hm.ne_zero, degree_eq_natDegree hhm.ne_zero, hhdeg]
+    exact hdeg' ▸ degree_sub_lt hdeg' hm.ne_zero (by rw [hm.leadingCoeff, hhm.leadingCoeff])
+  -- The root `ρ` of `g` in `O₂`.
+  have hcoef₂ : ∀ i, O₂.valuation ((C u * (f - h)).coeff i) < 1 := by
+    intro i
+    rw [coeff_C_mul, coeff_sub, mul_sub]
+    refine (Valuation.map_sub _ _ _).trans_lt (max_lt ?_ ?_)
+    · by_cases hfi : f.coeff i = 0
+      · simp [hfi]
+      have hβf : O₂.valuation (β * f.coeff i) ≤ 1 := by
+        rw [O₂.valuation_le_one_iff]
+        have := (mem_lifts_iff_coeff_mem O₂ _).1 hβ i
+        rwa [coeff_C_mul] at this
+      rw [map_mul] at hβf ⊢
+      exact (mul_lt_mul_of_pos_right hu₂
+        (zero_lt_iff.2 ((Valuation.ne_zero_iff _).2 hfi))).trans_le hβf
+    · rw [map_mul]
+      exact (mul_le_of_le_one_right' ((O₂.valuation_le_one_iff _).2 (hhc O₂ i))).trans_lt hu₂'
+  have hg₂ : g ∈ lifts (algebraMap O₂ k) := by
+    rw [mem_lifts_iff_coeff_mem]
+    intro i
+    rw [hg, coeff_add]
+    exact add_mem (hhc O₂ i) ((O₂.valuation_le_one_iff _).1 (hcoef₂ i).le)
+  have hg0 : g.eval 0 = (C u * (f - h)).coeff 0 := by
+    rw [← coeff_zero_eq_eval_zero, hg, coeff_add, hh0, zero_add]
+  have hg'0 : (derivative g).eval 0 = (-1) ^ (n - 1) + (C u * (f - h)).coeff 1 := by
+    rw [← coeff_zero_eq_eval_zero, coeff_derivative, hg, coeff_add, hh1]
+    simp
+  have hv2 : O₂.valuation ((derivative g).eval 0) = 1 := by
+    have h1 : O₂.valuation ((-1 : k) ^ (n - 1)) = 1 := by
+      rw [map_pow, Valuation.map_neg, map_one, one_pow]
+    rw [hg'0, Valuation.map_add_eq_of_lt_left _ (h1 ▸ hcoef₂ 1), h1]
+  obtain ⟨ρ, hρ₂, hρ⟩ := exists_eval_eq_zero_of_valuation_lt O₂ hg₂ (zero_mem O₂)
+    (by rw [hv2, one_pow, hg0]; exact hcoef₂ 0)
+  -- `ρ ∈ O₁`, and `f(ρ)` is small for `O₁`.
+  have hρ₁ : ρ ∈ O₁ := mem_of_monic_of_eval_eq_zero hg₁ hgm hρ
+  have hfρ : O₁.valuation (f.eval ρ) < O₁.valuation d ^ 2 := by
+    have hrel : u * f.eval ρ = (u - 1) * h.eval ρ := by
+      have := hρ
+      simp only [hg, eval_add, eval_mul, eval_C, eval_sub] at this
+      linear_combination this
+    have hv : O₁.valuation (f.eval ρ) = O₁.valuation ((u - 1) * h.eval ρ) := by
+      rw [← hrel, map_mul, hu1, one_mul]
+    rw [hv, map_mul, ← map_pow]
+    have hhρ : O₁.valuation (h.eval ρ) ≤ 1 :=
+      (O₁.valuation_le_one_iff _).2 (eval_mem_of_mem_lifts (hhO O₁) hρ₁)
+    refine (mul_le_of_le_one_right' hhρ).trans_lt ?_
+    rw [← Valuation.map_neg, neg_sub]
+    exact hu₁
+  -- The Bézout relation bounds `f'(ρ)` from below.
+  have hAρ : O₁.valuation ((C d * A).eval ρ) ≤ 1 :=
+    (O₁.valuation_le_one_iff _).2 (eval_mem_of_mem_lifts hA₁ hρ₁)
+  have hBρ : O₁.valuation ((C d * B).eval ρ) ≤ 1 :=
+    (O₁.valuation_le_one_iff _).2 (eval_mem_of_mem_lifts hB₁ hρ₁)
+  have hEq : (C d * A).eval ρ * f.eval ρ + (C d * B).eval ρ * (derivative f).eval ρ = d := by
+    have := congrArg (eval ρ) hBez
+    simp only [eval_add, eval_mul, eval_C] at this ⊢
+    exact this
+  have hdf : O₁.valuation d ≤ O₁.valuation ((derivative f).eval ρ) := by
+    have hlt : O₁.valuation ((C d * A).eval ρ * f.eval ρ) < O₁.valuation d := by
+      rw [map_mul]
+      exact (mul_le_of_le_one_left' hAρ).trans_lt (hfρ.trans_le hd2)
+    have heq : O₁.valuation ((C d * B).eval ρ * (derivative f).eval ρ) = O₁.valuation d := by
+      rw [show (C d * B).eval ρ * (derivative f).eval ρ =
+        d + -((C d * A).eval ρ * f.eval ρ) by linear_combination hEq,
+        Valuation.map_add_eq_of_lt_left _ (by rwa [Valuation.map_neg])]
+    rw [← heq, map_mul]
+    exact mul_le_of_le_one_left' hBρ
+  obtain ⟨a, -, ha⟩ := exists_eval_eq_zero_of_valuation_lt O₁ hf hρ₁
+    (hfρ.trans_le (pow_le_pow_left₀ zero_le hdf 2))
+  exact ⟨a, ha⟩
+
+/-- **F. K. Schmidt's theorem** (discrete case): a field with two distinct henselian discrete
+valuation rings is separably closed. -/
+theorem isSepClosed_of_isHenselianDVR_of_ne {O₁ O₂ : ValuationSubring k}
+    (h₁ : IsHenselianDVR O₁) (h₂ : IsHenselianDVR O₂) (hne : O₁ ≠ O₂) : IsSepClosed k := by
+  refine IsSepClosed.of_exists_root k fun p hp hirr hsep ↦ ?_
+  obtain ⟨t, ht0, htO, ht⟩ := exists_mul_mem_lifts O₁ p
+  have htc : ∀ i, t * p.coeff i ∈ O₁ := fun i ↦ by
+    simpa [coeff_C_mul] using (mem_lifts_iff_coeff_mem O₁ _).1 ht i
+  have hf : p.scaleRoots t ∈ lifts (algebraMap O₁ k) := by
+    rw [mem_lifts_iff_coeff_mem]
+    intro i
+    rw [coeff_scaleRoots]
+    by_cases hi : i < p.natDegree
+    · rw [show p.natDegree - i = (p.natDegree - i - 1) + 1 by omega, pow_succ,
+        show p.coeff i * (t ^ (p.natDegree - i - 1) * t) =
+          (t * p.coeff i) * t ^ (p.natDegree - i - 1) by ring]
+      exact mul_mem (htc i) (pow_mem htO _)
+    · rw [Nat.sub_eq_zero_of_le (not_lt.1 hi), pow_zero, mul_one]
+      rcases (not_lt.1 hi).eq_or_lt with h | h
+      · rw [← h, ← leadingCoeff, hp.leadingCoeff]
+        exact one_mem _
+      · rw [coeff_eq_zero_of_natDegree_lt h]
+        exact zero_mem _
+  obtain ⟨a, ha⟩ := exists_eval_eq_zero_of_ne h₁ h₂ hne ((monic_scaleRoots_iff t).2 hp)
+    (by rw [natDegree_scaleRoots]; exact hirr.natDegree_pos) hf
+    (isCoprime_scaleRoots_derivative ((separable_def p).1 hsep) ht0)
+  refine ⟨a / t, ?_⟩
+  have := scaleRoots_eval_mul p (a / t) t
+  rw [mul_div_cancel₀ _ ht0, ha] at this
+  exact (mul_eq_zero.1 this.symm).resolve_left (pow_ne_zero _ ht0)
+
+/-- **F. K. Schmidt's theorem** (discrete case): a field which is not separably closed has at
+most one henselian discrete valuation ring. -/
+theorem eq_of_isHenselianDVR (hk : ¬ IsSepClosed k) {O₁ O₂ : ValuationSubring k}
+    (h₁ : IsHenselianDVR O₁) (h₂ : IsHenselianDVR O₂) : O₁ = O₂ := by
+  by_contra hne
+  exact hk (isSepClosed_of_isHenselianDVR_of_ne h₁ h₂ hne)
+
+end Main
+
 end TemperedFundamentalGroups
