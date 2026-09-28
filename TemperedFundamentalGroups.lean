@@ -5,6 +5,7 @@ import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.GenericPoint
 import TemperedFundamentalGroups.Orbicurve.Model
 import TemperedFundamentalGroups.Orbicurve.Nullstellensatz
+import TemperedFundamentalGroups.Orbicurve.Orbifold
 import TemperedFundamentalGroups.Orbicurve.Ring
 import TemperedFundamentalGroups.Orbicurve.Stable
 import TemperedFundamentalGroups.Setup.Orbifold
