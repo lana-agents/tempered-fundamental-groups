@@ -529,3 +529,87 @@ downstream branches may take `(h : Statement)` as a hypothesis **as an intermedi
 merged as genuine may depend on it until W10 is proved. Refinements of the statement (domination of
 a given model, equivariance for `Aut_Y(T)`, compatibility in towers) will be added as further
 named `Prop`s here when the consumers need them.
+
+## 10. André's group and the `ℤ`-witness (branch `wp-andre`)
+
+This section turns steps 1–2 of §4 and item G1 of §5 into theorems. The only geometric inputs
+are W10 (`SemistableReduction.Statement`) and two clauses stated in the same file, D and H below.
+They enter only as hypotheses on `wp-andre`.
+
+### 10.1 What "André's group" means here
+
+Berkovich spaces are not available, so André's group is defined by **Lepage's limit formula**
+(André III.2.1.5, Lepage §1.1), with its terms made model-theoretic.
+
+* A **good pointed level** is a level with a model `Lv = (B, H, 𝒯, j, ρ)` (§3.2) such that
+  * the level is **Galois**: `H⁰` acts simply transitively on the geometric fibre
+    `F_L = Hom_R(B, Ω)`, which is nonempty;
+  * the model is **semistable after a finite extension**: `𝒯` is the restriction to `O` of a
+    semistable `O'`-model (`ModelCode.IsSemistable`) for a finite extension `O'/O` of DVRs;
+  * it comes with a base point `t₀ ∈ F_L`.
+
+  The special fibre `Z = |𝒯_s|` is then a noetherian space of dimension `≤ 1`.
+* `Z` has a universal covering `Z̃ → Z` (N1). The **stage group** `Π_Lv` is the group of pairs
+  `(h, h̃)` where `h ∈ H` and `h̃` is a homeomorphism of `Z̃` lifting `ρ_s(h)`. This is the
+  orbifold fundamental group of `[Z/H]`. It is Lepage's `Gal(T^∞/[Y/A])`, where the universal
+  topological covering `T^∞` of `T^an` is replaced by `Z̃`; the replacement is exactly the
+  Raynaud–Berkovich retraction of §1.
+* A morphism of good pointed levels induces `Π_Lv' → Π_Lv` (lift `ψ_s` to the universal
+  coverings through the base points).
+* **André's group**: `andreGroup := lim_{good pointed Lv} Π_Lv`, with the limit topology (each
+  `Π_Lv` discrete).
+
+**Theorem A** (`andreEquiv`). Assume W10 and clauses D and H. Then
+`temperedPi1 O R A V hV ≃ₜ* andreGroup`.
+
+Loop-free semistable models, which give Lepage's formula with one model per level, form a cofinal
+subclass and give the same limit. Stabilisation of `Π_Lv` along semistable refinements is not
+needed for Theorem A.
+
+### 10.2 Lemma chain for Theorem A
+
+| # | Statement | Inputs |
+|---|---|---|
+| N1 | A connected noetherian space `Z` of topological Krull dimension `≤ 1` has a universal covering `p : Z̃ → Z` with countable fibres. For every covering `q : P → Z` and `p₀ ∈ q⁻¹(p z̃₀)` there is a unique continuous `f : Z̃ → P` with `q ∘ f = p` and `f z̃₀ = p₀`. | Coverings of irreducible spaces are trivial. `Z` is a finite union of irreducible curves meeting in finitely many closed points, so its coverings are those of the incidence graph `Γ(Z)` (components and special points). `Z̃` is glued along the universal tree of `Γ(Z)`. Countable fibres: `CountableFibres`. |
+| N2 | `H`-equivariant coverings of `Z` correspond to `Π`-sets. The object `U_Lv = (Z̃ × Π)/π₁` is a `CoveringCode` with a simply transitive right action of `Π` on its fibre over `z₀`. | N1 |
+| G1 | For a good pointed `Lv`, `Φ(U_Lv) ≅ Π_Lv`, and every `α ∈ Aut Φ` acts on it by left multiplication by a unique `π_α(Lv) ∈ Π_Lv`. | N2; `Φ(Lv, P) ≅ P_{sp(t₀)}` for Galois levels |
+| G2 | **Pro-representability**: for every object `X` and `x ∈ Φ(X)` there are a good pointed `Lv` and a morphism `U_Lv ⟶ X` sending the base point to `x`. | clauses D and H (domination, equivariance), Galois closure of levels |
+| G3 | Good pointed levels form a cofiltered category. | clause D with two models |
+| G4 | `α ↦ (π_α(Lv))_Lv` is an isomorphism of topological groups `Aut Φ ≃ₜ* lim Π_Lv`. | G1–G3 (Yoneda) |
+
+**Clause D (domination)**, to be added to `SemistableReduction/Statement.lean`. Given finitely
+many projective `O`-models `c_i` with morphisms `j_i : Spec B ⟶ c_i` over `O`, the semistable model
+of W10 can be chosen with morphisms `c ⟶ c_i` over `O` compatible with the `j`'s. The model is
+given as a `ModelCode O`: a closed subscheme of `ℙ^N_O` with a morphism to `Spec O'` over `O`,
+semistable as an `O'`-scheme.
+
+**Clause H (equivariance)**. For a finite group `G` acting on `B` by `K`-algebra automorphisms,
+`K'/K` can be taken Galois and `G × Gal(K'/K)` acts on `c` over `Spec O`, making `j` equivariant.
+
+### 10.3 The `ℤ`-witness (Theorem B)
+
+**Theorem B** (`exists_surjective_temperedPi1_int`). Let `Y = E_q ∖ S` be a Tate curve minus a
+finite Galois-stable set, over a complete discretely valued `K` of characteristic `0`. Under W10,
+D, H and W8′ below, there is a continuous surjective homomorphism `temperedPi1 → ℤ`.
+
+1. **X₀.** A semistable `O`-model `𝒴` of `E_q` whose special fibre is an `n`-gon, and on it the
+   universal `ℤ`-covering of the `n`-gon. This gives an object `X₀` over a good level, together
+   with its deck torsor `ℤ →* Aut X₀`, so `deckCharacter : Aut Φ →* ℤ` is continuous (§5.1). The
+   model is either explicit (the blow-up of the Weierstrass model at the node) or obtained from
+   W10 applied to `Y`; in the second case one also needs that the dual graph has a cycle (the Tate
+   curve does not have potentially good reduction).
+2. **Surjectivity** means some `α` translates by `1`. By G4, `α` is a compatible family
+   `(π_Lv) ∈ lim Π_Lv` with `χ(π_{Lv₀}) = 1`. The index system is uncountable and the kernels are
+   infinite discrete, so compactness is needed. For each good `Lv` over `Lv₀`, let `S_Lv` be the
+   set of `π ∈ Π_Lv` with `χ(π) = 1` whose displacement of the base vertex of the universal tree
+   is at most `ℓ(Tate loop)`, measured in the pulled-back metric: an edge of `Z̃_Lv` has length
+   (thickness) × (local degree over `𝒴`).
+   * `S_Lv` is finite, because the tree is locally finite and lengths are bounded below.
+   * `S_Lv` is nonempty, by path lifting along a harmonic morphism.
+   * `S_Lv` is mapped into `S_Lv'`, because lengths are preserved.
+
+   König's lemma (compactness of `lim` of finite nonempty sets) then gives `α`.
+3. **W8′ (harmonic morphisms)**, to be proved in the W-chain (ABBR, *Lifting harmonic morphisms I*,
+   §4). For compatible semistable models of `T → T'`, the dual graphs carry thicknesses and the
+   map of dual graphs is harmonic: edges go to edges or vertices, with stretching factor equal to
+   the local degree, and every edge at the image of a vertex lifts.
