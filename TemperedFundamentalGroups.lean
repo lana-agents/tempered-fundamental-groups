@@ -2,6 +2,7 @@ import TemperedFundamentalGroups.FibreFunctor.Topology
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.GenericPoint
+import TemperedFundamentalGroups.Orbicurve.Ring
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.Etale
