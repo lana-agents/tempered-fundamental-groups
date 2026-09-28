@@ -230,6 +230,18 @@ lemma rd_pow {x : K} (hx : ‖x‖ ≤ 1) (n : ℕ) : rd (x ^ n) = rd x ^ n := b
   set x' : 𝒪 := ⟨x, (HenselComplete.mem_integers_iff x).2 hx⟩
   rw [show x ^ n = ((x' ^ n : 𝒪) : K) from rfl, rd_coe, map_pow, ← rd_coe]
 
+lemma rd_sum {ι : Type*} (s : Finset ι) (f : ι → K) (hf : ∀ i ∈ s, ‖f i‖ ≤ 1) :
+    rd (∑ i ∈ s, f i) = ∑ i ∈ s, rd (f i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty =>
+    rw [Finset.sum_empty, Finset.sum_empty]
+    exact rd_eq_zero (by simp)
+  | insert j s hj ih =>
+    rw [Finset.sum_insert hj, Finset.sum_insert hj, rd_add (hf j (Finset.mem_insert_self j s))
+      (IsUltrametricDist.norm_sum_le_of_forall_le_of_nonneg zero_le_one fun i hi ↦
+        hf i (Finset.mem_insert_of_mem hi)), ih fun i hi ↦ hf i (Finset.mem_insert_of_mem hi)]
+
 /-- The residue field has characteristic `p` if `‖p‖ < 1`. -/
 lemma charP_residueField {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : K)‖ < 1) :
     CharP (ResidueField 𝒪) p := by
@@ -516,22 +528,26 @@ local notation "𝒪C" => HenselComplete.integers C
 local notation "𝒪M" => HenselComplete.integers M
 
 variable (C M) in
-/-- **A lifted Frobenius-closed basis** (Kuhlmann's (LFC), Lemma 4.9): a Frobenius-closed basis
-`B` of the residue field `κ` of `M` over the residue field `k` of `C`, together with lifts
-`u_q ∈ M` (`‖u_q‖ ≤ 1`) of its generators `ū_q`, such that the `C`-span of the family
-`{1} ⊔ {u_q ^ p ^ n}` is dense in `M`. -/
-structure LiftedFrobeniusBasis (p : ℕ) where
+/-- A family of lifts of the generators of a Frobenius-closed basis: a Frobenius-closed basis `B`
+of the residue field `κ` of `M` over the residue field `k` of `C`, together with lifts
+`u_q ∈ M` (`‖u_q‖ ≤ 1`) of its generators `ū_q`. -/
+structure LiftedFrobeniusFamily (p : ℕ) where
   /-- The Frobenius-closed basis of the residue field. -/
   B : FrobeniusBasis (ResidueField 𝒪C) (ResidueField 𝒪M) p
   /-- The lifts of its generators. -/
   u : B.ι → M
   norm_u_le : ∀ q, ‖u q‖ ≤ 1
   rd_u : ∀ q, rd (u q) = B.u q
+
+variable (C M) in
+/-- **A lifted Frobenius-closed basis** (Kuhlmann's (LFC), Lemma 4.9): a lifted family such that
+the `C`-span of `{1} ⊔ {u_q ^ p ^ n}` is dense in `M`. -/
+structure LiftedFrobeniusBasis (p : ℕ) extends LiftedFrobeniusFamily C M p where
   dense : Dense (Submodule.span C (Set.range (liftBasis p u)) : Set M)
 
-namespace LiftedFrobeniusBasis
+namespace LiftedFrobeniusFamily
 
-variable {p : ℕ} (L : LiftedFrobeniusBasis C M p)
+variable {p : ℕ} (L : LiftedFrobeniusFamily C M p)
 
 /-- The lifted basis `{1} ⊔ {u_q ^ p ^ n}`. -/
 abbrev b : Option (ℕ × L.B.ι) → M := liftBasis p L.u
@@ -638,6 +654,41 @@ lemma norm_val_lt (c : Option (ℕ × L.B.ι) →₀ C) {r : ℝ} (hr : 0 < r) (
   rw [← hi]
   exact h i
 
+lemma rd_algebraMap {x : C} (hx : ‖x‖ ≤ 1) :
+    rd (algebraMap C M x) = algebraMap (ResidueField 𝒪C) (ResidueField 𝒪M) (rd x) := by
+  set x' : 𝒪C := ⟨x, (HenselComplete.mem_integers_iff x).2 hx⟩
+  rw [show x = (x' : C) from rfl, rd_coe,
+    HasExtension.algebraMap_residue_eq_residue_algebraMap, ← rd_coe,
+    HasExtension.coe_algebraMap_valuationSubring_eq]
+
+/-- **The residue of a normalized combination**: for `‖Σ cᵢ bᵢ‖ ≤ ‖a‖`, the residue of
+`(Σ cᵢ bᵢ) / a` is `Σ (cᵢ / a)‾ Bᵢ`. -/
+theorem rd_val_div (c : Option (ℕ × L.B.ι) →₀ C) {a : C} (ha : a ≠ 0)
+    (hc : ‖L.val c‖ ≤ ‖a‖) :
+    rd (L.val c / algebraMap C M a) =
+      ∑ i ∈ c.support, rd (c i / a) • L.B.basis i := by
+  have han : 0 < ‖a‖ := norm_pos_iff.2 ha
+  have hci (i : Option (ℕ × L.B.ι)) : ‖c i / a‖ ≤ 1 := by
+    rw [norm_div]
+    exact div_le_one_of_le₀ ((L.norm_coeff_le_norm_val c i).trans hc) han.le
+  rw [val_eq_sum, Finset.sum_div, rd_sum]
+  · refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rw [show algebraMap C M (c i) * L.b i / algebraMap C M a = algebraMap C M (c i / a) * L.b i
+      by rw [map_div₀]; ring, rd_mul (by rw [norm_algebraMap']; exact hci i) (L.norm_b_le i),
+      rd_algebraMap (hci i), L.rd_b, Algebra.smul_def]
+  · intro i _
+    rw [show algebraMap C M (c i) * L.b i / algebraMap C M a = algebraMap C M (c i / a) * L.b i
+      by rw [map_div₀]; ring, norm_mul, norm_algebraMap']
+    exact mul_le_one₀ (hci i) (norm_nonneg _) (L.norm_b_le i)
+
+end LiftedFrobeniusFamily
+
+namespace LiftedFrobeniusBasis
+
+open LiftedFrobeniusFamily
+
+variable {p : ℕ} (L : LiftedFrobeniusBasis C M p)
+
 /-- **Density**: every element is approximated by some `Σ cᵢ bᵢ` of no larger norm. -/
 theorem exists_approx (m : M) {ε : ℝ} (hε : 0 < ε) :
     ∃ c, ‖m - L.val c‖ < ε ∧ ‖L.val c‖ ≤ ‖m‖ := by
@@ -666,45 +717,6 @@ theorem exists_norm_eq (m : M) (hm : m ≠ 0) : ∃ d : C, d ≠ 0 ∧ ‖m‖ =
     exact hmn.ne heq
   obtain ⟨i, hi, hi'⟩ := L.exists_coeff_eq c hc
   exact ⟨c i, hi, by rw [← heq, hi']⟩
-
-lemma rd_algebraMap {x : C} (hx : ‖x‖ ≤ 1) :
-    rd (algebraMap C M x) = algebraMap (ResidueField 𝒪C) (ResidueField 𝒪M) (rd x) := by
-  set x' : 𝒪C := ⟨x, (HenselComplete.mem_integers_iff x).2 hx⟩
-  rw [show x = (x' : C) from rfl, rd_coe,
-    HasExtension.algebraMap_residue_eq_residue_algebraMap, ← rd_coe,
-    HasExtension.coe_algebraMap_valuationSubring_eq]
-
-lemma rd_sum {ι : Type*} (s : Finset ι) (f : ι → M) (hf : ∀ i ∈ s, ‖f i‖ ≤ 1) :
-    rd (∑ i ∈ s, f i) = ∑ i ∈ s, rd (f i) := by
-  classical
-  induction s using Finset.induction_on with
-  | empty =>
-    rw [Finset.sum_empty, Finset.sum_empty]
-    exact rd_eq_zero (by simp)
-  | insert j s hj ih =>
-    rw [Finset.sum_insert hj, Finset.sum_insert hj, rd_add (hf j (Finset.mem_insert_self j s))
-      (IsUltrametricDist.norm_sum_le_of_forall_le_of_nonneg zero_le_one fun i hi ↦
-        hf i (Finset.mem_insert_of_mem hi)), ih fun i hi ↦ hf i (Finset.mem_insert_of_mem hi)]
-
-/-- **The residue of a normalized combination**: for `‖Σ cᵢ bᵢ‖ ≤ ‖a‖`, the residue of
-`(Σ cᵢ bᵢ) / a` is `Σ (cᵢ / a)‾ Bᵢ`. -/
-theorem rd_val_div (c : Option (ℕ × L.B.ι) →₀ C) {a : C} (ha : a ≠ 0)
-    (hc : ‖L.val c‖ ≤ ‖a‖) :
-    rd (L.val c / algebraMap C M a) =
-      ∑ i ∈ c.support, rd (c i / a) • L.B.basis i := by
-  have han : 0 < ‖a‖ := norm_pos_iff.2 ha
-  have hci (i : Option (ℕ × L.B.ι)) : ‖c i / a‖ ≤ 1 := by
-    rw [norm_div]
-    exact div_le_one_of_le₀ ((L.norm_coeff_le_norm_val c i).trans hc) han.le
-  rw [val_eq_sum, Finset.sum_div, rd_sum]
-  · refine Finset.sum_congr rfl fun i _ ↦ ?_
-    rw [show algebraMap C M (c i) * L.b i / algebraMap C M a = algebraMap C M (c i / a) * L.b i
-      by rw [map_div₀]; ring, rd_mul (by rw [norm_algebraMap']; exact hci i) (L.norm_b_le i),
-      rd_algebraMap (hci i), L.rd_b, Algebra.smul_def]
-  · intro i _
-    rw [show algebraMap C M (c i) * L.b i / algebraMap C M a = algebraMap C M (c i / a) * L.b i
-      by rw [map_div₀]; ring, norm_mul, norm_algebraMap']
-    exact mul_le_one₀ (hci i) (norm_nonneg _) (L.norm_b_le i)
 
 section Phases
 

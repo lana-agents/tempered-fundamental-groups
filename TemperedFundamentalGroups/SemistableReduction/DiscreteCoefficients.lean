@@ -134,7 +134,7 @@ theorem norm_sum_eq_sup' (K : Subfield F) {ι : Type*} {x : ι → F} (hx : ∀ 
     exact mul_le_one₀ (hq i hi) (norm_nonneg _) (hx i)
   have hy1 : ‖y‖ ≤ 1 := IsUltrametricDist.norm_sum_le_of_forall_le_of_nonneg zero_le_one hterm
   have hrdy : rd y = ∑ i ∈ s, rd (c i / c j) * rd (x i) := by
-    rw [hy, LiftedFrobeniusBasis.rd_sum s _ hterm]
+    rw [hy, rd_sum s _ hterm]
     exact Finset.sum_congr rfl fun i hi ↦ rd_mul (hq i hi) (hx i)
   have hy0 : rd y ≠ 0 := by
     intro h
@@ -376,7 +376,7 @@ theorem exists_isDiscrete_residueSubfield_eq_top [IsAlgClosed F] [CharZero F] {p
     IsUltrametricDist.norm_sum_le_of_forall_le_of_nonneg zero_le_one fun i _ ↦ hterm1 x hx i
   have hrd : rd ((g.map (algebraMap K₀ F)).eval (a₀ : F)) = 0 := by
     rw [heval, rd_add (hpow1 _ ha₀1) (hsum1 _ ha₀1), rd_pow ha₀1,
-      LiftedFrobeniusBasis.rd_sum _ _ fun i _ ↦ hterm1 _ ha₀1 i, ha₀rd]
+      rd_sum _ _ fun i _ ↦ hterm1 _ ha₀1 i, ha₀rd]
     have hterm : ∀ i : Fin n, rd (c i * (a₀ : F) ^ (i : ℕ)) =
         algebraMap R (ResidueField 𝒪) ((minpoly R ā).coeff i) * ā ^ (i : ℕ) := fun i ↦ by
       rw [rd_mul (hc1 i) (by rw [norm_pow]; exact pow_le_one₀ (norm_nonneg _) ha₀1),
