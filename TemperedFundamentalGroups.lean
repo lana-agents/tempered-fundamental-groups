@@ -4,6 +4,7 @@ import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.GenericPoint
 import TemperedFundamentalGroups.Orbicurve.Nullstellensatz
 import TemperedFundamentalGroups.Orbicurve.Ring
+import TemperedFundamentalGroups.Orbicurve.Stable
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.Etale
