@@ -73,6 +73,10 @@ lemma valueGroup_comap_le (w : Valuation L Γ₁) :
   rintro _ ⟨x, hx⟩
   exact ⟨algebraMap K L x, hx⟩
 
+/-- A valuation extends its restriction. -/
+instance hasExtension_comap (w : Valuation L Γ₁) : (w.comap (algebraMap K L)).HasExtension w :=
+  ⟨Valuation.IsEquiv.refl⟩
+
 variable {v : Valuation K Γ₀} {w : Valuation L Γ₁} [v.HasExtension w]
 
 local notation "O_v" => v.valuationSubring
@@ -294,6 +298,50 @@ theorem ramificationIdx_mul_inertiaDeg_le [FiniteDimensional K L] :
   · rw [ramificationIdx, Subgroup.relIndex, Subgroup.index, Nat.card_eq_fintype_card]
   · rfl
 
+/-- For a finite extension the residue field extension is finite. -/
+theorem finite_residueField [FiniteDimensional K L] :
+    Module.Finite (ResidueField O_v) (ResidueField O_w) := by
+  classical
+  set b := Module.Free.chooseBasis (ResidueField O_v) (ResidueField O_w)
+  choose x hx using fun i ↦ IsLocalRing.residue_surjective (b i)
+  have hxli : LinearIndependent (ResidueField O_v) (fun i ↦ residue O_w (x i)) := by
+    simpa [hx] using b.linearIndependent
+  have := (linearIndependent_of_residue hxli).finite
+  exact Module.Finite.of_basis b
+
+/-- For a finite extension the ramification index is finite (nonzero). -/
+theorem ramificationIdx_ne_zero (w : Valuation L Γ₁) [FiniteDimensional K L] :
+    ramificationIdx K w ≠ 0 := by
+  classical
+  set H := (valueGroup (w.comap (algebraMap K L))).subgroupOf (valueGroup w)
+  let Q := valueGroup w ⧸ H
+  choose π hπ using fun q : Q ↦ (q.out : valueGroup w).2
+  have hπ0 (q : Q) : π q ≠ 0 := by
+    intro h
+    have := hπ q
+    rw [h, map_zero] at this
+    exact (Units.ne_zero _) this.symm
+  have h1 : LinearIndependent (ResidueField (w.comap (algebraMap K L)).valuationSubring)
+      (fun _ : Unit ↦ residue w.valuationSubring (1 : w.valuationSubring)) := by
+    rw [linearIndependent_unique_iff, map_one]
+    exact one_ne_zero
+  have hli := linearIndependent_mul (v := w.comap (algebraMap K L)) h1 hπ0 (fun q q' c hc h ↦ by
+    rw [hπ, hπ] at h
+    rw [← QuotientGroup.out_eq' q, ← QuotientGroup.out_eq' q', QuotientGroup.eq]
+    have hwc : w (algebraMap K L c) ≠ 0 := by
+      rw [ne_eq, Valuation.zero_iff, map_eq_zero_iff _ (algebraMap K L).injective]
+      exact hc
+    have hmem : Units.mk0 _ hwc ∈ valueGroup (w.comap (algebraMap K L)) := ⟨c, rfl⟩
+    rw [Subgroup.mem_subgroupOf]
+    convert inv_mem hmem using 1
+    ext
+    simp only [Subgroup.coe_mul, Subgroup.coe_inv, Units.val_mul, Units.val_inv_eq_inv_val,
+      Units.val_mk0]
+    rw [h, mul_inv_rev, mul_comm, ← mul_assoc, mul_inv_cancel₀ (Units.ne_zero _), one_mul])
+  have : Finite (Q × Unit) := hli.finite
+  have : Finite Q := Finite.of_injective (fun q : Q ↦ (q, ())) fun _ _ h ↦ congrArg Prod.fst h
+  exact Subgroup.index_ne_zero_of_finite
+
 section Torsion
 
 open Polynomial
@@ -393,6 +441,8 @@ theorem ramificationIdx_eq_one_of_divisible' {Γ₀ : Type*} [LinearOrderedCommG
   rw [← map_pow, ← map_pow, HasExtension.val_map_eq_iff (vR := v), map_pow, hd]
 
 end Torsion
+
+
 
 end FundamentalInequality
 

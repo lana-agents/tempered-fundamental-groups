@@ -418,6 +418,7 @@ Notation below: all valued fields have rank one; `M` henselian means the valuati
 | A2 | `linearIndependent_mul`: residue-independent `xᵢ` and `πⱼ` with values in distinct classes mod `Γ_K` ⇒ `{πⱼ xᵢ}` `K`-independent; `ramificationIdx_mul_inertiaDeg_le`: `e·f ≤ [L:K]` | **proved** (`Subgroup.relIndex`, `Module.finBasis`) | done |
 | A3 | `exists_pow_valuation_eq` (values of algebraic elements are torsion mod `Γ_K`), `ramificationIdx_eq_one_of_divisible(')` (`Γ_K` divisible ⇒ `e = 1`) | **proved** (`minpoly`, `pow_left_inj`) | done |
 | A4 | towers: `e`, `f` multiplicative in `K ⊂ L ⊂ M`; defectless `M/K` ⇔ `M/L` and `L/K` defectless | **proved** (`SemistableReduction/DefectTower`: `ramificationIdx_tower`, `inertiaDeg_tower`, `defectless_tower_iff`) | done |
+| A4' | finiteness for finite `L/K`: `f < ∞`, `e ≠ 0` | **proved** (`finite_residueField`, `ramificationIdx_ne_zero`) | done |
 | A5 | distinct extensions of `v` to an algebraic `L` are incomparable; for the global statement: the extensions of `w` to `F'` are finitely many (`≤ [F':F]`) | todo (A5 only needed if B is done without the bijection B3) | 300 |
 
 *B. Global ↔ local (completion).* `F'/F` finite separable (in char `p` reduce first to the
@@ -437,7 +438,7 @@ defectless by A2).
 | # | Statement | Size |
 |---|---|---|
 | C1 | complete rank-one ⇒ `HenselianLocalRing O` (Newton iteration; Mathlib only has the `𝔪`-adic version, useless for dense value groups) | **proved** (`SemistableReduction/HenselComplete`: `henselianLocalRing` for any complete `IsUltrametricDist` normed field) |
-| C2 | unramified extensions: `L/M` with `κ_L/κ_M` separable of degree `[L:M]` ⇔ `L = M(y)`, `ȳ` a separable generator; existence and uniqueness of the unramified lift of a finite separable `κ'/κ_M`; the **unramified closure** of `M` in `L` (maximal unramified subextension, residue field = separable closure of `κ_M` in `κ_L`) | 500 |
+| C2 | **proved part**: a root `y ∈ O_w` of a monic `f ∈ O_u[X]` with irreducible reduction gives `deg f ≤ f(w|u)`, and if `[N:M] ≤ deg f` then `e = 1`, `f = [N:M]` (`UnramifiedRoot`: `natDegree_le_inertiaDeg`, `unramified_of_root`). Remaining: unramified extensions: `L/M` with `κ_L/κ_M` separable of degree `[L:M]` ⇔ `L = M(y)`, `ȳ` a separable generator; existence and uniqueness of the unramified lift of a finite separable `κ'/κ_M`; the **unramified closure** of `M` in `L` (maximal unramified subextension, residue field = separable closure of `κ_M` in `κ_L`) | 500 |
 | C3 | finite extensions of complete rank-one are complete; unique extension of the valuation (spectral norm); `Aut(L/M)` preserves it | 250 |
 | C4 | `d(E/M) = d(E·N/N)` for `N/M` unramified (min. polynomial of an unramified generator stays irreducible with separable reduction over `E`) | 250 |
 
@@ -446,7 +447,7 @@ defectless by A2).
 | # | Statement | API | Size |
 |---|---|---|---|
 | D1 | `N/M` finite Galois, `G` acts on `O_N`; inertia `T = ker(G → Aut(κ_N/κ_M))`; `G → Aut(κ_N/κ_M)` surjective, `κ_N/κ_M` normal | `Ideal.Quotient.stabilizerHom_surjective`, `Algebra.IsInvariant` | 300 |
-| D2 | if `Γ_M` divisible and `μ_ℓ ⊂ M` for all primes `ℓ ≠ p`: `T` is a `p`-group (an element of prime order `ℓ ≠ p` generates a Kummer extension `M'(θ)`, `θ^ℓ = a`, `|a| = 1` by divisibility, `ā` not an `ℓ`-th power by Hensel, so `σ(θ̄) = ζ̄θ̄ ≠ θ̄`) | `isCyclic_tfae` (Kummer), `X_pow_sub_C_irreducible_of_prime`, C1 | 350 |
+| D2 | **Kummer step proved** (`UnramifiedRoot.kummer_unramified`: Henselian `O_M`, prime `ℓ` a unit, `a` a unit not an `ℓ`-th power, `θ^ℓ = a`, `[N:M] ≤ ℓ` ⇒ `e = 1`, `f = [N:M] = ℓ`). Remaining: if `Γ_M` divisible and `μ_ℓ ⊂ M` for all primes `ℓ ≠ p`: `T` is a `p`-group (an element of prime order `ℓ ≠ p` generates a Kummer extension `M'(θ)`, `θ^ℓ = a`, `|a| = 1` by divisibility, `ā` not an `ℓ`-th power by Hensel, so `σ(θ̄) = ζ̄θ̄ ≠ θ̄`) | `isCyclic_tfae` (Kummer), `X_pow_sub_C_irreducible_of_prime`, C1 | 350 |
 | D3 | `N^T/M` is unramified and `κ_N/κ_{N^T}` purely inseparable; hence `f(N^T/M) = [N^T:M]` (with A2) | D1, `Normal`, separable degree | 250 |
 | D4 | a subgroup `H` of a finite `p`-group `T` sits in a chain `H = H₀ ◁ H₁ ◁ … ◁ H_m = T` with `[H_{i+1}:H_i] = p` (normalizers grow) | `IsPGroup`, `Subgroup.normalizer` | 200 |
 
@@ -488,4 +489,4 @@ only needed for `char C = p`.
 
 **Status.** A1–A3 proved (`SemistableReduction/FundamentalInequality`: `valuation_sum_eq_sup`,
 `linearIndependent_of_residue`, `linearIndependent_mul`, `ramificationIdx_mul_inertiaDeg_le`,
-`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`).
+`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`); the root/Kummer parts of C2/D2 proved (`SemistableReduction/UnramifiedRoot`).

@@ -22,6 +22,7 @@ import TemperedFundamentalGroups.SemistableReduction.NodeNormal
 import TemperedFundamentalGroups.SemistableReduction.RootOfUniformizer
 import TemperedFundamentalGroups.SemistableReduction.RootOfUnit
 import TemperedFundamentalGroups.SemistableReduction.TameLocal
+import TemperedFundamentalGroups.SemistableReduction.UnramifiedRoot
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Schmidt
 import TemperedFundamentalGroups.Setup.Valuation

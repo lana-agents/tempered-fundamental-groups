@@ -25,17 +25,6 @@ namespace SemistableReduction
 
 namespace FundamentalInequality
 
-section Comap
-
-variable {A B : Type*} [Field A] [Field B] [Algebra A B]
-  {Γ : Type*} [LinearOrderedCommGroupWithZero Γ] (w : Valuation B Γ)
-
-/-- A valuation extends its restriction. -/
-instance hasExtension_comap : (w.comap (algebraMap A B)).HasExtension w :=
-  ⟨Valuation.IsEquiv.refl⟩
-
-end Comap
-
 variable {K L M : Type*} [Field K] [Field L] [Field M] [Algebra K L] [Algebra L M] [Algebra K M]
   [IsScalarTower K L M]
 
