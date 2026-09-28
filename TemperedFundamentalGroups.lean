@@ -2,6 +2,11 @@ import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.Topology
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
+import TemperedFundamentalGroups.Orbicurve.GenericPoint
+import TemperedFundamentalGroups.Orbicurve.Model
+import TemperedFundamentalGroups.Orbicurve.Nullstellensatz
+import TemperedFundamentalGroups.Orbicurve.Ring
+import TemperedFundamentalGroups.Orbicurve.Stable
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Valuation
 import TemperedFundamentalGroups.Tempered.Category
