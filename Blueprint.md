@@ -471,7 +471,7 @@ defectless by A2).
 
 | # | Statement | API | Size |
 |---|---|---|---|
-| D1 | `N/M` finite Galois, `G` acts on `O_N`; inertia `T = ker(G → Aut(κ_N/κ_M))`; `G → Aut(κ_N/κ_M)` surjective, `κ_N/κ_M` normal | `Ideal.Quotient.stabilizerHom_surjective`, `Algebra.IsInvariant` | 300 |
+| D1 | **proved** (`SemistableReduction/Inertia`, hypothesis `hσ : ∀ σ x, w (σ x) = w x`, supplied by C3 `valuation_algEquiv_apply'`): `galAction` (`G = Aut(N/M)` acts on `O_N`), `residueHom : G →* Aut(κ_N/κ_M)`, `inertia u hσ` its kernel, `mem_inertia_iff` (`σ ∈ T ↔ ∀ x ∈ O_N, w(σx − x) < 1`); for `N/M` finite Galois `residueHom_surjective`, `normal_residueField` | `Ideal.Quotient.stabilizerHom_surjective`, `Algebra.IsInvariant` | done |
 | D2 | **Kummer step proved** (`UnramifiedRoot.kummer_unramified`: Henselian `O_M`, prime `ℓ` a unit, `a` a unit not an `ℓ`-th power, `θ^ℓ = a`, `[N:M] ≤ ℓ` ⇒ `e = 1`, `f = [N:M] = ℓ`). Remaining: if `Γ_M` divisible and `μ_ℓ ⊂ M` for all primes `ℓ ≠ p`: `T` is a `p`-group (an element of prime order `ℓ ≠ p` generates a Kummer extension `M'(θ)`, `θ^ℓ = a`, `|a| = 1` by divisibility, `ā` not an `ℓ`-th power by Hensel, so `σ(θ̄) = ζ̄θ̄ ≠ θ̄`) | `isCyclic_tfae` (Kummer), `X_pow_sub_C_irreducible_of_prime`, C1 | 350 |
 | D3 | `N^T/M` is unramified and `κ_N/κ_{N^T}` purely inseparable; hence `f(N^T/M) = [N^T:M]` (with A2) | D1, `Normal`, separable degree | 250 |
 | D4 | a subgroup `H` of a finite `p`-group `T` sits in a chain `H = H₀ ◁ H₁ ◁ … ◁ H_m = T` with `[H_{i+1}:H_i] = p` (normalizers grow) | `IsPGroup`, `Subgroup.normalizer` | 200 |
@@ -514,4 +514,4 @@ only needed for `char C = p`.
 
 **Status.** A1–A3 proved (`SemistableReduction/FundamentalInequality`: `valuation_sum_eq_sup`,
 `linearIndependent_of_residue`, `linearIndependent_mul`, `ramificationIdx_mul_inertiaDeg_le`,
-`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`); C2 proved (`SemistableReduction/UnramifiedRoot`, `SemistableReduction/Unramified`); C3 proved (`SemistableReduction/UniqueExtension`); C4 proved (`SemistableReduction/UnramifiedBaseChange`); the Kummer part of D2 proved (`SemistableReduction/UnramifiedRoot`).
+`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`); C2 proved (`SemistableReduction/UnramifiedRoot`, `SemistableReduction/Unramified`); C3 proved (`SemistableReduction/UniqueExtension`); C4 proved (`SemistableReduction/UnramifiedBaseChange`); D1 proved (`SemistableReduction/Inertia`); the Kummer part of D2 proved (`SemistableReduction/UnramifiedRoot`).
