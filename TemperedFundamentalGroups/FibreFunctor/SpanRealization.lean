@@ -12,10 +12,12 @@ Let `Φ : C ⥤ Type w` and let `D` be a full subcategory of `C` (a property of 
 **`Φ`-span** from `X` to `D` (`FibreAut.PhiSpan`) is a diagram `X ⟵ W ⟶ c` with `c ∈ D` whose two
 morphisms become bijections under `Φ`. Suppose that
 
-* (S1) every object has a `Φ`-span to `D`, and
-* (S2) spans can be refined along morphisms: for `u : X ⟶ Y` and spans `s` of `X`, `s'` of `Y`
-  there are a span `t` of `X` and morphisms from `t` to `s` (over `X`) and to `s'` (over `u`),
-  including morphisms between the `D`-ends, making the obvious squares commute.
+* (S1) every object has an admissible `Φ`-span to `D` (for a chosen class of admissible spans
+  containing the identity spans of objects of `D`), and
+* (S2) admissible spans can be refined along morphisms: for `u : X ⟶ Y` and admissible spans
+  `s` of `X`, `s'` of `Y` there are an admissible span `t` of `X` and morphisms from `t` to `s`
+  (over `X`) and to `s'` (over `u`), including morphisms between the `D`-ends, making the obvious
+  squares commute.
 
 Then restricting automorphisms of `Φ` to `D` is an isomorphism of topological groups
 (`FibreAut.restrictEquivOfPhiSpans`). Every automorphism of `Φ|_D` is transported along the
@@ -49,14 +51,15 @@ structure PhiSpan (X : C) where
   bij_m : Function.Bijective (Φ.map m)
   bij_n : Function.Bijective (Φ.map n)
 
-/-- The hypotheses (S1), (S2). -/
-structure HasPhiSpans : Prop where
-  /-- Every object has a span. -/
-  nonempty : ∀ X : C, Nonempty (PhiSpan Φ D X)
-  /-- Spans can be refined along morphisms. -/
-  refine : ∀ {X Y : C} (u : X ⟶ Y) (s : PhiSpan Φ D X) (s' : PhiSpan Φ D Y),
+/-- The hypotheses (S1), (S2), for a class `adm` of admissible spans containing the identity spans
+of objects of `D`. -/
+structure HasPhiSpans (adm : ∀ X : C, PhiSpan Φ D X → Prop) : Prop where
+  /-- Every object has an admissible span. -/
+  nonempty : ∀ X : C, ∃ s : PhiSpan Φ D X, adm X s
+  /-- Admissible spans can be refined along morphisms. -/
+  refine : ∀ {X Y : C} (u : X ⟶ Y) (s : PhiSpan Φ D X) (s' : PhiSpan Φ D Y), adm X s → adm Y s' →
     ∃ (t : PhiSpan Φ D X) (w : t.W ⟶ s.W) (v : t.c ⟶ s.c) (w' : t.W ⟶ s'.W) (v' : t.c ⟶ s'.c),
-      w ≫ s.m = t.m ∧ t.n ≫ D.ι.map v = w ≫ s.n ∧
+      adm X t ∧ w ≫ s.m = t.m ∧ t.n ≫ D.ι.map v = w ≫ s.n ∧
       w' ≫ s'.m = t.m ≫ u ∧ t.n ≫ D.ι.map v' = w' ≫ s'.n
 
 variable {Φ D}
@@ -113,13 +116,13 @@ lemma transport_naturality {X Y : C} (u : X ⟶ Y) (s : PhiSpan Φ D Y) (t : Phi
     rw [PhiSpan.en_apply, ← hz, ← Functor.map_comp_apply, ← Functor.map_comp_apply, hv]
   rw [h3, Equiv.symm_apply_apply, ← Functor.map_comp_apply, ← Functor.map_comp_apply, hw]
 
-variable (hS : HasPhiSpans Φ D)
+variable {adm : ∀ X : C, PhiSpan Φ D X → Prop} (hS : HasPhiSpans Φ D adm)
 include hS
 
 /-- The transport does not depend on the span. -/
-lemma transport_eq {X : C} (s₁ s₂ : PhiSpan Φ D X) (β : FibreAut (D.ι ⋙ Φ)) :
-    s₁.transport β = s₂.transport β := by
-  obtain ⟨t, w₁, v₁, w₂, v₂, h₁, h₁', h₂, h₂'⟩ := hS.refine (𝟙 X) s₁ s₂
+lemma transport_eq {X : C} (s₁ s₂ : PhiSpan Φ D X) (h₁ : adm X s₁) (h₂ : adm X s₂)
+    (β : FibreAut (D.ι ⋙ Φ)) : s₁.transport β = s₂.transport β := by
+  obtain ⟨t, w₁, v₁, w₂, v₂, -, h₁, h₁', h₂, h₂'⟩ := hS.refine (𝟙 X) s₁ s₂ h₁ h₂
   funext x
   have e₁ := transport_naturality (𝟙 X) s₁ t w₁ v₁ (by rw [h₁, Category.comp_id]) h₁' β x
   have e₂ := transport_naturality (𝟙 X) s₂ t w₂ v₂ h₂ h₂' β x
@@ -128,13 +131,15 @@ lemma transport_eq {X : C} (s₁ s₂ : PhiSpan Φ D X) (β : FibreAut (D.ι ⋙
 
 /-- The transport is natural. -/
 lemma transport_natural {X Y : C} (u : X ⟶ Y) (s : PhiSpan Φ D X) (s' : PhiSpan Φ D Y)
-    (β : FibreAut (D.ι ⋙ Φ)) (x : Φ.obj X) :
+    (hs : adm X s) (hs' : adm Y s') (β : FibreAut (D.ι ⋙ Φ)) (x : Φ.obj X) :
     s'.transport β (Φ.map u x) = Φ.map u (s.transport β x) := by
-  obtain ⟨t, -, -, w', v', -, -, h₂, h₂'⟩ := hS.refine u s s'
-  rw [transport_naturality u s' t w' v' h₂ h₂' β x, transport_eq hS t s]
+  obtain ⟨t, -, -, w', v', ht, -, -, h₂, h₂'⟩ := hS.refine u s s' hs hs'
+  rw [transport_naturality u s' t w' v' h₂ h₂' β x, transport_eq hS t s ht hs]
 
-/-- The chosen span of an object. -/
-noncomputable def chosenSpan (X : C) : PhiSpan Φ D X := (hS.nonempty X).some
+/-- The chosen admissible span of an object. -/
+noncomputable def chosenSpan (X : C) : PhiSpan Φ D X := (hS.nonempty X).choose
+
+lemma chosenSpan_adm (X : C) : adm X (chosenSpan hS X) := (hS.nonempty X).choose_spec
 
 omit hS in
 lemma transport_mul {X : C} (s : PhiSpan Φ D X) (β γ : FibreAut (D.ι ⋙ Φ)) (x : Φ.obj X) :
@@ -157,7 +162,8 @@ noncomputable def extendSpan (β : FibreAut (D.ι ⋙ Φ)) : FibreAut Φ :=
   show Φ ≅ Φ from NatIso.ofComponents (fun X => (transportEquiv hS β X).toIso)
     (fun {X Y} u => by
       ext x
-      exact transport_natural hS u (chosenSpan hS X) (chosenSpan hS Y) β x)
+      exact transport_natural hS u (chosenSpan hS X) (chosenSpan hS Y) (chosenSpan_adm hS X)
+        (chosenSpan_adm hS Y) β x)
 
 lemma extendSpan_app (β : FibreAut (D.ι ⋙ Φ)) (X : C) (x : Φ.obj X) :
     (extendSpan hS β).app X x = (chosenSpan hS X).transport β x := rfl
@@ -201,9 +207,11 @@ lemma transport_restrictD {X : C} (s : PhiSpan Φ D X) (α : FibreAut Φ) (x : �
   rw [s.transport_map_m, restrictD_app, app_naturality α s.n y, ← PhiSpan.en_apply,
     Equiv.symm_apply_apply, app_naturality α s.m y]
 
-lemma restrictD_extendSpan (β : FibreAut (D.ι ⋙ Φ)) : restrictD (extendSpan hS β) = β := by
+lemma restrictD_extendSpan (hid : ∀ c, adm (D.ι.obj c) (idSpan c)) (β : FibreAut (D.ι ⋙ Φ)) :
+    restrictD (extendSpan hS β) = β := by
   ext c x
-  rw [restrictD_app, extendSpan_app, transport_eq hS _ (idSpan c), idSpan_transport]
+  rw [restrictD_app, extendSpan_app, transport_eq hS _ (idSpan c) (chosenSpan_adm hS _) (hid c),
+    idSpan_transport]
 
 lemma extendSpan_restrictD (α : FibreAut Φ) : extendSpan hS (restrictD α) = α := by
   ext X x
@@ -211,11 +219,12 @@ lemma extendSpan_restrictD (α : FibreAut Φ) : extendSpan hS (restrictD α) = �
 
 /-- **Restriction to a subcategory reached by `Φ`-bijective spans is an isomorphism of topological
 groups.** -/
-noncomputable def restrictEquivOfPhiSpans : FibreAut Φ ≃ₜ* FibreAut (D.ι ⋙ Φ) where
+noncomputable def restrictEquivOfPhiSpans (hid : ∀ c, adm (D.ι.obj c) (idSpan c)) :
+    FibreAut Φ ≃ₜ* FibreAut (D.ι ⋙ Φ) where
   toFun := restrictD
   invFun := extendSpan hS
   left_inv := extendSpan_restrictD hS
-  right_inv := restrictD_extendSpan hS
+  right_inv := restrictD_extendSpan hS hid
   map_mul' := map_mul restrictD
   continuous_toFun := continuous_restrict _ _
   continuous_invFun := by
@@ -225,7 +234,7 @@ noncomputable def restrictEquivOfPhiSpans : FibreAut Φ ≃ₜ* FibreAut (D.ι �
         map_one' := by
           rw [← map_one (restrictD (Φ := Φ) (D := D)), extendSpan_restrictD]
         map_mul' := fun β γ ↦ by
-          conv_lhs => rw [← restrictD_extendSpan hS β, ← restrictD_extendSpan hS γ,
+          conv_lhs => rw [← restrictD_extendSpan hS hid β, ← restrictD_extendSpan hS hid γ,
             ← map_mul, extendSpan_restrictD] }
     change Continuous ψ
     refine continuous_of_stabilizer Φ ψ fun S => ?_
