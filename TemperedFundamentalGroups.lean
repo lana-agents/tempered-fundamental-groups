@@ -1,3 +1,4 @@
+import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.SpanRealization
