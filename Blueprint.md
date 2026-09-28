@@ -267,3 +267,57 @@ together with the covering `𝔾 → 𝔾/q^{2ℤ}` is precisely a level-`Y` obj
 * G1: the `ℤ`-quotient for Tate curves — 10k+ lines (Galois theory of `𝒞`, explicit model).
 * G2: not feasible without Berkovich geometry or the semistable reduction theorem for curves;
   it is a literature citation in this design.
+
+## 9. Semistable reduction of finite étale covers of `E_q ∖ S` (the common blocker)
+
+**What is needed.** Let `K` be a complete discretely valued field of characteristic `0` with
+residue characteristic `p ≥ 0` (IUT: finite extensions of `ℚ_p`, `p = 2` allowed), `E_q` a Tate
+curve, `S ⊆ E_q(K̄)` finite and Galois stable, `Y = E_q ∖ S`. Both the non-degeneracy witness
+(§5.1, step 4) and André's identification (§4, steps 1–2) need:
+
+> **(SSR)** for every finite étale `T → Y` there is a finite extension `K'/K` such that the smooth
+> compactification `T̄_{K'}` has a semistable model over `O_{K'}` (in which the closure of the
+> boundary `T̄ ∖ T` consists of disjoint sections in the smooth locus), and these models can be
+> chosen compatibly with a given model of `Ȳ` (dominating the normalization of a model of `Ȳ` in
+> `T̄`).
+
+`T` is an arbitrary curve (arbitrary genus, arbitrary — in particular wild — ramification of
+`T̄ → Ē_q` over `S`); no special structure of `Y` survives in `T` except that `Y` itself is a
+Mumford curve. So (SSR) is the full semistable reduction theorem for curves, in the form
+"(potential) semistable reduction of an arbitrary smooth projective curve over `K`", plus the
+compatibility (which follows from the existence of the *stable* model and its functoriality,
+Liu–Lorenzini).
+
+### 9.1 Routes
+
+| Route | Idea | Needs (not in Mathlib / our libraries) | Coverage |
+|---|---|---|---|
+| **Deligne–Mumford via Jacobians** (DM 1969, Grothendieck SGA 7 IX) | `C` has semistable reduction iff `Jac(C)` has semiabelian reduction; for abelian varieties inertia acts quasi-unipotently on `T_ℓ` (Grothendieck's monodromy theorem), unipotently after a finite extension | Jacobians (Picard scheme), Néron models (and Raynaud's `Pic⁰` of a regular model = identity component of the Néron model), `ℓ`-adic cohomology/Tate modules of Jacobians, Grothendieck's orthogonality/criterion | complete; the heaviest by far |
+| **Artin–Winters** (Liu, *Algebraic Geometry and Arithmetic Curves*, Ch. 10) | take a regular model (Lipman desingularization of excellent surfaces), base change by a tame extension of degree `N` (`N` divisible enough), resolve again; the combinatorics of intersection matrices of fibres forces semistability after finitely many steps (uses a bound on the multiplicities via `g`) | Lipman's resolution of 2-dimensional excellent schemes, intersection theory on regular arithmetic surfaces, Castelnuovo contraction, adjunction; in residue char `p` the wild part uses the `p`-rank bound | complete (char-0 generic fibre); very heavy |
+| **Temkin / valuation-theoretic** (Temkin, *Stable modification of relative curves*, 2010; also Ducros, Baldassarri–Poineau) | work over `C = K̄^`: the curve's Berkovich/Zariski–Riemann space; the genus formula `g = Σ_x g(x) + b₁(Γ) + …` over type-2 points; finiteness of points with positive residue genus; the `stability` of `C` (Grauert–Remmert: complete algebraically closed fields are *defectless*) gives that finitely many type-2 points carry all genus; a semistable vertex set exists; descend to a finite `K'` | defectlessness (stability) of complete algebraically closed fields, reduction of type-2 points (residue curves of divisorial valuations of `K̄(C)`), Riemann–Hurwitz for residue curves / genus inequality, Berkovich skeleta or Zariski–Riemann spaces | complete; mostly valuation theory + curves over fields — no arithmetic surfaces |
+| **Coleman; Liu's "via stable models of covers"** | reduce to covers of `ℙ¹`, analyse by wide opens / residue-disc covers | rigid analytic geometry (wide opens), Coleman's `p`-adic integration-level analysis | complete; needs rigid geometry |
+| **Lehr–Matignon, Obus–Wewers, Rüth (Mac Lane valuations)** | explicit semistable reduction of cyclic `p`-covers / superelliptic curves via inductive valuations | Mac Lane's inductive valuations, explicit Newton-polygon computations | only special covers (cyclic, superelliptic) — not all `T` |
+| **Tame route** (Raynaud; Grothendieck–Murre; Liu Prop. 10.4.xx; Saïdi) | if `T → Y` has degree prime to `p`, the normalization of a semistable model of `Ȳ` (marked at `S`) in `T̄`, after the tame base change `π ↦ π^{1/m}`, is semistable: locally it is the normalization of a node `uv = π^n` or of a smooth point in a Kummer extension `u^{1/m}` — toric computations (Abhyankar's lemma) | normalization of explicit toric rings, Abhyankar's lemma, Zariski–Nagata purity for the smooth locus, the tame specialization theorem (SGA 1 XIII) to know `T` is Kummer-like at the nodes | only covers of degree prime to `p` (enough for the pro-`p'` tempered group of Mochizuki, **not** for André's full group) |
+| **Mumford-curve specific (Schottky)** | `Y^an = (𝔾_m ∖ …)/q^ℤ`; covers `T` that are topological or have good reduction are explicit | Schottky uniformization of `Y` | only topological covers and "good" finite covers; a general `T` is not a Mumford curve, so this does not give (SSR) |
+
+### 9.2 Assessment and plan
+
+* No route avoids a large development. The **tame route** is the only one whose inputs are
+  concrete commutative algebra; it gives (SSR) for `p ∤ deg(T/Y)` (and suffices for the
+  pro-`p'` tempered group and for Mochizuki's combinatorial description), and is a sub-step of
+  every other route (all of them finish by a tame base change). The **Temkin route** is the most
+  plausible complete route in the long run: it needs valuation theory of function fields of curves
+  (residue curves of divisorial valuations, defectlessness of `C_p`), which fits Mathlib's
+  existing valuation library and the `ValuationSubring` machinery already used here, and no
+  arithmetic surfaces, Néron models or rigid geometry.
+* Implementation starts with the **local tame lemma** (common to the tame and Temkin routes):
+  over a normal domain `O'` with `ϖ ∈ O'`, the integral closure of the node
+  `O'[u, v]/(uv − ϖ^{mn})` in the Kummer extension obtained by adjoining `w` with `w^m = u` is
+  the node `O'[w, z]/(wz − ϖ^n)` (`z = v^{1/m} = ϖ^n / w`), and the analogous statement at a
+  smooth point `O'[u]` with the branch divisor `u = 0`. Status: [P] (`SemistableReduction/`).
+* Order after that: (i) Abhyankar's lemma for DVRs (tame extensions become unramified after
+  adjoining roots of the uniformizer); (ii) normalization of a semistable model in a tame cover is
+  semistable after tame base change (local-to-global via the `ModelCode` framework and Mathlib's
+  relative normalization); (iii) defectlessness of `C_p`-type fields and residue curves of
+  divisorial valuations (Temkin route); (iv) the genus formula and finiteness of type-2 points of
+  positive genus; (v) (SSR).
