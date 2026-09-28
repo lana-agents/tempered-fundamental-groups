@@ -16,6 +16,7 @@ import TemperedFundamentalGroups.Orbicurve.ZeroSet
 import TemperedFundamentalGroups.SemistableReduction.AbhyankarLocal
 import TemperedFundamentalGroups.SemistableReduction.Node
 import TemperedFundamentalGroups.SemistableReduction.NodeNormal
+import TemperedFundamentalGroups.SemistableReduction.RootOfUniformizer
 import TemperedFundamentalGroups.SemistableReduction.TameLocal
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Schmidt
