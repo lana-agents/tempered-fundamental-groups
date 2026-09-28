@@ -6,6 +6,8 @@ import TemperedFundamentalGroups.Andre.TateModel
 import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TheoremA
+import TemperedFundamentalGroups.Andre.Transfer
+import TemperedFundamentalGroups.Andre.TransferTate
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.SpanRealization
