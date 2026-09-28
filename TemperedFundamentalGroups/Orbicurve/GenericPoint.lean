@@ -204,9 +204,9 @@ lemma transcendental_xGen : Transcendental k (xGen W) := by
 
 /-! ### Maps out of the function field -/
 
-section Lift
+section Eval
 
-variable {L : Type*} [Field L] [Algebra k L]
+variable {L : Type*} [CommRing L] [Algebra k L]
 
 /-- The evaluation `k[W] →ₐ[k] L` at a solution `(x, y)` of the Weierstrass equation. -/
 def evalHom (x y : L) (h : (W.toAffine⁄L).Equation x y) :
@@ -231,6 +231,12 @@ lemma evalHom_x (x y : L) (h : (W.toAffine⁄L).Equation x y) :
 lemma evalHom_y (x y : L) (h : (W.toAffine⁄L).Equation x y) :
     evalHom W x y h (AdjoinRoot.mk W.toAffine.polynomial X) = y := by
   simp [evalHom]
+
+end Eval
+
+section Lift
+
+variable {L : Type*} [Field L] [Algebra k L] {W}
 
 instance : Module.Finite k[X] W.toAffine.CoordinateRing :=
   Module.Finite.of_basis (CoordinateRing.basis W.toAffine)

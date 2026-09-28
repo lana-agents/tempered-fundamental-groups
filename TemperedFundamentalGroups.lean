@@ -8,6 +8,7 @@ import TemperedFundamentalGroups.Orbicurve.Nullstellensatz
 import TemperedFundamentalGroups.Orbicurve.Orbifold
 import TemperedFundamentalGroups.Orbicurve.Ring
 import TemperedFundamentalGroups.Orbicurve.Stable
+import TemperedFundamentalGroups.Orbicurve.ZeroSet
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Valuation
 import TemperedFundamentalGroups.Tempered.Category
