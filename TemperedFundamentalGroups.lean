@@ -13,6 +13,7 @@ import TemperedFundamentalGroups.Orbicurve.Orbifold
 import TemperedFundamentalGroups.Orbicurve.Ring
 import TemperedFundamentalGroups.Orbicurve.Stable
 import TemperedFundamentalGroups.Orbicurve.ZeroSet
+import TemperedFundamentalGroups.SemistableReduction.Abhyankar
 import TemperedFundamentalGroups.SemistableReduction.AbhyankarLocal
 import TemperedFundamentalGroups.SemistableReduction.Node
 import TemperedFundamentalGroups.SemistableReduction.NodeNormal
