@@ -196,7 +196,7 @@ lemma residueLift_residue (y : projSpace R m)
 
 /-- **Points containing the kernel of an evaluation.** Let `θ = eval₂ (C ∘ residue) g` with `g`
 homogeneous of positive degree `e`, and let `y` be a point of the special fibre. If
-`g(pt) = λᵉ · x` in `R[x₀, …, xₘ] ⧸ y` for some `pt` and some `λ ≠ 0` (i.e. `y` is the image of
+`g(pt) = μ · x` in `R[x₀, …, xₘ] ⧸ y` for some `pt` and some `μ ≠ 0` (i.e. `y` is the image of
 `pt` under the map given by `g`), then `ker θ ⊆ y`. -/
 lemma mem_of_eval₂Hom_eq_zero {τ : Type*} (y : projSpace R m)
     (hy : ∀ c ∈ IsLocalRing.maximalIdeal R, C c ∈ y.asHomogeneousIdeal)
@@ -204,14 +204,14 @@ lemma mem_of_eval₂Hom_eq_zero {τ : Type*} (y : projSpace R m)
     (hg : ∀ i, (g i).IsHomogeneous e)
     (pt : τ → MvPolynomial (Fin (m + 1)) R ⧸ y.asHomogeneousIdeal.toIdeal)
     (μ : MvPolynomial (Fin (m + 1)) R ⧸ y.asHomogeneousIdeal.toIdeal) (hμ : μ ≠ 0)
-    (hpt : ∀ i, eval₂Hom (residueLift y hy) pt (g i) = μ ^ e * Ideal.Quotient.mk _ (X i))
+    (hpt : ∀ i, eval₂Hom (residueLift y hy) pt (g i) = μ * Ideal.Quotient.mk _ (X i))
     {h : MvPolynomial (Fin (m + 1)) R}
     (hh : eval₂Hom (C.comp (IsLocalRing.residue R)) g h = 0) :
     h ∈ y.asHomogeneousIdeal := by
   have : y.asHomogeneousIdeal.toIdeal.IsPrime := y.isPrime
   have hcomp : (eval₂Hom (residueLift y hy) pt).comp
       (eval₂Hom (C.comp (IsLocalRing.residue R)) g) =
-      eval₂Hom ((Ideal.Quotient.mk _).comp C) (fun i => μ ^ e * Ideal.Quotient.mk _ (X i)) := by
+      eval₂Hom ((Ideal.Quotient.mk _).comp C) (fun i => μ * Ideal.Quotient.mk _ (X i)) := by
     refine MvPolynomial.ringHom_ext (fun c => ?_) (fun i => ?_)
     · simp [residueLift_residue]
     · simp [hpt]
@@ -228,7 +228,7 @@ lemma mem_of_eval₂Hom_eq_zero {τ : Type*} (y : projSpace R m)
     eval₂_mul_of_isHomogeneous (homogeneousComponent_isHomogeneous n h), ← coe_eval₂Hom,
     hmk] at h1
   rcases mul_eq_zero.1 h1 with h2 | h2
-  · exact (pow_ne_zero _ (pow_ne_zero _ hμ) h2).elim
+  · exact (pow_ne_zero _ hμ h2).elim
   · exact Ideal.Quotient.eq_zero_iff_mem.1 h2
 
 /-- **Points on a line are determined by their image.** Let
@@ -265,6 +265,39 @@ lemma eval₂Hom_eq_zero_of_mem (y : projSpace R m)
   rcases mul_eq_zero.1 h1 with h2 | h2
   · rw [(residueLift y hy).injective (h2.trans (map_zero _).symm), C_0, zero_mul]
   · exact (pow_ne_zero _ hpt0 h2).elim
+
+omit [IsLocalRing R] in
+/-- Points of `ℙᵐ_R` with the same ideal are equal. -/
+lemma projSpace_ext {x y : projSpace R m} (h : x.asHomogeneousIdeal ≤ y.asHomogeneousIdeal)
+    (h' : y.asHomogeneousIdeal ≤ x.asHomogeneousIdeal) : x = y :=
+  le_antisymm (α := ProjectiveSpectrum 𝒜) h h'
+
+/-- **A point of the special fibre on a line is the point given by the line.** -/
+lemma eq_projPointOfKer_of_line (y : projSpace R m)
+    (hy : ∀ c ∈ IsLocalRing.maximalIdeal R, C c ∈ y.asHomogeneousIdeal)
+    (g : Fin (m + 1) → MvPolynomial (Fin (0 + 1)) (IsLocalRing.ResidueField R))
+    (hg : ∀ i, (g i).IsHomogeneous 1)
+    (hθ : ∀ h, eval₂Hom (C.comp (IsLocalRing.residue R)) g h = 0 →
+      ∀ n, eval₂Hom (C.comp (IsLocalRing.residue R)) g (homogeneousComponent n h) = 0)
+    (i : Fin (m + 1)) (hi : eval₂Hom (C.comp (IsLocalRing.residue R)) g (X i) ≠ 0)
+    (pt0 : MvPolynomial (Fin (m + 1)) R ⧸ y.asHomogeneousIdeal.toIdeal) (hpt0 : pt0 ≠ 0)
+    (hpt : ∀ i, eval₂Hom (residueLift y hy) ![pt0] (g i) = Ideal.Quotient.mk _ (X i)) :
+    y = projPointOfKer (eval₂Hom (C.comp (IsLocalRing.residue R)) g) hθ i hi := by
+  refine projSpace_ext (fun h hh => ?_) fun h hh => ?_
+  · exact eval₂Hom_eq_zero_of_mem y hy g hg ![pt0] hpt0 hpt hh
+  · refine mem_of_eval₂Hom_eq_zero y hy g one_pos hg ![pt0] 1 one_ne_zero (fun i => ?_) hh
+    rw [hpt, one_mul]
+
+omit [IsLocalRing R] in
+/-- The points specializing from `x` (the closure of `x`) form a preconnected set. -/
+lemma isPreconnected_setOf_le (x : projSpace R m) :
+    _root_.IsPreconnected {y : projSpace R m | x.asHomogeneousIdeal ≤ y.asHomogeneousIdeal} := by
+  have : {y : projSpace R m | x.asHomogeneousIdeal ≤ y.asHomogeneousIdeal} =
+      closure ({x} : Set (ProjectiveSpectrum 𝒜)) := by
+    ext y
+    exact ProjectiveSpectrum.le_iff_mem_closure _ x y
+  rw [this]
+  exact isPreconnected_singleton.closure
 
 end Local
 
