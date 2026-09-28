@@ -365,4 +365,15 @@ over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
 
 Realistic size: W1–W3 small/medium (weeks of agent time), W4 large (the heart; Temkin's
 algebraic proof ~20 pages), W5 large (needs blow-ups or the `ModelCode`+normalization
-dictionary), W6–W8 large, W9–W10 medium. Status: W1 started (`SemistableReduction/Gauss.lean`).
+dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved.**
+* W1 (`SemistableReduction/Gauss.lean`): `gauss v a r : Valuation K[X] Γ₀` (multiplicative
+  convention, `w(Σ cᵢ(X−a)ⁱ) = max v(cᵢ)·rⁱ`, Gauss lemma `Gauss.sup_mul`), `gaussRat v a r` on
+  `RatFunc K` extending `v`; for `v c = r` the residue of `(X − a)/c` is transcendental over
+  `κ(v)` (`transcendental_residue_gaussGen`) and generates `κ(w)` (`adjoin_residue_gaussGen_eq_top`).
+* W2 (`SemistableReduction/GaussClassification.lean`): `eq_gaussRat` — `K` algebraically closed,
+  `w` on `K(X)` with `w|_K = v`, value group `v(K^×)`, `κ(w)` transcendental over `κ(v)` ⇒
+  `w = gaussRat v a r`.
+* W3 (`SemistableReduction/AbhyankarInequality.lean`): `trdeg_residueField_le`
+  (`trdeg_{κ(v)} κ(w) ≤ trdeg_K L` for any extension `w` of `v`), `exists_pow_eq_of_transcendental`
+  (`trdeg_K L ≤ 1`, `κ(w)` transcendental ⇒ `Γ_w/Γ_v` torsion), `exists_eq_of_transcendental`
+  (`K` alg. closed ⇒ `Γ_w = Γ_v`); `eq_gaussRat'` combines W2 and W3 (no value-group hypothesis).
