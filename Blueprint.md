@@ -60,16 +60,20 @@ imported by the core, and it is not a Lake dependency yet.
 
 ## 3. The definition formalized here
 
-### 3.1 Base data (`TemperedFundamentalGroups/Setup.lean`)
+### 3.1 Base data (`Setup/Valuation.lean`, `Setup/Orbifold.lean`)
 
 * a field `K` with a valuation subring `O ⊆ K` (the ring of integers);
-* an algebraically closed field `Ω` with a valuation subring `V ⊆ Ω` and `K → Ω` with
-  `V ∩ K = O` (a geometric point with a chosen extension of the valuation — it fixes the
-  specialization of geometric points);
-* the curve as an orbifold `[Y/A]`: an affine `K`-scheme `Y = Spec R` with a finite group `A`
-  acting on `R` by `K`-algebra automorphisms (for IUT: `Y = E ∖ E[ℓ]`, `A = M` or `M ⋊ {±1}`;
-  `A` trivial gives the scheme `Y`);
-* a geometric point `ȳ : R →ₐ[K] Ω`.
+* a field `Ω` with a valuation subring `V ⊆ Ω` and `K → Ω` with `V ∩ K = O` (a geometric
+  point with a chosen extension of the valuation — it fixes the specialization of geometric
+  points; the definitions only need a field, the étale and tempered groups are the usual ones
+  when `Ω` is algebraically closed, e.g. the algebraic closure of the function field of `Y`);
+* the curve as an orbifold `[Y/A]`: an affine `K`-scheme `Y = Spec R` with a group `A`
+  acting on `R` by `K`-algebra automorphisms (for IUT: `Y = E ∖ S` with `S = E(k)[ℓ] + M`,
+  `A = M` or `M ⋊ {±1}`; `A` trivial gives the scheme `Y`);
+* a geometric point `ȳ : R → Ω` (an `R`-algebra structure on `Ω` compatible with `K`).
+
+`AffineOrbifold k` bundles `R, A, Ω, ȳ`; the valuation `V` is chosen by Chevalley's extension
+theorem (`ValuationSubring.exists_comap_eq`) and `O` defaults to `canonicalValuationSubring k`.
 
 No completeness is required by the definition; it is the tempered group of `Y_{K^}` when `O`
 is henselian.
