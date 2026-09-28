@@ -436,7 +436,7 @@ defectless by A2).
 
 | # | Statement | Size |
 |---|---|---|
-| C1 | complete rank-one ⇒ `HenselianLocalRing O` (Newton iteration; Mathlib only has the `𝔪`-adic version, useless for dense value groups) | 350 |
+| C1 | complete rank-one ⇒ `HenselianLocalRing O` (Newton iteration; Mathlib only has the `𝔪`-adic version, useless for dense value groups) | **proved** (`SemistableReduction/HenselComplete`: `henselianLocalRing` for any complete `IsUltrametricDist` normed field) |
 | C2 | unramified extensions: `L/M` with `κ_L/κ_M` separable of degree `[L:M]` ⇔ `L = M(y)`, `ȳ` a separable generator; existence and uniqueness of the unramified lift of a finite separable `κ'/κ_M`; the **unramified closure** of `M` in `L` (maximal unramified subextension, residue field = separable closure of `κ_M` in `κ_L`) | 500 |
 | C3 | finite extensions of complete rank-one are complete; unique extension of the valuation (spectral norm); `Aut(L/M)` preserves it | 250 |
 | C4 | `d(E/M) = d(E·N/N)` for `N/M` unramified (min. polynomial of an unramified generator stays irreducible with separable reduction over `E`) | 250 |
@@ -488,4 +488,4 @@ only needed for `char C = p`.
 
 **Status.** A1–A3 proved (`SemistableReduction/FundamentalInequality`: `valuation_sum_eq_sup`,
 `linearIndependent_of_residue`, `linearIndependent_mul`, `ramificationIdx_mul_inertiaDeg_le`,
-`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`).
+`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`).
