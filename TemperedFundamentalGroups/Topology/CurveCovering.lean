@@ -574,6 +574,392 @@ theorem isCoveringMap_proj : IsCoveringMap (K.proj r) := by
 
 end Covering
 
+section Incl
+
+lemma Red.ne_nil_of_inr {s : Z} {m : List (ι ⊕ Z)} (hl : K.Red r (.inr s :: m)) : m ≠ [] := by
+  rintro rfl
+  exact Sum.inr_ne_inl hl
+
+lemma Red.inr_cons {s : Z} {m : List (ι ⊕ Z)} (hl : K.Red r (.inr s :: m)) :
+    ∃ i, m.head? = some (.inl i) ∧ s ∈ K.S ∧ s ∈ K.C i :=
+  head_inl_of_adj hl (hl.tail hl.ne_nil_of_inr) (.inr rfl) rfl
+
+/-- A point over a component vertex lies on the copy of that component. -/
+lemma eq_incl_of_inl (x : K.Cover r) {i : ι} (h : x.1.2.1.head? = some (.inl i)) :
+    x = incl x.1.2 i h ⟨x.1.1, (Cover.mem_piece_inl h).1⟩ :=
+  Cover.ext (by rw [incl_of_notMem (Cover.mem_piece_inl h).2])
+    (by rw [incl_of_notMem (Cover.mem_piece_inl h).2])
+
+/-- A point over a special vertex lies on the copy of each adjacent component. -/
+lemma eq_incl_of_inr (x : K.Cover r) {s : Z} (hs : x.1.2.1.head? = some (.inr s)) {t : K.Tree r}
+    {i : ι} (h : t.1.head? = some (.inl i)) (hadj : t.Adj x.1.2) (hsi : s ∈ K.C i) :
+    x = incl t i h ⟨s, hsi⟩ := by
+  have hx := Cover.eq_of_inr hs
+  obtain ⟨-, -, hS, -⟩ := head_inl_of_adj x.1.2.2 t.2 (Tree.adj_comm.1 hadj) hs
+  refine Cover.ext ?_ ?_ <;> rw [incl_of_mem (z := ⟨s, hsi⟩) hS]
+  · exact hx
+  · exact Tree.eq_nbr hadj h (v := .inr s) ⟨hS, hsi⟩ hs
+
+lemma exists_eq_incl (x : K.Cover r) :
+    ∃ (t : K.Tree r) (i : ι) (h : t.1.head? = some (.inl i)) (z : K.C i), x = incl t i h z := by
+  rcases x.1.2.2.head_cases with ⟨i, hi⟩ | ⟨s, -, hs⟩
+  · exact ⟨_, _, _, _, eq_incl_of_inl x hi⟩
+  · obtain ⟨u, m, hum⟩ := List.exists_cons_of_ne_nil x.1.2.2.ne_nil
+    have hu : u = .inr s := by rw [hum] at hs; simpa using hs
+    subst hu
+    have hl : K.Red r (.inr s :: m) := hum ▸ x.1.2.2
+    obtain ⟨i, hi, -, hsi⟩ := hl.inr_cons
+    let t : K.Tree r := ⟨m, hl.tail hl.ne_nil_of_inr⟩
+    exact ⟨t, i, hi, _, eq_incl_of_inr x hs hi (.inl (by rw [hum]; rfl)) hsi⟩
+
+variable (K) in
+lemma generic_subtype (i : ι) :
+    ∀ U : Set (K.C i), IsOpen U → U.Nonempty → (⟨K.η i, K.η_mem i⟩ : K.C i) ∈ U := by
+  intro U hU ⟨x, hx⟩
+  obtain ⟨V, hV, rfl⟩ := isOpen_induced_iff.1 hU
+  exact K.η_generic i V hV ⟨x.1, hx, x.2⟩
+
+instance (i : ι) : PreconnectedSpace (K.C i) :=
+  preconnectedSpace_of_generic (K.generic_subtype i)
+
+variable (K r) in
+/-- The root of the tree. -/
+def root : K.Tree r := ⟨[.inl r], rfl⟩
+
+variable (K r) in
+/-- The base point of the tree covering over a point `z₀` of the root component. -/
+noncomputable def base {z₀ : Z} (hz₀ : z₀ ∈ K.C r) : K.Cover r :=
+  incl (root K r) r rfl ⟨z₀, hz₀⟩
+
+lemma proj_base {z₀ : Z} (hz₀ : z₀ ∈ K.C r) : K.proj r (base K r hz₀) = z₀ := rfl
+
+/-- The tree covering is connected. -/
+theorem connectedSpace_cover {z₀ : Z} (hz₀ : z₀ ∈ K.C r) : ConnectedSpace (K.Cover r) := by
+  let b := base K r hz₀
+  have hrange : ∀ (t : K.Tree r) (i : ι) (h : t.1.head? = some (.inl i)) (z' : K.C i),
+      incl t i h z' ∈ connectedComponent b → ∀ z, incl t i h z ∈ connectedComponent b := by
+    intro t i h z' hz' z
+    rw [connectedComponent_eq hz']
+    exact (isPreconnected_range (continuous_incl t i h)).subset_connectedComponent
+      ⟨z', rfl⟩ ⟨z, rfl⟩
+  have key : ∀ (l : List (ι ⊕ Z)) (hl : K.Red r l),
+      (∀ i (h : l.head? = some (.inl i)) z, incl ⟨l, hl⟩ i h z ∈ connectedComponent b) ∧
+      (∀ x : K.Cover r, x.1.2.1 = l → x ∈ connectedComponent b) := by
+    intro l
+    induction l with
+    | nil => exact fun hl ↦ hl.elim
+    | cons v m ih =>
+      intro hl
+      have hcomp : (∀ i (h : (v :: m).head? = some (.inl i)) z,
+          incl ⟨v :: m, hl⟩ i h z ∈ connectedComponent b) →
+          (∀ x : K.Cover r, x.1.2.1 = v :: m → x ∈ connectedComponent b) := by
+        intro H x hx
+        rcases x.1.2.2.head_cases with ⟨i, hi⟩ | ⟨s, -, hs⟩
+        · rw [eq_incl_of_inl x hi]
+          have : x.1.2 = ⟨v :: m, hl⟩ := Tree.ext hx
+          have hi' := hi
+          rw [hx] at hi'
+          convert H i hi' ⟨x.1.1, (Cover.mem_piece_inl hi).1⟩
+        · rw [hx] at hs
+          obtain rfl : v = .inr s := by simpa using hs
+          obtain ⟨i, hi, -, hsi⟩ := hl.inr_cons
+          have hadj : (⟨m, hl.tail hl.ne_nil_of_inr⟩ : K.Tree r).Adj x.1.2 := .inl (by rw [hx]; rfl)
+          rw [eq_incl_of_inr x (by rw [hx]; rfl) hi hadj hsi]
+          exact (ih (hl.tail hl.ne_nil_of_inr)).1 i hi _
+      refine ⟨?_, fun x hx ↦ hcomp ?_ x hx⟩ <;>
+      · intro i h
+        obtain rfl : v = .inl i := by simpa using h
+        rcases m with _ | ⟨w, m⟩
+        · obtain rfl : i = r := Sum.inl_injective hl
+          exact hrange _ _ _ ⟨z₀, hz₀⟩ (mem_connectedComponent)
+        · obtain ⟨s, hs, hS, hsi⟩ := head_inr_of_adj hl (hl.tail (by simp)) (.inr rfl) h
+          obtain rfl : w = .inr s := by simpa using hs
+          refine hrange _ _ _ ⟨s, hsi⟩ ((ih (hl.tail (by simp))).2 _ ?_)
+          rw [incl_of_mem (z := ⟨s, hsi⟩) hS]
+          change nbr (.inl i :: .inr s :: m) (.inr s) = .inr s :: m
+          unfold nbr; simp
+  exact connectedSpace_iff_connectedComponent.2
+    ⟨b, eq_univ_of_forall fun x ↦ (key x.1.2.1 x.1.2.2).2 x rfl⟩
+
+end Incl
+
+section Lift
+
+variable {Y P : Type*} [TopologicalSpace Y] [TopologicalSpace P]
+
+open scoped Classical in
+/-- A lift of `g` on the copy of the component of the vertex `t`, through `y` at `x`. -/
+noncomputable def liftAt (q : P → Y) (g : K.Cover r → Y) (t : K.Tree r) (i : ι)
+    (h : t.1.head? = some (.inl i)) (x : Z) (y : P) : Z → P :=
+  if H : ∃ f : K.C i → P, Continuous f ∧ (∀ z, q (f z) = g (incl t i h z)) ∧
+      ∃ hx : x ∈ K.C i, f ⟨x, hx⟩ = y then
+    fun z ↦ if hz : z ∈ K.C i then H.choose ⟨z, hz⟩ else y
+  else fun _ ↦ y
+
+lemma liftAt_spec {q : P → Y} (hq : IsCoveringMap q) {g : K.Cover r → Y} (hg : Continuous g)
+    (t : K.Tree r) (i : ι) (h : t.1.head? = some (.inl i)) {x : Z} (hx : x ∈ K.C i) {y : P}
+    (hy : q y = g (incl t i h ⟨x, hx⟩)) :
+    Continuous (fun z : K.C i ↦ liftAt q g t i h x y z) ∧
+      (∀ z : K.C i, q (liftAt q g t i h x y z) = g (incl t i h z)) ∧
+      liftAt q g t i h x y x = y := by
+  have H : ∃ f : K.C i → P, Continuous f ∧ (∀ z, q (f z) = g (incl t i h z)) ∧
+      ∃ hx : x ∈ K.C i, f ⟨x, hx⟩ = y := by
+    obtain ⟨f, hf, hqf, hfx⟩ := exists_lift_of_generic hq (K.generic_subtype i)
+      (hg.comp (continuous_incl t i h)) ⟨x, hx⟩ y hy
+    exact ⟨f, hf, fun z ↦ congrFun hqf z, hx, hfx⟩
+  have e : (fun z : K.C i ↦ liftAt q g t i h x y z) = H.choose := by
+    funext z
+    simp only [liftAt, dif_pos H, dif_pos z.2]
+  refine ⟨?_, fun z ↦ ?_, ?_⟩
+  · rw [e]; exact H.choose_spec.1
+  · rw [show liftAt q g t i h x y z = H.choose z from congrFun e z]
+    exact H.choose_spec.2.1 z
+  · rw [show liftAt q g t i h x y x = H.choose ⟨x, hx⟩ from congrFun e ⟨x, hx⟩]
+    exact H.choose_spec.2.2.2
+
+lemma lift_unique {q : P → Y} (hq : IsCoveringMap q) {i : ι} {f₁ f₂ : K.C i → P}
+    (h₁ : Continuous f₁) (h₂ : Continuous f₂) (he : ∀ z, q (f₁ z) = q (f₂ z)) (z : K.C i)
+    (hz : f₁ z = f₂ z) : f₁ = f₂ :=
+  hq.eq_of_comp_eq h₁ h₂ (funext he) z hz
+
+variable (q : P → Y) (g : K.Cover r → Y) (z₀ : Z) (y₀ : P)
+
+open scoped Classical in
+/-- The lift of `g` on the copy of the component of a vertex, defined by recursion along the
+walk from the root. -/
+noncomputable def liftF : List (ι ⊕ Z) → Z → P
+  | [] => fun _ ↦ y₀
+  | .inr s :: l => fun _ ↦ liftF l s
+  | [.inl i] => if h : K.Red r [.inl i] then liftAt q g ⟨[.inl i], h⟩ i rfl z₀ y₀ else fun _ ↦ y₀
+  | .inl i :: .inr s :: l =>
+    if h : K.Red r (.inl i :: .inr s :: l) then
+      liftAt q g ⟨_, h⟩ i rfl s (liftF (.inr s :: l) s)
+    else fun _ ↦ y₀
+  | .inl _ :: .inl _ :: _ => fun _ ↦ y₀
+
+variable {q g z₀ y₀}
+
+theorem liftF_spec (hq : IsCoveringMap q) (hg : Continuous g) (hz₀ : z₀ ∈ K.C r)
+    (hy₀ : q y₀ = g (base K r hz₀)) : ∀ (l : List (ι ⊕ Z)) (hl : K.Red r l),
+    (∀ i (h : l.head? = some (.inl i)), Continuous (fun z : K.C i ↦ liftF q g z₀ y₀ l z) ∧
+      ∀ z : K.C i, q (liftF q g z₀ y₀ l z) = g (incl ⟨l, hl⟩ i h z)) ∧
+    (∀ x : K.Cover r, x.1.2.1 = l → q (liftF q g z₀ y₀ l x.1.1) = g x)
+  | [], hl => hl.elim
+  | [.inl i], hl => by
+    obtain rfl : i = r := Sum.inl_injective hl
+    have H := liftAt_spec hq hg ⟨[.inl i], hl⟩ i rfl hz₀ hy₀
+    have e : liftF q g z₀ y₀ [.inl i] = liftAt q g ⟨[.inl i], hl⟩ i rfl z₀ y₀ := by
+      simp only [liftF, dif_pos hl]
+    have h1 : ∀ i' (h : [Sum.inl i].head? = some (.inl i')),
+        Continuous (fun z : K.C i' ↦ liftF q g z₀ y₀ [.inl i] z) ∧
+        ∀ z : K.C i', q (liftF q g z₀ y₀ [.inl i] z) = g (incl ⟨[.inl i], hl⟩ i' h z) := by
+      intro i' h
+      obtain rfl : i = i' := by simpa using h
+      rw [e]; exact ⟨H.1, H.2.1⟩
+    refine ⟨h1, fun x hx ↦ ?_⟩
+    rcases x.1.2.2.head_cases with ⟨j, hj⟩ | ⟨s, -, hs⟩
+    · have hm := Cover.mem_piece_inl hj
+      have hj' := hj
+      rw [hx] at hj'
+      have : x = incl ⟨_, hl⟩ j hj' ⟨x.1.1, hm.1⟩ := Cover.ext
+        (by rw [incl_of_notMem hm.2]) (by rw [incl_of_notMem hm.2]; exact Tree.ext hx)
+      calc _ = _ := (h1 j hj').2 ⟨x.1.1, hm.1⟩
+        _ = g x := by rw [← this]
+    · rw [hx] at hs; simp at hs
+  | .inl i :: .inr s :: l, hl => by
+    have ih := liftF_spec hq hg hz₀ hy₀ (.inr s :: l) (hl.tail (by simp))
+    have hsi : s ∈ K.C i := hl.1.2
+    have hS : s ∈ K.S := hl.1.1
+    let t : K.Tree r := ⟨_, hl⟩
+    have hanchor : q (liftF q g z₀ y₀ (.inr s :: l) s) = g (incl t i rfl ⟨s, hsi⟩) := by
+      refine ih.2 _ ?_
+      rw [incl_of_mem (z := ⟨s, hsi⟩) hS]
+      change nbr (.inl i :: .inr s :: l) (.inr s) = .inr s :: l
+      unfold nbr; simp
+    have H := liftAt_spec hq hg t i rfl hsi hanchor
+    have e : liftF q g z₀ y₀ (.inl i :: .inr s :: l) =
+        liftAt q g t i rfl s (liftF q g z₀ y₀ (.inr s :: l) s) := by
+      simp only [liftF, dif_pos hl]; rfl
+    have h1 : ∀ i' (h : (Sum.inl i :: Sum.inr s :: l).head? = some (.inl i')),
+        Continuous (fun z : K.C i' ↦ liftF q g z₀ y₀ (.inl i :: .inr s :: l) z) ∧
+        ∀ z : K.C i', q (liftF q g z₀ y₀ (.inl i :: .inr s :: l) z) =
+          g (incl ⟨_, hl⟩ i' h z) := by
+      intro i' h
+      obtain rfl : i = i' := by simpa using h
+      rw [e]; exact ⟨H.1, H.2.1⟩
+    refine ⟨h1, fun x hx ↦ ?_⟩
+    rcases x.1.2.2.head_cases with ⟨j, hj⟩ | ⟨s', -, hs'⟩
+    · have hm := Cover.mem_piece_inl hj
+      have hj' := hj
+      rw [hx] at hj'
+      have : x = incl ⟨_, hl⟩ j hj' ⟨x.1.1, hm.1⟩ := Cover.ext
+        (by rw [incl_of_notMem hm.2]) (by rw [incl_of_notMem hm.2]; exact Tree.ext hx)
+      calc _ = _ := (h1 j hj').2 ⟨x.1.1, hm.1⟩
+        _ = g x := by rw [← this]
+    · rw [hx] at hs'; simp at hs'
+  | .inl _ :: .inl _ :: _, hl => hl.1.elim
+  | .inr s :: l, hl => by
+    have ih := liftF_spec hq hg hz₀ hy₀ l (hl.tail hl.ne_nil_of_inr)
+    refine ⟨fun i h ↦ by simp at h, fun x hx ↦ ?_⟩
+    obtain ⟨i, hi, -, hsi⟩ := hl.inr_cons
+    have hs : x.1.2.1.head? = some (.inr s) := by rw [hx]; rfl
+    have hadj : (⟨l, hl.tail hl.ne_nil_of_inr⟩ : K.Tree r).Adj x.1.2 := .inl (by rw [hx]; rfl)
+    have hx1 := Cover.eq_of_inr hs
+    conv_rhs => rw [eq_incl_of_inr x hs hi hadj hsi]
+    rw [hx1]
+    exact (ih.1 i hi).2 ⟨s, hsi⟩
+
+lemma incl_snd_cons {i : ι} {s : Z} {m : List (ι ⊕ Z)} (hl : K.Red r (.inl i :: .inr s :: m))
+    (h : (Sum.inl i :: Sum.inr s :: m).head? = some (.inl i)) (hsi : s ∈ K.C i) :
+    (incl ⟨_, hl⟩ i h ⟨s, hsi⟩).1.2.1 = .inr s :: m := by
+  rw [incl_of_mem (z := ⟨s, hsi⟩) hl.1.1]
+  change nbr (.inl i :: .inr s :: m) (.inr s) = .inr s :: m
+  unfold nbr; simp
+
+omit [TopologicalSpace Y] in
+lemma liftF_cons_cons {i : ι} {s : Z} {m : List (ι ⊕ Z)} (hl : K.Red r (.inl i :: .inr s :: m)) :
+    liftF q g z₀ y₀ (.inl i :: .inr s :: m) =
+      liftAt q g ⟨_, hl⟩ i rfl s (liftF q g z₀ y₀ (.inr s :: m) s) := by
+  simp only [liftF, dif_pos hl]
+
+omit [TopologicalSpace Y] in
+lemma liftF_root : liftF q g z₀ y₀ [.inl r] = liftAt q g (root K r) r rfl z₀ y₀ := by
+  simp only [liftF]; exact dif_pos (root K r).2
+
+lemma liftF_compat (hq : IsCoveringMap q) (hg : Continuous g) (hz₀ : z₀ ∈ K.C r)
+    (hy₀ : q y₀ = g (base K r hz₀)) {l : List (ι ⊕ Z)} (hl : K.Red r l) {i : ι}
+    (h : l.head? = some (.inl i)) {s : Z} (hsi : s ∈ K.C i) :
+    liftF q g z₀ y₀ l s = liftF q g z₀ y₀ (nbr l (.inr s)) s := by
+  unfold nbr
+  split_ifs with hc
+  · obtain ⟨v, m, rfl⟩ := List.exists_cons_of_ne_nil hl.ne_nil
+    obtain rfl : v = .inl i := by simpa using h
+    obtain ⟨w, m', rfl⟩ := List.exists_cons_of_ne_nil (show m ≠ [] by rintro rfl; simp at hc)
+    obtain rfl : w = .inr s := by simpa using hc
+    have hanchor : q (liftF q g z₀ y₀ (.inr s :: m') s) = g (incl ⟨_, hl⟩ i rfl ⟨s, hsi⟩) :=
+      (liftF_spec hq hg hz₀ hy₀ _ (hl.tail (by simp))).2 _ (incl_snd_cons hl rfl hsi)
+    rw [liftF_cons_cons hl]
+    exact (liftAt_spec hq hg _ i rfl hsi hanchor).2.2
+  · rfl
+
+/-- Lifting from the tree covering, with the base point. -/
+theorem exists_lift_base [Finite ι] (hq : IsCoveringMap q) (hg : Continuous g) (hz₀ : z₀ ∈ K.C r)
+    (hy₀ : q y₀ = g (base K r hz₀)) :
+    ∃ f : K.Cover r → P, Continuous f ∧ q ∘ f = g ∧ f (base K r hz₀) = y₀ := by
+  have hspec := liftF_spec hq hg hz₀ hy₀
+  have hroot : liftF q g z₀ y₀ [.inl r] z₀ = y₀ := by
+    rw [liftF_root]
+    exact (liftAt_spec hq hg (root K r) r rfl hz₀ hy₀).2.2
+  refine ⟨fun e ↦ liftF q g z₀ y₀ e.1.2.1 e.1.1, ?_, funext fun e ↦ (hspec _ e.1.2.2).2 e rfl, ?_⟩
+  · refine continuous_iff_continuousAt.2 fun x ↦ ?_
+    rcases x.1.2.2.head_cases with ⟨i, hi⟩ | ⟨s, hS, hs⟩
+    · let N : Set (K.Cover r) := {e | e.1.2 = x.1.2}
+      have hN : N ∈ 𝓝 x := ((Tree.isOpen_singleton hi).preimage
+        (continuous_snd.comp continuous_subtype_val)).mem_nhds rfl
+      have hF : ContinuousOn (liftF q g z₀ y₀ x.1.2.1) (K.C i) :=
+        continuousOn_iff_continuous_restrict.2 ((hspec _ x.1.2.2).1 i hi).1
+      have hmaps : MapsTo (K.proj r) N (K.C i) := fun e he ↦
+        (Cover.mem_piece_inl (x := e) (by rw [show e.1.2 = x.1.2 from he]; exact hi)).1
+      have h1 := (hF.continuousWithinAt (hmaps (show x ∈ N from rfl))).comp
+        continuous_proj.continuousWithinAt hmaps
+      refine (continuousWithinAt_iff_continuousAt hN).1 (h1.congr (fun e he ↦ ?_) rfl)
+      rw [show e.1.2 = x.1.2 from he]; rfl
+    · let N : Set (K.Cover r) := Subtype.val ⁻¹' (univ ×ˢ Tree.star x.1.2)
+      have hNo : IsOpen N :=
+        (isOpen_univ.prod (Tree.isOpen_star hs)).preimage continuous_subtype_val
+      let A : {c : ι // s ∈ K.C c} → Set (K.Cover r) := fun c ↦ N ∩ K.proj r ⁻¹' K.C c.1
+      have hx1 : x.1.1 = s := Cover.eq_of_inr hs
+      refine continuousAt_of_finite_cover A
+        (mem_of_superset (hNo.mem_nhds ⟨trivial, .inl rfl⟩) fun e he ↦ ?_) fun c ↦ ?_
+      · rcases he.2 with h | h
+        · have : e.1.1 = s := Cover.eq_of_inr (by rw [h]; exact hs)
+          exact mem_iUnion.2 ⟨⟨K.comp s, K.mem_comp s⟩, he,
+            show e.1.1 ∈ _ by rw [this]; exact K.mem_comp s⟩
+        · obtain ⟨c, hc, -, hsc⟩ := head_inl_of_adj x.1.2.2 e.1.2.2 h hs
+          exact mem_iUnion.2 ⟨⟨c, hsc⟩, he, (Cover.mem_piece_inl hc).1⟩
+      · let tc : K.Tree r := x.1.2.nbr hs (v := .inl c.1) ⟨hS, c.2⟩
+        have htc : tc.1.head? = some (.inl c.1) := Tree.nbr_head _ _ _
+        have hF : ContinuousOn (liftF q g z₀ y₀ tc.1) (K.C c.1) :=
+          continuousOn_iff_continuous_restrict.2 ((hspec _ tc.2).1 c.1 htc).1
+        have hmaps : MapsTo (K.proj r) (A c) (K.C c.1) := fun e he ↦ he.2
+        have hxA : x ∈ A c := ⟨⟨trivial, .inl rfl⟩, show x.1.1 ∈ _ by rw [hx1]; exact c.2⟩
+        have h1 := (hF.continuousWithinAt (hmaps hxA)).comp
+          continuous_proj.continuousWithinAt hmaps
+        have heq : ∀ e ∈ A c,
+            liftF q g z₀ y₀ e.1.2.1 e.1.1 = liftF q g z₀ y₀ tc.1 (K.proj r e) := by
+          rintro e ⟨⟨-, he⟩, hec⟩
+          rcases he with h | h
+          · have he1 : e.1.1 = s := Cover.eq_of_inr (by rw [h]; exact hs)
+            change _ = liftF q g z₀ y₀ tc.1 e.1.1
+            rw [h, he1, liftF_compat hq hg hz₀ hy₀ tc.2 htc c.2]
+            rw [← CurveConfig.eq_nbr tc.2 x.1.2.2 (Tree.adj_comm.1 (Tree.adj_nbr _ _ _)) hs]
+          · obtain ⟨c', hc', -, -⟩ := head_inl_of_adj x.1.2.2 e.1.2.2 h hs
+            have hm := Cover.mem_piece_inl hc'
+            obtain rfl : c' = c.1 := K.eq_of_notMem_S hm.1 hec hm.2
+            have : e.1.2 = tc := Tree.eq_nbr h hs (v := .inl c.1) ⟨hS, c.2⟩ hc'
+            rw [this]; rfl
+        exact h1.congr (fun e he ↦ heq e he) (heq x hxA)
+  · change liftF q g z₀ y₀ (base K r hz₀).1.2.1 (base K r hz₀).1.1 = y₀
+    by_cases hz₀S : z₀ ∈ K.S
+    · unfold base
+      rw [incl_of_mem hz₀S]
+      change liftF q g z₀ y₀ (nbr [.inl r] (.inr z₀)) z₀ = y₀
+      exact (liftF_compat hq hg hz₀ hy₀ (root K r).2 (i := r) rfl hz₀).symm.trans hroot
+    · unfold base
+      rw [incl_of_notMem hz₀S]
+      exact hroot
+
+/-- Lifting from the tree covering: every continuous map from the tree covering lifts along a
+covering map, through every point of the fibre. -/
+theorem exists_lift_incl [Finite ι] (hq : IsCoveringMap q) (hg : Continuous g) (hz₀ : z₀ ∈ K.C r) :
+    ∀ (l : List (ι ⊕ Z)) (hl : K.Red r l) (i : ι) (h : l.head? = some (.inl i)) (z : K.C i)
+    (y : P), q y = g (incl ⟨l, hl⟩ i h z) →
+    ∃ f : K.Cover r → P, Continuous f ∧ q ∘ f = g ∧ f (incl ⟨l, hl⟩ i h z) = y
+  | [], hl, _, _, _, _, _ => hl.elim
+  | [.inl i'], hl, i, h, z, y, hy => by
+    obtain rfl : i' = r := Sum.inl_injective hl
+    obtain rfl : i' = i := by simpa using h
+    obtain ⟨L, hL, hqL, hLz⟩ := exists_lift_of_generic hq (K.generic_subtype i')
+      (hg.comp (continuous_incl _ i' h)) z y hy
+    obtain ⟨f, hf, hqf, hfb⟩ := exists_lift_base (y₀ := L ⟨z₀, hz₀⟩) hq hg hz₀
+      (congrFun hqL ⟨z₀, hz₀⟩)
+    have : f ∘ incl ⟨[.inl i'], hl⟩ i' h = L := lift_unique hq (hf.comp (continuous_incl _ _ _))
+      hL (fun z' ↦ by
+        change (q ∘ f) _ = (q ∘ L) z'
+        rw [hqf, hqL]; rfl) ⟨z₀, hz₀⟩ hfb
+    exact ⟨f, hf, hqf, by rw [← hLz, ← this]; rfl⟩
+  | .inl i' :: .inr s :: m, hl, i, h, z, y, hy => by
+    obtain rfl : i' = i := by simpa using h
+    obtain ⟨L, hL, hqL, hLz⟩ := exists_lift_of_generic hq (K.generic_subtype i')
+      (hg.comp (continuous_incl _ i' h)) z y hy
+    have hlm : K.Red r (.inr s :: m) := hl.tail (by simp)
+    obtain ⟨i₂, hi₂, -, hsi₂⟩ := hlm.inr_cons
+    let tm : K.Tree r := ⟨m, hlm.tail hlm.ne_nil_of_inr⟩
+    have hsnd := incl_snd_cons hl h hl.1.2
+    have hx : incl ⟨_, hl⟩ i' h ⟨s, hl.1.2⟩ = incl tm i₂ hi₂ ⟨s, hsi₂⟩ := by
+      refine eq_incl_of_inr _ (by rw [hsnd]; rfl) hi₂ (.inl (by rw [hsnd]; rfl)) hsi₂
+    obtain ⟨f, hf, hqf, hfs⟩ := exists_lift_incl hq hg hz₀ m tm.2 i₂ hi₂ ⟨s, hsi₂⟩
+      (L ⟨s, hl.1.2⟩) (by rw [← hx]; exact congrFun hqL _)
+    have : f ∘ incl ⟨_, hl⟩ i' h = L := lift_unique hq (hf.comp (continuous_incl _ _ _))
+      hL (fun z' ↦ by
+        change (q ∘ f) _ = (q ∘ L) z'
+        rw [hqf, hqL]; rfl) ⟨s, hl.1.2⟩ (by
+          change f (incl ⟨_, hl⟩ i' h ⟨s, hl.1.2⟩) = _
+          rw [hx]; exact hfs)
+    exact ⟨f, hf, hqf, by rw [← hLz, ← this]; rfl⟩
+  | .inl _ :: .inl _ :: _, hl, _, _, _, _, _ => hl.1.elim
+  | .inr _ :: _, _, _, h, _, _, _ => by simp at h
+
+/-- Lifting from the tree covering: every continuous map from the tree covering lifts along a
+covering map, through every point of the fibre. -/
+theorem exists_lift [Finite ι] (hq : IsCoveringMap q) (hg : Continuous g) (hz₀ : z₀ ∈ K.C r)
+    (b : K.Cover r) (y : P) (hy : q y = g b) :
+    ∃ f : K.Cover r → P, Continuous f ∧ q ∘ f = g ∧ f b = y := by
+  obtain ⟨t, i, h, z, rfl⟩ := exists_eq_incl b
+  exact exists_lift_incl hq hg hz₀ t.1 t.2 i h z y hy
+
+end Lift
+
 end CurveConfig
 
 end TemperedFundamentalGroups
