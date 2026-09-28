@@ -58,3 +58,6 @@ import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Topology.CountableFibres
 import TemperedFundamentalGroups.Topology.CoveringCode
+import TemperedFundamentalGroups.Topology.CurveCovering
+import TemperedFundamentalGroups.Topology.GenericLift
+import TemperedFundamentalGroups.Topology.UniversalCovering
