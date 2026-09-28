@@ -546,53 +546,38 @@ They enter only as hypotheses on `wp-andre`.
 
 ### 10.1 What "André's group" means here
 
-Berkovich spaces are not available, so André's group is defined by **Lepage's limit formula**
-(André III.2.1.5, Lepage §1.1), with its terms made model-theoretic.
+Berkovich spaces are not available, so André's group is defined as in **Lepage/André
+III.2.1.5**: through tempered coverings read off from *semistable* models of finite étale covers.
 
-* A **good pointed level** is a level with a model `Lv = (B, H, 𝒯, j, ρ)` (§3.2) such that
-  * the level is **Galois**: `H⁰` acts simply transitively on the geometric fibre
-    `F_L = Hom_R(B, Ω)`, which is nonempty;
-  * the model is **semistable after a finite extension**: `𝒯` is the restriction to `O` of a
-    semistable `O'`-model (`ModelCode.IsSemistable`) for a finite extension `O'/O` of DVRs;
-  * it comes with a base point `t₀ ∈ F_L`.
+* A level with a model is **semistable** (`IsSemistableLevel`) if its model is, over `O`, a
+  semistable projective model over the valuation ring `O'` of a finite extension `K'/K`
+  (`ModelCode.IsSemistable`).
+* `semistableObj ⊆ TempObj` is the full subcategory of tempered coverings presented through
+  semistable levels. **André's group** is
+  `andreGroup := Aut (tempFibre|_semistableObj)`, with the topology of pointwise convergence
+  (`Andre/Defs.lean`).
 
-  The special fibre `Z = |𝒯_s|` is then a noetherian space of dimension `≤ 1`.
-* `Z` has a universal covering `Z̃ → Z` (N1). The **stage group** `Π_Lv` is the group of pairs
-  `(h, h̃)` where `h ∈ H` and `h̃` is a homeomorphism of `Z̃` lifting `ρ_s(h)`. This is the
-  orbifold fundamental group of `[Z/H]`. It is Lepage's `Gal(T^∞/[Y/A])`, where the universal
-  topological covering `T^∞` of `T^an` is replaced by `Z̃`; the replacement is exactly the
-  Raynaud–Berkovich retraction of §1.
-* A morphism of good pointed levels induces `Π_Lv' → Π_Lv` (lift `ψ_s` to the universal
-  coverings through the base points).
-* **André's group**: `andreGroup := lim_{good pointed Lv} Π_Lv`, with the limit topology (each
-  `Π_Lv` discrete).
+Via the Raynaud–Berkovich retraction onto the skeleton, the covering spaces of the special fibre
+of a semistable model are the topological coverings of `T^an` (§1). Restricting to semistable
+levels is therefore exactly André's definition, with "topological covering of `T^an`" made
+model-theoretic.
 
-**Theorem A** (`andreEquiv`). Assume W10 and clauses D and H. Then
-`temperedPi1 O R A V hV ≃ₜ* andreGroup`.
-
-Loop-free semistable models, which give Lepage's formula with one model per level, form a cofinal
-subclass and give the same limit. Stabilisation of `Π_Lv` along semistable refinements is not
-needed for Theorem A.
+**Theorem A** (`temperedPi1 ≃ₜ* andreGroup`, restriction). Assume W10 in the form
+`Statement.Strong`, that `Ω` is algebraically closed, and that `A` acts `K`-linearly.
 
 ### 10.2 Lemma chain for Theorem A
 
-| # | Statement | Inputs |
+| # | Statement | Status |
 |---|---|---|
-| N1 | A connected noetherian space `Z` of topological Krull dimension `≤ 1` has a universal covering `p : Z̃ → Z` with countable fibres. For every covering `q : P → Z` and `p₀ ∈ q⁻¹(p z̃₀)` there is a unique continuous `f : Z̃ → P` with `q ∘ f = p` and `f z̃₀ = p₀`. | Coverings of irreducible spaces are trivial. `Z` is a finite union of irreducible curves meeting in finitely many closed points, so its coverings are those of the incidence graph `Γ(Z)` (components and special points). `Z̃` is glued along the universal tree of `Γ(Z)`. Countable fibres: `CountableFibres`. |
-| N2 | `H`-equivariant coverings of `Z` correspond to `Π`-sets. The object `U_Lv = (Z̃ × Π)/π₁` is a `CoveringCode` with a simply transitive right action of `Π` on its fibre over `z₀`. | N1 |
-| G1 | For a good pointed `Lv`, `Φ(U_Lv) ≅ Π_Lv`, and every `α ∈ Aut Φ` acts on it by left multiplication by a unique `π_α(Lv) ∈ Π_Lv`. | N2; `Φ(Lv, P) ≅ P_{sp(t₀)}` for Galois levels |
-| G2 | **Pro-representability**: for every object `X` and `x ∈ Φ(X)` there are a good pointed `Lv` and a morphism `U_Lv ⟶ X` sending the base point to `x`. | clauses D and H (domination, equivariance), Galois closure of levels |
-| G3 | Good pointed levels form a cofiltered category. | clause D with two models |
-| G4 | `α ↦ (π_α(Lv))_Lv` is an isomorphism of topological groups `Aut Φ ≃ₜ* lim Π_Lv`. | G1–G3 (Yoneda) |
+| A1 | Restricting fibre-functor automorphisms to a full subcategory is an isomorphism of topological groups when (S1) every object has an admissible `Φ`-bijective span to the subcategory and (S2) admissible spans refine along morphisms. | `FibreFunctor/SpanRealization.lean`, **[L]** |
+| A2 | Pullback `π*X` of a tempered covering along a morphism of levels with models (`LevelHom`), with the cartesian morphism `π*X ⟶ X` and its universal property. Along a **refinement** (`IsRefinement`: `H'⁰ ↠ H⁰`, the kernel is transitive on the fibres of `F_{L'} → F_L`, `F_{L'} ↠ F_L`, the model map is equivariant), `Φ(π*X) → Φ(X)` is bijective. Equivariance follows from the scheme-theoretic density of `j`. | `Andre/Pullback.lean`, in progress |
+| A3 | Every level has a semistable refinement (W10 base change `B ↦ K' ⊗_K B`, `H ↦ H × Gal(K'/K)`, model `c` dominating the given one). Two refinements over a morphism `u` have a common semistable refinement (W10 applied to `B₁ ⊗ B₂` with two models to dominate). | `Andre/Refinement.lean`, in progress |
+| A4 | Admissible spans are `X ⟵ π*X = π*X` for semistable refinements, so (S1) and (S2) follow from A2 and A3. This proves Theorem A. | next |
 
-**Clause D (domination)**, to be added to `SemistableReduction/Statement.lean`. Given finitely
-many projective `O`-models `c_i` with morphisms `j_i : Spec B ⟶ c_i` over `O`, the semistable model
-of W10 can be chosen with morphisms `c ⟶ c_i` over `O` compatible with the `j`'s. The model is
-given as a `ModelCode O`: a closed subscheme of `ℙ^N_O` with a morphism to `Spec O'` over `O`,
-semistable as an `O'`-scheme.
-
-**Clause H (equivariance)**. For a finite group `G` acting on `B` by `K`-algebra automorphisms,
-`K'/K` can be taken Galois and `G × Gal(K'/K)` acts on `c` over `Spec O`, making `j` equivariant.
+The Galois theory of `TempObj` is not needed for Theorem A. It is needed for Theorem B: universal
+coverings of special fibres (N1, `Topology/UniversalCovering.lean`, in progress), the stage groups
+`Π_Lv` (orbifold fundamental groups of `[Z/H]`), and Lepage's limit formula
+`andreGroup ≃ lim_{Galois semistable levels} Π_Lv`.
 
 ### 10.3 The `ℤ`-witness (Theorem B)
 
