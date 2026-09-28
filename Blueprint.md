@@ -314,7 +314,9 @@ Liu–Lorenzini).
   over a normal domain `O'` with `ϖ ∈ O'`, the integral closure of the node
   `O'[u, v]/(uv − ϖ^{mn})` in the Kummer extension obtained by adjoining `w` with `w^m = u` is
   the node `O'[w, z]/(wz − ϖ^n)` (`z = v^{1/m} = ϖ^n / w`), and the analogous statement at a
-  smooth point `O'[u]` with the branch divisor `u = 0`. Status: [P] (`SemistableReduction/`).
+  smooth point `O'[u]` with the branch divisor `u = 0`. Status: **proved** for `O'` an
+  integrally closed domain and `ϖ^n` replaced by any `c ≠ 0` (`SemistableReduction/Node`,
+  `NodeNormal`, `TameLocal`: `Node.kummer_isIntegralClosure`, `smoothKummer_isIntegralClosure`).
 * Order after that: (i) Abhyankar's lemma for DVRs (tame extensions become unramified after
   adjoining roots of the uniformizer); (ii) normalization of a semistable model in a tame cover is
   semistable after tame base change (local-to-global via the `ModelCode` framework and Mathlib's

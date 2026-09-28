@@ -191,7 +191,8 @@ noncomputable def scaleUnit {c : K} (hc : c ≠ 0) : (K[T;T⁻¹])ˣ where
 noncomputable def scale {c : K} (hc : c ≠ 0) : K[T;T⁻¹] →+* K[T;T⁻¹] :=
   LaurentPolynomial.eval₂ C (scaleUnit hc)
 
-lemma coeff_scale {c : K} (hc : c ≠ 0) (f : K[T;T⁻¹]) (j : ℤ) : (scale hc f).coeff j = c ^ j * f.coeff j := by
+lemma coeff_scale {c : K} (hc : c ≠ 0) (f : K[T;T⁻¹]) (j : ℤ) :
+    (scale hc f).coeff j = c ^ j * f.coeff j := by
   induction f using LaurentPolynomial.induction_on' with
   | add p q hp hq => rw [map_add, AddMonoidAlgebra.coeff_add, Finsupp.add_apply, hp, hq,
       AddMonoidAlgebra.coeff_add, Finsupp.add_apply, mul_add]
