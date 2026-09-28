@@ -417,7 +417,7 @@ Notation below: all valued fields have rank one; `M` henselian means the valuati
 | A1 | `valuation_sum_eq_sup`: `x₁…x_n ∈ O_w` with residues independent over `κ(v)` ⇒ `w(Σ aᵢxᵢ) = max w(aᵢ)` | **proved** (`Valuation.HasExtension`, `IsLocalRing.residue`) | done |
 | A2 | `linearIndependent_mul`: residue-independent `xᵢ` and `πⱼ` with values in distinct classes mod `Γ_K` ⇒ `{πⱼ xᵢ}` `K`-independent; `ramificationIdx_mul_inertiaDeg_le`: `e·f ≤ [L:K]` | **proved** (`Subgroup.relIndex`, `Module.finBasis`) | done |
 | A3 | `exists_pow_valuation_eq` (values of algebraic elements are torsion mod `Γ_K`), `ramificationIdx_eq_one_of_divisible(')` (`Γ_K` divisible ⇒ `e = 1`) | **proved** (`minpoly`, `pow_left_inj`) | done |
-| A4 | towers: `e`, `f` multiplicative in `K ⊂ L ⊂ M` (`Subgroup.relIndex_mul_relIndex`, `Module.finrank_mul_finrank` + `IsScalarTower` of residue fields); defectless `M/K` ⇔ `M/L` and `L/K` defectless | todo | 250 |
+| A4 | towers: `e`, `f` multiplicative in `K ⊂ L ⊂ M`; defectless `M/K` ⇔ `M/L` and `L/K` defectless | **proved** (`SemistableReduction/DefectTower`: `ramificationIdx_tower`, `inertiaDeg_tower`, `defectless_tower_iff`) | done |
 | A5 | distinct extensions of `v` to an algebraic `L` are incomparable; for the global statement: the extensions of `w` to `F'` are finitely many (`≤ [F':F]`) | todo (A5 only needed if B is done without the bijection B3) | 300 |
 
 *B. Global ↔ local (completion).* `F'/F` finite separable (in char `p` reduce first to the
@@ -488,4 +488,4 @@ only needed for `char C = p`.
 
 **Status.** A1–A3 proved (`SemistableReduction/FundamentalInequality`: `valuation_sum_eq_sup`,
 `linearIndependent_of_residue`, `linearIndependent_mul`, `ramificationIdx_mul_inertiaDeg_le`,
-`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`).
+`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`).
