@@ -444,7 +444,7 @@ Notation below: all valued fields have rank one; `M` henselian means the valuati
 | A3 | `exists_pow_valuation_eq` (values of algebraic elements are torsion mod `Γ_K`), `ramificationIdx_eq_one_of_divisible(')` (`Γ_K` divisible ⇒ `e = 1`) | **proved** (`minpoly`, `pow_left_inj`) | done |
 | A4 | towers: `e`, `f` multiplicative in `K ⊂ L ⊂ M`; defectless `M/K` ⇔ `M/L` and `L/K` defectless | **proved** (`SemistableReduction/DefectTower`: `ramificationIdx_tower`, `inertiaDeg_tower`, `defectless_tower_iff`) | done |
 | A4' | finiteness for finite `L/K`: `f < ∞`, `e ≠ 0` | **proved** (`finite_residueField`, `ramificationIdx_ne_zero`) | done |
-| A5 | distinct extensions of `v` to an algebraic `L` are incomparable; for the global statement: the extensions of `w` to `F'` are finitely many (`≤ [F':F]`) | todo (A5 only needed if B is done without the bijection B3) | 300 |
+| A5 | distinct extensions of `v` to an algebraic `L` are incomparable; for the global statement: the extensions of `w` to `F'` are finitely many (`≤ [F':F]`) | **not needed**: B3 was done with the bijection; finiteness and `#{w'} = #{Pⱼ}` are `LocalGlobal.finite_extension`, `card_extension` | — |
 
 *B. Global ↔ local (completion).* `F'/F` finite separable (in char `p` reduce first to the
 separable case: `F'·F^{1/q} / F^{1/q}` is separable for `q` = inseparable degree, `F^{1/q} = C(x^{1/q})`
@@ -453,10 +453,10 @@ defectless by A2).
 
 | # | Statement | API | Size |
 |---|---|---|---|
-| B1 | `\hat F` := completion of `(C(x), w)`: complete rank-one, `Γ_{\hat F} = Γ_C`, residue `k(x̄)` (dense subfield ⇒ same values and residues) | `UniformSpace.Completion`, `Valued.extensionValuation` | 300 |
-| B2 | `F' = F[X]/(P)`, `P = Π Pⱼ` over `\hat F` (distinct, separable); each `\hat F[X]/(Pⱼ)` with the spectral norm is complete, contains `F'` densely, so it is the completion `\hat F'_{wⱼ}` of `F'` at the induced valuation `wⱼ`; `e`, `f` agree | `spectralNorm`, `Polynomial.Separable`, `AdjoinRoot`, CRT | 700 |
-| B3 | `j ↦ wⱼ` is a bijection onto the extensions of `w` (kernel of `\hat F ⊗ F' → \hat F'_{w'}` is one `(Pⱼ)`; uniqueness of the extension of a complete rank-one valuation) | `spectralNorm_unique` | 500 |
-| B4 | **W4 from local stability**: if every finite extension of `\hat F` is defectless then `Σ_{w'} e f = Σⱼ deg Pⱼ = [F':F]` | B2, B3 | 150 |
+| B1 | `\hat F` := completion of `(C(x), w)`: complete rank-one, `Γ_{\hat F} = Γ_C`, residue `k(x̄)` (dense subfield ⇒ same values and residues) | **proved** in general (`SemistableReduction/DenseCompletion`): for `j : A → B` with dense image into a non-archimedean normed field, `valueGroup_eq_of_denseRange`, `residueEquiv`; hence `ramificationIdx_eq_of_denseRange`, `inertiaDeg_eq_of_denseRange`; for `UniformSpace.Completion F`: ultrametric, nontrivially normed, `completion_valueGroup`, `completionResidueEquiv`; `Valuation.toAbsoluteValue` + `WithAbs` turn a real (e.g. Gauss) valuation into a normed field (`valuation_withAbs`) | done |
+| B2 | `F' = F[X]/(P)`, `P = Π Pⱼ` over `\hat F` (distinct, separable); each `\hat F[X]/(Pⱼ)` with the spectral norm is complete, contains `F'` densely, so it is the completion `\hat F'_{wⱼ}` of `F'` at the induced valuation `wⱼ`; `e`, `f` agree | **proved** (`SemistableReduction/LocalGlobal`, any non-archimedean `F`, complete nontrivially normed `K ⊇ F` dense, `F'/F` finite separable): `factors`, `prod_factors`, `sum_natDegree_factors`, `Local K g` (spectral norm), `toLocal`, `denseRange_toLocal`, `extValuation`, `ramificationIdx_extValuation`, `inertiaDeg_extValuation` | done |
+| B3 | `j ↦ wⱼ` is a bijection onto the extensions of `w` (kernel of `\hat F ⊗ F' → \hat F'_{w'}` is one `(Pⱼ)`; uniqueness of the extension of a complete rank-one valuation) | **proved**: `extensionEquiv : Factor F K F' ≃ Extension F F'` (extensions = real valuations of `F'` restricting to the norm valuation); surjectivity `exists_eq_extValuation` (complete `(F', w)`, extend `K →` completion by continuity, `spectralNorm_unique_field_norm_ext`), injectivity `extValuation_injective` (approximate a CRT idempotent by elements of `F'`) | done |
+| B4 | **W4 from local stability**: if every finite extension of `\hat F` is defectless then `Σ_{w'} e f = Σⱼ deg Pⱼ = [F':F]` | **proved**: `finsum_ramificationIdx_mul_inertiaDeg` (hypothesis on the `Local K g`), `…_of_defectless`, `…_completion` (for `K = UniformSpace.Completion F`) | done |
 
 *C. Hensel toolkit for complete rank-one fields.*
 
@@ -514,4 +514,4 @@ only needed for `char C = p`.
 
 **Status.** A1–A3 proved (`SemistableReduction/FundamentalInequality`: `valuation_sum_eq_sup`,
 `linearIndependent_of_residue`, `linearIndependent_mul`, `ramificationIdx_mul_inertiaDeg_le`,
-`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`); the root/Kummer parts of C2/D2 proved (`SemistableReduction/UnramifiedRoot`).
+`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`); the root/Kummer parts of C2/D2 proved (`SemistableReduction/UnramifiedRoot`). B1 proved (`SemistableReduction/DenseCompletion`); B2–B4 proved (`SemistableReduction/LocalGlobal`), for any non-archimedean normed field `F` and finite separable `F'/F`; A5 not needed. For the Gauss valuation take `F = WithAbs (gaussRat v a r).toAbsoluteValue` with `v = NormedField.valuation` of `C` (real-valued). Remaining in B for char `p`: the reduction of inseparable `F'/F` to the separable case.
