@@ -515,3 +515,17 @@ only needed for `char C = p`.
 **Status. W4 is proved in mixed characteristic (the IUT case)**: G1–G4 (`SemistableReduction/NormedTower`, `SemistableReduction/NoImmediate`, `SemistableReduction/ChangeOfGenerator`, `SemistableReduction/LocalStability`, `SemistableReduction/GaussStability`; main theorem `GaussStability.finsum_ramificationIdx_mul_inertiaDeg_eq`). Only the equal-characteristic case (`char C = p`: F3, the inseparable parts of B/F5) remains open. A1–A3 proved (`SemistableReduction/FundamentalInequality`: `valuation_sum_eq_sup`, F (mixed characteristic, the IUT case) proved: F1 (`SemistableReduction/DiscreteCoefficients`), F2 (`SemistableReduction/InertiallyGenerated`, with the definition `IsInertiallyGenerated`), F4 (`SemistableReduction/PthPower`, `SemistableReduction/KummerNormalForm`), F5 (`SemistableReduction/KummerDefectless`); F3 (char `p`) skipped. Note for G2: `IsInertiallyGenerated C z` asks for `‖z‖ ≤ 1` with `z̄` transcendental over `k`, `[M : M₁] < ∞`, `κ_M/κ_{M₁}` finite separable and `[M : M₁] ≤ [κ_M : κ_{M₁}]` (`M₁ = genClosure C z`; `κ_{M₁} = k(z̄)` is `residueSubfield_genClosure`), stated with `DiscreteCoefficients.residueSubfield` for residue fields of subfields.
 `linearIndependent_of_residue`, `linearIndependent_mul`, `ramificationIdx_mul_inertiaDeg_le`,
 `exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`); E1 proved (`SemistableReduction/CurvePlace`); E2 proved (`SemistableReduction/FrobeniusBasis`). B1 proved (`SemistableReduction/DenseCompletion`); B2–B4 proved (`SemistableReduction/LocalGlobal`), for any non-archimedean normed field `F` and finite separable `F'/F`; A5 not needed. For the Gauss valuation take `F = WithAbs (gaussRat v a r).toAbsoluteValue` with `v = NormedField.valuation` of `C` (real-valued). Remaining in B for char `p`: the reduction of inseparable `F'/F` to the separable case. C2 proved (`SemistableReduction/UnramifiedRoot`, `SemistableReduction/Unramified`); C3 proved (`SemistableReduction/UniqueExtension`); C4 proved (`SemistableReduction/UnramifiedBaseChange`); D1–D3 proved (`SemistableReduction/Inertia`); D4 proved (`SemistableReduction/PGroupChain`). Layers C and D are complete; the Henselian and Galois-invariance hypotheses of C2/C4/D1–D3 are discharged over a complete base by C3 (`henselianLocalRing_valuationSubring`, `henselianLocalRing_comap`, `valuation_algEquiv_apply'`).
+
+### 9.7 The W10 interface
+
+`SemistableReduction.Statement : Prop` (`SemistableReduction/Statement.lean`) is the exact form of
+W10 targeted by the W-chain and consumed by §4 (André identification) and §5.1 (non-degeneracy):
+for a henselian discretely valued `K` of characteristic `0`, a smooth affine curve `Spec R` over
+`K` and a finite étale `R`-algebra `B`, there are a finite `K'/K` (valuation subring `O'` over
+`O`, uniformizer `ϖ'`), a projective `O'`-model `c` (`ModelCode O'`) that is semistable
+(`ModelCode.IsSemistable ϖ' c`: every point has an affine neighbourhood étale-locally a node or
+`O'[u]`), and an open immersion `Spec (K' ⊗_K B) ⟶ c` over `Spec O'`. It is a definition only;
+downstream branches may take `(h : Statement)` as a hypothesis **as an intermediate**; nothing
+merged as genuine may depend on it until W10 is proved. Refinements of the statement (domination of
+a given model, equivariance for `Aut_Y(T)`, compatibility in towers) will be added as further
+named `Prop`s here when the consumers need them.
