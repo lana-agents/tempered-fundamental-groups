@@ -606,3 +606,14 @@ D, H and W8′ below, there is a continuous surjective homomorphism `temperedPi1
    §4). For compatible semistable models of `T → T'`, the dual graphs carry thicknesses and the
    map of dual graphs is harmonic: edges go to edges or vertices, with stretching factor equal to
    the local degree, and every edge at the image of a vertex lifts.
+
+#### 10.3.1 Galois theory needed for Theorem B (scheme case `A = 1`)
+
+| # | Statement |
+|---|---|
+| B1 | **Galois closure of levels.** For a level `(B, H)` there is a Galois level `(B', Gal)`, where `Gal = Aut_R(B')` acts simply transitively on `F_{B'}`, with `B ⊆ B'`. The restriction `(B', H'_res) → (B, H)`, `H'_res = {g : g(B) = B, g|_B ∈ H}`, is a refinement. Proof: finite étale `R`-algebras form a Galois category (pi1, `FEt`); use Mathlib's Galois objects. |
+| B2 | **Induction.** `(B', H'') → (B', H)` for `H'' ≤ H` sends `P` to `H ×^{H''} P`. The resulting morphism is `Φ`-bijective, so every semistable object has an admissible span to an object over a semistable Galois level. |
+| B3 | **Universal objects.** For a pointed semistable Galois level `(Lv, t₀)` with `Z = |𝒯_s|` connected, `U_Lv = (Z̃ × Π)/π₁` is a covering (N1), where `Π` is the group of lifts of `H` to `Z̃`. It pro-represents `Φ` on objects over semistable Galois levels. |
+| B4 | **Lepage's formula.** `andreGroup ≃ₜ* lim_{pointed semistable Galois} Π_Lv`. |
+| B5 | **König.** Given the finite nonempty sets `S_Lv ⊆ Π_Lv` of §10.3 (they need W8′), `lim S_Lv ≠ ∅` (Mathlib `nonempty_sections_of_finite_cofiltered_system`). Any element of the limit translates `X₀` by `1`. |
+| B6 | **X₀.** An explicit flat projective `O`-model of `E : y² + xy = x³ + a₄x + a₆` with `a₄, a₆ ∈ 𝔪²` (split multiplicative reduction of type `I_n`, `n ≥ 2`): the blow-up of the Weierstrass model at the node. Its special fibre is the strict transform together with the exceptional curve, meeting in two points, so it contains a cycle and carries a `ℤ`-covering. `X₀` need not be semistable; Theorem A transports `α` to it. |
