@@ -16,3 +16,10 @@ rev = "v4.32.0"
 
 [[lean_lib]]
 name = "TemperedFundamentalGroups"
+
+# Finiteness of the torsion of elliptic curves (`finite_torsion_of_charZero`), used to show that
+# the removed set `E[ℓ] + M` of the model orbicurves is a finite (closed) set.
+[[require]]
+name = "elliptic-curves"
+git = "https://github.com/lana-agents/elliptic-curves"
+rev = "bebec3fc9f2602e81c83e5236789572a541c85fb"
