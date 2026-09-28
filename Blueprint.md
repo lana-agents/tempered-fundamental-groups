@@ -661,3 +661,15 @@ Weierstrass equation `y² + xy = x³ + a₄(q)x + a₆(q)` with `a₄, a₆ ∈ 
 quadratic extension. This is a finite étale cover of `Y ⊗ K_v`, so it is covered by T3 or T4 in
 the form "finite étale covers induce open finite-index maps". IUT's Tate curves have `v(q)` as
 large as needed (they are `ℓ`-th power cusps), so `v(q) ≥ 2` holds as is.
+
+**Status of T1–T4.**
+* T1 is **[L]** (`Andre/Transfer.lean`: `resFunctor`, `resFibreIso`, `restrictHom`,
+  `continuous_restrictHom`).
+* The general T4 group lemma is **[L]** (`exists_open_normal_infinite_quotient`).
+* Non-degeneracy for `[Y/A]` is **[L]**, conditional only on surjectivity of the `A = 1` character
+  (Theorem B). It is `TateOrbicurve.nondegenerate_of_character` in `Andre/TransferTate.lean`, and
+  bypasses T2/T3. The induced object `indObj` is taken over the `A`-torsor level `(R^A, A)`,
+  reusing the Tate model and covering of `X₀`. The stabiliser of finitely many of its fibre
+  points is an open normal subgroup with infinite quotient.
+* T2/T3 are open and are not needed for non-degeneracy: a general induction functor would need a
+  `ModelCode` for `∐_{a ∈ A} 𝒯` inside a single `ℙ^N`.
