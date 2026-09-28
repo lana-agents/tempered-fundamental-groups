@@ -481,7 +481,7 @@ closed, `κ` a function field of one variable over `k`).
 
 | # | Statement | Size |
 |---|---|---|
-| E1 | a "pole-order" function `‖·‖ : κ → ℕ` with `‖f+g‖ ≤ max`, `‖cf‖ ≤ ‖f‖` (`c ∈ k`), `‖f^p‖ = p‖f‖`, `‖f‖ = 0 ⇔ f ∈ k`: maximal pole order over the places of `κ/k` (needs: places are DVRs, only finitely many poles, a non-constant has a pole — Chevalley extension `ValuationSubring`) — shared with W3/W5/W6 (residue curves) | 800 |
+| E1 | a "pole-order" function `‖·‖ : κ → ℕ` with `‖f+g‖ ≤ max`, `‖cf‖ ≤ ‖f‖` (`c ∈ k`), `‖f^p‖ = p‖f‖`, `‖f‖ = 0 ⇔ f ∈ k`: maximal pole order over the places of `κ/k` (needs: places are DVRs, only finitely many poles, a non-constant has a pole — Chevalley extension `ValuationSubring`) — shared with W3/W5/W6 (residue curves) | **proved** (`SemistableReduction/CurvePlace`: `IsCurveFunctionField`, `CurvePlace` = valuation subrings `≠ κ` containing `k`, `CurvePlace.isDiscreteValuationRing`, normalized `CurvePlace.valuation : Valuation κ ℤᵐ⁰`, `poleOrder`, `poleNorm` with `poleNorm_add_le`, `poleNorm_smul_le`, `poleNorm_pow`, `poleNorm_eq_zero_iff`; finiteness of poles is replaced by a uniform bound on pole orders, `CurvePlace.exists_valuation_le`: `ord_P(x − α), ord_P(x⁻¹) ≤ [κ : k(x)]` by the fundamental inequality) |
 | E2 | (Temkin, Lemma `basislem`; Kuhlmann [K5, Thm 10]) there is `U ⊂ κ` with `B = {1} ⊔ U ⊔ U^p ⊔ U^{p²} ⊔ …` a `k`-basis of `κ` and `Span_k U ∩ κ^p = 0` (choose `U_n` lifting a basis of `V_n/V_{n−1}`, `V_n` = image of `{‖f‖ ≤ n}` in `κ/κ^p`; termination by `‖fᵢ‖ ≤ ‖f‖/pⁱ`); consequences: `Span U ∩ ℘(κ) = 0`, `Span U ∩ (κ^p + k) = 0` (Kuhlmann Lemma 4.8) | 500 |
 
 *F. Degree-`p` Galois extensions of inertially generated fields.* `M` is **inertially generated**
@@ -514,4 +514,4 @@ only needed for `char C = p`.
 
 **Status.** A1–A3 proved (`SemistableReduction/FundamentalInequality`: `valuation_sum_eq_sup`,
 `linearIndependent_of_residue`, `linearIndependent_mul`, `ramificationIdx_mul_inertiaDeg_le`,
-`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`); the root/Kummer parts of C2/D2 proved (`SemistableReduction/UnramifiedRoot`).
+`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`); the root/Kummer parts of C2/D2 proved (`SemistableReduction/UnramifiedRoot`). E1 proved (`SemistableReduction/CurvePlace`).
