@@ -3,12 +3,16 @@ import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.Topology
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
+import TemperedFundamentalGroups.Orbicurve.Exact
 import TemperedFundamentalGroups.Orbicurve.GenericPoint
+import TemperedFundamentalGroups.Orbicurve.GeomModel
+import TemperedFundamentalGroups.Orbicurve.GeomStable
 import TemperedFundamentalGroups.Orbicurve.Model
 import TemperedFundamentalGroups.Orbicurve.Nullstellensatz
 import TemperedFundamentalGroups.Orbicurve.Orbifold
 import TemperedFundamentalGroups.Orbicurve.Ring
 import TemperedFundamentalGroups.Orbicurve.Stable
+import TemperedFundamentalGroups.Orbicurve.ZeroSet
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Schmidt
 import TemperedFundamentalGroups.Setup.Valuation
