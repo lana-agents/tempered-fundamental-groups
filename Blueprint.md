@@ -366,3 +366,126 @@ over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
 Realistic size: W1–W3 small/medium (weeks of agent time), W4 large (the heart; Temkin's
 algebraic proof ~20 pages), W5 large (needs blow-ups or the `ModelCode`+normalization
 dictionary), W6–W8 large, W9–W10 medium. Status: W1 started (`SemistableReduction/Gauss.lean`).
+
+### 9.4 W4: stability of Gauss-valued rational function fields
+
+**Statement (W4).** `C` algebraically closed, complete for a rank-one valuation `v` (residue field
+`k`, algebraically closed; value group `Γ_C` divisible), `F = C(x)`, `w = w_{a,r}` a Gauss
+valuation with `r ∈ Γ_C` (after `x ↦ (x − a)/c` we may take `w = w_{0,1}`; residue field `k(x̄)`,
+value group `Γ_C`). For every finite `F'/F`: `Σ_{w'|w} e(w'|w) f(w'|w) = [F':F]`. Since `Γ_C` is
+divisible, `e(w'|w) = 1` for all `w'` (proved: `ramificationIdx_eq_one_of_divisible`), so W4 says
+`Σ_{w'|w} [κ(w') : k(x̄)] = [F':F]`. The case `char k = 0` is Ostrowski's lemma (no defect in
+residue characteristic 0); the IUT application (`C = \widehat{\bar K}`, `K/ℚ_p` finite) is the
+**mixed characteristic** case `char C = 0`, `char k = p`, which is also the hardest.
+
+**Route comparison.**
+
+| Route | Core mechanism | Infrastructure it needs (Mathlib status) | Verdict |
+|---|---|---|---|
+| (i) BGR §5.3.2 (Grauert–Remmert, Gruson) | weakly cartesian normed spaces over `C⟨X⟩`, Weierstrass division, "stable" normed fields, `\widehat{Q(T_n)}` | Tate algebras, Weierstrass preparation/division, cartesian/weakly cartesian normed spaces, orthogonal bases (none in Mathlib) | a second library (affinoid algebra theory) before the proof starts; rejected |
+| (ii) Temkin, *Stable modification* §4 ("critical cosets" `b + S_{a,s}`) | reduce a defect to an immediate degree-`p` extension of a finite moderately ramified extension; normal form `T^p − aT + b` (both characteristics at once); orthogonal *Schauder* bases `{1} ⊔ U ⊔ U^p ⊔ …` built over a discretely valued `k₀ ⊂ C` with `k̃₀ = k`; closed discs in `𝔸^{1,an}` | Berkovich discs (can be replaced by root estimates + Krasner, which Mathlib has), perturbation lemmas `epsclose`/`fin`, Schauder bases of Banach spaces over a DVR, `\hat⊗`, moderately ramified closure | uniform in the characteristic, but analytic (completed tensor products, Schauder bases); rejected as primary, its critical-coset formulation is kept as a fallback for step F |
+| (iii) Kuhlmann, *Elimination of ramification I* (TAMS 2010) §§2–5 | henselized function fields; Galois degree-`p` steps; normal forms of Artin–Schreier (char `p`) and Kummer (char 0) extensions in terms of a lifted *Frobenius-closed basis* of the residue function field (LFC); "inertially generated" fields and change of generator | valuation theory only: henselization, ramification field, Galois theory, Hensel's lemma; no analysis | algebraic, matches our `Valuation`/`ValuationSubring` setting; **chosen**, specialised to `K = C` algebraically closed, rank one, residue-transcendental |
+| (iv) Ohm (1983/89), Matignon–Ohm | deduced from BGR 5.3.2 Prop. 3 | same as (i) | rejected |
+
+**Choice and adaptations.** Kuhlmann's route restricted to the case needed here (`K = C`
+algebraically closed of rank one, `F = C(x)`, `x` residue-transcendental), with two changes that
+fit Mathlib better:
+
+1. **Completion instead of henselization.** Mathlib has completions of valued/normed fields,
+   the spectral norm (unique extension of the absolute value to algebraic extensions of a complete
+   field), Krasner's lemma (`IsKrasner.of_completeSpace`) and approximation of monic polynomials
+   over dense subfields (`Polynomial.exists_monic_and_natDegree_eq_and_norm_map_algebraMap_…`), but
+   no henselization. In rank one the completion `\hat F` plays the role of `F^h` (Kuhlmann
+   Lemma 2.3/Thm 2.8: `F^h ⊂ \hat F` dense, same finite extensions up to completion).
+2. **Inertia group instead of absolute ramification field.** Kuhlmann reduces to degree-`p`
+   steps inside `F^r` (needs: `Gal(F^sep/F^r)` is pro-`p`, and `d(E|F) = d(E.N|N)` for `N ⊂ F^r`,
+   his [K6]). Here `Γ_F = Γ_C` is divisible, so tame = unramified, and for a finite Galois
+   `N/M` it suffices that the inertia group `T` is a `p`-group and `N^T/M` is unramified
+   (elementary Kummer argument, D2 below); the remaining extension is a tower of Galois
+   extensions of degree `p` (`p`-groups are supersolvable). The base-change invariance is only
+   needed for unramified `N`, where it is Hensel's lemma (D4).
+
+Notation below: all valued fields have rank one; `M` henselian means the valuation ring is a
+`HenselianLocalRing`; "defectless `L/M`" means `e·f = [L:M]` (unique extension).
+
+**Lemma-level plan.** Sizes are rough Lean line counts.
+
+*A. General valuation theory (route independent).* File `SemistableReduction/FundamentalInequality`.
+
+| # | Statement | Status / API | Size |
+|---|---|---|---|
+| A1 | `valuation_sum_eq_sup`: `x₁…x_n ∈ O_w` with residues independent over `κ(v)` ⇒ `w(Σ aᵢxᵢ) = max w(aᵢ)` | **proved** (`Valuation.HasExtension`, `IsLocalRing.residue`) | done |
+| A2 | `linearIndependent_mul`: residue-independent `xᵢ` and `πⱼ` with values in distinct classes mod `Γ_K` ⇒ `{πⱼ xᵢ}` `K`-independent; `ramificationIdx_mul_inertiaDeg_le`: `e·f ≤ [L:K]` | **proved** (`Subgroup.relIndex`, `Module.finBasis`) | done |
+| A3 | `exists_pow_valuation_eq` (values of algebraic elements are torsion mod `Γ_K`), `ramificationIdx_eq_one_of_divisible(')` (`Γ_K` divisible ⇒ `e = 1`) | **proved** (`minpoly`, `pow_left_inj`) | done |
+| A4 | towers: `e`, `f` multiplicative in `K ⊂ L ⊂ M` (`Subgroup.relIndex_mul_relIndex`, `Module.finrank_mul_finrank` + `IsScalarTower` of residue fields); defectless `M/K` ⇔ `M/L` and `L/K` defectless | todo | 250 |
+| A5 | distinct extensions of `v` to an algebraic `L` are incomparable; for the global statement: the extensions of `w` to `F'` are finitely many (`≤ [F':F]`) | todo (A5 only needed if B is done without the bijection B3) | 300 |
+
+*B. Global ↔ local (completion).* `F'/F` finite separable (in char `p` reduce first to the
+separable case: `F'·F^{1/q} / F^{1/q}` is separable for `q` = inseparable degree, `F^{1/q} = C(x^{1/q})`
+is again Gauss-valued with residue `k(x̄^{1/q})`, and sub-extensions of defectless extensions are
+defectless by A2).
+
+| # | Statement | API | Size |
+|---|---|---|---|
+| B1 | `\hat F` := completion of `(C(x), w)`: complete rank-one, `Γ_{\hat F} = Γ_C`, residue `k(x̄)` (dense subfield ⇒ same values and residues) | `UniformSpace.Completion`, `Valued.extensionValuation` | 300 |
+| B2 | `F' = F[X]/(P)`, `P = Π Pⱼ` over `\hat F` (distinct, separable); each `\hat F[X]/(Pⱼ)` with the spectral norm is complete, contains `F'` densely, so it is the completion `\hat F'_{wⱼ}` of `F'` at the induced valuation `wⱼ`; `e`, `f` agree | `spectralNorm`, `Polynomial.Separable`, `AdjoinRoot`, CRT | 700 |
+| B3 | `j ↦ wⱼ` is a bijection onto the extensions of `w` (kernel of `\hat F ⊗ F' → \hat F'_{w'}` is one `(Pⱼ)`; uniqueness of the extension of a complete rank-one valuation) | `spectralNorm_unique` | 500 |
+| B4 | **W4 from local stability**: if every finite extension of `\hat F` is defectless then `Σ_{w'} e f = Σⱼ deg Pⱼ = [F':F]` | B2, B3 | 150 |
+
+*C. Hensel toolkit for complete rank-one fields.*
+
+| # | Statement | Size |
+|---|---|---|
+| C1 | complete rank-one ⇒ `HenselianLocalRing O` (Newton iteration; Mathlib only has the `𝔪`-adic version, useless for dense value groups) | 350 |
+| C2 | unramified extensions: `L/M` with `κ_L/κ_M` separable of degree `[L:M]` ⇔ `L = M(y)`, `ȳ` a separable generator; existence and uniqueness of the unramified lift of a finite separable `κ'/κ_M`; the **unramified closure** of `M` in `L` (maximal unramified subextension, residue field = separable closure of `κ_M` in `κ_L`) | 500 |
+| C3 | finite extensions of complete rank-one are complete; unique extension of the valuation (spectral norm); `Aut(L/M)` preserves it | 250 |
+| C4 | `d(E/M) = d(E·N/N)` for `N/M` unramified (min. polynomial of an unramified generator stays irreducible with separable reduction over `E`) | 250 |
+
+*D. Reduction to Galois steps of degree `p`.*
+
+| # | Statement | API | Size |
+|---|---|---|---|
+| D1 | `N/M` finite Galois, `G` acts on `O_N`; inertia `T = ker(G → Aut(κ_N/κ_M))`; `G → Aut(κ_N/κ_M)` surjective, `κ_N/κ_M` normal | `Ideal.Quotient.stabilizerHom_surjective`, `Algebra.IsInvariant` | 300 |
+| D2 | if `Γ_M` divisible and `μ_ℓ ⊂ M` for all primes `ℓ ≠ p`: `T` is a `p`-group (an element of prime order `ℓ ≠ p` generates a Kummer extension `M'(θ)`, `θ^ℓ = a`, `|a| = 1` by divisibility, `ā` not an `ℓ`-th power by Hensel, so `σ(θ̄) = ζ̄θ̄ ≠ θ̄`) | `isCyclic_tfae` (Kummer), `X_pow_sub_C_irreducible_of_prime`, C1 | 350 |
+| D3 | `N^T/M` is unramified and `κ_N/κ_{N^T}` purely inseparable; hence `f(N^T/M) = [N^T:M]` (with A2) | D1, `Normal`, separable degree | 250 |
+| D4 | a subgroup `H` of a finite `p`-group `T` sits in a chain `H = H₀ ◁ H₁ ◁ … ◁ H_m = T` with `[H_{i+1}:H_i] = p` (normalizers grow) | `IsPGroup`, `Subgroup.normalizer` | 200 |
+
+*E. Frobenius-closed bases of the residue function field* (`char k = p`, `k` algebraically
+closed, `κ` a function field of one variable over `k`).
+
+| # | Statement | Size |
+|---|---|---|
+| E1 | a "pole-order" function `‖·‖ : κ → ℕ` with `‖f+g‖ ≤ max`, `‖cf‖ ≤ ‖f‖` (`c ∈ k`), `‖f^p‖ = p‖f‖`, `‖f‖ = 0 ⇔ f ∈ k`: maximal pole order over the places of `κ/k` (needs: places are DVRs, only finitely many poles, a non-constant has a pole — Chevalley extension `ValuationSubring`) — shared with W3/W5/W6 (residue curves) | 800 |
+| E2 | (Temkin, Lemma `basislem`; Kuhlmann [K5, Thm 10]) there is `U ⊂ κ` with `B = {1} ⊔ U ⊔ U^p ⊔ U^{p²} ⊔ …` a `k`-basis of `κ` and `Span_k U ∩ κ^p = 0` (choose `U_n` lifting a basis of `V_n/V_{n−1}`, `V_n` = image of `{‖f‖ ≤ n}` in `κ/κ^p`; termination by `‖fᵢ‖ ≤ ‖f‖/pⁱ`); consequences: `Span U ∩ ℘(κ) = 0`, `Span U ∩ (κ^p + k) = 0` (Kuhlmann Lemma 4.8) | 500 |
+
+*F. Degree-`p` Galois extensions of inertially generated fields.* `M` is **inertially generated**
+if `M` is a finite unramified extension of `\widehat{C(z)} ⊂ M` for some `z ∈ M` with `z̄`
+transcendental over `k` (Kuhlmann §2.4). Then `Γ_M = Γ_C`, `κ_M/k(z̄)` finite separable.
+
+| # | Statement | Size |
+|---|---|---|
+| F1 | (char 0) a discretely valued subfield `K₀ ⊂ C` with `v(K₀^×) = ℤ·v(p)` and residue field `k` (Zorn over such subfields: a maximal one has residue field `k`, since transcendental residues lift by A1, separable ones by Hensel in `C` + A2, purely inseparable ones by `p`-th roots in `C` + A2). In char `p` instead: a coefficient field `k ↪ C` (Teichmüller) and `κ_M ↪ M` by Hensel (Kuhlmann Lemma 4.10) | 500 |
+| F2 | (LFC, Kuhlmann Lemmas 4.9–4.11) lift `B` of E2 to `𝓑 ⊂ M`: a valuation basis (orthonormal: `|Σ cᵦ b| = max |cᵦ|`, from A1) with `𝓑^p ⊂ 𝓑` whose `C`-span is dense in `M`; density from the discreteness of `K₀`/the coefficient field (iterating residue approximations converges) | 700 |
+| F3 | **Artin–Schreier normal form** (char `p`, Kuhlmann Prop. 4.12): `E = M(ϑ)`, `ϑ^p − ϑ = a`; modulo `℘(M)` and elements of value `< 1` (Hensel) write `a = Σ cᵢuᵢ`, `uᵢ ∈ U` (push `c u^{p^i} ↦ c^{1/p} u^{p^{i−1}}`, `C` perfect); then the residue extension has degree `p` (inseparable if some `|cᵢ| > 1`, separable otherwise), so `E/M` is defectless | 700 |
+| F4 | **Kummer normal form** (char 0, `ζ_p ∈ C`, Kuhlmann Prop. 4.13 + Lemmas 2.10–2.12 on `p`-th roots of 1-units: `1 + b` is a `p`-th power if `v(b) > p v(p)/(p−1)`; substitution `X = γY + 1`, `γ^{p−1} = −p`): `E = M(ϑ)`, `ϑ^p = r·u`, `r = 1` or `r̄ ∉ κ^p`, `u = 1 + Σ cᵢuᵢ` in normal form; then `[κ_E : κ_M] = p`, so `E/M` is defectless | 1200 |
+| F5 | **(DP)** every Galois extension of degree `p` of an inertially generated `M` (and, in char `p`, every purely inseparable one: Kuhlmann Prop. 3.1) is defectless | F3/F4 | 100 |
+
+*G. Assembly (Kuhlmann §5, residue-transcendental case).*
+
+| # | Statement | Size |
+|---|---|---|
+| G1 | an inertially generated `M` has no proper immediate finite extension: for `E/M` immediate, `N` its Galois closure, `M₀ = N^T` (D3; unramified, so inertially generated with the same `z`); `d(E/M) = d(E·M₀/M₀)` (C4); `E·M₀ = N^H` with a D4-chain from `H` to `T`, the top step is Galois of degree `p` over `M₀` hence defectless (F5), so `d(E·M₀/M₀) < [E·M₀:M₀] ≤ [E:M]` | 300 |
+| G2 | every finite `M/\hat F` is inertially generated: choose `z ∈ O_M` with `κ_M/k(z̄)` separable (a separating transcendence basis of `κ_M/k`, `k` perfect); `M` is finite over the closure `\widehat{C(z)}` of `C(z)` in `M` (take a dense function field `F_M ⊂ M` via Krasner + polynomial approximation and `z ∈ F_M`; the restriction of the valuation to `C(z)` is the Gauss valuation — W1/W2); `M` is immediate over the unramified closure `M'` of `\widehat{C(z)}` (C2, `Γ_M = Γ_C`), so `M = M'` by G1 | 500 |
+| G3 | **local stability**: every finite `E/\hat F` is defectless — Galois closure `N`, `N^T/\hat F` unramified (D3), `N/N^T` a D4-tower of Galois degree-`p` steps whose bases are finite over `\hat F`, hence inertially generated (G2), hence defectless (F5); multiplicativity (A4) | 200 |
+| G4 | **W4** = B4 + G3 | 50 |
+
+**Estimate.** A ≈ 1.2k (0.6k done), B ≈ 1.7k, C ≈ 1.4k, D ≈ 1.1k, E ≈ 1.3k (E1 overlaps with
+the residue-curve infrastructure W3/W5/W6), F ≈ 3.2k (F4, the mixed-characteristic Kummer normal
+form, is the single largest and most delicate item), G ≈ 1.0k: **≈ 11k lines** in total, i.e.
+of the order of the whole Abhyankar/tame development several times over. The critical path for
+the IUT application is A → C → D → (E, F1, F2, F4) → G → B; F3 and the inseparable parts of B/F5 are
+only needed for `char C = p`.
+
+**Status.** A1–A3 proved (`SemistableReduction/FundamentalInequality`: `valuation_sum_eq_sup`,
+`linearIndependent_of_residue`, `linearIndependent_mul`, `ramificationIdx_mul_inertiaDeg_le`,
+`exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`).
