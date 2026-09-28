@@ -1,5 +1,6 @@
 import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.Pullback
+import TemperedFundamentalGroups.Andre.Refinement
 import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.Realization

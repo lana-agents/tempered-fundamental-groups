@@ -1,0 +1,541 @@
+/-
+Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christian Merten
+-/
+import TemperedFundamentalGroups.Andre.Pullback
+
+/-!
+# Semistable refinements of levels (from W10)
+
+Blueprint §10.2, A3.
+-/
+
+universe u
+
+open CategoryTheory AlgebraicGeometry Pi1.Orbifold Limits
+
+namespace TemperedFundamentalGroups
+
+noncomputable section
+
+
+section Finiteness
+
+variable {R : Type u} [CommRing R] {A : Type u} [Group A] [MulSemiringAction A R]
+
+/-- An element of `H⁰` as an `R`-algebra automorphism. -/
+def FiniteLevel.H0AlgHom (L : FiniteLevel R A) (g : L.H0) : L.B →ₐ[R] L.B :=
+  { ((g : SemilinearAut R A L.B).σ : L.B →+* L.B) with
+    commutes' := fun r => SemilinearAut.σ_algebraMap_of_a_eq_one (FiniteLevel.mem_H0.1 g.2) r }
+
+lemma FiniteLevel.H0AlgHom_apply (L : FiniteLevel R A) (g : L.H0) (y : L.B) :
+    L.H0AlgHom g y = (g : SemilinearAut R A L.B).σ y := rfl
+
+open Polynomial in
+/-- Over a noetherian ring, the kernel `H⁰` of a level is finite: an `R`-automorphism of the finite
+étale algebra `B` is determined by the images of the generators modulo the minimal primes (`B` is
+unramified and its nilradical is nilpotent), and these are roots of monic polynomials. -/
+lemma FiniteLevel.finite_H0 [IsNoetherianRing R] (L : FiniteLevel R A) : Finite L.H0 := by
+  classical
+  haveI := L.etale
+  haveI := L.finite
+  let x : Fin L.n → L.B := fun k => Ideal.Quotient.mk L.I (MvPolynomial.X k)
+  have hint : ∀ k, IsIntegral R (x k) := fun k => Algebra.IsIntegral.isIntegral _
+  choose p hpm hp using hint
+  let P := (⊥ : Ideal L.B).minimalPrimes
+  haveI : Finite P := (Ideal.finite_minimalPrimes_of_isNoetherianRing L.B ⊥).to_subtype
+  haveI (Q : P) : Q.1.IsPrime := Q.2.isPrime
+  let T := ∀ k (Q : P), ((p k).aroots (L.B ⧸ Q.1)).toFinset
+  let F : L.H0 → T := fun g k Q => ⟨Ideal.Quotient.mk Q.1 (L.H0AlgHom g (x k)), by
+    rw [Multiset.mem_toFinset, mem_aroots']
+    refine ⟨((hpm k).map _).ne_zero, ?_⟩
+    rw [← Ideal.Quotient.mkₐ_eq_mk R, aeval_algHom_apply, aeval_algHom_apply,
+      aeval_def, hp k, map_zero, map_zero]⟩
+  refine Finite.of_injective F fun g₁ g₂ hF => ?_
+  have hN : IsNilpotent (nilradical L.B) := IsNoetherianRing.isNilpotent_nilradical L.B
+  have hgen : (Ideal.Quotient.mkₐ R (nilradical L.B)).comp (L.H0AlgHom g₁) =
+      (Ideal.Quotient.mkₐ R (nilradical L.B)).comp (L.H0AlgHom g₂) := by
+    refine Ideal.Quotient.algHom_ext R (MvPolynomial.algHom_ext fun k => ?_)
+    simp only [AlgHom.comp_apply, Ideal.Quotient.mkₐ_eq_mk]
+    rw [Ideal.Quotient.eq, nilradical, ← Ideal.sInf_minimalPrimes, Submodule.mem_sInf]
+    intro Q hQ
+    have := congr_arg Subtype.val (congr_fun (congr_fun hF k) ⟨Q, hQ⟩)
+    exact Ideal.Quotient.eq.1 this
+  have hσ := Algebra.FormallyUnramified.lift_unique _ hN _ _ hgen
+  apply Subtype.ext
+  apply Subtype.ext
+  refine SemilinearAut.ext ?_ ?_
+  · rw [(FiniteLevel.mem_H0.1 g₁.2), (FiniteLevel.mem_H0.1 g₂.2)]
+  · ext y
+    exact congr($hσ y)
+
+/-- If `A` is finite and `R` noetherian, the group `H` of a level is finite. -/
+lemma FiniteLevel.finite_H [IsNoetherianRing R] [Finite A] (L : FiniteLevel R A) : Finite L.H := by
+  haveI := L.finite_H0
+  haveI : Finite (L.H ⧸ L.H0) :=
+    Finite.of_equiv _ (QuotientGroup.quotientKerEquivRange _).symm.toEquiv
+  exact Finite.of_equiv _ (Subgroup.groupEquivQuotientProdSubgroup (s := L.H0)).symm
+
+end Finiteness
+
+section LevelOfAlgebra
+
+variable {R : Type u} [CommRing R] {A : Type u} [Group A] [MulSemiringAction A R]
+
+/-- Transport of semilinear automorphisms along an isomorphism of `R`-algebras. -/
+def SemilinearAut.transport {C C' : Type u} [CommRing C] [Algebra R C] [CommRing C']
+    [Algebra R C'] (e : C' ≃ₐ[R] C) : SemilinearAut R A C →* SemilinearAut R A C' where
+  toFun g := ⟨g.a, (e.toRingEquiv.trans g.σ).trans e.symm.toRingEquiv, fun r => by
+    simp [g.map_algebraMap]⟩
+  map_one' := SemilinearAut.ext rfl (RingEquiv.ext fun y => by simp)
+  map_mul' g h := SemilinearAut.ext rfl (RingEquiv.ext fun y => by simp)
+
+section Transport
+
+variable {C C' : Type u} [CommRing C] [Algebra R C] [CommRing C'] [Algebra R C']
+  (e : C' ≃ₐ[R] C)
+
+@[simp] lemma SemilinearAut.transport_a (g : SemilinearAut R A C) :
+    (SemilinearAut.transport e g).a = g.a := rfl
+
+@[simp] lemma SemilinearAut.transport_σ (g : SemilinearAut R A C) (y : C') :
+    (SemilinearAut.transport e g).σ y = e.symm (g.σ (e y)) := rfl
+
+@[simp] lemma SemilinearAut.transport_σ_symm (g : SemilinearAut R A C) (y : C') :
+    (SemilinearAut.transport e g).σ.symm y = e.symm (g.σ.symm (e y)) := rfl
+
+lemma SemilinearAut.transport_injective :
+    Function.Injective (SemilinearAut.transport (A := A) e) := by
+  intro g h hgh
+  refine SemilinearAut.ext congr(($hgh).a) (RingEquiv.ext fun y => ?_)
+  have := congr(($hgh).σ (e.symm y))
+  simpa using this
+
+end Transport
+
+variable (R) in
+lemma exists_presentation (C : Type u) [CommRing C] [Algebra R C] [Algebra.FiniteType R C] :
+    ∃ (n : ℕ) (I : Ideal (MvPolynomial (Fin n) R)), Nonempty (LevelRing R n I ≃ₐ[R] C) := by
+  obtain ⟨n, f, hf⟩ := Algebra.FiniteType.iff_quotient_mvPolynomial''.1 ‹_›
+  exact ⟨n, RingHom.ker f, ⟨Ideal.quotientKerAlgEquivOfSurjective hf⟩⟩
+
+variable {K : Type u} [Field K] [Algebra K R] (O : ValuationSubring K) (R A) in
+/-- **The data of a level with a model on a finite étale `R`-algebra** `C` which is not coded:
+a group `Γ` acting on `C` by semilinear automorphisms, surjecting onto `A`, a model `c` with a map
+`j : Spec C ⟶ c` over `O` and a compatible action of `Γ` on `c` (trivial on the kernel of the
+action on `C`). -/
+structure LevelData (C : Type u) [CommRing C] [Algebra R C] (Γ : Type u) [Group Γ] where
+  /-- The action of `Γ` on `C`. -/
+  Φ : Γ →* SemilinearAut R A C
+  surjective : ∀ a : A, ∃ γ, (Φ γ).a = a
+  /-- The model. -/
+  c : ModelCode O
+  /-- The map to the model. -/
+  j : Spec (CommRingCat.of C) ⟶ c.scheme
+  j_toSpec : j ≫ c.toSpec =
+    Spec.map (CommRingCat.ofHom ((algebraMap R C).comp ((algebraMap K R).comp O.subtype)))
+  /-- The action on the model. -/
+  ρ : Γ →* Aut c.scheme
+  ρ_toSpec : ∀ γ, (ρ γ).hom ≫ c.toSpec = c.toSpec
+  ρ_ker : ∀ γ, Φ γ = 1 → ρ γ = 1
+  ρ_j : ∀ γ, Spec.map (CommRingCat.ofHom ((Φ γ).σ.symm : C →+* C)) ≫ j = j ≫ (ρ γ).hom
+
+namespace LevelData
+
+variable {K : Type u} [Field K] [Algebra K R] {O : ValuationSubring K}
+  {C : Type u} [CommRing C] [Algebra R C] [Algebra.Etale R C] [Module.Finite R C]
+  {Γ : Type u} [Group Γ] (D : LevelData R A O C Γ)
+
+variable (R C) in
+/-- A chosen presentation of a finite étale `R`-algebra. -/
+def code : EtaleCode R where
+  n := (exists_presentation R C).choose
+  I := (exists_presentation R C).choose_spec.choose
+  etale := Algebra.Etale.of_equiv (exists_presentation R C).choose_spec.choose_spec.some.symm
+  finite := Module.Finite.equiv
+    (exists_presentation R C).choose_spec.choose_spec.some.symm.toLinearEquiv
+
+variable (R C) in
+/-- The presentation of a finite étale `R`-algebra. -/
+def codeEquiv : (code R C).B ≃ₐ[R] C :=
+  (exists_presentation R C).choose_spec.choose_spec.some
+
+/-- The action of `Γ` on the coded algebra. -/
+def Φc : Γ →* SemilinearAut R A (code R C).B :=
+  (SemilinearAut.transport (codeEquiv R C)).comp D.Φ
+
+lemma Φc_eq_one {γ : Γ} : D.Φc γ = 1 ↔ D.Φ γ = 1 := by
+  rw [← (SemilinearAut.transport_injective (A := A) (codeEquiv R C)).eq_iff, map_one]
+  rfl
+
+/-- The level of the data. -/
+def finiteLevel : FiniteLevel R A where
+  toEtaleCode := code R C
+  H := D.Φc.range
+  surjective a := by
+    obtain ⟨γ, hγ⟩ := D.surjective a
+    exact ⟨D.Φc γ, ⟨γ, rfl⟩, hγ⟩
+
+/-- `Γ` surjects onto the group of the level. -/
+def proj : Γ →* D.finiteLevel.H :=
+  D.Φc.rangeRestrict
+
+lemma proj_surjective : Function.Surjective D.proj :=
+  MonoidHom.rangeRestrict_surjective _
+
+lemma coe_proj (γ : Γ) :
+    ((D.proj γ : D.finiteLevel.H) : SemilinearAut R A D.finiteLevel.B) =
+      SemilinearAut.transport (codeEquiv R C) (D.Φ γ) := rfl
+
+lemma mem_H (x : SemilinearAut R A (code R C).B) :
+    x ∈ D.finiteLevel.H ↔ ∃ γ, x = SemilinearAut.transport (codeEquiv R C) (D.Φ γ) :=
+  ⟨fun ⟨γ, h⟩ => ⟨γ, h.symm⟩, fun ⟨γ, h⟩ => ⟨γ, h.symm⟩⟩
+
+lemma proj_a (γ : Γ) :
+    ((D.proj γ : D.finiteLevel.H) : SemilinearAut R A D.finiteLevel.B).a = (D.Φ γ).a := rfl
+
+lemma proj_σ (γ : Γ) (y : (code R C).B) :
+    ((D.proj γ : D.finiteLevel.H) : SemilinearAut R A D.finiteLevel.B).σ y =
+      (codeEquiv R C).symm ((D.Φ γ).σ (codeEquiv R C y)) := rfl
+
+lemma proj_σ_symm (γ : Γ) (y : (code R C).B) :
+    ((D.proj γ : D.finiteLevel.H) : SemilinearAut R A D.finiteLevel.B).σ.symm y =
+      (codeEquiv R C).symm ((D.Φ γ).σ.symm (codeEquiv R C y)) := rfl
+
+/-- A homomorphism out of `Γ` which is trivial on the kernel of the action factors through the
+group of the level. -/
+def lift {N : Type u} [Group N] (F : Γ →* N) (hF : ∀ γ, D.Φ γ = 1 → F γ = 1) :
+    D.finiteLevel.H →* N :=
+  (QuotientGroup.lift D.Φc.ker F fun γ hγ => hF γ (D.Φc_eq_one.1 hγ)).comp
+    (QuotientGroup.quotientKerEquivRange D.Φc).symm.toMonoidHom
+
+lemma lift_proj {N : Type u} [Group N] (F : Γ →* N) (hF : ∀ γ, D.Φ γ = 1 → F γ = 1) (γ : Γ) :
+    D.lift F hF (D.proj γ) = F γ := by
+  have : (QuotientGroup.quotientKerEquivRange D.Φc).symm (D.proj γ) =
+      (γ : Γ ⧸ D.Φc.ker) := by
+    rw [MulEquiv.symm_apply_eq]
+    rfl
+  change QuotientGroup.lift _ F (fun γ hγ => hF γ (D.Φc_eq_one.1 hγ))
+    ((QuotientGroup.quotientKerEquivRange D.Φc).symm (D.proj γ)) = F γ
+  rw [this]
+  rfl
+
+/-- **The level with a model** of the data. -/
+def level : Level O R A where
+  L := D.finiteLevel
+  c := D.c
+  j := Spec.map (CommRingCat.ofHom ((codeEquiv R C).symm : C →+* (code R C).B)) ≫ D.j
+  j_toSpec := by
+    rw [Category.assoc, D.j_toSpec, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    congr 2
+    ext o
+    exact (codeEquiv R C).symm.commutes _
+  ρ := D.lift D.ρ D.ρ_ker
+  ρ_toSpec x := by
+    obtain ⟨γ, rfl⟩ := D.proj_surjective x
+    rw [lift_proj]
+    exact D.ρ_toSpec _
+  ρ_j x := by
+    obtain ⟨γ, rfl⟩ := D.proj_surjective x
+    rw [lift_proj, Category.assoc, ← D.ρ_j γ, ← Category.assoc, ← Category.assoc,
+      ← Spec.map_comp, ← Spec.map_comp, ← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+    congr 3
+    ext y
+    change ((D.proj γ : D.finiteLevel.H) : SemilinearAut R A D.finiteLevel.B).σ.symm _ = _
+    rw [proj_σ_symm]
+    exact congrArg _ (congrArg _ ((codeEquiv R C).apply_symm_apply y))
+
+lemma level_L : D.level.L = D.finiteLevel := rfl
+
+lemma level_c : D.level.c = D.c := rfl
+
+lemma level_j : D.level.j =
+    Spec.map (CommRingCat.ofHom ((codeEquiv R C).symm : C →+* (code R C).B)) ≫ D.j := rfl
+
+lemma level_ρ (γ : Γ) : D.level.ρ (D.proj γ) = D.ρ γ :=
+  D.lift_proj _ D.ρ_ker γ
+
+end LevelData
+
+end LevelOfAlgebra
+
+section Tensor
+
+variable {K : Type u} [Field K] {R : Type u} [CommRing R] [Algebra K R] {A : Type u} [Group A]
+  [MulSemiringAction A R] [SMulCommClass A K R]
+
+omit [SMulCommClass A K R] in
+lemma smul_algebraMap_of_smulCommClass [SMulCommClass A K R] (a : A) (k : K) :
+    a • algebraMap K R k = algebraMap K R k := by
+  rw [Algebra.algebraMap_eq_smul_one, smul_comm, smul_one]
+
+variable {B : Type u} [CommRing B] [Algebra R B] [Algebra K B] [IsScalarTower K R B]
+
+lemma SemilinearAut.σ_algebraMap_K (g : SemilinearAut R A B) (k : K) :
+    g.σ (algebraMap K B k) = algebraMap K B k := by
+  rw [IsScalarTower.algebraMap_apply K R B, g.map_algebraMap,
+    smul_algebraMap_of_smulCommClass]
+
+variable (K) in
+/-- A semilinear automorphism is `K`-linear (`A` acts `K`-linearly). -/
+def SemilinearAut.toAlgEquivK (g : SemilinearAut R A B) : B ≃ₐ[K] B :=
+  { g.σ with commutes' := SemilinearAut.σ_algebraMap_K g }
+
+@[simp] lemma SemilinearAut.toAlgEquivK_apply (g : SemilinearAut R A B) (b : B) :
+    SemilinearAut.toAlgEquivK K g b = g.σ b := rfl
+
+@[simp] lemma SemilinearAut.toAlgEquivK_symm_apply (g : SemilinearAut R A B) (b : B) :
+    (SemilinearAut.toAlgEquivK K g).symm b = g.σ.symm b := rfl
+
+/-- The action of a group on `B` through semilinear automorphisms. -/
+@[reducible] def actionOf {G : Type u} [Group G] (ν : G →* SemilinearAut R A B) : MulSemiringAction G B where
+  smul g b := (ν g).σ b
+  one_smul b := by
+    change (ν 1).σ b = b
+    rw [map_one]; rfl
+  mul_smul g h b := by
+    change (ν (g * h)).σ b = (ν g).σ ((ν h).σ b)
+    rw [map_mul]; rfl
+  smul_zero g := map_zero (ν g).σ
+  smul_add g := map_add (ν g).σ
+  smul_one g := map_one (ν g).σ
+  smul_mul g := map_mul (ν g).σ
+
+lemma smulCommClass_actionOf {G : Type u} [Group G] (ν : G →* SemilinearAut R A B) :
+    letI := actionOf ν
+    SMulCommClass G K B := by
+  letI := actionOf ν
+  refine ⟨fun g k b => ?_⟩
+  change (ν g).σ (k • b) = k • (ν g).σ b
+  rw [Algebra.smul_def, Algebra.smul_def, map_mul, SemilinearAut.σ_algebraMap_K]
+
+variable (L : Type u) [CommRing L] [Algebra K L]
+
+/-- `(g, τ) ↦ σ_g ⊗ τ` on `B ⊗_K L`. -/
+def tensorAut :
+    SemilinearAut R A B × (L ≃ₐ[K] L) →* SemilinearAut R A (TensorProduct K B L) where
+  toFun x := ⟨x.1.a, (Algebra.TensorProduct.congr (SemilinearAut.toAlgEquivK K x.1) x.2).toRingEquiv,
+    fun r => by
+      rw [Algebra.TensorProduct.algebraMap_apply, Algebra.TensorProduct.algebraMap_apply]
+      simp [x.1.map_algebraMap]⟩
+  map_one' := by
+    refine SemilinearAut.ext rfl (RingEquiv.ext fun y => ?_)
+    induction y using TensorProduct.induction_on with
+    | zero => simp
+    | tmul b k => simp
+    | add y z hy hz => simp_all
+  map_mul' x y := by
+    refine SemilinearAut.ext rfl (RingEquiv.ext fun z => ?_)
+    induction z using TensorProduct.induction_on with
+    | zero => simp
+    | tmul b k => simp
+    | add y z hy hz => simp_all
+
+@[simp] lemma tensorAut_a (x : SemilinearAut R A B × (L ≃ₐ[K] L)) :
+    (tensorAut L x).a = x.1.a := rfl
+
+@[simp] lemma tensorAut_σ_tmul (x : SemilinearAut R A B × (L ≃ₐ[K] L)) (b : B) (k : L) :
+    (tensorAut L x).σ (b ⊗ₜ k) = x.1.σ b ⊗ₜ x.2 k := rfl
+
+@[simp] lemma tensorAut_σ_symm_tmul (x : SemilinearAut R A B × (L ≃ₐ[K] L)) (b : B) (k : L) :
+    (tensorAut L x).σ.symm (b ⊗ₜ k) = x.1.σ.symm b ⊗ₜ x.2.symm k := rfl
+
+end Tensor
+
+
+
+section Faithful
+
+variable {K : Type u} [Field K] {R : Type u} [CommRing R] [Algebra K R] {A : Type u} [Group A]
+  [MulSemiringAction A R] [SMulCommClass A K R]
+  {B : Type u} [CommRing B] [Algebra R B] [Algebra K B] [IsScalarTower K R B]
+  {L : Type u} [CommRing L] [Algebra K L]
+
+lemma tensorAut_eq_one_fst [Nontrivial L] {x : SemilinearAut R A B × (L ≃ₐ[K] L)}
+    (h : tensorAut L x = 1) : x.1 = 1 := by
+  refine SemilinearAut.ext congr(($h).a) (RingEquiv.ext fun b => ?_)
+  have := congr(($h).σ (b ⊗ₜ (1 : L)))
+  simp only [tensorAut_σ_tmul, map_one] at this
+  exact Algebra.TensorProduct.includeLeft_injective (S := K) (algebraMap K L).injective this
+
+lemma tensorAut_eq_one_snd [Nontrivial B] {x : SemilinearAut R A B × (L ≃ₐ[K] L)}
+    (h : tensorAut L x = 1) : x.2 = 1 := by
+  refine AlgEquiv.ext fun k => ?_
+  have := congr(($h).σ ((1 : B) ⊗ₜ k))
+  simp only [tensorAut_σ_tmul, map_one] at this
+  exact Algebra.TensorProduct.includeRight_injective (algebraMap K B).injective this
+
+lemma tensorAut_eq_one_of_subsingleton [Subsingleton B] (x : SemilinearAut R A B × (L ≃ₐ[K] L))
+    (hx : x.1.a = 1) : tensorAut L x = 1 := by
+  haveI : Subsingleton (TensorProduct K B L) := by
+    refine ⟨fun y z => ?_⟩
+    rw [← mul_one y, ← mul_one z, Subsingleton.elim (1 : TensorProduct K B L) 0, mul_zero,
+      mul_zero]
+  exact SemilinearAut.ext hx (RingEquiv.ext fun _ => Subsingleton.elim _ _)
+
+end Faithful
+
+section TensorHom
+
+variable {K : Type u} [Field K] (M N : Type u) [CommRing M] [Algebra K M] [CommRing N]
+  [Algebra K N]
+
+/-- `(σ, τ) ↦ σ ⊗ τ`. -/
+def tensorAlgEquivHom : (M ≃ₐ[K] M) × (N ≃ₐ[K] N) →* (TensorProduct K M N ≃ₐ[K] TensorProduct K M N)
+    where
+  toFun x := Algebra.TensorProduct.congr x.1 x.2
+  map_one' := by
+    refine AlgEquiv.ext fun y => ?_
+    induction y using TensorProduct.induction_on with
+    | zero => simp
+    | tmul b k => simp
+    | add y z hy hz => simp_all
+  map_mul' x y := by
+    refine AlgEquiv.ext fun z => ?_
+    induction z using TensorProduct.induction_on with
+    | zero => simp
+    | tmul b k => simp
+    | add y z hy hz => simp_all
+
+@[simp] lemma tensorAlgEquivHom_tmul (x : (M ≃ₐ[K] M) × (N ≃ₐ[K] N)) (m : M) (n : N) :
+    tensorAlgEquivHom M N x (m ⊗ₜ n) = x.1 m ⊗ₜ x.2 n := rfl
+
+@[simp] lemma tensorAlgEquivHom_symm_tmul (x : (M ≃ₐ[K] M) × (N ≃ₐ[K] N)) (m : M) (n : N) :
+    (tensorAlgEquivHom M N x).symm (m ⊗ₜ n) = x.1.symm m ⊗ₜ x.2.symm n := rfl
+
+variable {M N} (Ω : Type u) [Field Ω] [Algebra K Ω]
+
+/-- Transitive actions on the geometric points of two `K`-algebras give a transitive action on
+the geometric points of their tensor product. -/
+lemma transitive_tensor {Δ₁ Δ₂ : Type u} [Group Δ₁] [Group Δ₂] (θ₁ : Δ₁ →* (M ≃ₐ[K] M))
+    (θ₂ : Δ₂ →* (N ≃ₐ[K] N))
+    (h₁ : ∀ s₁ s₂ : M →ₐ[K] Ω, ∃ γ, s₂ = s₁.comp (θ₁ γ).toAlgHom)
+    (h₂ : ∀ s₁ s₂ : N →ₐ[K] Ω, ∃ γ, s₂ = s₁.comp (θ₂ γ).toAlgHom)
+    (s₁ s₂ : TensorProduct K M N →ₐ[K] Ω) :
+    ∃ γ, s₂ = s₁.comp ((tensorAlgEquivHom M N).comp (θ₁.prodMap θ₂) γ).toAlgHom := by
+  obtain ⟨γ₁, hγ₁⟩ := h₁ (s₁.comp Algebra.TensorProduct.includeLeft)
+    (s₂.comp Algebra.TensorProduct.includeLeft)
+  obtain ⟨γ₂, hγ₂⟩ := h₂ (s₁.comp Algebra.TensorProduct.includeRight)
+    (s₂.comp Algebra.TensorProduct.includeRight)
+  refine ⟨(γ₁, γ₂), Algebra.TensorProduct.ext' fun m n => ?_⟩
+  have e₁ := congr($hγ₁ m)
+  have e₂ := congr($hγ₂ n)
+  simp only [AlgHom.comp_apply, Algebra.TensorProduct.includeLeft_apply,
+    Algebra.TensorProduct.includeRight_apply] at e₁ e₂
+  simp only [AlgHom.comp_apply, MonoidHom.coe_comp, Function.comp_apply,
+    MonoidHom.coe_prodMap, Prod.map]
+  rw [← mul_one m, ← one_mul n, ← Algebra.TensorProduct.tmul_mul_tmul, map_mul, map_mul]
+  simp [e₁, e₂, ← map_mul]
+
+end TensorHom
+
+/-- Two embeddings of a normal extension into a field differ by an automorphism. -/
+lemma exists_algEquiv_comp_eq {K K' Ω : Type u} [Field K] [Field K'] [Field Ω] [Algebra K K']
+    [Algebra K Ω] [Normal K K'] (s₁ s₂ : K' →ₐ[K] Ω) :
+    ∃ τ : K' ≃ₐ[K] K', s₂ = s₁.comp τ.toAlgHom := by
+  letI : Algebra K' Ω := s₁.toRingHom.toAlgebra
+  haveI : IsScalarTower K K' Ω := IsScalarTower.of_algebraMap_eq fun x => (s₁.commutes x).symm
+  refine ⟨Normal.algHomEquivAut K Ω K' s₂,
+    ((Normal.algHomEquivAut K Ω K').symm_apply_apply s₂).symm.trans ?_⟩
+  ext x
+  rfl
+
+
+section BaseChange
+
+variable {K : Type u} [Field K] {O : ValuationSubring K}
+  {R : Type u} [CommRing R] [Algebra K R] {A : Type u} [Group A] [MulSemiringAction A R]
+  [SMulCommClass A K R]
+  (Ω : Type u) [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+
+/-- **Base changes**: `ℓ : Lv' ⟶ Lv` is (up to the model) the base change of `Lv` along a finite
+étale `K`-algebra `L` with a group `Γ` of automorphisms acting transitively on the geometric points
+`Hom_K(L, Ω)` (a nonempty set): `B' ≅ B ⊗_K L`, with `ℓ.φ.f` the inclusion `b ↦ b ⊗ 1`, `H'` the
+image of `H × Γ` acting through `σ_h ⊗ θ γ`, `ℓ.φ.r` induced by the projection to `H`, and an
+equivariant morphism of models. -/
+def LevelHom.IsBaseChange {Lv' Lv : Level O R A} (ℓ : LevelHom O R A Lv' Lv) : Prop :=
+  ∃ (L : Type u) (_ : CommRing L) (_ : Algebra K L) (_ : Algebra.Etale K L)
+    (_ : Module.Finite K L) (Γ : Type u) (_ : Group Γ) (θ : Γ →* (L ≃ₐ[K] L))
+    (e : Lv'.L.B ≃ₐ[R] TensorProduct K Lv.L.B L),
+    Nonempty (L →ₐ[K] Ω) ∧ (∀ s₁ s₂ : L →ₐ[K] Ω, ∃ γ, s₂ = s₁.comp (θ γ).toAlgHom) ∧
+    ℓ.φ.f = e.symm.toAlgHom.comp Algebra.TensorProduct.includeLeft ∧
+    (∀ x, x ∈ Lv'.L.H ↔ ∃ (h : Lv.L.H) (γ : Γ),
+      x = SemilinearAut.transport e (tensorAut L ((h : SemilinearAut R A Lv.L.B), θ γ))) ∧
+    (∀ (h : Lv.L.H) (γ : Γ) (hx : SemilinearAut.transport e
+        (tensorAut L ((h : SemilinearAut R A Lv.L.B), θ γ)) ∈ Lv'.L.H),
+      ℓ.φ.r ⟨_, hx⟩ = h) ∧
+    ℓ.IsEquivariant
+
+variable {Ω}
+
+/-- **Base changes are refinements.** -/
+lemma LevelHom.IsBaseChange.isRefinement {Lv' Lv : Level O R A} {ℓ : LevelHom O R A Lv' Lv}
+    (hℓ : ℓ.IsBaseChange Ω) : ℓ.IsRefinement Ω := by
+  obtain ⟨L, _, _, _, _, Γ, _, θ, e, ⟨s₀⟩, htr, hf, hH, hr, heq⟩ := hℓ
+  refine ⟨fun h => ?_, fun t₁ t₂ ht => ?_, fun t => ?_, heq⟩
+  · have hx := (hH _).2 ⟨h, 1, rfl⟩
+    exact ⟨⟨⟨_, hx⟩, FiniteLevel.mem_H0.2 (FiniteLevel.mem_H0.1 h.2)⟩, hr h 1 hx⟩
+  · let u₁ := t₁.comp e.symm.toAlgHom
+    let u₂ := t₂.comp e.symm.toAlgHom
+    obtain ⟨γ, hγ⟩ := htr ((u₁.restrictScalars K).comp Algebra.TensorProduct.includeRight)
+      ((u₂.restrictScalars K).comp Algebra.TensorProduct.includeRight)
+    have hx := (hH _).2 ⟨1, γ⁻¹, rfl⟩
+    refine ⟨⟨⟨_, hx⟩, FiniteLevel.mem_H0.2 rfl⟩, hr 1 γ⁻¹ hx, ?_⟩
+    have hb : ∀ b, u₁ (b ⊗ₜ 1) = u₂ (b ⊗ₜ 1) := fun b => by
+      have := congr($ht b)
+      simpa [hf, u₁, u₂] using this
+    have key : ∀ z, u₁ ((tensorAut L (((1 : Lv.L.H) : SemilinearAut R A Lv.L.B),
+        θ γ⁻¹)).σ.symm z) = u₂ z := by
+      intro z
+      induction z using TensorProduct.induction_on with
+      | zero => simp
+      | add y z hy hz => rw [map_add, map_add, map_add, hy, hz]
+      | tmul b l =>
+        have hsplit : ∀ (b : Lv.L.B) (l : L), (b ⊗ₜ[K] l : TensorProduct K Lv.L.B L) =
+            (b ⊗ₜ[K] 1) * (1 ⊗ₜ[K] l) := fun b l => by simp
+        rw [tensorAut_σ_symm_tmul, hsplit, hsplit b l, map_mul, map_mul, hb]
+        congr 1
+        have := congr($hγ l)
+        simp only [AlgHom.comp_apply, AlgHom.restrictScalars_apply,
+          Algebra.TensorProduct.includeRight_apply] at this
+        rw [this, map_inv]
+        rfl
+    refine AlgHom.ext fun y => ?_
+    have := key (e y)
+    simp only [u₁, u₂, AlgHom.comp_apply, AlgEquiv.coe_toAlgHom, AlgEquiv.symm_apply_apply] at this
+    rw [← this]
+    rfl
+  · refine ⟨(Algebra.TensorProduct.lift t (s₀.restrictScalars K) fun _ _ => .all _ _).comp
+      e.toAlgHom, ?_⟩
+    rw [hf]
+    ext b
+    simp
+
+lemma transport_rid_tensorAut (Lv : Level O R A) (h : SemilinearAut R A Lv.L.B)
+    (τ : K ≃ₐ[K] K) :
+    SemilinearAut.transport (Algebra.TensorProduct.rid K R Lv.L.B).symm (tensorAut K (h, τ)) = h := by
+  refine SemilinearAut.ext rfl (RingEquiv.ext fun y => ?_)
+  rw [SemilinearAut.transport_σ]
+  simp [Subsingleton.elim τ 1]
+
+omit [Algebra R Ω] [IsScalarTower K R Ω] in
+variable (Ω) in
+/-- **Identities are base changes** (along `L = K`). -/
+lemma LevelHom.isBaseChange_id (Lv : Level O R A) : (LevelHom.id Lv).IsBaseChange Ω := by
+  refine ⟨K, _, _, inferInstance, inferInstance, PUnit.{u + 1}, inferInstance, 1,
+    (Algebra.TensorProduct.rid K R Lv.L.B).symm, ⟨Algebra.ofId K Ω⟩,
+    fun s₁ s₂ => ⟨1, Subsingleton.elim _ _⟩, ?_, fun x => ?_, fun h γ hx => ?_, ?_⟩
+  · ext b
+    simp [LevelHom.id]
+  · simp only [transport_rid_tensorAut]
+    exact ⟨fun hx => ⟨⟨x, hx⟩, 1, rfl⟩, fun ⟨h, _, hh⟩ => hh ▸ h.2⟩
+  · exact Subtype.ext (transport_rid_tensorAut Lv _ _)
+  · intro h
+    simp [LevelHom.id]
+
+end BaseChange
+
+end
+
+end TemperedFundamentalGroups
