@@ -9,6 +9,7 @@ import TemperedFundamentalGroups.Orbicurve.Orbifold
 import TemperedFundamentalGroups.Orbicurve.Ring
 import TemperedFundamentalGroups.Orbicurve.Stable
 import TemperedFundamentalGroups.Setup.Orbifold
+import TemperedFundamentalGroups.Setup.Schmidt
 import TemperedFundamentalGroups.Setup.Valuation
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
