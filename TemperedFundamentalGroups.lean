@@ -2,6 +2,7 @@ import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.Topology
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
+import TemperedFundamentalGroups.Orbicurve.Exact
 import TemperedFundamentalGroups.Orbicurve.GenericPoint
 import TemperedFundamentalGroups.Orbicurve.GeomStable
 import TemperedFundamentalGroups.Orbicurve.Model
