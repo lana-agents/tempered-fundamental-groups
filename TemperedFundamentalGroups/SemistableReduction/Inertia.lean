@@ -161,6 +161,101 @@ theorem normal_residueField : Normal κ_u κ_w := by
 
 end Action
 
+section PGroup
+
+variable (hσ : ∀ (σ : N ≃ₐ[M] N) (x : N), w (σ x) = w x) [FiniteDimensional M N]
+
+/-- **D2, tame inertia is trivial.** If the value group of `M` is divisible, an element of the
+inertia group cannot have prime order `ℓ` invertible in `κ_u` if `M` contains a primitive `ℓ`-th
+root of unity. -/
+theorem notMem_inertia_of_orderOf_eq_prime
+    (hdiv : ∀ (c : M) (n : ℕ), 0 < n → ∃ d : M, u d ^ n = u c)
+    {ℓ : ℕ} (hℓ : ℓ.Prime) (hℓκ : (ℓ : κ_u) ≠ 0) {ζ : M} (hζ : IsPrimitiveRoot ζ ℓ)
+    (σ : N ≃ₐ[M] N) (hσℓ : orderOf σ = ℓ) : σ ∉ inertia u hσ := by
+  intro hT
+  -- an eigenvector `σ v = ζ v`
+  have hroot : IsRoot (minpoly M σ.toLinearMap) ζ := by
+    rw [minpoly_algEquiv_toLinearMap σ (isOfFinOrder_of_finite σ), hσℓ]
+    simp [hζ.pow_eq_one]
+  obtain ⟨v, hv⟩ := (Module.End.hasEigenvalue_of_isRoot hroot).exists_hasEigenvector
+  have hv0 : v ≠ 0 := hv.2
+  have hσv : σ v = algebraMap M N ζ * v := by
+    have := hv.apply_eq_smul
+    rw [AlgEquiv.toLinearMap_apply, Algebra.smul_def] at this
+    exact this
+  -- normalize `v` to a unit `t`
+  obtain ⟨n, hn, c, hc0, hc⟩ :=
+    exists_pow_valuation_eq w (Algebra.IsIntegral.isIntegral (R := M) v) hv0
+  obtain ⟨d, hd⟩ := hdiv c n hn
+  have hd0 : d ≠ 0 := by
+    rintro rfl
+    rw [Valuation.map_zero, zero_pow hn.ne', eq_comm, Valuation.zero_iff] at hd
+    exact hc0 hd
+  have hwd : w v = w (algebraMap M N d) := by
+    have h1 : w (algebraMap M N (d ^ n)) = w (algebraMap M N c) :=
+      (HasExtension.val_map_eq_iff (vR := u) (vA := w) _ _).2 (by rw [map_pow, hd])
+    rw [map_pow, map_pow] at h1
+    exact (pow_left_inj hn.ne').1 (hc.trans h1.symm)
+  have hd' : algebraMap M N d ≠ 0 := (_root_.map_ne_zero _).2 hd0
+  set t := v / algebraMap M N d
+  have ht : w t = 1 := by
+    rw [map_div₀, hwd, div_self ((Valuation.ne_zero_iff w).2 hd')]
+  have hσt : σ t - t = algebraMap M N (ζ - 1) * t := by
+    rw [map_div₀, AlgEquiv.commutes, hσv, _root_.map_sub, map_one]
+    ring
+  -- `σ ∈ T` forces `ζ̄ = 1`
+  have hζ1 : u (ζ - 1) < 1 := by
+    have := (mem_inertia_iff hσ σ).1 hT t ht.le
+    rw [hσt, map_mul, ht, mul_one] at this
+    exact (HasExtension.val_map_lt_one_iff u w _).1 this
+  have huζ : u ζ = 1 := by
+    have : u ζ ^ ℓ = 1 := by rw [← map_pow, hζ.pow_eq_one, map_one]
+    exact (pow_left_inj hℓ.ne_zero).1 (by rw [this, one_pow])
+  set ζ' : O_u := ⟨ζ, le_of_eq huζ⟩
+  have hres : residue O_u ζ' = 1 := by
+    rw [← sub_eq_zero, ← map_one (residue O_u), ← _root_.map_sub, residue_eq_zero_iff,
+      Valuation.mem_maximalIdeal_iff]
+    exact hζ1
+  have hsum : ∑ i ∈ Finset.range ℓ, ζ' ^ i = 0 := by
+    apply Subtype.ext
+    push_cast
+    exact hζ.geom_sum_eq_zero hℓ.one_lt
+  apply hℓκ
+  have := congrArg (residue O_u) hsum
+  simpa [map_sum, hres] using this
+
+/-- **D2.** If the value group of `M` is divisible and `M` contains a primitive `ℓ`-th root of
+unity for every prime `ℓ` invertible in `κ_u`, then the inertia group is a `p`-group,
+`p = char κ_u` (the trivial group if `p = 0`). -/
+theorem isPGroup_inertia (hdiv : ∀ (c : M) (n : ℕ), 0 < n → ∃ d : M, u d ^ n = u c)
+    (hμ : ∀ ℓ : ℕ, ℓ.Prime → (ℓ : κ_u) ≠ 0 → ∃ ζ : M, IsPrimitiveRoot ζ ℓ) :
+    IsPGroup (ringChar κ_u) (inertia u hσ) := by
+  intro g
+  set p := ringChar κ_u
+  have hn0 : orderOf g ≠ 0 := (isOfFinOrder_of_finite g).orderOf_pos.ne'
+  have hprime : ∀ ℓ : ℕ, ℓ.Prime → ℓ ∣ orderOf g → ℓ = p := by
+    intro ℓ hℓ hdvd
+    by_cases hℓκ : (ℓ : κ_u) = 0
+    · have hpℓ : p ∣ ℓ := (ringChar.spec κ_u ℓ).1 hℓκ
+      rcases hℓ.eq_one_or_self_of_dvd p hpℓ with h | h
+      · exact absurd h CharP.ringChar_ne_one
+      · exact h.symm
+    · exfalso
+      obtain ⟨ζ, hζ⟩ := hμ ℓ hℓ hℓκ
+      have hord : orderOf (g ^ (orderOf g / ℓ)) = ℓ := orderOf_pow_orderOf_div hn0 hdvd
+      refine notMem_inertia_of_orderOf_eq_prime hσ hdiv hℓ hℓκ hζ
+        ((g ^ (orderOf g / ℓ) : inertia u hσ) : N ≃ₐ[M] N) ?_ (g ^ (orderOf g / ℓ)).2
+      rw [Subgroup.orderOf_coe, hord]
+  by_cases h1 : orderOf g = 1
+  · exact ⟨0, by rw [pow_zero, pow_one, ← orderOf_eq_one_iff, h1]⟩
+  · obtain ⟨ℓ, hℓ, hdvd⟩ := Nat.exists_prime_and_dvd h1
+    have hp : p.Prime := hprime ℓ hℓ hdvd ▸ hℓ
+    refine ⟨(orderOf g).primeFactorsList.length, ?_⟩
+    rw [← Nat.eq_prime_pow_of_unique_prime_dvd hn0 fun hd hdvd ↦ hprime _ hd hdvd,
+      pow_orderOf_eq_one]
+
+end PGroup
+
 end FundamentalInequality
 
 end SemistableReduction
