@@ -3,6 +3,7 @@ import TemperedFundamentalGroups.FibreFunctor.Topology
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.GenericPoint
+import TemperedFundamentalGroups.Orbicurve.GeomStable
 import TemperedFundamentalGroups.Orbicurve.Model
 import TemperedFundamentalGroups.Orbicurve.Nullstellensatz
 import TemperedFundamentalGroups.Orbicurve.Orbifold
