@@ -3,7 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.SemistableReduction.Unramified
+import TemperedFundamentalGroups.SemistableReduction.UnramifiedBaseChange
 
 /-!
 # The inertia group of a Galois extension of valued fields
@@ -255,6 +255,80 @@ theorem isPGroup_inertia (hdiv : ∀ (c : M) (n : ℕ), 0 < n → ∃ d : M, u d
       pow_orderOf_eq_one]
 
 end PGroup
+
+/-- For a normal extension, the separable degree is the number of automorphisms. -/
+lemma finSepDegree_eq_card_algEquiv (F E : Type*) [Field F] [Field E] [Algebra F E]
+    [Normal F E] : Field.finSepDegree F E = Nat.card (E ≃ₐ[F] E) :=
+  Nat.card_congr (Normal.algHomEquivAut F (AlgebraicClosure E) E)
+
+section FixedField
+
+variable (hσ : ∀ (σ : N ≃ₐ[M] N) (x : N), w (σ x) = w x) [FiniteDimensional M N] [IsGalois M N]
+
+local notation "KT" => IntermediateField.fixedField (inertia u hσ)
+local notation "wT" => w.comap (algebraMap (IntermediateField.fixedField (inertia u hσ)) N)
+
+/-- **D3.** The residue field of `N` is purely inseparable over the residue field of the fixed
+field `N^T` of the inertia group. -/
+theorem isPurelyInseparable_residueField_fixedField :
+    IsPurelyInseparable (ResidueField (wT).valuationSubring) κ_w := by
+  have hσK : ∀ (τ : N ≃ₐ[KT] N) (x : N), w (τ x) = w x :=
+    fun τ x ↦ hσ (τ.restrictScalars M) x
+  have : Module.Finite (ResidueField (wT).valuationSubring) κ_w := finite_residueField
+  have hnorm := normal_residueField (u := wT) hσK
+  have htriv : ∀ f : κ_w ≃ₐ[ResidueField (wT).valuationSubring] κ_w, f = 1 := by
+    intro f
+    obtain ⟨τ, rfl⟩ := residueHom_surjective (u := wT) hσK f
+    have hτ : τ.restrictScalars M ∈ inertia u hσ := by
+      have hmem : τ.restrictScalars M ∈ (KT).fixingSubgroup := fun x ↦ τ.commutes x
+      rwa [IntermediateField.fixingSubgroup_fixedField] at hmem
+    refine AlgEquiv.ext fun x ↦ ?_
+    obtain ⟨x, rfl⟩ := residue_surjective x
+    have h := DFunLike.congr_fun ((MonoidHom.mem_ker).1 hτ) (residue O_w x)
+    rw [residueHom_residue] at h
+    rw [residueHom_residue, AlgEquiv.one_apply]
+    exact h
+  apply isPurelyInseparable_of_finSepDegree_eq_one
+  rw [finSepDegree_eq_card_algEquiv, Nat.card_eq_one_iff_unique]
+  exact ⟨⟨fun f g ↦ (htriv f).trans (htriv g).symm⟩, ⟨1⟩⟩
+
+/-- **D3.** The fixed field `K = N^T` of the inertia group is unramified over `M`:
+`e(K | M) = 1`, `f(K | M) = [K : M]` and `κ_K / κ_u` is separable. -/
+theorem unramified_fixedField_inertia :
+    ramificationIdx M (wT) = 1 ∧ inertiaDeg u (wT) = Module.finrank M KT ∧
+      Algebra.IsSeparable κ_u (ResidueField (wT).valuationSubring) := by
+  have : Module.Finite κ_u (ResidueField (wT).valuationSubring) := finite_residueField
+  have : Module.Finite κ_u κ_w := finite_residueField
+  have hnorm := normal_residueField (u := u) hσ
+  have hpi := isPurelyInseparable_residueField_fixedField (u := u) hσ
+  have : IsScalarTower κ_u (ResidueField (wT).valuationSubring) κ_w :=
+    isScalarTower_residueField u (wT) w
+  -- `|Aut(κ_w / κ_u)| = [G : T] = [K : M]`
+  have hcard : Nat.card (κ_w ≃ₐ[κ_u] κ_w) = Module.finrank M KT := by
+    have h1 := Subgroup.card_eq_card_quotient_mul_card_subgroup (inertia u hσ)
+    have h2 : Nat.card ((N ≃ₐ[M] N) ⧸ inertia u hσ) = Nat.card (κ_w ≃ₐ[κ_u] κ_w) :=
+      Nat.card_congr (QuotientGroup.quotientKerEquivOfSurjective _
+        (residueHom_surjective (u := u) hσ)).toEquiv
+    rw [h2, IsGalois.card_aut_eq_finrank,
+      ← IntermediateField.finrank_fixedField_eq_card, ← Module.finrank_mul_finrank M KT N] at h1
+    exact (Nat.eq_of_mul_eq_mul_right Module.finrank_pos h1).symm
+  have hsep : Field.finSepDegree κ_u (ResidueField (wT).valuationSubring) =
+      Module.finrank M KT := by
+    rw [← hcard, ← finSepDegree_eq_card_algEquiv,
+      ← Field.finSepDegree_mul_finSepDegree_of_isAlgebraic κ_u
+        (ResidueField (wT).valuationSubring) κ_w,
+      IsPurelyInseparable.finSepDegree_eq_one (ResidueField (wT).valuationSubring) κ_w, mul_one]
+  have hle : Field.finSepDegree κ_u (ResidueField (wT).valuationSubring) ≤ inertiaDeg u (wT) :=
+    Field.finSepDegree_le_finrank _ _
+  have hef := ramificationIdx_mul_inertiaDeg_le (K := M) (v := u) (w := wT)
+  have he := Nat.pos_of_ne_zero (ramificationIdx_ne_zero (K := M) (wT))
+  have hf : inertiaDeg u (wT) = Module.finrank M KT :=
+    le_antisymm ((Nat.le_mul_of_pos_left _ he).trans hef) (hsep ▸ hle)
+  refine ⟨ramificationIdx_eq_one_of_inertiaDeg_eq hf, hf, ?_⟩
+  rw [← Field.finSepDegree_eq_finrank_iff, hsep, ← hf]
+  rfl
+
+end FixedField
 
 end FundamentalInequality
 
