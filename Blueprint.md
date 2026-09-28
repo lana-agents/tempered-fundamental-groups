@@ -330,3 +330,39 @@ Liu–Lorenzini).
   relative normalization); (iii) defectlessness of `C_p`-type fields and residue curves of
   divisorial valuations (Temkin route); (iv) the genus formula and finiteness of type-2 points of
   positive genus; (v) (SSR).
+
+### 9.3 The wild case: choice of route and lemma-level blueprint
+
+**Choice.** Deligne–Mumford needs Jacobians, Néron models, Raynaud's `Pic⁰` theorem and
+`ℓ`-adic cohomology of abelian varieties: several independent libraries, none started. The
+"cover-specific" routes (Lehr–Matignon, Obus–Wewers, Raynaud's `p`-cyclic analysis) only treat
+special Galois groups; an induction along a solvable filtration fails because Galois groups of
+covers of `E_q ∖ S` are arbitrary finite groups (every finite group occurs over `K̄(E)`), and
+already the `ℤ/p` step needs the full degeneration-data theory. We therefore follow the
+**valuative route** (Temkin, *Stable modification of relative curves*, J. Alg. Geom. 2010; Ducros;
+Baldassarri–Poineau; exposition: Temkin's "Topological transcendence degree"), in the form
+"semistable vertex sets" (Baker–Payne–Rabinoff, *On the structure of non-archimedean analytic
+curves*, 2013) transported to valuation language. Everything is valuation theory of the function
+field `F = C(T̄)` of a curve over `C = \widehat{K̄}`, plus the model/valuation dictionary.
+
+Notation: `C` complete algebraically closed, `O_C`, `k = O_C/𝔪` (algebraically closed);
+`F/C` a function field of one variable. A **type-2 valuation** of `F` is a valuation `w`
+extending `v_C` with value group `|C^×|` and residue field `κ(w)` of transcendence degree 1
+over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
+
+| # | Statement | Remarks / inputs |
+|---|---|---|
+| W1 | Gauss valuations on `C(x)`: `w_{a,r}(Σ c_i (x−a)^i) = min (v(c_i) + i·r)`, `r ∈ v(C^×)`; they are valuations with residue field `k(x̄)` | explicit; Mathlib has `Polynomial` Gauss norms over normed fields |
+| W2 | Every type-2 valuation of `C(x)` is a Gauss valuation `w_{a,r}` | uses: `C` algebraically closed (factor into linear factors) |
+| W3 | (**Abhyankar inequality**) for any valuation `w` of `F` extending `v_C`: `trdeg_k κ(w) + rank_ℚ(Γ_w/Γ_C) ≤ 1` | Mathlib-level valuation theory; residue transcendence bounded by the transcendence degree |
+| W4 | (**Stability / defectlessness**, Grauert–Remmert) for a finite extension `F'/F` and a type-2 valuation `w` of `F`: `Σ_{w'|w} [κ(w'):κ(w)]·e(w'|w) = [F':F]` | the key analytic input; proof via the `C`-Banach space `F' ⊗ \hat F_w` having an orthogonal basis — Temkin gives an algebraic proof using W2 + Hensel |
+| W5 | Model/valuation dictionary: a normal proper `O_C`-model `𝒞` of `T̄` ↔ the finite set of type-2 valuations given by the generic points of `𝒞_s` ("vertex set"); every finite set of type-2 valuations containing a nonempty set is the vertex set of a unique normal model | Bosch–Lütkebohmert; algebraic: normalize a model in which the valuations are divisorial (blow-ups of `ℙ^m_{O_C}`-codes) |
+| W6 | Genus formula: for a finite vertex set `V`, `g(T̄) = Σ_{w ∈ V} g(C_w) + b₁(Γ_V) + (contributions of the complement)`, and `Σ_{w type 2} g(C_w) ≤ g(T̄)`; hence only finitely many `w` have `g(C_w) > 0` | Riemann–Hurwitz for the residue curves + W4 (for `F/C(x)` of degree `d`, `Σ_{w'|w_{a,r}}` of residue degrees `= d`) |
+| W7 | (**Semistable vertex set**) there is a finite `V` containing all `w` with `g(C_w) > 0` such that every "connected component of the complement" is an open disc or annulus; in valuation language: every type-2 `w ∉ V` has residue curve `ℙ¹` and at most two "directions" towards `V` | W2 + W6 + a local analysis of residue curves of `F` over `w_{a,r}` via W4 |
+| W8 | The model with vertex set `V` (W5) is semistable | local computation at nodes: the complement annuli give local rings `O_C[u,v]/(uv − c)` |
+| W9 | Descent: the vertex set, the model and its semistability are defined over a finite extension `K'/K` | the finitely many valuations are determined by finitely many elements of `F`; approximation |
+| W10 | (SSR) for every finite étale `T → Y`, plus compatibility with a model of `Ȳ` (vertex sets pull back: the preimage of `V_Y` in `T̄` is contained in a vertex set of `T̄`) | W7 applied to `V ⊇ preimage` |
+
+Realistic size: W1–W3 small/medium (weeks of agent time), W4 large (the heart; Temkin's
+algebraic proof ~20 pages), W5 large (needs blow-ups or the `ModelCode`+normalization
+dictionary), W6–W8 large, W9–W10 medium. Status: W1 started (`SemistableReduction/Gauss.lean`).
