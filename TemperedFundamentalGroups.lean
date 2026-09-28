@@ -14,6 +14,7 @@ import TemperedFundamentalGroups.Orbicurve.Ring
 import TemperedFundamentalGroups.Orbicurve.Stable
 import TemperedFundamentalGroups.Orbicurve.ZeroSet
 import TemperedFundamentalGroups.SemistableReduction.Node
+import TemperedFundamentalGroups.SemistableReduction.NodeNormal
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Schmidt
 import TemperedFundamentalGroups.Setup.Valuation
