@@ -196,7 +196,7 @@ semistable reduction.
 | E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | `Topology/CountableFibres.lean` | [L] (topological lemma; the resulting equivalence of categories after adding coproducts is argued, not formalized) |
 | E4 | Galois elements: the decomposition group `{σ ∈ Aut_R(Ω) : σV = V}` acts on `temperedPi1` (`[(t,p)] ↦ [(σ∘t, p)]`, specialization is Galois invariant), compatibly with its action on `etalePi1` | `Tempered/Galois.lean`, `Models/Specialization.lean` (`sp_galois`) | [L] |
 | F1 | Orbicurve presentation: `Y = E ∖ S` with `S = E(k)[ℓ] + M` (rational points; `= E[ℓ]` when `E[ℓ] ⊆ E(k)`, as at all places used by IUT), `A = M` or `M ⋊ {±1}` acting by translations and negation on the function field; `orbicurveOrbifold` | `Orbicurve/` | [L] (identification with `(E/M) ∖ (E[ℓ]/M)` when `E[ℓ] ⊄ E(k)` not claimed) |
-| F2 | Canonical valuation on `k` (the henselian DVR if one exists, else trivial); Chevalley extension to `Ω`; pointed affine orbifolds | `Setup/Valuation.lean`, `Setup/Orbifold.lean` | [L]; canonicity (F. K. Schmidt) [C] |
+| F2 | Canonical valuation on `k` (the henselian DVR if one exists, else trivial); Chevalley extension to `Ω`; pointed affine orbifolds | `Setup/Valuation.lean`, `Setup/Schmidt.lean`, `Setup/Orbifold.lean` | [L]; canonicity (F. K. Schmidt: a field has at most one henselian DVR, `canonicalValuationSubring_eq_of_isHenselianDVR`) [L] |
 | F3 | `TemperedPi1Theory` instance from the above and a continuous comparison `etalePi1 → Pi1.pi1` (the identity if the étale theory uses `AffineOrbifold.etalePi1Profinite`) | iut branch `wp-tempered-iut`, `Iut/Anabelian/Tempered.lean` (`temperedTheory Pi1 C`) | [L] modulo the comparison `C`, which needs the sibling's étale construction |
 | G1 | Non-degeneracy witness: `π₁^temp(E_q ∖ E[ℓ]) ↠ ℤ` (discrete, not profinite) | `FibreFunctor/Character.lean` (the continuous character `Aut Φ → D` of any deck torsor; surjectivity criterion) | character [L]; surjectivity [✗], see §5.1 |
 | G2 | Steps 1–2 of §4 | — | [✗] (needs Berkovich spaces / semistable reduction) |
@@ -237,8 +237,8 @@ Galois theory of `TempObj`:
 ## 6. Interface findings (iut)
 
 * `TemperedPi1Theory` receives only `[Field k]`. The tempered group depends on the valuation.
-  For a field that is not separably closed there is at most one henselian rank-one valuation
-  (F. K. Schmidt), so a canonical choice exists (F2), but the interface would be more honest if
+  A field has at most one henselian discrete valuation ring (F. K. Schmidt, formalized in
+  `Setup/Schmidt.lean`), so a canonical choice exists (F2), but the interface would be more honest if
   it carried the valued-field structure of `K_v`.
 * `tempPi1 X : Type u` forces a smallness argument: `Aut` of a fibre functor on a large category
   lives in `Type (u+1)`. The codes of §3.2/§3.4 make `𝒞` a `Type u` category, so `Aut Φ : Type u`

@@ -25,8 +25,9 @@ is unique (F. K. Schmidt: two independent nontrivial henselian valuations only e
 closed fields; two distinct discrete valuation rings of the same field are independent). Hence
 for the completions `K_v` of number fields at finite places — the fields over which IUT
 evaluates tempered fundamental groups — `canonicalValuationSubring K_v` is the valuation ring
-`O_v`. F. K. Schmidt's theorem is **not** formalized here; the definition itself only uses a
-choice, and the identification with `O_v` is the documented (cited) step.
+`O_v`. The definition itself only uses a choice; F. K. Schmidt's theorem and the resulting
+identification (`canonicalValuationSubring_eq_of_isHenselianDVR`, valid for every henselian
+DVR `O` of `k`) are proved in `TemperedFundamentalGroups.Setup.Schmidt`.
 -/
 
 universe u
@@ -67,8 +68,9 @@ def IsHenselianDVR {k : Type*} [Field k] (O : ValuationSubring k) : Prop :=
 
 open Classical in
 /-- **The canonical valuation subring** of a field: a henselian discrete valuation ring if `k`
-has one (by F. K. Schmidt's theorem it is then unique unless `k` is separably closed; for the
-completion `K_v` of a number field it is `O_v`), and the trivial valuation ring `k` otherwise. -/
+has one (by F. K. Schmidt's theorem it is then unique, see
+`canonicalValuationSubring_eq_of_isHenselianDVR`; for the completion `K_v` of a number field it
+is `O_v`), and the trivial valuation ring `k` otherwise. -/
 noncomputable def canonicalValuationSubring (k : Type u) [Field k] : ValuationSubring k :=
   if h : ∃ O : ValuationSubring k, IsHenselianDVR O then h.choose else ⊤
 
