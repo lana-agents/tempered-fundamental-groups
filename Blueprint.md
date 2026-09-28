@@ -543,10 +543,12 @@ transcendental over `κ(O)`) which are points of the model; for normal models of
 DVR the type-2 condition is automatic (dimension theory; not formalized, and not needed: all
 vertices produced are type 2).
 
-**Case needed.** All results below hold for an *arbitrary* valuation ring `O` (any rank, discrete
-or not) and arbitrary `K`; no completeness, algebraic closedness or discreteness is used. So they
-apply to `O_C` (`C = \widehat{\bar K}`) as well as to `O_{K'}` for finite `K'/K` (W9 descent).
-Discreteness will only enter through finiteness of integral closures (M8).
+**Case needed.** M1–M6, M7a and M9a hold for an *arbitrary* valuation ring `O` (any rank,
+discrete or not) and arbitrary `K`; no completeness, algebraic closedness or discreteness is used.
+M7b, M7c and M8a (the explicit tree) assume `O` of rank at most one (both `O_C`,
+`C = \widehat{\bar K}`, and discrete `O_{K'}` qualify); the semistability statement M7c uses
+thicknesses `ϖⁿ` as in `LocalModel.lean` (so a DVR, or a fixed `ϖ` over `O_C`); M8b (finite type
+of normalizations) assumes `O` noetherian, i.e. a DVR `O_{K'}` (after the descent W9).
 
 | # | Statement | Status / API | Size |
 |---|---|---|---|
