@@ -223,29 +223,35 @@ omit [IsUltrametricDist C] [IsUltrametricDist M] in
 instance completeSpace_genField [CompleteSpace M] (z : M) : CompleteSpace (genField C z) :=
   (Subfield.isClosed_topologicalClosure _).completeSpace_coe
 
+omit [IsUltrametricDist C] [IsUltrametricDist M] in
+/-- `C(z)` is dense in `\widehat{C(z)}`. -/
+theorem genClosure_genField_eq_top (z : M) :
+    genClosure C (⟨z, mem_genClosure_self z⟩ : genField C z) = ⊤ := by
+  set z' : genField C z := ⟨z, mem_genClosure_self z⟩
+  refine eq_top_iff.2 fun y _ ↦ ?_
+  change y ∈ closure ((IntermediateField.adjoin C {z'}).toSubfield : Set (genField C z))
+  rw [Topology.IsInducing.subtypeVal.closure_eq_preimage_closure_image]
+  have hmap : (IntermediateField.adjoin C {z'}).map (genField C z).val =
+      IntermediateField.adjoin C {z} := by
+    rw [IntermediateField.adjoin_map, Set.image_singleton]
+    rfl
+  have : Subtype.val '' ((IntermediateField.adjoin C {z'}).toSubfield : Set (genField C z)) =
+      (IntermediateField.adjoin C {z} : Set M) := by
+    rw [← hmap]
+    rfl
+  have h2 : (y : M) ∈ closure (IntermediateField.adjoin C {z} : Set M) := y.2
+  rw [← this] at h2
+  exact h2
+
 /-- `\widehat{C(z)}` is Gauss-complete. -/
 theorem isGaussComplete_genField {z : M} (hz : ‖z‖ ≤ 1) (htr : Transcendental (κ C) (rd z)) :
     IsGaussComplete C (⟨z, mem_genClosure_self z⟩ : genField C z) := by
   set z' : genField C z := ⟨z, mem_genClosure_self z⟩
-  refine ⟨hz, ?_, ?_⟩
-  · have h := rd_algebraMap' (B := M) (a := z') hz
-    change rd z = _ at h
-    rwa [h, transcendental_algebraMap_iff
-      (algebraMap (κ (genField C z)) (κ M)).injective] at htr
-  · refine eq_top_iff.2 fun y _ ↦ ?_
-    change y ∈ closure ((IntermediateField.adjoin C {z'}).toSubfield : Set (genField C z))
-    rw [Topology.IsInducing.subtypeVal.closure_eq_preimage_closure_image]
-    have hmap : (IntermediateField.adjoin C {z'}).map (genField C z).val =
-        IntermediateField.adjoin C {z} := by
-      rw [IntermediateField.adjoin_map, Set.image_singleton]
-      rfl
-    have : Subtype.val '' ((IntermediateField.adjoin C {z'}).toSubfield : Set (genField C z)) =
-        (IntermediateField.adjoin C {z} : Set M) := by
-      rw [← hmap]
-      rfl
-    have h2 : (y : M) ∈ closure (IntermediateField.adjoin C {z} : Set M) := y.2
-    rw [← this] at h2
-    exact h2
+  refine ⟨hz, ?_, genClosure_genField_eq_top z⟩
+  have h := rd_algebraMap' (B := M) (a := z') hz
+  change rd z = _ at h
+  rwa [h, transcendental_algebraMap_iff
+    (algebraMap (κ (genField C z)) (κ M)).injective] at htr
 
 end GenField
 
