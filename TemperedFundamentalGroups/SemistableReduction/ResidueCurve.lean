@@ -338,6 +338,27 @@ theorem red_mem_of_isIntegral {f : F} (hf : gnorm C f ≤ 1)
   rw [← hQ, ← aeval_xF]
   exact red_aeval_mem (valuation_xF w).le hQ1 V hk hx
 
+omit [Algebra C F] [IsScalarTower C (RatFunc C) F] in
+lemma nonempty_ext_of_orthonormal : Nonempty (Ext C F) := by
+  by_contra h
+  rw [not_nonempty_iff] at h
+  have hι : Nonempty ι := by
+    by_contra hι
+    rw [not_nonempty_iff] at hι
+    have : Module.finrank (RatFunc C) F = 0 := by
+      rw [Module.finrank_eq_card_basis b, Fintype.card_eq_zero]
+    exact Module.finrank_pos.ne' this
+  obtain ⟨i⟩ := hι
+  classical
+  have := hb (Pi.single i 1)
+  have h0 : gnorm C (∑ j, (Pi.single i (1 : RatFunc C) : ι → RatFunc C) j • b j) = 0 := by
+    simp [gnorm, Finset.univ_eq_empty]
+  rw [h0] at this
+  have hle := Finset.le_sup (f := fun j ↦ gauss1 C ((Pi.single i (1 : RatFunc C) : ι → _) j))
+    (Finset.mem_univ i)
+  rw [← this] at hle
+  simp at hle
+
 end Integral
 
 section Curve
