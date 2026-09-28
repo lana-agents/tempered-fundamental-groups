@@ -1,5 +1,6 @@
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.Realization
+import TemperedFundamentalGroups.FibreFunctor.SpanRealization
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.Exact
