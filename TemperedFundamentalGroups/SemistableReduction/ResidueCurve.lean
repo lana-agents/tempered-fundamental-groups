@@ -75,11 +75,10 @@ lemma red_pow {f : F} (hf : w.1 f ≤ 1) (n : ℕ) : red C (f ^ n) w = red C f w
   | succ n ih =>
     rw [pow_succ, red_mul (by rw [map_pow]; exact pow_le_one₀ zero_le hf) hf, ih, pow_succ]
 
-/-- The reduction of `Q(x)` for `Q ∈ O_C[X]` is `Q̄(x̄)`. -/
-lemma red_aeval (P : (HenselComplete.integers C)[X]) :
-    red C (aeval (xF C F) (P.map (algebraMap (HenselComplete.integers C) C))) w =
-      aeval (red C (xF C F) w) (P.map (residue (HenselComplete.integers C))) := by
-  have hx : w.1 (xF C F) ≤ 1 := (valuation_xF w).le
+/-- The reduction of `Q(t)` for `Q ∈ O_C[X]` and `w(t) ≤ 1` is `Q̄(t̄)`. -/
+lemma red_aeval_of_le {t : F} (ht : w.1 t ≤ 1) (P : (HenselComplete.integers C)[X]) :
+    red C (aeval t (P.map (algebraMap (HenselComplete.integers C) C))) w =
+      aeval (red C t w) (P.map (residue (HenselComplete.integers C))) := by
   set n := P.natDegree + 1
   have h1 : (P.map (algebraMap (HenselComplete.integers C) C)).natDegree < n :=
     Nat.lt_succ_of_le (natDegree_map_le)
@@ -88,16 +87,37 @@ lemma red_aeval (P : (HenselComplete.integers C)[X]) :
   have hc (i : ℕ) : ‖((P.coeff i : HenselComplete.integers C) : C)‖₊ ≤ 1 := by
     have := (HenselComplete.mem_integers_iff _).1 (P.coeff i).2
     exact_mod_cast this
+  have hti (i : ℕ) : w.1 (t ^ i) ≤ 1 := by rw [map_pow]; exact pow_le_one₀ zero_le ht
   have hterm (i : ℕ) : w.1 ((P.map (algebraMap (HenselComplete.integers C) C)).coeff i •
-      xF C F ^ i) ≤ 1 := by
-    rw [coeff_map, Algebra.smul_def, map_mul, map_pow, valuation_algebraMap_C', valuation_xF,
-      one_pow, mul_one]
-    exact hc i
+      t ^ i) ≤ 1 := by
+    rw [coeff_map, Algebra.smul_def, map_mul, valuation_algebraMap_C']
+    exact mul_le_one' (hc i) (hti i)
   rw [aeval_eq_sum_range' h1, aeval_eq_sum_range' h2, red_sum _ _ fun i _ ↦ hterm i]
   refine Finset.sum_congr rfl fun i _ ↦ ?_
   rw [coeff_map, coeff_map, show algebraMap (HenselComplete.integers C) C (P.coeff i) =
-    (P.coeff i : C) from rfl, red_smul _ (hc i) (by rw [map_pow, valuation_xF, one_pow]),
-    red_pow hx]
+    (P.coeff i : C) from rfl, red_smul _ (hc i) (hti i), red_pow ht]
+
+/-- The reduction of `Q(x)` for `Q ∈ O_C[X]` is `Q̄(x̄)`. -/
+lemma red_aeval (P : (HenselComplete.integers C)[X]) :
+    red C (aeval (xF C F) (P.map (algebraMap (HenselComplete.integers C) C))) w =
+      aeval (red C (xF C F) w) (P.map (residue (HenselComplete.integers C))) :=
+  red_aeval_of_le (valuation_xF w).le P
+
+/-- If `w(t) ≤ 1` and `Q ∈ C[X]` has Gauss norm `≤ 1`, then `Q(t)` reduces into every valuation
+ring of `κ(w)` containing `k` and `t̄`. -/
+lemma red_aeval_mem {t : F} (ht : w.1 t ≤ 1) {Q : C[X]}
+    (hQ : Gauss.sup (NormedField.valuation (K := C)) 1 Q ≤ 1)
+    (V : ValuationSubring (ResidueField w.1.valuationSubring))
+    (hk : ∀ c : 𝓀, algebraMap 𝓀 _ c ∈ V) (htV : red C t w ∈ V) :
+    red C (aeval t Q) w ∈ V := by
+  obtain ⟨P, hP⟩ := ValuationResidue.exists_map_eq (v := NormedField.valuation (K := C)) Q
+    fun i ↦ by
+      simpa [Gauss.term] using (Gauss.term_le_sup (v := NormedField.valuation (K := C))
+        (r := 1) Q i).trans hQ
+  rw [← hP, red_aeval_of_le ht, aeval_eq_sum_range]
+  exact sum_mem fun i _ ↦ by
+    rw [Algebra.smul_def]
+    exact mul_mem (hk _) (pow_mem htV _)
 
 /-- `x̄` is transcendental over `k`. -/
 lemma transcendental_red_x (w : Ext C F) : Transcendental 𝓀 (red C (xF C F) w) := by
@@ -200,66 +220,35 @@ lemma gauss1_minpoly_coeff_le {f : F} (hf : gnorm C f ≤ 1) (n : ℕ) :
   simpa [Gauss.term] using (Gauss.term_le_sup (v := gauss1 C) (r := 1) μ n).trans hsupμ
 
 omit hb in
-omit [IsUltrametricDist C] [Algebra C F] [IsScalarTower C (RatFunc C) F] [Fintype (Ext C F)]
-  in
-/-- If `f` is integral over `C[X]`, the coefficients of its minimal polynomial over `C(X)` are
-polynomials. -/
-lemma exists_minpoly_coeff_eq [Algebra C[X] F] [IsScalarTower C[X] (RatFunc C) F] {f : F}
-    (hint : IsIntegral C[X] f) (n : ℕ) :
-    ∃ Q : C[X], algebraMap C[X] (RatFunc C) Q = (minpoly (RatFunc C) f).coeff n := by
-  have hdvd : minpoly (RatFunc C) f ∣ (minpoly C[X] f).map (algebraMap C[X] (RatFunc C)) :=
-    minpoly.dvd (RatFunc C) f (by rw [aeval_map_algebraMap]; exact minpoly.aeval C[X] f)
-  have := Polynomial.isIntegral_coeff_of_dvd _ _ (minpoly.monic hint)
-    (minpoly.monic (Algebra.IsIntegral.isIntegral f)) hdvd n
-  exact IsIntegrallyClosed.isIntegral_iff.1 this
-
-/-- **G6.5** (reductions of integral elements). If `f ∈ F` is integral over `C[X]` with
-`‖f‖ ≤ 1`, then `f̄ ∈ κ(w)` lies in every valuation ring of `κ(w)` containing `k` and `x̄`. -/
-theorem red_mem_of_isIntegral [Algebra C[X] F] [IsScalarTower C[X] (RatFunc C) F] {f : F}
-    (hf : gnorm C f ≤ 1) (hint : IsIntegral C[X] f) (w : Ext C F)
+omit [Algebra C F] [IsScalarTower C (RatFunc C) F] [Fintype (Ext C F)]
+  [FiniteDimensional (RatFunc C) F] in
+/-- An element `f`, `w(f) ≤ 1`, which is a root of a monic polynomial over `C(X)` whose
+coefficients are Gauss-integral and reduce into a valuation ring `V` of `κ(w)`, reduces into
+`V` (valuation rings are integrally closed). -/
+lemma red_mem_of_root {w : Ext C F} {f : F} (hfw : w.1 f ≤ 1) {μ : (RatFunc C)[X]}
+    (hμm : μ.Monic) (hroot : aeval f μ = 0) (hcoeff : ∀ n, gauss1 C (μ.coeff n) ≤ 1)
     (V : ValuationSubring (ResidueField w.1.valuationSubring))
-    (hk : ∀ c : 𝓀, algebraMap 𝓀 _ c ∈ V) (hx : red C (xF C F) w ∈ V) :
+    (hredc : ∀ n, red C (algebraMap (RatFunc C) F (μ.coeff n)) w ∈ V) :
     red C f w ∈ V := by
-  set μ := minpoly (RatFunc C) f
-  choose Q hQ using exists_minpoly_coeff_eq hint
-  have hQ1 (n : ℕ) : Gauss.sup (NormedField.valuation (K := C)) 1 (Q n) ≤ 1 := by
-    rw [← gauss1_algebraMap, hQ]
-    exact gauss1_minpoly_coeff_le hb hf n
-  -- the coefficients reduce into `V`
-  have hcoeff (n : ℕ) : w.1 (algebraMap (RatFunc C) F (μ.coeff n)) ≤ 1 := by
-    rw [valuation_algebraMap]
-    exact gauss1_minpoly_coeff_le hb hf n
-  have hredc (n : ℕ) : red C (algebraMap (RatFunc C) F (μ.coeff n)) w ∈ V := by
-    obtain ⟨P, hP⟩ := ValuationResidue.exists_map_eq (v := NormedField.valuation (K := C)) (Q n)
-      fun i ↦ by
-        simpa [Gauss.term] using (Gauss.term_le_sup (v := NormedField.valuation (K := C))
-          (r := 1) (Q n) i).trans (hQ1 n)
-    rw [← hQ, ← aeval_xF, ← hP, red_aeval, aeval_eq_sum_range]
-    exact sum_mem fun i _ ↦ by
-      rw [Algebra.smul_def]
-      exact mul_mem (hk _) (pow_mem hx _)
-  -- the minimal polynomial over the valuation ring of `w`
   set μF := μ.map (algebraMap (RatFunc C) F)
   obtain ⟨Pw, hPw⟩ := ValuationResidue.exists_map_eq (v := w.1) μF fun n ↦ by
-    rw [coeff_map]
+    rw [coeff_map, valuation_algebraMap]
     exact hcoeff n
-  have hfw : w.1 f ≤ 1 := (le_gnorm w f).trans hf
   have hinj : Function.Injective (algebraMap w.1.valuationSubring F) := Subtype.val_injective
   have hPwm : Pw.Monic := by
     refine Polynomial.monic_of_injective hinj ?_
     rw [hPw]
-    exact (minpoly.monic (Algebra.IsIntegral.isIntegral f)).map _
-  have hroot : aeval (⟨f, hfw⟩ : w.1.valuationSubring) Pw = 0 := by
+    exact hμm.map _
+  have hroot' : aeval (⟨f, hfw⟩ : w.1.valuationSubring) Pw = 0 := by
     apply hinj
     rw [map_zero, ← aeval_algebraMap_apply, ← aeval_map_algebraMap F, hPw]
     change aeval f μF = 0
     rw [aeval_map_algebraMap]
-    exact minpoly.aeval _ f
+    exact hroot
   set Pb := Pw.map (residue w.1.valuationSubring)
   have hPbroot : aeval (red C f w) Pb = 0 := by
     rw [red_of_le hfw, Polynomial.coe_aeval_eq_eval, eval_map, eval₂_at_apply,
-      ← Polynomial.coe_aeval_eq_eval, hroot, map_zero]
-  -- `Pb` is monic with coefficients in `V`
+      ← Polynomial.coe_aeval_eq_eval, hroot', map_zero]
   have hPbm : Pb.Monic := hPwm.map _
   have hPbV : Pb ∈ Polynomial.lifts V.subtype := by
     rw [Polynomial.lifts_iff_coeff_lifts]
@@ -280,6 +269,74 @@ theorem red_mem_of_isIntegral [Algebra C[X] F] [IsScalarTower C[X] (RatFunc C) F
   obtain ⟨y, hy⟩ := IsIntegrallyClosed.isIntegral_iff.1 hintV
   rw [← hy]
   exact y.2
+
+omit hb in
+omit [IsUltrametricDist C] [Algebra (RatFunc C) F] [IsScalarTower C (RatFunc C) F]
+  [Fintype (Ext C F)] [FiniteDimensional (RatFunc C) F] in
+/-- An element integral over `C[t] ⊆ F` is a root of a monic polynomial `P(t)[T]` with
+`P ∈ C[X][T]`. -/
+lemma exists_monic_of_isIntegral {t f : F} (hint : IsIntegral (Algebra.adjoin C {t}) f) :
+    ∃ P : C[X][X], P.Monic ∧ aeval f (P.map (aeval t : C[X] →ₐ[C] F).toRingHom) = 0 := by
+  obtain ⟨p, hpm, hp⟩ := hint
+  have hsurj : Function.Surjective ((aeval t : C[X] →ₐ[C] F).rangeRestrict) :=
+    AlgHom.rangeRestrict_surjective _
+  have hrange : Algebra.adjoin C {t} = (aeval t : C[X] →ₐ[C] F).range :=
+    Algebra.adjoin_singleton_eq_range_aeval C t
+  set ψ : C[X] →+* Algebra.adjoin C {t} :=
+    (Subalgebra.equivOfEq _ _ hrange.symm).toRingHom.comp
+      (aeval t : C[X] →ₐ[C] F).rangeRestrict.toRingHom
+  have hψ : Function.Surjective ψ :=
+    (Subalgebra.equivOfEq _ _ hrange.symm).surjective.comp hsurj
+  have hlift : p ∈ Polynomial.lifts ψ := by
+    rw [Polynomial.lifts_iff_coeff_lifts]
+    exact fun n ↦ hψ _
+  obtain ⟨P, hPmap, -, hPm⟩ := Polynomial.lifts_and_degree_eq_and_monic hlift hpm
+  refine ⟨P, hPm, ?_⟩
+  have hcomp : (Algebra.adjoin C {t}).val.toRingHom.comp ψ =
+      (aeval t : C[X] →ₐ[C] F).toRingHom := by
+    ext Q
+    · simp [ψ]
+    · simp [ψ]
+  rw [← hcomp, ← Polynomial.map_map, hPmap]
+  simpa [aeval_def, eval₂_map] using! hp
+
+omit hb in
+omit [IsUltrametricDist C] [Fintype (Ext C F)] in
+/-- If `f` is integral over `C[x]`, the coefficients of its minimal polynomial over `C(X)` are
+polynomials in `X`. -/
+lemma exists_minpoly_coeff_eq' {f : F} (hint : IsIntegral (Algebra.adjoin C {xF C F}) f)
+    (n : ℕ) : ∃ Q : C[X], algebraMap C[X] (RatFunc C) Q = (minpoly (RatFunc C) f).coeff n := by
+  obtain ⟨P, hPm, hP⟩ := exists_monic_of_isIntegral hint
+  have hdvd : minpoly (RatFunc C) f ∣ P.map (algebraMap C[X] (RatFunc C)) := by
+    refine minpoly.dvd (RatFunc C) f ?_
+    have hmap : P.map (aeval (xF C F) : C[X] →ₐ[C] F).toRingHom =
+        (P.map (algebraMap C[X] (RatFunc C))).map (algebraMap (RatFunc C) F) := by
+      rw [Polynomial.map_map]
+      congr 1
+      exact RingHom.ext fun Q ↦ aeval_xF Q
+    rw [← hP, hmap]
+    exact (aeval_map_algebraMap F f _).symm
+  have := Polynomial.isIntegral_coeff_of_dvd _ _ hPm
+    (minpoly.monic (Algebra.IsIntegral.isIntegral f)) hdvd n
+  exact IsIntegrallyClosed.isIntegral_iff.1 this
+
+/-- **G6.5** (reductions of integral elements, chart at `0`). If `f ∈ F` is integral over
+`C[x]` with `‖f‖ ≤ 1`, then `f̄ ∈ κ(w)` lies in every valuation ring of `κ(w)` containing `k`
+and `x̄`. -/
+theorem red_mem_of_isIntegral {f : F} (hf : gnorm C f ≤ 1)
+    (hint : IsIntegral (Algebra.adjoin C {xF C F}) f) (w : Ext C F)
+    (V : ValuationSubring (ResidueField w.1.valuationSubring))
+    (hk : ∀ c : 𝓀, algebraMap 𝓀 _ c ∈ V) (hx : red C (xF C F) w ∈ V) :
+    red C f w ∈ V := by
+  have hfw : w.1 f ≤ 1 := (le_gnorm w f).trans hf
+  refine red_mem_of_root hfw (minpoly.monic (Algebra.IsIntegral.isIntegral f))
+    (minpoly.aeval _ f) (gauss1_minpoly_coeff_le hb hf) V fun n ↦ ?_
+  obtain ⟨Q, hQ⟩ := exists_minpoly_coeff_eq' hint n
+  have hQ1 : Gauss.sup (NormedField.valuation (K := C)) 1 Q ≤ 1 := by
+    rw [← gauss1_algebraMap, hQ]
+    exact gauss1_minpoly_coeff_le hb hf n
+  rw [← hQ, ← aeval_xF]
+  exact red_aeval_mem (valuation_xF w).le hQ1 V hk hx
 
 end Integral
 
