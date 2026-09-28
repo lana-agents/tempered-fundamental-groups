@@ -318,7 +318,14 @@ Liu–Lorenzini).
   integrally closed domain and `ϖ^n` replaced by any `c ≠ 0` (`SemistableReduction/Node`,
   `NodeNormal`, `TameLocal`: `Node.kummer_isIntegralClosure`, `smoothKummer_isIntegralClosure`).
 * Order after that: (i) Abhyankar's lemma for DVRs (tame extensions become unramified after
-  adjoining roots of the uniformizer); (ii) normalization of a semistable model in a tame cover is
+  adjoining roots of the uniformizer) — **proved** (`SemistableReduction/RootOfUniformizer`,
+  `RootOfUnit`, `AbhyankarLocal`, `Abhyankar`): for `O` a DVR, `L/K` finite separable, `B` the
+  integral closure, tame at every maximal ideal with `e(𝔓) ∣ e`, `e ∈ O^×`, and `F = L[y]`,
+  `y^e = ϖ`, the integral closure `B'` of `O` in `F` is étale over the DVR
+  `O' = O[Y]/(Y^e − ϖ)` (`Abhyankar.etale`; also `isUnramifiedAt`, `ramificationIdx_eq_one`,
+  `maximalIdeal_atPrime_eq_span`). No henselization: at `𝔔 | 𝔓`, `ϖ = uπ^n` in `B_𝔓`,
+  `z = y^m/π` has `z^n = u`, and `B_𝔓[y, z] mod y` is a quotient of `κ(𝔓)[X]/(X^n − ū)`
+  (`Abhyankar.maximalIdeal_eq_span_and_isSeparable_of_pow_eq`); (ii) normalization of a semistable model in a tame cover is
   semistable after tame base change (local-to-global via the `ModelCode` framework and Mathlib's
   relative normalization); (iii) defectlessness of `C_p`-type fields and residue curves of
   divisorial valuations (Temkin route); (iv) the genus formula and finiteness of type-2 points of
