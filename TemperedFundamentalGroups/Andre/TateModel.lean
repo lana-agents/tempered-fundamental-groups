@@ -343,6 +343,258 @@ lemma pZ_ne_qZ (hπ : π ∈ 𝔪) : pZ π b₄ b₆ hπ ≠ qZ π b₄ b₆ hπ
   rw [h, ιZ_qZ, mem_pointQ] at h1
   simp [gq] at h1
 
+/-! ### Connectedness of the two components -/
+
+lemma isPreconnected_of_image_eq {s : Set (Z π b₄ b₆)} {T : Set (projSpace O 2)}
+    (hT : _root_.IsPreconnected T) (h : ιZ π b₄ b₆ '' s = T) : _root_.IsPreconnected s := by
+  rw [← (isEmbedding_ιZ π b₄ b₆).isInducing.isPreconnected_image, h]
+  exact hT
+
+/-- A point `y` of `ℙ²_O` containing `ker θ_g`, for `θ_g` killing `F` and the maximal ideal, is a
+point of `Z`. -/
+lemma exists_ιZ_eq_of_le {τ : Type*} {g : Fin (2 + 1) → MvPolynomial τ k}
+    (hF : θ g (F π b₄ b₆) = 0) {y : projSpace O 2}
+    (hy : ∀ h, θ g h = 0 → h ∈ y.asHomogeneousIdeal) : ∃ z : Z π b₄ b₆, ιZ π b₄ b₆ z = y :=
+  exists_ιZ_eq (hy _ hF) fun _ hc => hy _ (θ_C g hc)
+
+variable (O) in
+/-- The line `w = 0`. -/
+def gC : Fin (2 + 1) → MvPolynomial (Fin (2 + 1)) k := ![X 0, X 1, 0]
+
+lemma gC_hom (i : Fin (2 + 1)) : (gC O i).IsHomogeneous 1 := by
+  fin_cases i
+  exacts [isHomogeneous_X _ _, isHomogeneous_X _ _, isHomogeneous_zero _ _ _]
+
+variable (O) in
+/-- The generic point of the line `C = {w = 0}`. -/
+def pointC : projSpace O 2 :=
+  projPointOfKer (θ (gC O)) (θ_homogeneousComponent _ one_pos gC_hom) 0 (by simp [gC])
+
+lemma mem_Cset_iff (z : Z π b₄ b₆) : z ∈ Cset π b₄ b₆ ↔
+    (pointC O).asHomogeneousIdeal ≤ (ιZ π b₄ b₆ z).asHomogeneousIdeal := by
+  constructor
+  · intro h2 h hh
+    refine mem_of_eval₂Hom_eq_zero (ιZ π b₄ b₆ z) (fun c hc => C_mem π b₄ b₆ z hc) (gC O)
+      one_pos gC_hom (fun i => Ideal.Quotient.mk _ (X i)) 1 one_ne_zero (fun i => ?_) hh
+    fin_cases i
+    · simp [gC]
+    · simp [gC]
+    · simpa [gC] using (Ideal.Quotient.eq_zero_iff_mem.2 h2).symm
+  · intro h
+    exact h (by simp [gC] : θ (gC O) (X 2) = 0)
+
+/-- **The line `C` is irreducible**, in particular preconnected. -/
+lemma isPreconnected_C (hπ : π ∈ 𝔪) : _root_.IsPreconnected (Cset π b₄ b₆) := by
+  refine isPreconnected_of_image_eq (isPreconnected_setOf_le (pointC O)) ?_
+  ext y
+  constructor
+  · rintro ⟨z, hz, rfl⟩
+    exact (mem_Cset_iff z).1 hz
+  · intro hy
+    obtain ⟨z, rfl⟩ := exists_ιZ_eq_of_le (g := gC O) (π := π) (b₄ := b₄) (b₆ := b₆)
+      (by simp [F, gC, (IsLocalRing.residue_eq_zero_iff π).2 hπ]) hy
+    exact ⟨z, (mem_Cset_iff z).2 hy, rfl⟩
+
+/-! #### The conic when `b₆` is a unit: a smooth conic -/
+
+variable (b₆) in
+/-- The parametrization `[s : t] ↦ [b₆ s² - t² : t² : s t]` of the conic `G = 0`. -/
+def gE : Fin (2 + 1) → MvPolynomial (Fin (1 + 1)) k :=
+  ![C (IsLocalRing.residue O b₆) * X 0 ^ 2 - X 1 ^ 2, X 1 ^ 2, X 0 * X 1]
+
+lemma gE_hom (i : Fin (2 + 1)) : (gE b₆ i).IsHomogeneous 2 := by
+  fin_cases i
+  · exact (isHomogeneous_C_mul_X_pow _ _ _).sub (isHomogeneous_X_pow _ _)
+  · exact isHomogeneous_X_pow _ _
+  · exact (isHomogeneous_X _ _).mul (isHomogeneous_X _ _)
+
+variable (b₆) in
+/-- The generic point of the conic `E'`, when `b₆` is a unit. -/
+def pointE : projSpace O 2 :=
+  projPointOfKer (θ (gE b₆)) (θ_homogeneousComponent _ two_pos gE_hom) 1 (by simp [gE])
+
+lemma θ_gE_G : θ (gE b₆) (G b₆) = 0 := by
+  simp only [G, gE, map_sub, map_add, map_mul, map_pow, eval₂Hom_X', eval₂Hom_C,
+    RingHom.coe_comp, Function.comp_apply]
+  simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two,
+    Matrix.head_cons, Matrix.tail_cons]
+  ring
+
+omit [IsLocalRing O] in
+lemma mk_G {y : projSpace O 2} (hG : G b₆ ∈ y.asHomogeneousIdeal) :
+    Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (X 1) ^ 2 +
+      Ideal.Quotient.mk _ (X 0) * Ideal.Quotient.mk _ (X 1) -
+      Ideal.Quotient.mk _ (C b₆) * Ideal.Quotient.mk _ (X 2) ^ 2 = 0 := by
+  have := Ideal.Quotient.eq_zero_iff_mem.2 hG
+  simpa [G] using this
+
+/-- A point of the special fibre on the smooth conic `G = 0` specializes from its generic
+point. -/
+lemma pointE_le (hb : IsUnit b₆) {y : projSpace O 2}
+    (hy : ∀ c ∈ 𝔪, C c ∈ y.asHomogeneousIdeal) (hG : G b₆ ∈ y.asHomogeneousIdeal) :
+    (pointE b₆).asHomogeneousIdeal ≤ y.asHomogeneousIdeal := by
+  intro h hh
+  have : y.asHomogeneousIdeal.toIdeal.IsPrime := y.isPrime
+  have hrel := mk_G hG
+  have hB : IsUnit (Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (C b₆)) :=
+    (hb.map C).map _
+  have hres : residueLift y hy (IsLocalRing.residue O b₆) =
+      Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (C b₆) :=
+    residueLift_residue y hy b₆
+  by_cases hV : Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (X 1) = 0
+  · have hW : Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (X 2) = 0 := by
+      rw [hV] at hrel
+      have : Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (C b₆) *
+          Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (X 2) ^ 2 = 0 := by
+        linear_combination -hrel
+      exact pow_eq_zero_iff two_ne_zero |>.1 ((hB.mul_right_eq_zero).1 this)
+    have hU : Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (X 0) ≠ 0 := fun hU =>
+      not_all_X_mem y (Ideal.Quotient.eq_zero_iff_mem.1 hU) (Ideal.Quotient.eq_zero_iff_mem.1 hV)
+        (Ideal.Quotient.eq_zero_iff_mem.1 hW)
+    refine mem_of_eval₂Hom_eq_zero y hy (gE b₆) two_pos gE_hom
+      ![Ideal.Quotient.mk _ (X 0) + Ideal.Quotient.mk _ (X 1),
+        Ideal.Quotient.mk _ (C b₆) * Ideal.Quotient.mk _ (X 2)]
+      (Ideal.Quotient.mk _ (C b₆) *
+        (Ideal.Quotient.mk _ (X 0) + Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (X 1)))
+      (mul_ne_zero hB.ne_zero (by rwa [hV, add_zero])) (fun i => ?_) hh
+    fin_cases i
+    · simp only [gE, Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, map_sub, map_mul,
+        eval₂Hom_C, hres, map_pow, eval₂Hom_X', Matrix.cons_val_one]
+      linear_combination Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (C b₆) * hrel
+    · simp [gE]
+      linear_combination (-Ideal.Quotient.mk y.asHomogeneousIdeal.toIdeal (C b₆)) * hrel
+    · simp [gE]
+      ring
+  · refine mem_of_eval₂Hom_eq_zero y hy (gE b₆) two_pos gE_hom
+      ![Ideal.Quotient.mk _ (X 2), Ideal.Quotient.mk _ (X 1)] _ hV (fun i => ?_) hh
+    fin_cases i
+    · simp only [gE, Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, map_sub, map_mul,
+        eval₂Hom_C, hres, map_pow, eval₂Hom_X', Matrix.cons_val_one]
+      linear_combination (-1 : MvPolynomial (Fin (2 + 1)) O ⧸ y.asHomogeneousIdeal.toIdeal) * hrel
+    · simp [gE]
+      ring
+    · simp [gE]
+      ring
+
+lemma mem_Eset_iff_of_isUnit (hb : IsUnit b₆) (z : Z π b₄ b₆) : z ∈ Eset π b₄ b₆ ↔
+    (pointE b₆).asHomogeneousIdeal ≤ (ιZ π b₄ b₆ z).asHomogeneousIdeal :=
+  ⟨pointE_le hb fun _ hc => C_mem π b₄ b₆ z hc, fun h => h θ_gE_G⟩
+
+/-! #### The conic when `b₆ ∈ 𝔪`: two lines through `[0 : 0 : 1]` -/
+
+variable (O) in
+/-- The line `v = 0`. -/
+def gL₁ : Fin (2 + 1) → MvPolynomial (Fin (2 + 1)) k := ![X 0, 0, X 2]
+
+variable (O) in
+/-- The line `u + v = 0`. -/
+def gL₂ : Fin (2 + 1) → MvPolynomial (Fin (2 + 1)) k := ![X 0, -X 0, X 2]
+
+variable (O) in
+/-- The point `[0 : 0 : 1]`. -/
+def gN : Fin (2 + 1) → MvPolynomial (Fin (0 + 1)) k := ![0, 0, X 0]
+
+lemma gL₁_hom (i : Fin (2 + 1)) : (gL₁ O i).IsHomogeneous 1 := by
+  fin_cases i
+  exacts [isHomogeneous_X _ _, isHomogeneous_zero _ _ _, isHomogeneous_X _ _]
+
+lemma gL₂_hom (i : Fin (2 + 1)) : (gL₂ O i).IsHomogeneous 1 := by
+  fin_cases i
+  exacts [isHomogeneous_X _ _, (isHomogeneous_X _ _).neg, isHomogeneous_X _ _]
+
+lemma gN_hom (i : Fin (2 + 1)) : (gN O i).IsHomogeneous 1 := by
+  fin_cases i
+  exacts [isHomogeneous_zero _ _ _, isHomogeneous_zero _ _ _, isHomogeneous_X _ _]
+
+variable (O) in
+/-- The generic point of the line `v = 0`. -/
+def pointL₁ : projSpace O 2 :=
+  projPointOfKer (θ (gL₁ O)) (θ_homogeneousComponent _ one_pos gL₁_hom) 0 (by simp [gL₁])
+
+variable (O) in
+/-- The generic point of the line `u + v = 0`. -/
+def pointL₂ : projSpace O 2 :=
+  projPointOfKer (θ (gL₂ O)) (θ_homogeneousComponent _ one_pos gL₂_hom) 0 (by simp [gL₂])
+
+variable (O) in
+/-- The point `[0 : 0 : 1]` of `ℙ²` over the residue field. -/
+def pointN : projSpace O 2 :=
+  projPointOfKer (θ (gN O)) (θ_homogeneousComponent _ one_pos gN_hom) 2 (by simp [gN])
+
+lemma pointL₁_le {y : projSpace O 2} (hy : ∀ c ∈ 𝔪, C c ∈ y.asHomogeneousIdeal)
+    (h1 : X 1 ∈ y.asHomogeneousIdeal) :
+    (pointL₁ O).asHomogeneousIdeal ≤ y.asHomogeneousIdeal := fun _ hh =>
+  mem_of_eval₂Hom_eq_zero y hy (gL₁ O) one_pos gL₁_hom (fun i => Ideal.Quotient.mk _ (X i)) 1
+    one_ne_zero (fun i => by
+      fin_cases i
+      · simp [gL₁]
+      · simpa [gL₁] using (Ideal.Quotient.eq_zero_iff_mem.2 h1).symm
+      · simp [gL₁]) hh
+
+lemma pointL₂_le {y : projSpace O 2} (hy : ∀ c ∈ 𝔪, C c ∈ y.asHomogeneousIdeal)
+    (h1 : X 0 + X 1 ∈ y.asHomogeneousIdeal) :
+    (pointL₂ O).asHomogeneousIdeal ≤ y.asHomogeneousIdeal := fun _ hh =>
+  mem_of_eval₂Hom_eq_zero y hy (gL₂ O) one_pos gL₂_hom (fun i => Ideal.Quotient.mk _ (X i)) 1
+    one_ne_zero (fun i => by
+      fin_cases i
+      · simp [gL₂]
+      · have := Ideal.Quotient.eq_zero_iff_mem.2 h1
+        rw [map_add] at this
+        simpa [gL₂] using neg_eq_of_add_eq_zero_right this
+      · simp [gL₂]) hh
+
+lemma mem_Eset_iff_of_mem (hb : b₆ ∈ 𝔪) (z : Z π b₄ b₆) : z ∈ Eset π b₄ b₆ ↔
+    ((pointL₁ O).asHomogeneousIdeal ≤ (ιZ π b₄ b₆ z).asHomogeneousIdeal ∨
+      (pointL₂ O).asHomogeneousIdeal ≤ (ιZ π b₄ b₆ z).asHomogeneousIdeal) := by
+  have hb' := (IsLocalRing.residue_eq_zero_iff b₆).2 hb
+  constructor
+  · intro hG
+    have hp := (ιZ π b₄ b₆ z).isPrime
+    have hy : ∀ c ∈ 𝔪, C c ∈ (ιZ π b₄ b₆ z).asHomogeneousIdeal := fun c hc => C_mem π b₄ b₆ z hc
+    rw [Eset, Set.mem_setOf_eq, G_eq] at hG
+    have : X 1 * (X 0 + X 1) ∈ (ιZ π b₄ b₆ z).asHomogeneousIdeal := by
+      rw [← sub_add_cancel (X 1 * (X 0 + X 1)) (C b₆ * X 2 ^ 2)]
+      exact Ideal.add_mem _ hG (Ideal.mul_mem_right _ _ (hy b₆ hb))
+    rcases hp.mem_or_mem this with h | h
+    exacts [Or.inl (pointL₁_le hy h), Or.inr (pointL₂_le hy h)]
+  · rintro (h | h)
+    · exact h (by simp [G, gL₁, hb'] : θ (gL₁ O) (G b₆) = 0)
+    · exact h (by simp [G, gL₂, hb']; ring : θ (gL₂ O) (G b₆) = 0)
+
+/-- **The conic `E'` is connected.** -/
+lemma isPreconnected_E (hπ : π ∈ 𝔪) : _root_.IsPreconnected (Eset π b₄ b₆) := by
+  have hπ' := (IsLocalRing.residue_eq_zero_iff π).2 hπ
+  by_cases hb : IsUnit b₆
+  · refine isPreconnected_of_image_eq (isPreconnected_setOf_le (pointE b₆)) ?_
+    ext y
+    constructor
+    · rintro ⟨z, hz, rfl⟩
+      exact (mem_Eset_iff_of_isUnit hb z).1 hz
+    · intro hy
+      have hF : θ (gE b₆) (F π b₄ b₆) = 0 := by
+        rw [F_eq, map_sub, map_mul, θ_gE_G, mul_zero, zero_sub, map_mul, θ_C _ hπ, zero_mul,
+          neg_zero]
+      obtain ⟨z, rfl⟩ := exists_ιZ_eq_of_le hF hy
+      exact ⟨z, (mem_Eset_iff_of_isUnit hb z).2 hy, rfl⟩
+  · have hb : b₆ ∈ 𝔪 := (IsLocalRing.mem_maximalIdeal b₆).2 hb
+    have hb' := (IsLocalRing.residue_eq_zero_iff b₆).2 hb
+    have hN : ∀ c ∈ 𝔪, C c ∈ (pointN O).asHomogeneousIdeal := fun c hc => θ_C _ hc
+    refine isPreconnected_of_image_eq ((isPreconnected_setOf_le (pointL₁ O)).union (pointN O)
+      (pointL₁_le hN (by simp [gN] : θ (gN O) (X 1) = 0))
+      (pointL₂_le hN (by simp [gN] : θ (gN O) (X 0 + X 1) = 0))
+      (isPreconnected_setOf_le (pointL₂ O))) ?_
+    ext y
+    constructor
+    · rintro ⟨z, hz, rfl⟩
+      exact (mem_Eset_iff_of_mem hb z).1 hz
+    · rintro (hy | hy)
+      · obtain ⟨z, rfl⟩ := exists_ιZ_eq_of_le (π := π) (b₄ := b₄) (b₆ := b₆)
+          (by simp [F, gL₁, hπ', hb'] : θ (gL₁ O) (F π b₄ b₆) = 0) hy
+        exact ⟨z, (mem_Eset_iff_of_mem hb z).2 (Or.inl hy), rfl⟩
+      · obtain ⟨z, rfl⟩ := exists_ιZ_eq_of_le (π := π) (b₄ := b₄) (b₆ := b₆)
+          (by simp [F, gL₂, hπ', hb']; ring : θ (gL₂ O) (F π b₄ b₆) = 0) hy
+        exact ⟨z, (mem_Eset_iff_of_mem hb z).2 (Or.inr hy), rfl⟩
+
 end
 
 end TateModel
