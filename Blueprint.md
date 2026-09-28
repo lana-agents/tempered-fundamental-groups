@@ -370,7 +370,7 @@ over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
 | W2 | Every type-2 valuation of `C(x)` is a Gauss valuation `w_{a,r}` | uses: `C` algebraically closed (factor into linear factors) |
 | W3 | (**Abhyankar inequality**) for any valuation `w` of `F` extending `v_C`: `trdeg_k κ(w) + rank_ℚ(Γ_w/Γ_C) ≤ 1` | Mathlib-level valuation theory; residue transcendence bounded by the transcendence degree |
 | W4 | (**Stability / defectlessness**, Grauert–Remmert) for a finite extension `F'/F` and a type-2 valuation `w` of `F`: `Σ_{w'|w} [κ(w'):κ(w)]·e(w'|w) = [F':F]` | the key analytic input; proof via the `C`-Banach space `F' ⊗ \hat F_w` having an orthogonal basis — Temkin gives an algebraic proof using W2 + Hensel |
-| W5 | Model/valuation dictionary: a normal proper `O_C`-model `𝒞` of `T̄` ↔ the finite set of type-2 valuations given by the generic points of `𝒞_s` ("vertex set"); every finite set of type-2 valuations containing a nonempty set is the vertex set of a unique normal model | Bosch–Lütkebohmert; algebraic: normalize a model in which the valuations are divisorial (blow-ups of `ℙ^m_{O_C}`-codes) |
+| W5 | Model/valuation dictionary: a normal proper `O_C`-model `𝒞` of `T̄` ↔ the finite set of type-2 valuations given by the generic points of `𝒞_s` ("vertex set"); every finite set of type-2 valuations containing a nonempty set is the vertex set of a unique normal model | Bosch–Lütkebohmert; algebraic: normalize a model in which the valuations are divisorial. **Formalized** as Zariski models (§9.6): joins of Gauss lines and their normalizations (M1–M6 proved) |
 | W6 | Genus formula: for a finite vertex set `V`, `g(T̄) = Σ_{w ∈ V} g(C_w) + b₁(Γ_V) + (contributions of the complement)`, and `Σ_{w type 2} g(C_w) ≤ g(T̄)`; hence only finitely many `w` have `g(C_w) > 0` | Riemann–Hurwitz for the residue curves + W4 (for `F/C(x)` of degree `d`, `Σ_{w'|w_{a,r}}` of residue degrees `= d`) |
 | W7 | (**Semistable vertex set**) there is a finite `V` containing all `w` with `g(C_w) > 0` such that every "connected component of the complement" is an open disc or annulus; in valuation language: every type-2 `w ∉ V` has residue curve `ℙ¹` and at most two "directions" towards `V` | W2 + W6 + a local analysis of residue curves of `F` over `w_{a,r}` via W4 |
 | W8 | The model with vertex set `V` (W5) is semistable | local computation at nodes: the complement annuli give local rings `O_C[u,v]/(uv − c)` |
@@ -379,7 +379,7 @@ over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
 
 Realistic size: W1–W3 small/medium (weeks of agent time), W4 large (the heart; Temkin's
 algebraic proof ~20 pages), W5 large (needs blow-ups or the `ModelCode`+normalization
-dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`).
+dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`); **W5: the valuative dictionary (M1–M6) proved** (§9.6), explicit tree charts, finite type and the scheme realization open.
 * W1 (`SemistableReduction/Gauss.lean`): `gauss v a r : Valuation K[X] Γ₀` (multiplicative
   convention, `w(Σ cᵢ(X−a)ⁱ) = max v(cᵢ)·rⁱ`, Gauss lemma `Gauss.sup_mul`), `gaussRat v a r` on
   `RatFunc K` extending `v`; for `v c = r` the residue of `(X − a)/c` is transcendental over
@@ -515,3 +515,57 @@ only needed for `char C = p`.
 **Status. W4 is proved in mixed characteristic (the IUT case)**: G1–G4 (`SemistableReduction/NormedTower`, `SemistableReduction/NoImmediate`, `SemistableReduction/ChangeOfGenerator`, `SemistableReduction/LocalStability`, `SemistableReduction/GaussStability`; main theorem `GaussStability.finsum_ramificationIdx_mul_inertiaDeg_eq`). Only the equal-characteristic case (`char C = p`: F3, the inseparable parts of B/F5) remains open. A1–A3 proved (`SemistableReduction/FundamentalInequality`: `valuation_sum_eq_sup`, F (mixed characteristic, the IUT case) proved: F1 (`SemistableReduction/DiscreteCoefficients`), F2 (`SemistableReduction/InertiallyGenerated`, with the definition `IsInertiallyGenerated`), F4 (`SemistableReduction/PthPower`, `SemistableReduction/KummerNormalForm`), F5 (`SemistableReduction/KummerDefectless`); F3 (char `p`) skipped. Note for G2: `IsInertiallyGenerated C z` asks for `‖z‖ ≤ 1` with `z̄` transcendental over `k`, `[M : M₁] < ∞`, `κ_M/κ_{M₁}` finite separable and `[M : M₁] ≤ [κ_M : κ_{M₁}]` (`M₁ = genClosure C z`; `κ_{M₁} = k(z̄)` is `residueSubfield_genClosure`), stated with `DiscreteCoefficients.residueSubfield` for residue fields of subfields.
 `linearIndependent_of_residue`, `linearIndependent_mul`, `ramificationIdx_mul_inertiaDeg_le`,
 `exists_pow_valuation_eq`, `ramificationIdx_eq_one_of_divisible`); A4 proved (`SemistableReduction/DefectTower`); C1 proved (`SemistableReduction/HenselComplete`); E1 proved (`SemistableReduction/CurvePlace`); E2 proved (`SemistableReduction/FrobeniusBasis`). B1 proved (`SemistableReduction/DenseCompletion`); B2–B4 proved (`SemistableReduction/LocalGlobal`), for any non-archimedean normed field `F` and finite separable `F'/F`; A5 not needed. For the Gauss valuation take `F = WithAbs (gaussRat v a r).toAbsoluteValue` with `v = NormedField.valuation` of `C` (real-valued). Remaining in B for char `p`: the reduction of inseparable `F'/F` to the separable case. C2 proved (`SemistableReduction/UnramifiedRoot`, `SemistableReduction/Unramified`); C3 proved (`SemistableReduction/UniqueExtension`); C4 proved (`SemistableReduction/UnramifiedBaseChange`); D1–D3 proved (`SemistableReduction/Inertia`); D4 proved (`SemistableReduction/PGroupChain`). Layers C and D are complete; the Henselian and Galois-invariance hypotheses of C2/C4/D1–D3 are discharged over a complete base by C3 (`henselianLocalRing_valuationSubring`, `henselianLocalRing_comap`, `valuation_algEquiv_apply'`).
+
+### 9.6 W5: models and vertex sets
+
+**Formulation (decision).** Models are formalized *birationally*, as Zariski's abstract varieties
+(Zariski–Samuel II, Ch. VI §17): a **Zariski model** of a field `F` over a subring `R ⊆ F` is a
+finite set of *charts*, subrings `A ⊆ F` containing `R` (`ZariskiModel R`). Its points are the
+local rings `localAt A W = A_{𝔪_W ∩ A}` of the charts at the centers of valuation subrings
+`W ⊇ A` of `F` (every prime of `A` is such a center, Chevalley); two charts are glued along their
+common local rings. This fits the existing infrastructure: `ValuationSubring` (W1–W4), ring-level
+local models (`LocalModel.lean`: `IsSemistableAt` is a property of a chart at a prime), Mathlib's
+`LocalSubring.ofPrime`, integral closures, and it needs neither gluing of schemes nor blow-ups.
+Scheme-theoretic properties are replaced by their valuative criteria:
+
+* *separated* (`IsSeparated`): a valuation subring dominates at most one point, i.e. for charts
+  `A, B ⊆ W`, `B ⊆ localAt A W` (Zariski's irredundance = valuative criterion of separatedness);
+* *proper* (`IsProper`): every valuation subring `W ⊇ R` of `F` contains a chart (existence part
+  of the valuative criterion; with finite type and separatedness this is properness);
+* *normal* (`IsNormal`): charts integrally closed in `F`; *finite type* (`IsFiniteType`);
+  flatness over `O` is automatic (charts are torsion free subrings of `F ⊇ K`).
+
+The **specialization** of a valuation subring `W ⊇ R` (in particular of a `K̄`-point composed
+with an extension of `v`) is its center `ZariskiModel.center W = localAt A W` (any chart
+`A ⊆ W`). Over a valuation subring `O ⊆ K ⊆ F` (base ring `baseRing F O`), the **vertex set** is
+the set of *type-2* valuation subrings `W` of `F` over `O` (`W ∩ K = O`, residue field
+transcendental over `κ(O)`) which are points of the model; for normal models of finite type over a
+DVR the type-2 condition is automatic (dimension theory; not formalized, and not needed: all
+vertices produced are type 2).
+
+**Case needed.** All results below hold for an *arbitrary* valuation ring `O` (any rank, discrete
+or not) and arbitrary `K`; no completeness, algebraic closedness or discreteness is used. So they
+apply to `O_C` (`C = \widehat{\bar K}`) as well as to `O_{K'}` for finite `K'/K` (W9 descent).
+Discreteness will only enter through finiteness of integral closures (M8).
+
+| # | Statement | Status / API | Size |
+|---|---|---|---|
+| M1 | `localAt A W`; `localAt_le`, `localAt_mono`, `inv_mem_localAt`; **gluing lemma** `localAt_eq_of_le` (`A ≤ B ≤ localAt A W ⇒ localAt B W = localAt A W`); `localAt_eq_localSubringOfPrime` (= Mathlib's `LocalSubring.ofPrime A (𝔪_W ∩ A)`, `centerIdeal`); `ZariskiModel`, `points`, `IsSeparated`, `IsProper`, `IsNormal`, `IsFiniteType`, `center` (`center_eq`, `center_le`, `mem_points_iff`), `specialFibre`, `vertexSet` (`mem_vertexSet_iff`: type 2, `W ∩ K = O`, `center W = W`) | **proved** (`SemistableReduction/ZariskiModel`) | 0.35k |
+| M2 | Gauss coordinates `IsGaussCoord v w y` (`F = K(y)`, `w(Q(y)) = max v(Qᵢ)`), stable under `y ↦ y⁻¹`; chart `O[y] = {Q(y) : max v(Qᵢ) ≤ 1}` (`mem_polyChart_iff`); `localAt O[y] O_w = O_w` (generic point); for nontrivial `v`, `O_w` is the *only* valuation subring over `O` that is a local ring of `O[y]` (`eq_of_localAt_eq`: at a closed point `q(y)` and `ϖ` are incomparable — Gauss lemma + irreducible factor); `line v y` = `ℙ¹_O` (charts `O[y], O[y⁻¹]`): proper, separated, finite type, `line_vertexSet = {O_w}`; `gaussModel v a c` for `w_{a,r}` on `K(X)` (`isGaussCoord_gaussCoord`) | **proved** (`SemistableReduction/GaussModel`) | 0.4k |
+| M3 | compatibility with `Models/Specialization.lean`: for `X → Spec O` universally closed + separated and a chart `ι : Spec A ⟶ X` over `Spec O`, an `Ω`-point factoring through `ι` via `φ : A → V` specializes to `ι(φ⁻¹ 𝔪_V)` (`sp_eq_of_chart`); for `A ⊆ F`, `j : F → Ω`, `φ⁻¹ 𝔪_V = 𝔪_W ∩ A` with `W = j⁻¹ V` (`asIdeal_comap_closedPoint`), whose local ring is `localAt A W`. So on any scheme glued from the charts (M9), scheme specialization = `center` | **proved** (`SemistableReduction/ChartSpecialization`) | 0.1k |
+| M4 | type 2: `IsResidueTranscendental O W z` (`P(z)` a `W`-unit for all `P ∈ O[X]` with `P̄ ≠ 0`) ⇔ `Transcendental κ(O) z̄` (`isResidueTranscendental_iff`, residue algebra via the local map `toVal : O → W`); **residue generation** `exists_isResidueTranscendental_of_localAt_eq(_of_isIntegral)`: if a type-2 `W` is the local ring of a chart `C` integral over the ring generated by `O` and `S`, some `s ∈ S` has transcendental residue (residues of `C` are algebraic over `κ(O)(S̄)`); `eq_of_isResidueTranscendental`: `W ∩ K = O` and `ȳ` transcendental ⇒ `W = O_w` (cf. W2, no algebraic closedness) | **proved** (`ZariskiModel`, `GaussModel`) | 0.25k |
+| M5 | **joins** `iJoin M` (charts `R ⊔ ⨆ Aᵢ`; the closure of the diagonal in the product): proper, separated, finite type preserved; `lines v y` (join of `ℙ¹_O` in Gauss coordinates `y i`): **vertex set exactly `{O_{w i}}`** (`lines_vertexSet`); `gaussJoinModel v a c`: every finite family of Gauss valuations `w_{a i, r i}` of `K(X)` is the vertex set of a proper separated finite-type model (`gaussJoinModel_vertexSet`) — W5 (ii)+(iii) on `ℙ¹` | **proved** (`ZariskiModel`, `GaussModel`) | 0.2k |
+| M6 | **normalization** in an algebraic `F'/F` (`normalization F'`, charts = integral closures `normChart F' A`): proper, separated, normal (`integralClosure_le_localAt` via `scaleRoots`; `map_localAt_le`); **Kaplansky's lemma** `mem_or_inv_mem_localAt`; **Prüfer** `localAt_normChart_eq` (the integral closure of a valuation ring `W` localized at the center of `W' ⊇ W` is `W'`); **vertex set of the normalization of a join of Gauss lines = the valuation subrings of `F'` over the given Gauss valuations** (`lines_normalization_vertexSet`, `gaussJoinModel_normalization_vertexSet`) — W5 (ii) in the form used by W7–W10 (a vertex set of `F'` is the preimage of a vertex set of `K(x)`) | **proved** (`SemistableReduction/ZariskiNormalization`) | 0.5k |
+| M7 | **explicit tree charts** (base of W8): for a *convex* finite set `V` of Gauss points of `K(x)` (closed under `w_{a,r} ∨ w_{b,s} = w_{a, max(r,s,|a−b|)}`) the join charts reduce to the open-component charts `O[t_ξ, (t_ξ − e)^{-1} …]` and the annulus charts `O[u, c/u] ≅ Node O c` (`Node.laurent`); these are normal (`NodeNormal`) and semistable (`LocalModel.IsSemistable`), so `gaussJoinModel` is a semistable tree of `ℙ¹`s; first case: two nested discs `{w_{a,r}, w_{a,s}}` (charts `O[y⁻¹]`, `O[y, c/y]`, `O[y/c]`) | planned | 0.8k |
+| M8 | finite type of the normalization over a DVR `O_{K'}`: `IsIntegralClosure.finite` needs normal noetherian charts (M7) and `F'/K(x)` separable (char 0) | planned | 0.15k |
+| M9 | scheme realization: glue `Spec` of the charts (Mathlib `Scheme.GlueData`, the gluing data being the common localizations `A[1/f] = B[1/g]`) and a projective embedding to obtain a `ModelCode` (for the tree of `ℙ¹`s: closed subscheme of `∏ ℙ¹_O` ↪ Segre `ℙ^N_O`; for the normalization: finite over it, projective via an ample line bundle — the hard part) ; `sp` = `center` by M3 | planned | 2k+ |
+| M10 | the paper's full W5 for arbitrary `F`: every finite nonempty set of type-2 valuations is the vertex set of a unique normal model (needs contraction of the extra components of M6 over `V'`; uniqueness: a normal model is determined by its local rings) | not needed downstream (W7 chooses vertex sets as preimages of `ℙ¹` vertex sets, M6); planned only if required | 1k+ |
+
+**Downstream API.** W6 (genus formula) sums over `vertexSet` of `normalization` of `gaussJoinModel`
+(= the extensions of the Gauss valuations, M6; W4 counts them). W7 produces a finite set of Gauss
+valuations of `K(x)`; M5/M6 give the model, M7 + the local analysis of W8 its semistability; W9
+descends it; W10 turns it into a `ModelCode` (M9). The reduction map for points is `center`
+(valuation-theoretic) and `sp` (scheme-theoretic), equal by M3.
+
+**Estimate.** Done: M1–M6 ≈ 1.9k lines. Remaining for W5 proper: M7 ≈ 0.8k, M8 ≈ 0.15k (both
+feed W8), M9 ≈ 2k+ (the scheme/projectivity bridge to `ModelCode`, shared with W10).
