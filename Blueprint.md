@@ -379,7 +379,7 @@ over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
 
 Realistic size: W1–W3 small/medium (weeks of agent time), W4 large (the heart; Temkin's
 algebraic proof ~20 pages), W5 large (needs blow-ups or the `ModelCode`+normalization
-dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`); **W5: the valuative dictionary (M1–M6) and the semistable tree of `ℙ¹`s (M7) proved** (§9.6); finite type of normalizations (M8) and the scheme realization (M9) open.
+dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`); **W5: the valuative dictionary (M1–M6) and the semistable tree of `ℙ¹`s (M7) proved** (§9.6); normality and finite type of normalizations over a DVR (M8) proved; the scheme realization (M9) open.
 * W1 (`SemistableReduction/Gauss.lean`): `gauss v a r : Valuation K[X] Γ₀` (multiplicative
   convention, `w(Σ cᵢ(X−a)ⁱ) = max v(cᵢ)·rⁱ`, Gauss lemma `Gauss.sup_mul`), `gaussRat v a r` on
   `RatFunc K` extending `v`; for `v c = r` the residue of `(X − a)/c` is transcendental over
@@ -559,7 +559,7 @@ Discreteness will only enter through finiteness of integral closures (M8).
 | M7a | **annulus model** (two concentric discs, the local model at an edge of the tree): charts `O[y⁻¹]`, the node `O[y, c/y]`, `O[y/c]`; proper, separated, finite type, vertex set `{O_{w₁}, O_{w₂}}` (`annulus_vertexSet`); `O[y, c/y] ≅ Node O c` (`range_nodeLift`, `nodeLift_injective` via `Node.laurent` and Laurent evaluation at the transcendental `y`), hence normal (`isIntegrallyClosed_nodeChart`); `O[z] ≅ O[X]`; for `c = ϖⁿ` every chart is semistable in the sense of `LocalModel.IsSemistable` (`annulus_isSemistable`); on `K(X)`: `gaussAnnulusModel` (`_vertexSet`, `_isSemistable`) | **proved** (`SemistableReduction/AnnulusModel`) | 0.5k |
 | M7b | **general convex trees**: `DiscLE`, `IsConvex` (closed under joins `D(a,r) ∨ D(b,s) = D(a, max(r,s,|a−b|))`), `IsReduced`, root; for `O` of rank ≤ 1 every point of the join model of a convex family is the point of a **standard chart** — a line chart `O[t i]`, `O[(t ρ)⁻¹]` or a node chart `O[u, (c j/c m)/u]`, `u = (x − a j)/c m`, for `D j ⊊ D m` (`GaussTree.exists_standard_localAt_eq`, `center_lines_eq`, `gaussJoinModel_center_eq`). Proof: the discs containing `W` form a chain (`discLE_or_discLE_of_mem`), `m` = the smallest; the center is a node iff `W` lies in the residue disc of a child (the child of maximal radius contains all discs below `m` in that residue disc, by convexity: `discLE_of_residue`); the other coordinates are units or inverses of units of the local ring (affine relations L1–L4) | **proved** (`SemistableReduction/GaussTree`) | 0.7k |
 | M7c | **the tree of `ℙ¹`s is semistable**: `A[1/e]` is a localization away (`awayChart`, `isLocalization_awayChart`, étale); charts of finite type with the same local ring at `W` have a common basic open `B[1/u] = C[1/u']` (`exists_awayChart_eq`), so `IsEtaleLocallyAt`/`IsSemistableAt` transfer (`isSemistableAt_of_localAt_eq`); primes of charts are centers (`exists_centerIdeal_eq`, Chevalley); standard charts are `≅ O[X]` / `≅ Node O ϖⁿ` (`polyChart_isSemistable`, `nodeChart_isSemistable`). **`gaussJoinModel_isSemistable`**: for a convex reduced family over `O` of rank ≤ 1 with thicknesses `c j / c m = ϖⁿ`, every chart of `gaussJoinModel` is semistable (`LocalModel.IsSemistable`) | **proved** (`SemistableReduction/ChartLocalization`, `GaussTreeSemistable`) | 0.45k |
-| M8 | finite type of the normalization over a DVR `O_{K'}`: `IsIntegralClosure.finite` needs normal noetherian charts (M7) and `F'/K(x)` separable (char 0) | planned | 0.15k |
+| M8 | **normality and finite type**: conductor argument `mem_of_forall_mem_localAt` (normality is local, `isIntegral_mem_of_forall`); `O[z]` (Gauss coordinate) has fraction field `F` and is integrally closed (`≅ O[X]`, Mathlib's `IsIntegrallyClosed R[X]`), node charts too; **`gaussJoinModel_isNormal`** (convex, rank ≤ 1); for `O` noetherian (a DVR) and `F'/K(X)` finite separable, **`gaussJoinModel_normalization_isFiniteType`** (charts noetherian via `isNoetherianRing_of_fg`, integral closures finite by `IsIntegralClosure.finite`) | **proved** (`SemistableReduction/GaussTreeNormal`, `GaussTreeFinite`) | 0.35k |
 | M9 | scheme realization: glue `Spec` of the charts (Mathlib `Scheme.GlueData`, the gluing data being the common localizations `A[1/f] = B[1/g]`) and a projective embedding to obtain a `ModelCode` (for the tree of `ℙ¹`s: closed subscheme of `∏ ℙ¹_O` ↪ Segre `ℙ^N_O`; for the normalization: finite over it, projective via an ample line bundle — the hard part) ; `sp` = `center` by M3 | planned | 2k+ |
 | M10 | the paper's full W5 for arbitrary `F`: every finite nonempty set of type-2 valuations is the vertex set of a unique normal model (needs contraction of the extra components of M6 over `V'`; uniqueness: a normal model is determined by its local rings) | not needed downstream (W7 chooses vertex sets as preimages of `ℙ¹` vertex sets, M6); planned only if required | 1k+ |
 
@@ -569,10 +569,11 @@ valuations of `K(x)`; M5/M6 give the model, M7 + the local analysis of W8 its se
 descends it; W10 turns it into a `ModelCode` (M9). The reduction map for points is `center`
 (valuation-theoretic) and `sp` (scheme-theoretic), equal by M3.
 
-**Estimate.** Done: M1–M7 ≈ 3.6k lines (the valuative dictionary, normalization, and the
-semistable tree of `ℙ¹`s). Remaining for W5 proper: M8 ≈ 0.3k (normality of the tree charts via
-`IsIntegrallyClosed R[X]` and `Node.isIntegrallyClosed` at the standard local rings, then
-Mathlib's finiteness of integral closures over a DVR in the separable `F'/K(x)`), M9 ≈ 2k+ (the
-scheme/projectivity bridge to `ModelCode`, shared with W10). The W8 local analysis can now reuse
+**Estimate.** Done: M1–M8 ≈ 4k lines (the valuative dictionary, normalization, the semistable
+normal tree of `ℙ¹`s, finite type of its normalizations over a DVR). So over a DVR `O_{K'}`: for a
+convex family `V'` of Gauss points of `K(x)` and `F'/K(x)` finite separable, the normalization of
+`gaussJoinModel` in `F'` is a normal proper separated Zariski model of finite type with vertex set
+the valuations over `V'` (W5 (ii) in the form used downstream). Remaining for W5 proper: M9 ≈ 2k+
+(the scheme/projectivity bridge to `ModelCode`, shared with W10). The W8 local analysis can now reuse
 M6 (local rings of the normalization = localizations of integral closures of the standard local
 rings) and M7c (transfer from local rings to `IsSemistableAt`).
