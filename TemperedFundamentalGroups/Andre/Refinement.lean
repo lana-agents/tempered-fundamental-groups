@@ -456,7 +456,7 @@ image of `H × Γ` acting through `σ_h ⊗ θ γ`, `ℓ.φ.r` induced by the pr
 equivariant morphism of models. -/
 def LevelHom.IsBaseChange {Lv' Lv : Level O R A} (ℓ : LevelHom O R A Lv' Lv) : Prop :=
   ∃ (L : Type u) (_ : CommRing L) (_ : Algebra K L) (_ : Algebra.Etale K L)
-    (_ : Module.Finite K L) (Γ : Type u) (_ : Group Γ) (θ : Γ →* (L ≃ₐ[K] L))
+    (_ : Module.Finite K L) (Γ : Type u) (_ : Group Γ) (_ : Finite Γ) (θ : Γ →* (L ≃ₐ[K] L))
     (e : Lv'.L.B ≃ₐ[R] TensorProduct K Lv.L.B L),
     Nonempty (L →ₐ[K] Ω) ∧ (∀ s₁ s₂ : L →ₐ[K] Ω, ∃ γ, s₂ = s₁.comp (θ γ).toAlgHom) ∧
     ℓ.φ.f = e.symm.toAlgHom.comp Algebra.TensorProduct.includeLeft ∧
@@ -472,7 +472,7 @@ variable {Ω}
 /-- **Base changes are refinements.** -/
 lemma LevelHom.IsBaseChange.isRefinement {Lv' Lv : Level O R A} {ℓ : LevelHom O R A Lv' Lv}
     (hℓ : ℓ.IsBaseChange Ω) : ℓ.IsRefinement Ω := by
-  obtain ⟨L, _, _, _, _, Γ, _, θ, e, ⟨s₀⟩, htr, hf, hH, hr, heq⟩ := hℓ
+  obtain ⟨L, _, _, _, _, Γ, _, _, θ, e, ⟨s₀⟩, htr, hf, hH, hr, heq⟩ := hℓ
   refine ⟨fun h => ?_, fun t₁ t₂ ht => ?_, fun t => ?_, heq⟩
   · have hx := (hH _).2 ⟨h, 1, rfl⟩
     exact ⟨⟨⟨_, hx⟩, FiniteLevel.mem_H0.2 (FiniteLevel.mem_H0.1 h.2)⟩, hr h 1 hx⟩
@@ -523,7 +523,7 @@ omit [Algebra R Ω] [IsScalarTower K R Ω] in
 variable (Ω) in
 /-- **Identities are base changes** (along `L = K`). -/
 lemma LevelHom.isBaseChange_id (Lv : Level O R A) : (LevelHom.id Lv).IsBaseChange Ω := by
-  refine ⟨K, _, _, inferInstance, inferInstance, PUnit.{u + 1}, inferInstance, 1,
+  refine ⟨K, _, _, inferInstance, inferInstance, PUnit.{u + 1}, inferInstance, inferInstance, 1,
     (Algebra.TensorProduct.rid K R Lv.L.B).symm, ⟨Algebra.ofId K Ω⟩,
     fun s₁ s₂ => ⟨1, Subsingleton.elim _ _⟩, ?_, fun x => ?_, fun h γ hx => ?_, ?_⟩
   · ext b
@@ -536,6 +536,90 @@ lemma LevelHom.isBaseChange_id (Lv : Level O R A) : (LevelHom.id Lv).IsBaseChang
 
 end BaseChange
 
+
+section BCHom
+
+variable {K : Type u} [Field K] {O : ValuationSubring K}
+  {R : Type u} [CommRing R] [Algebra K R] {A : Type u} [Group A] [MulSemiringAction A R]
+  [SMulCommClass A K R]
+  {Lv : Level O R A} {L : Type u} [CommRing L] [Algebra K L] [Nontrivial L]
+  [Algebra.Etale R (TensorProduct K Lv.L.B L)] [Module.Finite R (TensorProduct K Lv.L.B L)]
+  {Δ : Type u} [Group Δ] (θ : Δ →* (L ≃ₐ[K] L))
+  (D : LevelData R A O (TensorProduct K Lv.L.B L) (Lv.L.H × Δ))
+  (hΦ : ∀ x, D.Φ x = tensorAut L ((x.1 : SemilinearAut R A Lv.L.B), θ x.2))
+
+include hΦ in
+lemma bc_ker (x : Lv.L.H × Δ) (hx : D.Φ x = 1) : MonoidHom.fst Lv.L.H Δ x = 1 :=
+  Subtype.ext (tensorAut_eq_one_fst ((hΦ x).symm.trans hx))
+
+/-- The inclusion `B → B ⊗_K L`, on coded rings. -/
+def bcIncl : Lv.L.B →ₐ[R] D.finiteLevel.B :=
+  (LevelData.codeEquiv R (TensorProduct K Lv.L.B L)).symm.toAlgHom.comp
+    Algebra.TensorProduct.includeLeft
+
+omit [Nontrivial L] in
+include hΦ in
+lemma bcIncl_σ (γ : Lv.L.H × Δ) (y : Lv.L.B) :
+    bcIncl D ((γ.1 : SemilinearAut R A Lv.L.B).σ y) =
+      ((D.proj γ : D.finiteLevel.H) : SemilinearAut R A D.finiteLevel.B).σ (bcIncl D y) := by
+  rw [LevelData.proj_σ]
+  change (LevelData.codeEquiv R _).symm ((γ.1 : SemilinearAut R A Lv.L.B).σ y ⊗ₜ 1) =
+    (LevelData.codeEquiv R _).symm ((D.Φ γ).σ ((LevelData.codeEquiv R _)
+      ((LevelData.codeEquiv R _).symm (y ⊗ₜ 1))))
+  rw [AlgEquiv.apply_symm_apply, hΦ, tensorAut_σ_tmul, map_one]
+
+/-- The base change morphism of levels `D.level ⟶ Lv`. -/
+def bcLevelHom : D.finiteLevel ⟶ Lv.L where
+  f := bcIncl D
+  r := D.lift (MonoidHom.fst Lv.L.H Δ) (bc_ker θ D hΦ)
+  r_a := D.proj_surjective.forall.2 fun γ => by
+    have h1 := D.lift_proj (MonoidHom.fst Lv.L.H Δ) (bc_ker θ D hΦ) γ
+    simp only [h1]
+    rw [LevelData.proj_a, hΦ, tensorAut_a]
+    rfl
+  f_σ := D.proj_surjective.forall.2 fun γ y => by
+    have h1 := D.lift_proj (MonoidHom.fst Lv.L.H Δ) (bc_ker θ D hΦ) γ
+    simp only [h1]
+    exact bcIncl_σ θ D hΦ γ y
+
+/-- The base change morphism `D.level ⟶ Lv` (with a given morphism of models). -/
+def bcHom (ψ : D.c.scheme ⟶ Lv.c.scheme) (hψ : ψ ≫ Lv.c.toSpec = D.c.toSpec)
+    (hjψ : D.j ≫ ψ = Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.includeLeft :
+      Lv.L.B →ₐ[R] TensorProduct K Lv.L.B L).toRingHom) ≫ Lv.j) :
+    LevelHom O R A D.level Lv where
+  φ := bcLevelHom θ D hΦ
+  ψ := ψ
+  ψ_toSpec := hψ
+  j_ψ := by
+    change Spec.map (CommRingCat.ofHom ((LevelData.codeEquiv R (TensorProduct K Lv.L.B L)).symm :
+      TensorProduct K Lv.L.B L →+* (LevelData.code R (TensorProduct K Lv.L.B L)).B)) ≫ D.j ≫ ψ =
+      Spec.map (CommRingCat.ofHom (bcIncl D).toRingHom) ≫ Lv.j
+    rw [hjψ, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    rfl
+
+variable (Ω : Type u) [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+
+omit [Algebra R Ω] [IsScalarTower K R Ω] in
+lemma isBaseChange_bcHom [Algebra.Etale K L] [Module.Finite K L] [Finite Δ]
+    (hne : Nonempty (L →ₐ[K] Ω)) (htr : ∀ s₁ s₂ : L →ₐ[K] Ω, ∃ γ, s₂ = s₁.comp (θ γ).toAlgHom)
+    [IsSchemeTheoreticallyDominant D.level.j]
+    (ψ : D.c.scheme ⟶ Lv.c.scheme) (hψ : ψ ≫ Lv.c.toSpec = D.c.toSpec)
+    (hjψ : D.j ≫ ψ = Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.includeLeft :
+      Lv.L.B →ₐ[R] TensorProduct K Lv.L.B L).toRingHom) ≫ Lv.j) :
+    (bcHom θ D hΦ ψ hψ hjψ).IsBaseChange Ω := by
+  refine ⟨L, _, _, inferInstance, inferInstance, Δ, inferInstance, inferInstance, θ,
+    LevelData.codeEquiv R _, hne, htr, rfl, fun x => ?_, fun h γ hx => ?_,
+    LevelHom.isEquivariant_of_isSchemeTheoreticallyDominant _⟩
+  · refine (D.mem_H x).trans ⟨fun ⟨γ, e⟩ => ⟨γ.1, γ.2, e.trans (by rw [hΦ]; rfl)⟩,
+      fun ⟨h, γ, e⟩ => ⟨(h, γ), e.trans (by rw [hΦ]; rfl)⟩⟩
+  · have : (⟨_, hx⟩ : D.level.L.H) = D.proj (h, γ) := by
+      apply Subtype.ext
+      rw [LevelData.coe_proj, hΦ]
+      rfl
+    exact (congrArg (D.lift (MonoidHom.fst Lv.L.H Δ) (bc_ker θ D hΦ)) this).trans
+      (D.lift_proj _ _ _)
+
+end BCHom
 
 section Core
 
@@ -687,6 +771,63 @@ theorem exists_core (hW : SemistableReduction.Statement.Strong.{u}) (hR : ringKr
     | tmul b m => rfl
 
 end Core
+
+
+section Main
+
+variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
+  [HenselianLocalRing O] {R : Type u} [CommRing R] [Algebra K R] [Algebra.Smooth K R]
+  {A : Type u} [Group A] [MulSemiringAction A R] [SMulCommClass A K R] [Finite A]
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω] [IsAlgClosed Ω]
+
+omit [CharZero K] [IsDiscreteValuationRing O] [HenselianLocalRing O] [Algebra.Smooth K R]
+  [SMulCommClass A K R] [Finite A] [Algebra R Ω] [IsScalarTower K R Ω] in
+lemma nonempty_algHom_tensor_of_finiteDimensional (M K' : Type u) [CommRing M] [Algebra K M]
+    [Field K'] [Algebra K K'] [FiniteDimensional K K'] (h : Nonempty (M →ₐ[K] Ω)) :
+    Nonempty (TensorProduct K M K' →ₐ[K] Ω) :=
+  ⟨Algebra.TensorProduct.lift h.some (IsAlgClosed.lift : K' →ₐ[K] Ω) fun _ _ => .all _ _⟩
+
+omit [CharZero K] [IsDiscreteValuationRing O] [HenselianLocalRing O] [Algebra.Smooth K R]
+  [SMulCommClass A K R] [Finite A] [Algebra R Ω] [IsScalarTower K R Ω] [IsAlgClosed Ω] in
+lemma transitive_trivial (s₁ s₂ : K →ₐ[K] Ω) :
+    ∃ γ : PUnit.{u + 1}, s₂ = s₁.comp ((1 : PUnit.{u + 1} →* (K ≃ₐ[K] K)) γ).toAlgHom :=
+  ⟨1, Subsingleton.elim _ _⟩
+
+variable (Ω) in
+/-- **Every level has a semistable base change** (from W10): `AndreInput.refinement` for
+`bc := IsBaseChange`. -/
+theorem refinement_input (hW : SemistableReduction.Statement.Strong.{u})
+    (hR : ringKrullDim R = 1) (Lv : Level O R A) :
+    ∃ (Lv₃ : Level O R A) (ℓ : LevelHom O R A Lv₃ Lv), IsSemistableLevel Lv₃ ∧ ℓ.IsBaseChange Ω := by
+  haveI : IsNoetherianRing R := Algebra.FiniteType.isNoetherianRing K R
+  haveI := Lv.L.etale
+  haveI := Lv.L.finite
+  haveI := Lv.L.finite_H
+  have hj₀ : (Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.includeLeft :
+      Lv.L.B →ₐ[K] TensorProduct K Lv.L.B K).toRingHom) ≫ Lv.j) ≫ Lv.c.toSpec =
+      Spec.map (CommRingCat.ofHom ((algebraMap K (TensorProduct K Lv.L.B K)).comp O.subtype)) := by
+    rw [Category.assoc, Lv.j_toSpec, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    congr 2
+  obtain ⟨K', _, _, _, _, hK', hL, hLf, hC, hCf, D, dom, hss, hdomj, hΦ, hdomS, hdom⟩ :=
+    exists_core hW hR Lv.L.B Lv.L.H Lv.L.H.subtype
+      (fun a => let ⟨g, hg, h⟩ := Lv.L.surjective a; ⟨⟨g, hg⟩, h⟩) K PUnit.{u + 1} 1
+      PUnit.{u + 1} (fun _ => Lv.c) (fun _ => _) (fun _ => hj₀)
+  haveI := hdomj
+  let θ' : PUnit.{u + 1} × (K' ≃ₐ[K] K') →* (TensorProduct K K K' ≃ₐ[K] TensorProduct K K K') :=
+    (tensorAlgEquivHom K K').comp ((1 : PUnit.{u + 1} →* (K ≃ₐ[K] K)).prodMap (MonoidHom.id _))
+  have hne := nonempty_algHom_tensor_of_finiteDimensional (Ω := Ω) K K' ⟨Algebra.ofId K Ω⟩
+  haveI : Nontrivial (TensorProduct K K K') := hne.some.toRingHom.domain_nontrivial
+  have hjψ : D.j ≫ dom PUnit.unit = Spec.map (CommRingCat.ofHom
+      (Algebra.TensorProduct.includeLeft :
+        Lv.L.B →ₐ[R] TensorProduct K Lv.L.B (TensorProduct K K K')).toRingHom) ≫ Lv.j := by
+    rw [hdom, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    rfl
+  refine ⟨D.level, bcHom θ' D hΦ (dom PUnit.unit) (hdomS _) hjψ, hss,
+    isBaseChange_bcHom θ' D hΦ Ω hne (fun s₁ s₂ => ?_) _ _ _⟩
+  exact transitive_tensor Ω 1 (MonoidHom.id _) transitive_trivial
+    (fun s₁ s₂ => exists_algEquiv_comp_eq s₁ s₂) s₁ s₂
+
+end Main
 
 end
 
