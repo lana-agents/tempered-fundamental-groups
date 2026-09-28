@@ -65,3 +65,19 @@ Run it locally with `bash .orchestra/validation.sh`.
 ## Tracker
 
 Work is tracked in taxis: [#7](https://taxis.lana.merten.dev/issues/7)
+
+## For the étale fundamental group construction (coordination)
+
+`Iut.Anabelian.TemperedPi1Theory Pi1` needs a continuous homomorphism to `Pi1.pi1 X`. The iut
+branch `wp-tempered-iut` builds it as `temperedTheory Pi1 C` from a comparison
+`C : EtaleComparison Pi1` (`X.affineOrbifold.etalePi1 →* Pi1.pi1 X`, continuous). The parameter
+disappears if the étale theory is defined from the same presentation:
+
+```lean
+pi1 X := X.affineOrbifold.etalePi1Profinite   -- Iut.Anabelian.Orbicurve.affineOrbifold (iut)
+```
+
+(`AffineOrbifold.etalePi1Profinite`: `Aut` of the fibre functor on `A`-equivariant finite étale
+`R`-algebras, `R = geomOrbicurveRing`, at the generic geometric point; profinite; for trivial `A`
+it is `≃ₜ*` Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)`.) With a Galois-theoretic
+`pi1 X = Aut(Ω/F_X) ⧸ ⟨⟨inertia⟩⟩` instead, `C` is SGA 1 V.8.2 for this presentation.
