@@ -3,7 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.FibreFunctor.Topology
+import Pi1.Orbifold.FibreAut
 
 /-!
 # Characters of `Aut F` from deck transformations
@@ -23,7 +23,7 @@ the tempered group) is a separate question — see Blueprint §5 (G1).
 
 universe w v u
 
-open CategoryTheory
+open CategoryTheory Pi1.Orbifold Pi1.Orbifold.FibreAut
 
 namespace TemperedFundamentalGroups
 

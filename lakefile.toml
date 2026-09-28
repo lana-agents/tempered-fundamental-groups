@@ -23,3 +23,11 @@ name = "TemperedFundamentalGroups"
 name = "elliptic-curves"
 git = "https://github.com/lana-agents/elliptic-curves"
 rev = "bebec3fc9f2602e81c83e5236789572a541c85fb"
+
+# The étale fundamental group of an affine orbifold `[Spec R / A]` (`Pi1.Orbifold.etalePi1`), its
+# fibre-functor topology (`Pi1.Orbifold.FibreAut`) and the coded finite étale algebras
+# (`Pi1.Orbifold.EtaleCode`, `SemilinearAut`, `LevelRing`), shared with the `pi1` project.
+[[require]]
+name = "pi1"
+git = "https://github.com/lana-agents/pi1"
+rev = "60129404bd759f1a3653e87c2c9e6fbb21ec995e"

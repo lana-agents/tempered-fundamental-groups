@@ -29,7 +29,7 @@ which `σ` acts nontrivially.
 
 universe u
 
-open CategoryTheory AlgebraicGeometry
+open CategoryTheory AlgebraicGeometry Pi1.Orbifold
 
 namespace TemperedFundamentalGroups
 

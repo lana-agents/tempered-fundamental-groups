@@ -20,10 +20,13 @@ identification with André's definition, and what is cited rather than proved):
   `A`-action), *projective `O`-models* of them, and equivariant covering spaces of the special
   fibres of the models; the fibre over the geometric point `Spec Ω → Spec R` is computed through
   the specialization map of the model (valuative criterion, with a valuation `V` of `Ω` over `O`).
-* `TemperedFundamentalGroups.etalePi1 R A Ω` — automorphisms of the fibre functor on
-  `A`-equivariant finite étale `R`-algebras; profinite (`etalePi1Profinite`), and for trivial `A`
-  isomorphic as a topological group to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)`
-  (`etalePi1EquivAutFiber`).
+* `Pi1.Orbifold.etalePi1 R A Ω` (from the `pi1` project, a dependency) — automorphisms of the
+  fibre functor on `A`-equivariant finite étale `R`-algebras; profinite (`etalePi1Profinite`),
+  for trivial `A` isomorphic as a topological group to Mathlib's
+  `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` (`etalePi1EquivAutFiber`), and for a Galois
+  presentation isomorphic to the Galois-theoretic `GaloisPi1.pi1` (`GaloisData.equivPi1`). The
+  fibre-functor topology `Pi1.Orbifold.FibreAut` and the coded finite étale algebras
+  (`EtaleCode`, `SemilinearAut`) also come from `pi1`.
 * `TemperedFundamentalGroups.temperedToEtale` — the continuous comparison homomorphism.
 
 Both groups live in `Type u` (all categories are coded so as to be small), as required by

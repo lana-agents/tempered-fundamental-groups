@@ -3,7 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.FibreFunctor.Topology
+import Pi1.Orbifold.FibreAut
 
 /-!
 # Automorphism groups of fibre functors along realizations
@@ -28,7 +28,7 @@ different small presentations of one category of coverings.
 
 universe w v v' u u'
 
-open CategoryTheory
+open CategoryTheory Pi1.Orbifold Pi1.Orbifold.FibreAut
 
 namespace TemperedFundamentalGroups
 

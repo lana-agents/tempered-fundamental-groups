@@ -1,6 +1,5 @@
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.Realization
-import TemperedFundamentalGroups.FibreFunctor.Topology
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.Exact
@@ -21,9 +20,6 @@ import TemperedFundamentalGroups.Setup.Schmidt
 import TemperedFundamentalGroups.Setup.Valuation
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
-import TemperedFundamentalGroups.Tempered.Etale
-import TemperedFundamentalGroups.Tempered.EtaleMathlib
-import TemperedFundamentalGroups.Tempered.EtaleProfinite
 import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Topology.CountableFibres

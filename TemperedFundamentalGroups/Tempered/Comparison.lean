@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Tempered.Category
-import TemperedFundamentalGroups.Tempered.Etale
+import Pi1.Orbifold.Etale
 
 /-!
 # The comparison homomorphism from the tempered to the étale fundamental group
@@ -22,7 +22,7 @@ by restriction of automorphisms (`FibreAut.restrict`).
 
 universe u
 
-open CategoryTheory AlgebraicGeometry
+open CategoryTheory AlgebraicGeometry Pi1.Orbifold
 
 namespace TemperedFundamentalGroups
 
@@ -67,24 +67,25 @@ def trivialLevel (L : FiniteLevel R A) : Level O R A where
 variable {R A}
 
 /-- The level `(B, image of A)` of an equivariant finite étale algebra. -/
-abbrev EquivEtale.level (X : EquivEtale R A) : FiniteLevel R A where
+abbrev _root_.Pi1.Orbifold.EquivEtale.level (X : EquivEtale R A) : FiniteLevel R A where
   toEtaleCode := X.toEtaleCode
   H := X.act.range
   surjective a := ⟨X.act a, ⟨a, rfl⟩, X.act_a a⟩
 
-lemma EquivEtale.eq_act_of_mem (X : EquivEtale R A) {g : SemilinearAut R A X.B}
+lemma _root_.Pi1.Orbifold.EquivEtale.eq_act_of_mem (X : EquivEtale R A) {g : SemilinearAut R A X.B}
     (hg : g ∈ X.act.range) : g = X.act g.a := by
   obtain ⟨a, rfl⟩ := hg
   rw [X.act_a]
 
 /-- The homomorphism of the groups `H` induced by an equivariant map. -/
-def EquivEtale.levelR {X Y : EquivEtale R A} : X.level.H →* Y.level.H where
+def _root_.Pi1.Orbifold.EquivEtale.levelR {X Y : EquivEtale R A} : X.level.H →* Y.level.H where
   toFun g := ⟨Y.act g.1.a, ⟨_, rfl⟩⟩
   map_one' := by ext1; simp only [OneMemClass.coe_one, SemilinearAut.one_a, map_one]
   map_mul' g h := by ext1; simp only [Subgroup.coe_mul, SemilinearAut.mul_a, map_mul]
 
 /-- The morphism of levels induced by an equivariant map. -/
-def EquivEtale.levelMap {X Y : EquivEtale R A} (m : X ⟶ Y) : X.level ⟶ Y.level where
+def _root_.Pi1.Orbifold.EquivEtale.levelMap {X Y : EquivEtale R A} (m : X ⟶ Y) :
+    X.level ⟶ Y.level where
   f := m.f
   r := EquivEtale.levelR
   r_a g := Y.act_a _
@@ -92,7 +93,7 @@ def EquivEtale.levelMap {X Y : EquivEtale R A} (m : X ⟶ Y) : X.level ⟶ Y.lev
     change m.f ((Y.act g.1.a).σ y) = _
     rw [m.f_act, ← X.eq_act_of_mem g.2]
 
-lemma EquivEtale.H0_eq_one (X : EquivEtale R A) (g : X.level.H0) : g = 1 := by
+lemma _root_.Pi1.Orbifold.EquivEtale.H0_eq_one (X : EquivEtale R A) (g : X.level.H0) : g = 1 := by
   have h1 := FiniteLevel.mem_H0.1 g.2
   have h2 := X.eq_act_of_mem (g : X.level.H).2
   rw [h1, map_one] at h2

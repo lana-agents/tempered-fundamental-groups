@@ -3,7 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.FibreFunctor.Topology
+import Pi1.Orbifold.FibreAut
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Topology.CoveringCode
@@ -39,7 +39,7 @@ pointwise convergence (`FibreAut`).
 
 universe u
 
-open CategoryTheory AlgebraicGeometry
+open CategoryTheory AlgebraicGeometry Pi1.Orbifold
 
 namespace TemperedFundamentalGroups
 

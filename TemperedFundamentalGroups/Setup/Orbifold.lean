@@ -5,7 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Setup.Valuation
 import TemperedFundamentalGroups.Tempered.Comparison
-import TemperedFundamentalGroups.Tempered.EtaleProfinite
+import Pi1.Orbifold.EtaleProfinite
 
 /-!
 # Pointed affine orbifolds and their fundamental groups
@@ -23,6 +23,8 @@ With `O = canonicalValuationSubring k` this is the form in which the constructio
 -/
 
 universe u
+
+open Pi1.Orbifold
 
 namespace TemperedFundamentalGroups
 
@@ -60,11 +62,11 @@ lemma V_comap : (X.V O).comap (algebraMap k X.Ω) = O :=
 abbrev temperedPi1 : Type u := TemperedFundamentalGroups.temperedPi1 O X.R X.A (X.V O) (X.V_comap O)
 
 /-- **The étale fundamental group** of the orbifold. -/
-abbrev etalePi1 : Type u := TemperedFundamentalGroups.etalePi1 X.R X.A X.Ω
+abbrev etalePi1 : Type u := Pi1.Orbifold.etalePi1 X.R X.A X.Ω
 
 /-- The étale fundamental group as a profinite group. -/
 noncomputable abbrev etalePi1Profinite : ProfiniteGrp.{u} :=
-  TemperedFundamentalGroups.etalePi1Profinite X.R X.A X.Ω
+  Pi1.Orbifold.etalePi1Profinite X.R X.A X.Ω
 
 /-- **The comparison homomorphism** from the tempered to the étale fundamental group. -/
 noncomputable def temperedToEtale : X.temperedPi1 O →* X.etalePi1 :=

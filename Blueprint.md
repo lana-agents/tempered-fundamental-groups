@@ -133,7 +133,7 @@ equivariance).
   stabilizers of finitely many fibre elements (pointwise convergence on discrete fibres). It
   is a Hausdorff, totally separated, non-archimedean (prodiscrete) topological group.
 * `etalePi1 := Aut` of the fibre functor `B ↦ Hom_R(B, Ω)` on `A`-equivariant finite étale
-  `R`-algebras (`Tempered/Etale.lean`). This is the étale fundamental group of `[Y/A]` by
+  `R`-algebras (`Pi1/Orbifold/Etale.lean` of the `pi1` dependency). This is the étale fundamental group of `[Y/A]` by
   definition (SGA 1 V for `A = 1`; equivariant covers for the quotient stack). It is compact
   (profinite) since the fibres are finite.
 * `temperedToEtale : temperedPi1 →* etalePi1` (`Tempered/Comparison.lean`) is restriction along
@@ -182,7 +182,7 @@ semistable reduction.
 
 | # | Statement | File | Status |
 |---|-----------|------|--------|
-| A1 | Pointwise-convergence group topology on `Aut F`, `F : C ⥤ Type`; stabilizers are an open basis; `T2`, totally separated | `FibreFunctor/Topology.lean` | [L] |
+| A1 | Pointwise-convergence group topology on `Aut F`, `F : C ⥤ Type`; stabilizers are an open basis; `T2`, totally separated | `pi1`: `Pi1/Orbifold/FibreAut.lean` | [L] |
 | A2 | Restriction along `G : C' ⥤ C` with `G ⋙ F ≅ F'` gives a continuous hom `Aut F → Aut F'` | same | [L] |
 | A3 | If every `F c` is finite, `Aut F` is compact (profinite) | same | [L] |
 | B1 | `ℙ^m_O := Proj O[x₀..x_m]`, proper over `Spec O`; model codes are proper; `ℙ⁰_O ≅ Spec O` | `Models/Projective.lean` | [L] |
@@ -191,8 +191,8 @@ semistable reduction.
 | C1 | Covering codes over a space, `G`-equivariance, fibres, trivial coverings | `Topology/CoveringCode.lean` | [L] |
 | D1 | Levels `(B, H)`, `G_B`, `H⁰`, action on geometric fibres | `Tempered/Level.lean` | [L] |
 | D2 | The category `TempObj`, fibre functor `tempFibre`, `temperedPi1 := Aut` | `Tempered/Category.lean` | [L] |
-| D3 | `etalePi1` on `A`-equivariant finite étale algebras; functor `etaleToTemp`; continuous `temperedToEtale` | `Tempered/Etale.lean`, `Tempered/Comparison.lean` | [L] |
-| E1 | `etalePi1` is profinite; for `A = 1` it is `≃ₜ*` to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` | `Tempered/EtaleProfinite.lean`, `Tempered/EtaleMathlib.lean` | [L] |
+| D3 | `etalePi1` on `A`-equivariant finite étale algebras; functor `etaleToTemp`; continuous `temperedToEtale` | `pi1`: `Pi1/Orbifold/Etale.lean`; `Tempered/Comparison.lean` | [L] |
+| E1 | `etalePi1` is profinite; for `A = 1` it is `≃ₜ*` to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` | `pi1`: `Pi1/Orbifold/EtaleProfinite.lean`, `EtaleMathlib.lean` | [L] |
 | E2 | Step 3 of §4: restriction along a realization (essentially surjective, morphisms realized after refinement) is `≃ₜ*` | `FibreFunctor/Realization.lean` | [L] (abstract lemma; its hypotheses for André's category are steps 1–2, [C]) |
 | E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | `Topology/CountableFibres.lean` | [L] (topological lemma; the resulting equivalence of categories after adding coproducts is argued, not formalized) |
 | E4 | Galois elements: the decomposition group `{σ ∈ Aut_R(Ω) : σV = V}` acts on `temperedPi1` (`[(t,p)] ↦ [(σ∘t, p)]`, specialization is Galois invariant), compatibly with its action on `etalePi1` | `Tempered/Galois.lean`, `Models/Specialization.lean` (`sp_galois`) | [L] |
