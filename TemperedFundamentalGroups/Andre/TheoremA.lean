@@ -87,22 +87,29 @@ lemma isCartesianHom_id (X : TempObj O R A) : IsCartesianHom (𝟙 X) := by
   · exact Category.comp_id _
 
 variable (O R A Ω) in
-/-- **The geometric input for Theorem A** (Blueprint §10.2, A2 and A3). -/
-structure AndreInput : Prop where
+/-- **The geometric input for Theorem A** (Blueprint §10.2, A2 and A3), relative to a class `bc`
+of *admissible refinements* (in practice: base changes `B ↦ B ⊗_K L` along finite étale
+`K`-algebras `L`, with a new model from W10, and the identities). -/
+structure AndreInput (bc : ∀ {Lv' Lv : Level O R A}, LevelHom O R A Lv' Lv → Prop) : Prop where
+  /-- Identities are admissible. -/
+  bc_id : ∀ Lv : Level O R A, bc (LevelHom.id Lv)
+  /-- Admissible refinements are refinements. -/
+  bc_isRefinement : ∀ {Lv' Lv : Level O R A} (ℓ : LevelHom O R A Lv' Lv), bc ℓ →
+    ℓ.IsRefinement Ω
   /-- Tempered coverings pull back along refinements. -/
   pullback : ∀ (X : TempObj O R A) (Lv' : Level O R A) (ℓ : LevelHom O R A Lv' X.Lv),
     ℓ.IsRefinement Ω → ∃ (P' : CoveringCode Lv'.ρs) (m : (⟨Lv', P'⟩ : TempObj O R A) ⟶ X),
       LevelHom.ofTempHom m = ℓ ∧ Function.Bijective ((tempFibre O R A V hV).map m) ∧
         IsCartesianHom m
-  /-- Every level has a semistable refinement. -/
+  /-- Every level has a semistable admissible refinement. -/
   refinement : ∀ Lv : Level O R A, ∃ (Lv₃ : Level O R A) (ℓ : LevelHom O R A Lv₃ Lv),
-    IsSemistableLevel Lv₃ ∧ ℓ.IsRefinement Ω
-  /-- Two refinements over a morphism have a common semistable refinement. -/
+    IsSemistableLevel Lv₃ ∧ bc ℓ
+  /-- Two admissible refinements over a morphism have a common semistable admissible
+  refinement. -/
   common : ∀ {Lv₁ Lv Lv₂ Lv' : Level O R A} (ℓ₁ : LevelHom O R A Lv₁ Lv)
-    (ℓ₂ : LevelHom O R A Lv₂ Lv') (u : LevelHom O R A Lv Lv'),
-    ℓ₁.IsRefinement Ω → ℓ₂.IsRefinement Ω →
+    (ℓ₂ : LevelHom O R A Lv₂ Lv') (u : LevelHom O R A Lv Lv'), bc ℓ₁ → bc ℓ₂ →
       ∃ (Lv₃ : Level O R A) (μ₁ : LevelHom O R A Lv₃ Lv₁) (μ₂ : LevelHom O R A Lv₃ Lv₂),
-        IsSemistableLevel Lv₃ ∧ (μ₁.comp ℓ₁).IsRefinement Ω ∧ μ₁.IsEquivariant ∧
+        IsSemistableLevel Lv₃ ∧ bc (μ₁.comp ℓ₁) ∧ μ₁.IsEquivariant ∧
           μ₂.IsEquivariant ∧ (μ₁.comp ℓ₁).comp u = μ₂.comp ℓ₂
 
 open FibreAut
@@ -119,21 +126,21 @@ def spanOf {X : TempObj O R A} (c : (semistableObj O R A).FullSubcategory)
   bij_m := hm
   bij_n := by rw [CategoryTheory.Functor.map_id]; exact Function.bijective_id
 
-variable (Ω) in
-/-- Admissible spans: cartesian morphisms from semistable objects over refinements. -/
-def AdmSpan (X : TempObj O R A) (s : PhiSpan (tempFibre O R A V hV) (semistableObj O R A) X) :
-    Prop :=
+/-- Admissible spans: cartesian morphisms from semistable objects over admissible
+refinements. -/
+def AdmSpan (bc : ∀ {Lv' Lv : Level O R A}, LevelHom O R A Lv' Lv → Prop) (X : TempObj O R A)
+    (s : PhiSpan (tempFibre O R A V hV) (semistableObj O R A) X) : Prop :=
   ∃ (c : (semistableObj O R A).FullSubcategory) (m : (semistableObj O R A).ι.obj c ⟶ X)
     (hm : Function.Bijective ((tempFibre O R A V hV).map m)),
-    IsCartesianHom m ∧ (LevelHom.ofTempHom m).IsRefinement Ω ∧ s = spanOf V hV c m hm
+    IsCartesianHom m ∧ bc (LevelHom.ofTempHom m) ∧ s = spanOf V hV c m hm
 
-variable {V hV}
+variable {V hV} {bc : ∀ {Lv' Lv : Level O R A}, LevelHom O R A Lv' Lv → Prop}
 
-lemma hasPhiSpans (hI : AndreInput O R A Ω V hV) :
-    HasPhiSpans (tempFibre O R A V hV) (semistableObj O R A) (AdmSpan Ω V hV) where
+lemma hasPhiSpans (hI : AndreInput O R A Ω V hV bc) :
+    HasPhiSpans (tempFibre O R A V hV) (semistableObj O R A) (AdmSpan V hV bc) where
   nonempty X := by
     obtain ⟨Lv₃, ℓ, hss, hℓ⟩ := hI.refinement X.Lv
-    obtain ⟨P', m, hmℓ, hbij, hcart⟩ := hI.pullback X Lv₃ ℓ hℓ
+    obtain ⟨P', m, hmℓ, hbij, hcart⟩ := hI.pullback X Lv₃ ℓ (hI.bc_isRefinement ℓ hℓ)
     let c : (semistableObj O R A).FullSubcategory :=
       ⟨⟨Lv₃, P'⟩, (show IsSemistableLevel Lv₃ from hss)⟩
     exact ⟨spanOf V hV c m hbij, c, m, hbij, hcart, hmℓ ▸ hℓ, rfl⟩
@@ -142,7 +149,8 @@ lemma hasPhiSpans (hI : AndreInput O R A Ω V hV) :
     obtain ⟨c', m', hm', hcart', href', rfl⟩ := hs'
     obtain ⟨Lv₃, μ₁, μ₂, hss, hμ, he₁, he₂, hcomm⟩ :=
       hI.common (LevelHom.ofTempHom m) (LevelHom.ofTempHom m') (LevelHom.ofTempHom u) href href'
-    obtain ⟨P₃, m₃, hm₃ℓ, hbij₃, hcart₃⟩ := hI.pullback X Lv₃ _ hμ
+    obtain ⟨P₃, m₃, hm₃ℓ, hbij₃, hcart₃⟩ :=
+      hI.pullback X Lv₃ _ (hI.bc_isRefinement _ hμ)
     let c₃ : (semistableObj O R A).FullSubcategory :=
       ⟨⟨Lv₃, P₃⟩, (show IsSemistableLevel Lv₃ from hss)⟩
     obtain ⟨w, -, hw⟩ := hcart c₃.obj μ₁ he₁ m₃ hm₃ℓ
@@ -155,17 +163,18 @@ lemma hasPhiSpans (hI : AndreInput O R A Ω V hV) :
     · change 𝟙 _ ≫ w' = w' ≫ 𝟙 _
       rw [Category.id_comp, Category.comp_id]
 
-lemma admSpan_idSpan (c : (semistableObj O R A).FullSubcategory) :
-    AdmSpan Ω V hV ((semistableObj O R A).ι.obj c) (idSpan c) := by
+lemma admSpan_idSpan (hI : AndreInput O R A Ω V hV bc)
+    (c : (semistableObj O R A).FullSubcategory) :
+    AdmSpan V hV bc ((semistableObj O R A).ι.obj c) (idSpan c) := by
   refine ⟨c, 𝟙 _, ?_, isCartesianHom_id _, ?_, rfl⟩
   · rw [CategoryTheory.Functor.map_id]; exact Function.bijective_id
-  · rw [LevelHom.ofTempHom_id]; exact LevelHom.isRefinement_id Ω _
+  · rw [LevelHom.ofTempHom_id]; exact hI.bc_id _
 
 /-- **Theorem A** (Blueprint §10.1): given the geometric input, the tempered fundamental group is
 André's group, by restriction. -/
-def andreEquivOfInput (hI : AndreInput O R A Ω V hV) :
+def andreEquivOfInput (hI : AndreInput O R A Ω V hV bc) :
     temperedPi1 O R A V hV ≃ₜ* andreGroup O R A V hV :=
-  restrictEquivOfPhiSpans (hasPhiSpans hI) admSpan_idSpan
+  restrictEquivOfPhiSpans (hasPhiSpans hI) (admSpan_idSpan hI)
 
 end
 
