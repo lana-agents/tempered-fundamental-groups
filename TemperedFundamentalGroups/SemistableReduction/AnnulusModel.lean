@@ -409,6 +409,30 @@ lemma isSemistable_of_algEquiv {ϖ : 𝒪} {M A : Type u} [CommRing M] [Algebra 
 
 variable {w₁ w₂ : Valuation F Γ₀}
 
+/-- A polynomial chart in a Gauss coordinate is semistable: it is `O`-isomorphic to `O[X]`. -/
+theorem polyChart_isSemistable {w : Valuation F Γ₀} {z : F} (h : IsGaussCoord v w z) {ϖ : 𝒪}
+    [Algebra 𝒪 (polyChart v z)]
+    (hcomp : ∀ o, ((algebraMap 𝒪 (polyChart v z) o : polyChart v z) : F) = algebraMap 𝒪 F o) :
+    IsSemistable ϖ (polyChart v z) :=
+  isSemistable_of_algEquiv ((AlgEquiv.ofInjective _ (aeval_injective' h)).trans
+    (equivChart _ hcomp (range_aeval _))) IsSemistable.polynomial
+
+/-- A node chart `O[y, ϖⁿ / y]` in a Gauss coordinate `y` is semistable: it is `O`-isomorphic to
+the node `O[u, v] ⧸ (u v - ϖ ^ n)`. -/
+theorem nodeChart_isSemistable {w : Valuation F Γ₀} (h : IsGaussCoord v w y) {ϖ : 𝒪} {n : ℕ}
+    (hc : c = ((ϖ ^ n : 𝒪) : K)) (hc0 : c ≠ 0) [Algebra 𝒪 (nodeChart v y c)]
+    (hcomp : ∀ o, ((algebraMap 𝒪 (nodeChart v y c) o : nodeChart v y c) : F) =
+      algebraMap 𝒪 F o) :
+    IsSemistable ϖ (nodeChart v y c) := by
+  have hcO : v c ≤ 1 := by rw [hc]; exact (ϖ ^ n).2
+  have he : elemO hcO = ϖ ^ n := Subtype.ext hc
+  have hN : IsSemistable ϖ (Node 𝒪 (elemO hcO)) := by
+    rw [he]
+    exact IsSemistable.node n
+  exact isSemistable_of_algEquiv
+    ((AlgEquiv.ofInjective _ (nodeLift_injective h hc0 hcO)).trans
+      (equivChart _ hcomp (range_nodeLift _ _))) hN
+
 /-- **The annulus model is semistable** (for `c = ϖ ^ n`): its charts, with any `O`-algebra
 structure compatible with `F` (e.g. `chartAlgebra`), are `O`-isomorphic to the affine line `O[X]`
 and to the node `O[u, v] ⧸ (u v - ϖ ^ n)`. -/
@@ -418,21 +442,10 @@ theorem annulus_isSemistable (h₁ : IsGaussCoord v w₁ y)
     (hA : A ∈ (annulus v y c).charts) [Algebra 𝒪 A]
     (hcomp : ∀ o, ((algebraMap 𝒪 A o : A) : F) = algebraMap 𝒪 F o) :
     IsSemistable ϖ A := by
-  have hcO : v c ≤ 1 := by rw [hc]; exact (ϖ ^ n).2
   rcases mem_annulus_charts.1 hA with rfl | rfl | rfl
-  · exact isSemistable_of_algEquiv
-      ((AlgEquiv.ofInjective _ (aeval_injective' h₁.inv)).trans
-        (equivChart _ hcomp (range_aeval _))) IsSemistable.polynomial
-  · have he : elemO hcO = ϖ ^ n := Subtype.ext hc
-    have hN : IsSemistable ϖ (Node 𝒪 (elemO hcO)) := by
-      rw [he]
-      exact IsSemistable.node n
-    exact isSemistable_of_algEquiv
-      ((AlgEquiv.ofInjective _ (nodeLift_injective h₁ hc0 hcO)).trans
-        (equivChart _ hcomp (range_nodeLift _ _))) hN
-  · exact isSemistable_of_algEquiv
-      ((AlgEquiv.ofInjective _ (aeval_injective' h₂)).trans
-        (equivChart _ hcomp (range_aeval _))) IsSemistable.polynomial
+  · exact polyChart_isSemistable h₁.inv hcomp
+  · exact nodeChart_isSemistable h₁ hc hc0 hcomp
+  · exact polyChart_isSemistable h₂ hcomp
 
 end Iso
 
