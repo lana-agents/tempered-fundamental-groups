@@ -1,3 +1,4 @@
+import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.Topology
 import TemperedFundamentalGroups.Models.Projective

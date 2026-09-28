@@ -198,8 +198,41 @@ semistable reduction.
 | F1 | Orbicurve presentation: `Y = E ∖ S` with `S = E(k)[ℓ] + M` (rational points; `= E[ℓ]` when `E[ℓ] ⊆ E(k)`, as at all places used by IUT), `A = M` or `M ⋊ {±1}` acting by translations and negation on the function field; `orbicurveOrbifold` | `Orbicurve/` | [L] (identification with `(E/M) ∖ (E[ℓ]/M)` when `E[ℓ] ⊄ E(k)` not claimed) |
 | F2 | Canonical valuation on `k` (the henselian DVR if one exists, else trivial); Chevalley extension to `Ω`; pointed affine orbifolds | `Setup/Valuation.lean`, `Setup/Orbifold.lean` | [L]; canonicity (F. K. Schmidt) [C] |
 | F3 | `TemperedPi1Theory` instance from the above and a continuous comparison `etalePi1 → Pi1.pi1` (the identity if the étale theory uses `AffineOrbifold.etalePi1Profinite`) | iut branch `wp-tempered-iut`, `Iut/Anabelian/Tempered.lean` (`temperedTheory Pi1 C`) | [L] modulo the comparison `C`, which needs the sibling's étale construction |
-| G1 | Non-degeneracy witness: `π₁^temp(E_q ∖ E[ℓ]) ↠ ℤ` (discrete, not profinite) | — | [✗] for now: exhibiting elements of `Aut Φ` requires acting compatibly on *all* objects, i.e. the classification of tempered coverings (steps 1–2) or analytic path lifting |
+| G1 | Non-degeneracy witness: `π₁^temp(E_q ∖ E[ℓ]) ↠ ℤ` (discrete, not profinite) | `FibreFunctor/Character.lean` (the continuous character `Aut Φ → D` of any deck torsor; surjectivity criterion) | character [L]; surjectivity [✗], see §5.1 |
 | G2 | Steps 1–2 of §4 | — | [✗] (needs Berkovich spaces / semistable reduction) |
+
+### 5.1 The non-degeneracy witness (G1): what is proved and the precise obstruction
+
+*Proved.* If an object `X₀` of `TempObj` carries deck transformations `δ : ℤ →* Aut X₀` acting
+simply transitively on `Φ(X₀)` (e.g. the universal covering of a cycle of `P¹`'s in the special
+fibre of a model), then `α ↦ (the translation by which α acts on Φ(X₀))` is a continuous
+homomorphism `temperedPi1 → ℤ` (`FibreAut.deckCharacter`), and it is surjective iff some `α`
+moves the base point by the generator (`deckCharacter_surjective_iff`). The Galois elements
+(`galoisToTempered`) cannot provide this: they form a compact image, whose image in the discrete
+group `ℤ` is finite, hence `0`.
+
+*Obstruction.* An element of `Aut Φ` must be given on **every** object — every finite étale
+cover `T` of `[Y/A]`, every projective model of `T`, every equivariant covering of its special
+fibre — compatibly. Constructing the element realizing the generator of `ℤ` therefore requires the
+Galois theory of `TempObj`:
+1. directedness of levels (common Galois covers; common refinements of models: closure of the
+   diagonal image in a product of projective models, re-embedded by Segre — algebraic, feasible);
+2. for a fixed level, `Aut Φ|_level = π₁^orb(H ↷ |𝒯_s|)` (covering-space theory of noetherian
+   spaces with a finite group action — topological, feasible);
+3. surjectivity of the transition maps `π₁(|𝒯'_s|) → π₁(|𝒯_s|)` under refinement — needs connected
+   fibres of `𝒯' → 𝒯` on special fibres (Zariski's connectedness for *normal* models), so the
+   index system must be restricted to normal models (normalization of projective models inside
+   the codes — feasible but substantial);
+4. existence of an element of the inverse limit of these (discrete, infinite) groups lifting the
+   generator: the index system is uncountable (all models over an uncountable `K_v`), so
+   Mittag-Leffler does not apply; the argument of André/Lepage uses that for each `T` the
+   groups `π₁(|𝒯_s|)` **stabilize** once `𝒯` is semistable with loop-free dual graph, i.e. the
+   **semistable reduction theorem** for all finite étale covers `T` (steps 1–2 of §4). This is
+   the genuine blocker.
+5. independently, an explicit object `X₀`: a projective `O`-model of the Tate curve (or of a
+   finite étale cover of `E_q ∖ E[ℓ]`) whose special fibre contains a cycle, e.g. the blow-up of
+   the Weierstrass model at the node, written as a closed subscheme of `ℙ^m_O` with the map from
+   `Y` — explicit but heavy commutative algebra.
 
 ## 6. Interface findings (iut)
 
