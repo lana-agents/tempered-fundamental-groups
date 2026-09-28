@@ -103,6 +103,126 @@ lemma not_all_X_mem (y : projSpace O 2) (h0 : X 0 ∈ y.asHomogeneousIdeal)
   fin_cases i
   exacts [hi h0, hi h1, hi h2]
 
+
+/-! ### The map from the affine curve -/
+
+section Map
+
+variable {T : Type u} [CommRing T] (φ : O →+* T) (x y : T)
+
+lemma isHomogeneous_F : (F π b₄ b₆).IsHomogeneous 3 := by
+  unfold F
+  refine ((((((isHomogeneous_X_pow _ _).mul (isHomogeneous_X _ _)).add
+    (((isHomogeneous_X _ _).mul (isHomogeneous_X _ _)).mul (isHomogeneous_X _ _))).sub
+    (isHomogeneous_C_mul_X_pow _ _ _)).sub ?_).sub (isHomogeneous_C_mul_X_pow _ _ _))
+  exact ((isHomogeneous_C _ _).mul (isHomogeneous_X _ _)).mul (isHomogeneous_X_pow _ _)
+
+/-- The point `[x : y : π]` of `ℙ²` with values in `T`, as an evaluation. -/
+def evalPt : MvPolynomial (Fin (2 + 1)) O →+* T := eval₂Hom φ ![x, y, φ π]
+
+lemma evalPt_F {x y : T} (heq : y ^ 2 + x * y = x ^ 3 + φ (π ^ 2 * b₄) * x + φ (π ^ 2 * b₆)) :
+    evalPt π φ x y (F π b₄ b₆) = 0 := by
+  simp only [evalPt, F, map_sub, map_add, map_mul, map_pow, eval₂Hom_X', eval₂Hom_C] at heq ⊢
+  simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two, Matrix.head_cons,
+    Matrix.tail_cons]
+  linear_combination φ π * heq
+
+/-- `evalPt` as a map to the global sections of `Spec T`. -/
+def evalΓ : MvPolynomial (Fin (2 + 1)) O →+* Γ(Spec (CommRingCat.of T), ⊤) :=
+  (Scheme.ΓSpecIso (CommRingCat.of T)).inv.hom.comp (evalPt π φ x y)
+
+lemma map_irrelevant_evalΓ (hπ : IsUnit (φ π)) :
+    (HomogeneousIdeal.irrelevant 𝒜).toIdeal.map (evalΓ π φ x y) = ⊤ := by
+  refine Ideal.eq_top_of_isUnit_mem _ (Ideal.mem_map_of_mem _
+    (HomogeneousIdeal.mem_irrelevant_of_mem _ one_pos (X_mem_one (R := O) 2))) ?_
+  simp only [evalΓ, evalPt, RingHom.coe_comp, Function.comp_apply, eval₂Hom_X']
+  exact hπ.map _
+
+/-- **The map `Spec T → ℙ²_O`, `[x : y : π]`.** -/
+def toProj (hπ : IsUnit (φ π)) : Spec (CommRingCat.of T) ⟶ projSpace O 2 :=
+  Proj.fromOfGlobalSections 𝒜 (evalΓ π φ x y) (map_irrelevant_evalΓ π φ x y hπ)
+
+lemma toProj_toSpec (hπ : IsUnit (φ π)) :
+    toProj π φ x y hπ ≫ projSpace.toSpec O 2 = Spec.map (CommRingCat.ofHom φ) := by
+  have h1 := Proj.fromOfGlobalSections_toSpecZero 𝒜 (evalΓ π φ x y)
+    (map_irrelevant_evalΓ π φ x y hπ)
+  have h2 : toProj π φ x y hπ ≫ projSpace.toSpec O 2 =
+      (Proj.fromOfGlobalSections 𝒜 (evalΓ π φ x y) (map_irrelevant_evalΓ π φ x y hπ) ≫
+        Proj.toSpecZero 𝒜) ≫ Spec.map (CommRingCat.ofHom (algebraMap O (𝒜 0))) :=
+    (Category.assoc _ _ _).symm
+  rw [h2, h1, Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+  have : ((evalΓ π φ x y).comp (algebraMap (𝒜 0) (MvPolynomial (Fin (2 + 1)) O))).comp
+      (algebraMap O (𝒜 0)) = (Scheme.ΓSpecIso (CommRingCat.of T)).inv.hom.comp φ := by
+    ext c
+    simp [evalΓ, evalPt]
+  rw [this, CommRingCat.ofHom_comp, Spec.map_comp, ← Category.assoc]
+  rw [CommRingCat.ofHom_hom, ← SpecMap_ΓSpecIso_hom, ← Spec.map_comp, Iso.inv_hom_id,
+    Spec.map_id, Category.id_comp]
+
+lemma F_mem_toProj {x y : T} (heq : y ^ 2 + x * y = x ^ 3 + φ (π ^ 2 * b₄) * x + φ (π ^ 2 * b₆))
+    (hπ : IsUnit (φ π)) (s : Spec (CommRingCat.of T)) :
+    F π b₄ b₆ ∈ (toProj π φ x y hπ s).asHomogeneousIdeal := by
+  have h := Proj.fromOfGlobalSections_preimage_basicOpen 𝒜 (evalΓ π φ x y)
+    (map_irrelevant_evalΓ π φ x y hπ) (by norm_num : 0 < 3) (isHomogeneous_F π b₄ b₆)
+  have h0 : evalΓ π φ x y (F π b₄ b₆) = 0 := by
+    rw [evalΓ, RingHom.comp_apply, evalPt_F π b₄ b₆ φ heq, map_zero]
+  rw [h0, Scheme.basicOpen_zero] at h
+  by_contra hs
+  have : s ∈ toProj π φ x y hπ ⁻¹ᵁ Proj.basicOpen 𝒜 (F π b₄ b₆) := hs
+  exact absurd (h.le this) (by simp)
+
+lemma radical_ker_le {X' Y' : Scheme.{u}} [IsReduced X'] (f : X' ⟶ Y') :
+    f.ker.radical ≤ f.ker := by
+  change _ ≤ Scheme.IdealSheafData.ofIdeals _
+  rw [Scheme.IdealSheafData.le_ofIdeals_iff]
+  intro U a ha
+  rw [Scheme.IdealSheafData.radical_ideal] at ha
+  obtain ⟨n, hn⟩ := ha
+  have h := Scheme.Hom.ideal_ker_le f U hn
+  rw [RingHom.mem_ker, map_pow] at h
+  rw [RingHom.mem_ker]
+  exact IsNilpotent.eq_zero ⟨n, h⟩
+
+lemma vanishingIdeal_le_ker [IsReduced T] {x y : T}
+    (heq : y ^ 2 + x * y = x ^ 3 + φ (π ^ 2 * b₄) * x + φ (π ^ 2 * b₆)) (hπ : IsUnit (φ π)) :
+    modelIdeal π b₄ b₆ ≤ (toProj π φ x y hπ).ker := by
+  have : QuasiCompact (toProj π φ x y hπ) := by
+    have : QuasiCompact (toProj π φ x y hπ ≫ projSpace.toSpec O 2) := by
+      rw [toProj_toSpec]
+      infer_instance
+    exact .of_comp _ (projSpace.toSpec O 2)
+  refine le_trans ?_ (radical_ker_le _)
+  rw [← Scheme.IdealSheafData.vanishingIdeal_support]
+  refine Scheme.IdealSheafData.vanishingIdeal_antimono ?_
+  change (↑((toProj π φ x y hπ).ker.support) : Set (projSpace O 2)) ⊆ _
+  rw [Scheme.Hom.support_ker]
+  refine (cubicSet π b₄ b₆).isClosed.closure_subset_iff.2 ?_
+  rintro _ ⟨s, rfl⟩
+  exact not_not.2 (F_mem_toProj π b₄ b₆ φ heq hπ s)
+
+/-- **The map `j : Spec T → 𝒯`** into the model, for a reduced `O`-algebra `T` with a point
+`(x, y)` of `E` such that `π` is a unit. -/
+def toModel [IsReduced T] {x y : T}
+    (heq : y ^ 2 + x * y = x ^ 3 + φ (π ^ 2 * b₄) * x + φ (π ^ 2 * b₆)) (hπ : IsUnit (φ π)) :
+    Spec (CommRingCat.of T) ⟶ (modelIdeal π b₄ b₆).subscheme :=
+  (toProj π φ x y hπ).toImage ≫
+    Scheme.IdealSheafData.inclusion (vanishingIdeal_le_ker π b₄ b₆ φ heq hπ)
+
+lemma toModel_ι [IsReduced T] {x y : T}
+    (heq : y ^ 2 + x * y = x ^ 3 + φ (π ^ 2 * b₄) * x + φ (π ^ 2 * b₆)) (hπ : IsUnit (φ π)) :
+    toModel π b₄ b₆ φ heq hπ ≫ ι π b₄ b₆ = toProj π φ x y hπ := by
+  rw [toModel, Category.assoc, Scheme.IdealSheafData.inclusion_subschemeι,
+    Scheme.Hom.toImage_imageι]
+
+/-- `j` lies over `O`. -/
+lemma toModel_toSpec [IsReduced T] {x y : T}
+    (heq : y ^ 2 + x * y = x ^ 3 + φ (π ^ 2 * b₄) * x + φ (π ^ 2 * b₆)) (hπ : IsUnit (φ π)) :
+    toModel π b₄ b₆ φ heq hπ ≫ (model π b₄ b₆).toSpec = Spec.map (CommRingCat.ofHom φ) := by
+  change toModel π b₄ b₆ φ heq hπ ≫ ι π b₄ b₆ ≫ projSpace.toSpec O 2 = _
+  rw [← Category.assoc, toModel_ι, toProj_toSpec]
+
+end Map
+
 variable [IsLocalRing O]
 
 /-- The special fibre of the model. -/
