@@ -7,26 +7,33 @@ import TemperedFundamentalGroups.SemistableReduction.Gauss
 import TemperedFundamentalGroups.SemistableReduction.ZariskiModel
 
 /-!
-# The projective line of a Gauss valuation
+# Models of `K(X)` with Gauss vertices
 
-Blueprint §9.6 (W5), layer M2. Let `v` be a valuation on `K` with valuation subring `O`, and
-`F = K(y)` a rational function field on which `w` is the Gauss valuation in the coordinate `y`:
-`w(Q(y)) = max_i v(Qᵢ)` (`IsGaussCoord v w y`). The model `ℙ¹_O` with coordinate `y`
-(`ZariskiModel.line v y`, charts `O[y]` and `O[y⁻¹]`) is a proper separated Zariski model of
-finite type whose vertex set is `{O_w}`:
+Blueprint §9.6 (W5), layers M2 and M5. Let `v` be a valuation on `K` with valuation subring
+`O`, and `F = K(y)` a rational function field on which `w` is the Gauss valuation in the
+coordinate `y`: `w(Q(y)) = max_i v(Qᵢ)` (`IsGaussCoord v w y`).
 
-* `mem_polyChart_iff`: `O[y]` consists of the `Q(y)` with `max_i v(Qᵢ) ≤ 1`;
+* `mem_polyChart_iff`: the chart `O[y]` consists of the `Q(y)` with `max_i v(Qᵢ) ≤ 1`;
 * `IsGaussCoord.localAt_polyChart`: the local ring of `O[y]` at the generic point of the special
   fibre is the valuation ring of `w`;
-* `IsGaussCoord.eq_of_localAt_eq`: conversely, a valuation subring `W` of `F` over `O` which is a
-  local ring of `O[y]` is the valuation ring of `w` (other points of the special fibre have
-  local rings which are not valuation rings: at a closed point, the maximal ideal contains a
-  prime element `q(y)` and `ϖ ∈ 𝔪_O` which divide neither each other);
-* `line_isProper`, `line_isSeparated`, `line_isFiniteType`, `line_vertexSet`.
+* `IsGaussCoord.eq_of_localAt_eq`: conversely (for nontrivial `v`), a valuation subring `W` of `F`
+  over `O` which is a local ring of `O[y]` is `O_w` (at a closed point of the special fibre the
+  maximal ideal contains a prime element `q(y)` and `ϖ ∈ 𝔪_O`, which divide neither each other);
+* `IsGaussCoord.eq_of_isResidueTranscendental`: a valuation subring `W ∋ y` over `O` in which the
+  residue of `y` is transcendental is `O_w` (cf. W2);
+* the model `ℙ¹_O` with coordinate `y` (`ZariskiModel.line v y`, charts `O[y]` and `O[y⁻¹]`) is
+  proper, separated, of finite type, with vertex set `{O_w}` (`line_vertexSet`);
+* **joins**: for finitely many Gauss coordinates `y i` of valuations `w i`, the join
+  `ZariskiModel.lines v y` of the lines is proper, separated, of finite type, with vertex set
+  exactly `{O_{w i}}` (`lines_vertexSet`; by residue generation a vertex has a coordinate `y i`
+  or `y i⁻¹` with transcendental residue).
 
 For the Gauss valuation `w_{a,r}` of `K(X)` (`gaussRat v a r`, W1) the coordinate is
-`t = (X - a)/c` with `v(c) = r` (`isGaussCoord_gaussLin`), and `gaussModel v a c` is the model of
-`K(X)` with vertex set `{O_{w_{a,r}}}` (`gaussModel_vertexSet`).
+`t = (X - a)/c` with `v(c) = r` (`isGaussCoord_gaussCoord`); `gaussModel v a c` is `ℙ¹_O` in this
+coordinate (vertex set `{O_{w_{a,r}}}`, `gaussModel_vertexSet`), and `gaussJoinModel v a c` the
+join for families `a i, c i` (vertex set `{O_{w_{a i, r i}}}`, `gaussJoinModel_vertexSet`): every
+finite set of Gauss valuations of `K(X)` is the vertex set of a proper separated model of finite
+type, for any valuation `v`.
 -/
 
 open Polynomial IntermediateField
@@ -377,6 +384,50 @@ theorem eq_of_localAt_eq (hv : ∃ ϖ : K, ϖ ≠ 0 ∧ v ϖ < 1)
   refine W.mul_mem _ _ (hAW (mem_polyChart_iff.2 ⟨P, hP, rfl⟩)) ?_
   rw [← W.valuation_le_one_iff, map_inv₀, hQW, inv_one]
 
+omit hW hAW in
+/-- The Gauss coordinate has residue transcendental over `κ(v)` in the residue field of `w`. -/
+theorem isResidueTranscendental :
+    IsResidueTranscendental v.valuationSubring w.valuationSubring y := by
+  refine ⟨show w y ≤ 1 by rw [h.valuation_self], fun P hP ↦ ?_⟩
+  rw [valuationSubring_valuation_eq_one_iff, h.eq_sup]
+  exact sup_one_map_eq P hP
+
+omit hAW in
+include hW in
+/-- **A Gauss valuation is determined by a transcendental residue** (cf. W2): if `W ∩ K = O` and
+the residue of the Gauss coordinate `y ∈ W` of `w` is transcendental over `κ(v)`, then
+`W = O_w`. -/
+theorem eq_of_isResidueTranscendental
+    (hy : IsResidueTranscendental v.valuationSubring W y) : W = w.valuationSubring := by
+  have hQ : ∀ Q : K[X], Gauss.sup v 1 Q = 1 → W.valuation (aeval y Q) = 1 := by
+    intro Q hQ
+    obtain ⟨P, rfl⟩ := ValuationResidue.exists_map_eq Q (coeff_le_one_of_sup_le_one hQ.le)
+    refine hy.2 P fun h0 ↦ ?_
+    obtain ⟨j, hj⟩ := exists_term_eq_sup (v := v) (r := 1) (P.map (algebraMap _ K))
+    have hres : IsLocalRing.residue v.valuationSubring (P.coeff j) = 0 := by
+      simpa using congrArg (coeff · j) h0
+    have hnu : ¬IsUnit (P.coeff j) := by
+      rw [← IsLocalRing.residue_ne_zero_iff_isUnit, not_not]
+      exact hres
+    rw [(Valuation.valuationSubring.integers v).isUnit_iff_valuation_eq_one] at hnu
+    apply hnu
+    simpa [term, hQ] using hj
+  ext x
+  obtain ⟨P, Q, hQ1, rfl⟩ := h.exists_eq_div x
+  rcases eq_or_ne P 0 with rfl | hP0
+  · simp only [map_zero, zero_div]
+    exact ⟨fun _ ↦ zero_mem _, fun _ ↦ zero_mem _⟩
+  obtain ⟨d, hd, hdP⟩ := exists_sup_eq_one (v := v) hP0
+  have hPe : aeval y P = algebraMap K F d⁻¹ * aeval y (C d * P) := by
+    rw [map_mul, aeval_C, ← mul_assoc, ← map_mul, inv_mul_cancel₀ hd, map_one, one_mul]
+  have hWx : W.valuation (aeval y P / aeval y Q) = W.valuation (algebraMap K F d⁻¹) := by
+    rw [map_div₀, hPe, map_mul, hQ (C d * P) hdP, hQ Q hQ1, mul_one, div_one]
+  have hwx : w (aeval y P / aeval y Q) = v d⁻¹ := by
+    rw [map_div₀, hPe, map_mul, h.valuation_algebraMap, h.eq_sup, hdP, h.eq_sup, hQ1, mul_one,
+      div_one]
+  rw [← W.valuation_le_one_iff, hWx, W.valuation_le_one_iff, ← ValuationSubring.mem_comap, hW,
+    Valuation.mem_valuationSubring_iff, Valuation.mem_valuationSubring_iff, hwx]
+
 end IsGaussCoord
 
 /-! ### The model `ℙ¹_O` -/
@@ -441,21 +492,100 @@ theorem line_center {W : ValuationSubring F} (hW : baseRing F v.valuationSubring
 
 variable {w : Valuation F Γ₀}
 
-/-- **The vertex set of `ℙ¹_O` with Gauss coordinate `y` is `{O_w}`** (for nontrivial `v`). -/
-theorem line_vertexSet (h : IsGaussCoord v w y) (hv : ∃ ϖ : K, ϖ ≠ 0 ∧ v ϖ < 1) :
-    (line v y).vertexSet = {w.valuationSubring} := by
+lemma exists_eq_polyChart_of_mem_line_charts {A : Subring F} (hA : A ∈ (line v y).charts) :
+    ∃ z, (z = y ∨ z = y⁻¹) ∧ A = polyChart v z := by
+  rcases mem_line_charts.1 hA with rfl | rfl
+  · exact ⟨y, .inl rfl, rfl⟩
+  · exact ⟨y⁻¹, .inr rfl, rfl⟩
+
+/-- **The vertex set of `ℙ¹_O` with Gauss coordinate `y` is `{O_w}`.** (For nontrivial `v`,
+`IsGaussCoord.eq_of_localAt_eq` shows more: `O_w` is the only valuation subring over `O`, of
+type 2 or not, which is a local ring of the model.) -/
+theorem line_vertexSet (h : IsGaussCoord v w y) : (line v y).vertexSet = {w.valuationSubring} := by
   ext W
   rw [Set.mem_singleton_iff]
   constructor
-  · rintro ⟨hW, A, hA, W', hAW', hloc⟩
-    have hAW : A ≤ W.toSubring := hloc ▸ le_localAt
-    have hloc' := localAt_eq_of_localAt_eq hAW' hloc
-    rcases mem_line_charts.1 hA with rfl | rfl
-    · exact h.eq_of_localAt_eq hW hAW hv hloc'
-    · exact h.inv.eq_of_localAt_eq hW hAW hv hloc'
+  · intro hWv
+    obtain ⟨A, hA, -, hloc⟩ := exists_localAt_eq_of_mem_vertexSet hWv
+    obtain ⟨z, hz, rfl⟩ := exists_eq_polyChart_of_mem_line_charts hA
+    obtain ⟨s, hs, hst⟩ := exists_isResidueTranscendental_of_localAt_eq hWv.1 hloc hWv.2.1
+    rw [Set.mem_singleton_iff] at hs
+    subst hs
+    rcases hz with rfl | rfl
+    · exact h.eq_of_isResidueTranscendental hWv.1 hst
+    · exact h.inv.eq_of_isResidueTranscendental hWv.1 hst
   · rintro rfl
-    exact mem_vertexSet_of_localAt_eq h.comap_valuationSubring (mem_line_charts.2 (.inl rfl))
-      h.polyChart_le_valuationSubring h.localAt_polyChart
+    exact mem_vertexSet_of_localAt_eq h.comap_valuationSubring ⟨y, h.isResidueTranscendental⟩
+      (mem_line_charts.2 (.inl rfl)) h.polyChart_le_valuationSubring h.localAt_polyChart
+
+/-! ### Joins of lines: models with a given finite set of Gauss vertices -/
+
+/-- The join of the lines `ℙ¹_O` with coordinates `y i`. -/
+noncomputable def lines {ι : Type*} [Fintype ι] (v : Valuation K Γ₀) (y : ι → F) :
+    ZariskiModel (baseRing F v.valuationSubring) :=
+  iJoin fun i ↦ line v (y i)
+
+variable {ι : Type*} [Fintype ι] {y' : ι → F}
+
+theorem lines_isProper : (lines v y').IsProper :=
+  iJoin_isProper fun _ ↦ line_isProper
+
+theorem lines_isSeparated : (lines v y').IsSeparated :=
+  iJoin_isSeparated fun _ ↦ line_isSeparated
+
+theorem lines_isFiniteType : (lines v y').IsFiniteType :=
+  iJoin_isFiniteType fun _ ↦ line_isFiniteType
+
+/-- **(W5 (ii)/(iii) for the projective line.)** For Gauss coordinates `y i` of valuations `w i`
+of `F` over `v`, the join of the lines `ℙ¹_O` with coordinates `y i` is a proper
+separated model of finite type whose vertex set is exactly `{O_{w i}}`. -/
+theorem lines_vertexSet {w' : ι → Valuation F Γ₀} (h : ∀ i, IsGaussCoord v (w' i) (y' i)) :
+    (lines v y').vertexSet = Set.range fun i ↦ (w' i).valuationSubring := by
+  classical
+  ext W
+  constructor
+  · intro hWv
+    obtain ⟨A, hA, -, hloc⟩ := exists_localAt_eq_of_mem_vertexSet hWv
+    obtain ⟨f, hf, rfl⟩ := mem_iJoin_charts.1 hA
+    choose z hz hfz using fun i ↦ exists_eq_polyChart_of_mem_line_charts (hf i)
+    have hA' : baseRing F v.valuationSubring ⊔ ⨆ i, f i =
+        Subring.closure ((baseRing F v.valuationSubring : Set F) ∪ ⋃ i, {z i}) := by
+      rw [closure_union_iUnion]
+      simp_rw [hfz]
+      rfl
+    rw [hA'] at hloc
+    obtain ⟨s, hs, hst⟩ := exists_isResidueTranscendental_of_localAt_eq hWv.1 hloc hWv.2.1
+    obtain ⟨i, hi⟩ := Set.mem_iUnion.1 hs
+    rw [Set.mem_singleton_iff] at hi
+    subst hi
+    refine ⟨i, ?_⟩
+    rcases hz i with he | he <;> rw [he] at hst
+    · exact ((h i).eq_of_isResidueTranscendental hWv.1 hst).symm
+    · exact ((h i).inv.eq_of_isResidueTranscendental hWv.1 hst).symm
+  · rintro ⟨i, rfl⟩
+    set Wi := (w' i).valuationSubring
+    have hR : baseRing F v.valuationSubring ≤ Wi.toSubring :=
+      baseRing_le_iff.2 (h i).comap_valuationSubring.ge
+    let f : ι → Subring F := fun j ↦
+      if y' j ∈ Wi then polyChart v (y' j) else polyChart v (y' j)⁻¹
+    have hfc (j : ι) : f j ∈ (line v (y' j)).charts := by
+      simp only [f]
+      split_ifs
+      · exact mem_line_charts.2 (.inl rfl)
+      · exact mem_line_charts.2 (.inr rfl)
+    have hfW (j : ι) : f j ≤ Wi.toSubring := by
+      simp only [f]
+      split_ifs with hj
+      · exact polyChart_le hR hj
+      · exact polyChart_le hR ((Wi.mem_or_inv_mem _).resolve_left hj)
+    have hyi : y' i ∈ Wi := show w' i (y' i) ≤ 1 by rw [(h i).valuation_self]
+    have hfi : f i = polyChart v (y' i) := if_pos hyi
+    set A := baseRing F v.valuationSubring ⊔ ⨆ j, f j
+    have hAW : A ≤ Wi.toSubring := sup_le hR (iSup_le hfW)
+    have hiA : polyChart v (y' i) ≤ A := hfi ▸ (le_iSup f i).trans le_sup_right
+    refine mem_vertexSet_of_localAt_eq (h i).comap_valuationSubring
+      ⟨y' i, (h i).isResidueTranscendental⟩ (mem_iJoin_charts.2 ⟨f, hfc, rfl⟩) hAW ?_
+    exact le_antisymm (localAt_le hAW) ((h i).localAt_polyChart.symm.le.trans (localAt_mono hiA))
 
 end ZariskiModel
 
@@ -505,9 +635,34 @@ theorem gaussModel_isFiniteType : (gaussModel v a c).IsFiniteType :=
 
 /-- **(W5, base case)** The model `ℙ¹_O` with coordinate `(X - a) / c`, `v(c) = r`, has vertex set
 `{O_{w_{a,r}}}`: its special fibre is irreducible with generic point the Gauss valuation. -/
-theorem gaussModel_vertexSet (hc : v c = r) (hv : ∃ ϖ : K, ϖ ≠ 0 ∧ v ϖ < 1) :
+theorem gaussModel_vertexSet (hc : v c = r) :
     (gaussModel v a c).vertexSet = {(gaussRat v a r).valuationSubring} :=
-  ZariskiModel.line_vertexSet (isGaussCoord_gaussCoord hc) hv
+  ZariskiModel.line_vertexSet (isGaussCoord_gaussCoord hc)
+
+variable {ι : Type*} [Fintype ι]
+
+variable (v) in
+/-- The join of the models `ℙ¹_O` of `K(X)` with coordinates `(X - a i) / c i`. -/
+noncomputable def gaussJoinModel (a c : ι → K) :
+    ZariskiModel (baseRing (RatFunc K) v.valuationSubring) :=
+  ZariskiModel.lines v fun i ↦ gaussCoord (a i) (c i)
+
+theorem gaussJoinModel_isProper {a c : ι → K} : (gaussJoinModel v a c).IsProper :=
+  ZariskiModel.lines_isProper
+
+theorem gaussJoinModel_isSeparated {a c : ι → K} : (gaussJoinModel v a c).IsSeparated :=
+  ZariskiModel.lines_isSeparated
+
+theorem gaussJoinModel_isFiniteType {a c : ι → K} : (gaussJoinModel v a c).IsFiniteType :=
+  ZariskiModel.lines_isFiniteType
+
+/-- **(W5 (ii)/(iii) for `K(X)`.)** Every finite family of Gauss valuations `w_{a i, r i}` of
+`K(X)` (`v(c i) = r i`) is the vertex set of a proper separated Zariski model of finite type over
+`O`: the join of the models `ℙ¹_O` with coordinates `(X - a i) / c i`. -/
+theorem gaussJoinModel_vertexSet {a c : ι → K} {r : ι → Γ₀ˣ} (hc : ∀ i, v (c i) = r i) :
+    (gaussJoinModel v a c).vertexSet =
+      Set.range fun i ↦ (gaussRat v (a i) (r i)).valuationSubring :=
+  ZariskiModel.lines_vertexSet fun i ↦ isGaussCoord_gaussCoord (hc i)
 
 end RatFunc
 
