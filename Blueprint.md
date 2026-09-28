@@ -617,3 +617,47 @@ D, H and W8′ below, there is a continuous surjective homomorphism `temperedPi1
 | B4 | **Lepage's formula.** `andreGroup ≃ₜ* lim_{pointed semistable Galois} Π_Lv`. |
 | B5 | **König.** Given the finite nonempty sets `S_Lv ⊆ Π_Lv` of §10.3 (they need W8′), `lim S_Lv ≠ ∅` (Mathlib `nonempty_sections_of_finite_cofiltered_system`). Any element of the limit translates `X₀` by `1`. |
 | B6 | **X₀.** An explicit flat projective `O`-model of `E : y² + xy = x³ + a₄x + a₆` with `a₄, a₆ ∈ 𝔪²` (split multiplicative reduction of type `I_n`, `n ≥ 2`): the blow-up of the Weierstrass model at the node. Its special fibre is the strict transform together with the exceptional curve, meeting in two points, so it contains a cycle and carries a `ℤ`-covering. `X₀` need not be semistable; Theorem A transports `α` to it. |
+
+#### 10.3.2 What is required of `j`, and transfer to the IUT orbicurves
+
+**`j`.** A level with a model (`Level`, §3.2) requires only three things of `j : Spec B ⟶ 𝒯`: it
+is a morphism, it lies over `Spec O` (`j_toSpec`), and it is `H`-equivariant (`ρ_j`). It does not
+need to be an open immersion or schematically dense. This is intended (§3.2): each such datum
+defines a genuine tempered covering, and Theorem A shows that the extra models do not change
+`Aut Φ`. So `TateObject.X₀` is a legitimate object, and its character
+`temperedPi1 →* ℤ` is well defined and continuous as it stands. Open immersion or density is used
+only in two places: for the semistable models of Theorem A (supplied by W10.Strong), and to get
+equivariance of model maps automatically
+(`LevelHom.isEquivariant_of_isSchemeTheoreticallyDominant`). For the Tate model it is not needed.
+Its generic fibre is still identified with `E` via `[x:y:z] ↦ [x:y:πz]`.
+
+**Transfer to `[Y/A]`**, where `Y = E_q ∖ (E[ℓ]+M)` and `A = M` or `M ⋊ {±1}`.
+`TateOrbicurve.character` is the character for `A = 1`, i.e. on `temperedPi1(Y)`. For the
+orbifold `[Y/A]`:
+
+* (T1) **Restriction to the scheme cover.** The functor `Res : TempObj(R, A) ⥤ TempObj(R, 1)`
+  forgets the `A`-part. A level `(B, H)` goes to `(B, H⁰)`, with the same model and `ρ|_{H⁰}`,
+  and covering spaces are restricted to `H⁰`. The fibre functor is unchanged, since
+  `Φ = (F × P)/H⁰` in both categories. Restriction along `Res` (A2) gives a continuous
+  homomorphism `temperedPi1(Y) → temperedPi1([Y/A])`.
+* (T2) **Induction.** The functor `Ind : TempObj(R, 1) ⥤ TempObj(R, A)` sends
+  `(B, H⁰, 𝒯, P)` to the induced level `(∏_{a∈A} B^{(a)}, H⁰ ≀ A)`, with model `∐_a 𝒯` and
+  covering `∐_a P`. For finite `A` the model is again projective (a disjoint union of `|A|`
+  copies, embedded in one `ℙ^N` by Segre plus a coordinate shift). There are natural bijections
+  `Φ(Ind X) ≅ A × Φ(X)`.
+* (T3) **Open finite-index image.** Using T1 and T2, `temperedPi1(Y) → temperedPi1([Y/A])` is
+  injective with open image of index `|A|`: the image is the stabiliser of the base component
+  of `Φ(Ind 1)`. This is the tempered analogue of `π₁(Y) ⊴ π₁([Y/A])` with quotient `A`.
+* (T4) **Non-degeneracy for `[Y/A]`.** Theorem B for `A = 1` gives a continuous surjection
+  `χ : temperedPi1(Y) ↠ ℤ`. The group `U = temperedPi1(Y)` is an open subgroup of finite index in
+  `Γ = temperedPi1([Y/A])`. Its normal core `N` is again open of finite index, so
+  `χ(N) = kℤ` with `k ≥ 1`. Hence `Γ` has the infinite discrete quotient `Γ ↠ Γ/ker(χ|_N)`, and
+  it is not profinite. This is the non-degeneracy that IUT uses. A surjection `Γ ↠ ℤ` itself is
+  not needed; if wanted, it would come from the transfer map.
+
+**The Tate curve over `K_v`.** A Tate curve `E_q` with `v(q) ≥ 1` over a complete DVR has a
+Weierstrass equation `y² + xy = x³ + a₄(q)x + a₆(q)` with `a₄, a₆ ∈ q·O`. `TateModel` needs
+`a₄, a₆ ∈ π²O`, which holds when `v(q) ≥ 2`. For `v(q) = 1`, pass first to the ramified
+quadratic extension. This is a finite étale cover of `Y ⊗ K_v`, so it is covered by T3 or T4 in
+the form "finite étale covers induce open finite-index maps". IUT's Tate curves have `v(q)` as
+large as needed (they are `ℓ`-th power cusps), so `v(q) ≥ 2` holds as is.
