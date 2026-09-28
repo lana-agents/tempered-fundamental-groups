@@ -1,4 +1,9 @@
 import TemperedFundamentalGroups.Andre.Defs
+import TemperedFundamentalGroups.Andre.ProjPoints
+import TemperedFundamentalGroups.Andre.TateCovering
+import TemperedFundamentalGroups.Andre.TateModel
+import TemperedFundamentalGroups.Andre.TateObject
+import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.Realization
