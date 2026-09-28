@@ -529,3 +529,12 @@ downstream branches may take `(h : Statement)` as a hypothesis **as an intermedi
 merged as genuine may depend on it until W10 is proved. Refinements of the statement (domination of
 a given model, equivariance for `Aut_Y(T)`, compatibility in towers) will be added as further
 named `Prop`s here when the consumers need them.
+
+`Statement.Strong` (same file) adds the clauses requested by the André identification (§10 on
+branch `wp-andre`): `K'/K` Galois; the semistable model as a projective `O`-model `c` (isomorphic
+over `O` to the semistable `O'`-model); `j` scheme-theoretically dominant; an action of
+`G × Gal(K'/K)` on `c` over `O` with `j` equivariant; domination of finitely many given models;
+`dim` of the special fibre `≤ 1`. **W8′** (scheduled; exact form to follow from §10): for compatible
+semistable models `𝒯 → 𝒯'`, node thicknesses `n_x/e(K''/K)`, the induced map of dual graphs is
+harmonic (nodes to nodes or to points of components), `Y`-lengths `d_x·n_x` are preserved, and
+every node of `𝒯'_s` on the image of a component `v` is hit by a node on `v`.

@@ -89,3 +89,54 @@ def Statement : Prop :=
           ((Algebra.TensorProduct.includeLeftRingHom).comp O'.subtype))
 
 end TemperedFundamentalGroups.SemistableReduction
+
+namespace TemperedFundamentalGroups.SemistableReduction
+
+/-- **The strong form of W10** (clauses requested by the André identification, Blueprint §10):
+in addition to `Statement`, for a finite group `G` acting on `B` by `K`-algebra automorphisms
+and finitely many given projective `O`-models `c₀ i` of `Spec B` (with `j₀ i` over `O`):
+* `K'/K` is Galois;
+* the semistable model is also a projective `O`-model `c` (isomorphic, over `O`, to the
+  semistable `O'`-model `c'`);
+* `j : Spec (K' ⊗_K B) ⟶ c` is an open immersion over `O` which is scheme-theoretically dominant;
+* `G × Gal(K'/K)` acts on `c` over `O` with `j` equivariant (`g` acts on `K' ⊗ B` by `id ⊗ g`,
+  `σ` by `σ ⊗ id`);
+* `c` dominates every `c₀ i` compatibly with the `j`s;
+* the special fibre of `c` has dimension `≤ 1`. -/
+def Statement.Strong : Prop :=
+  ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
+    [HenselianLocalRing O]
+    (R : Type u) [CommRing R] [Algebra K R] [Algebra.Smooth K R] (_ : ringKrullDim R = 1)
+    (B : Type u) [CommRing B] [Algebra R B] [Algebra K B] [IsScalarTower K R B]
+    [Algebra.Etale R B] [Module.Finite R B]
+    (G : Type u) [Group G] [Finite G] [MulSemiringAction G B] [SMulCommClass G K B]
+    (ι : Type u) [Finite ι] (c₀ : ι → TemperedFundamentalGroups.ModelCode O)
+    (j₀ : ∀ i, Spec (CommRingCat.of B) ⟶ (c₀ i).scheme)
+    (_ : ∀ i, j₀ i ≫ (c₀ i).toSpec = Spec.map (CommRingCat.ofHom
+      ((algebraMap K B).comp O.subtype))),
+    ∃ (K' : Type u) (_ : Field K') (_ : Algebra K K') (_ : FiniteDimensional K K')
+      (_ : IsGalois K K')
+      (O' : ValuationSubring K') (_ : O'.comap (algebraMap K K') = O)
+      (_ : IsDiscreteValuationRing O') (ϖ' : O') (_ : Irreducible ϖ')
+      (c' : TemperedFundamentalGroups.ModelCode O') (c : TemperedFundamentalGroups.ModelCode O)
+      (e : c.scheme ≅ c'.scheme)
+      (j : Spec (CommRingCat.of (TensorProduct K K' B)) ⟶ c.scheme)
+      (act : G × (K' ≃ₐ[K] K') →* Aut c.scheme)
+      (dom : ∀ i, c.scheme ⟶ (c₀ i).scheme),
+      ModelCode.IsSemistable ϖ' c' ∧
+      e.hom ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom
+        ((algebraMap K K').restrict O O' (fun x hx => by
+          rw [← ‹O'.comap (algebraMap K K') = O›] at hx; exact hx))) = c.toSpec ∧
+      IsOpenImmersion j ∧ IsSchemeTheoreticallyDominant j ∧
+      j ≫ c.toSpec = Spec.map (CommRingCat.ofHom
+        ((Algebra.TensorProduct.includeLeftRingHom).comp ((algebraMap K K').comp O.subtype))) ∧
+      (∀ gσ : G × (K' ≃ₐ[K] K'), (act gσ).hom ≫ c.toSpec = c.toSpec) ∧
+      (∀ gσ : G × (K' ≃ₐ[K] K'),
+        Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.congr (gσ.2⁻¹)
+          (MulSemiringAction.toAlgAut G K B gσ.1⁻¹)).toRingHom) ≫ j = j ≫ (act gσ).hom) ∧
+      (∀ i, j ≫ dom i = Spec.map (CommRingCat.ofHom
+        (Algebra.TensorProduct.includeRight.toRingHom : B →+* TensorProduct K K' B)) ≫ j₀ i) ∧
+      (∀ i, dom i ≫ (c₀ i).toSpec = c.toSpec) ∧
+      topologicalKrullDim (specialFibre c.toSpec) ≤ 1
+
+end TemperedFundamentalGroups.SemistableReduction
