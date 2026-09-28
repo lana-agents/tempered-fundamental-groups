@@ -379,7 +379,7 @@ over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
 
 Realistic size: W1–W3 small/medium (weeks of agent time), W4 large (the heart; Temkin's
 algebraic proof ~20 pages), W5 large (needs blow-ups or the `ModelCode`+normalization
-dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`). W6: Riemann–Roch spaces, Riemann's inequality and the genus of the residue curves proved (§9.5 Part R); the genus reduction inequality is planned in §9.5 Part G (blocked at G6.8, connectedness of the special fibre).
+dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`). W6: Riemann–Roch spaces, Riemann's inequality and the genus of the residue curves proved (§9.5 Part R); the genus reduction inequality is planned in §9.5 Part G (the hard step is G6.8, connectedness of the special fibre, with an elementary trace/Liouville proof).
 * W1 (`SemistableReduction/Gauss.lean`): `gauss v a r : Valuation K[X] Γ₀` (multiplicative
   convention, `w(Σ cᵢ(X−a)ⁱ) = max v(cᵢ)·rⁱ`, Gauss lemma `Gauss.sup_mul`), `gaussRat v a r` on
   `RatFunc K` extending `v`; for `v c = r` the residue of `(X − a)/c` is transcendental over
@@ -558,31 +558,29 @@ reduction and are circular here.
 | G6.5 | (integrality) `f` integral over `C[x]` with `‖f‖ ≤ 1` ⇒ `f` integral over `O_C[x]` ⇒ `f̄_j` integral over `k[x̄]`; the same at `∞`; hence `ρ(L(m(x)_∞)°) ⊆ W_m := ⊕_j L_{κ_j}(m(x̄)_∞)` | conjugates of `f` in a normal closure: `W(σf) = (W∘σ)(f) ≤ 1` since `W∘σ|_F` is some `w'_j` | open (medium) |
 | G6.6 | (counting) for `m ≫ 0`: `dim ρ(L(m(x)_∞)°) = mN + 1 − g`, `dim W_m = mN + s − Σ g_j`; hence `Σ g_j ≤ g + (s − 1) − codim_{W_m} ρ(L(m(x)_∞)°)`, in particular the **weak inequality** `Σ_j (g_j − 1) ≤ g − 1` | G6.4, G6.5, R5 (`deg (x)_∞ = N`, `deg (x̄)_∞ = f_j`), R7 on `F` and on each `κ_j` | open (small) |
 | G6.7 | (gluing conditions) for places `Q ∈ κ_j`, `Q' ∈ κ_{j'}` centred on the same maximal ideal of `𝓡 = ` integral closure of `O_C[x]` (resp. of `O_C[1/x]`, evaluating `f/xᵐ`), `f̄_j(Q) = f̄_{j'}(Q')` on `ρ(L(m(x)_∞)°)`; the conditions along a spanning forest of the incidence graph `Γ` (components, closed points of `𝒳_s`) are independent on `W_m` for `m ≫ 0` (R7 on `κ_j`: evaluation at finitely many places is surjective): `codim ≥ s − c(Γ)` | G6.5 | open (medium) |
-| G6.8 | **(connectedness)** `Γ` is connected, i.e. `𝒳_s` is connected (Zariski) | see below | **blocker** |
+| G6.8 | **(connectedness)** `Γ` is connected, i.e. `𝒳_s` is connected (Zariski) | G8.1–G8.5 below | open (large; the hard step) |
 | G6.9 | consequences: `Σ g(κ(wᵢ)) ≤ g(F)`; at most `g(F)` type-2 valuations have positive genus residue curve (W7 input) | G6.1 + G6.6–G6.8 | — |
 
-*The blocker G6.8.* Equivalently: `H^0(𝒳_s, O) = k`, i.e. the reductions of `𝓡` and of
+*G6.8 (connectedness).* Equivalently: `H^0(𝒳_s, O) = k`, i.e. the reductions of `𝓡` and of
 `𝓡_∞ = ` integral closure of `O_C[1/x]` meet in `k` inside `⊕_j κ_j`; equivalently the Čech
-module `H = 𝓡_{01}/(𝓡 + 𝓡_∞)` (`H ⊗ C = H^1(X, O)`, of dimension `g`) is torsion free, i.e.
-small elements of `L(m(x)_∞) + L(m(x)_0)` are sums of small elements ("strictness"). This is
-Zariski's connectedness theorem for `𝒳 → Spec O_C` (with `H^0(𝒳, O) = O_C` by normality); all
-dimension counts above are consistent with a disconnected `𝒳_s`, so no counting argument can
-replace it. Routes: (α) lift an idempotent of `𝒳_s` through the nil ideals `𝔪𝓡/π𝓡` and
-`π`-adically to both charts (Hensel for idempotents) and glue on the annulus; conclude by
-"GAGA for `ℙ¹`": the Birkhoff–Grothendieck factorization of the transition matrix
-`M ∈ GL_N(C[x, 1/x])` of integral bases of `R` and `R_∞` as `A·diag(x^{d_i})·B`
-(`A ∈ GL_N(C[x])`, `B ∈ GL_N(C[1/x])`, algebraic reduced-basis theorem) reduces
-`C⟨x⟩^N ∩ M C⟨1/x⟩^N` to Laurent coefficient comparison; needs restricted power series
-`C⟨x⟩`, `C⟨x, 1/x⟩` (not in Mathlib) — estimate 2–3k lines. (β) bounded torsion of `H`
-(finiteness of `R¹f_*O` for the model) would suffice (formal functions with bounded torsion),
-but proving finiteness is of the same difficulty. (γ) Avoid W6 in W7: Temkin's valuative proof
-(*Stable modification of relative curves*, §§3–5) obtains finiteness of the vertex set from the
-quasi-compactness of the Riemann–Zariski space of `F/O_C` and local uniformization of each
-valuation (our W4-level results), and uses genus only for contracting a semistable model to the
-stable one.
+module `𝓡_{01}/(𝓡 + 𝓡_∞)` (`⊗ C = H^1(X, O)`, of dimension `g`) is torsion free. This is
+Zariski's connectedness theorem for `𝒳 → Spec O_C`; the counts G6.4–G6.7 alone do not exclude a
+disconnected `𝒳_s`. **Chosen proof** (elementary "GAGA for `ℙ¹`" by traces; `C` complete):
+suppose `Γ` splits as `J₀ ⊔ J₁` (both nonempty, no common closed point in either chart).
+
+| # | Step | Inputs |
+|---|---|---|
+| G8.1 | the kernels of `𝓡̄ → ⊕_{J₀} κ_j` and `𝓡̄ → ⊕_{J₁} κ_j` are comaximal (a maximal ideal containing both lies on a `J₀`- and a `J₁`-component: prime avoidance, and every maximal ideal of `𝓡̄/𝔭_j` is centred by a place of `κ_j`, Chevalley); CRT gives `e ∈ 𝓡` with `ē = (1_{J₀}, 0_{J₁})`, similarly `e' ∈ 𝓡_∞` | G6.5, `ValuationSubring` extension |
+| G8.2 | the characteristic polynomial `χ_e ∈ O_C[x][T]` reduces to `(T − 1)^{N₀} T^{N₁}` (`N_i = Σ_{J_i} f_j ≥ 1`; reduce the matrix of `e` in the orthonormal basis of G6.3); for every `C`-point `P` of `F` over `α ∈ O_C`, `e(P) ≡ 1` or `≡ 0`; this partitions the fibres over `|α| ≤ 1` into `U₀ ⊔ U₁` with `N₀`, `N₁` points (with multiplicity); likewise over `|α| ≥ 1` with `e'`, and both agree over `|α| = 1` (maximum principle: `‖e − e'‖ < 1` and integrality over `O_C[x, 1/x]` bound values at points) | Part R for `F / C` (places = `C`-points), charpoly specialization `χ_h(α, T) = Π_{P|α} (T − h(P))^{e_P}` |
+| G8.3 | for `y ∈ L(d(x)_∞)°`: `p_n := Tr_{F/C(x)}(N^n(e)·y) ∈ O_C[x]` (`N(t) = 3t² − 2t³`, `‖N^{n+1}(e) − N^n(e)‖ ≤ ‖e² − e‖^{2^n}`) is Cauchy for the Gauss norm, with pointwise limit `τ_y(α) = Σ_{P ∈ U₀, P|α} e_P y(P)` (trace specialization); at `∞`, `q_n := Tr(N^n(e')·y/x^d) ∈ O_C[1/x]` with limit `τ_y(α)/α^d` | G6.5, trace specialization |
+| G8.4 | (Liouville) a restricted power series `Σ aᵢ xⁱ` and `x^d Σ bᵢ x^{-i}` agreeing on `|α| = 1` coincide with a polynomial of degree `≤ d` (a restricted Laurent series vanishing on the unit circle is `0`: reduce a maximal-norm part, `k` infinite); hence `τ_y ∈ C[x]`, and `y ↦ τ_y` is `C[x]`-linear | completeness of `C` (limits of coefficients) |
+| G8.5 | trace duality: `τ_y = Tr(z y)` for some `z ∈ F`; at an étale fibre, interpolation (R7) gives `z(P) = 1_{U₀}(P)`, so `z² = z`, `z ∈ {0, 1}`, contradicting `N₀, N₁ ≥ 1` | nondegenerate trace form (char 0), R7 |
 
 **Status.** Part R complete (`SemistableReduction/WeakApproximation`,
-`SemistableReduction/CurveDivisor`, `SemistableReduction/RiemannRoch`). Part G: planned; G6.1–G6.7
-are elementary given W4 (≈ 1.5–2k lines; they yield the weak inequality `Σ(g_j − 1) ≤ g − 1`
-over one Gauss point, which alone does not bound the number of positive-genus points); G6.8
-needs route (α) or a restructuring of W7 along (γ).
+`SemistableReduction/CurveDivisor`, `SemistableReduction/RiemannRoch`). Part G: planned, being
+implemented bottom-up; estimate G6.1–G6.7 ≈ 1.5–2k lines, G6.8 ≈ 2–2.5k lines (C-points and
+charpoly/trace specialization for `F / C`, Newton traces, Laurent comparison, trace duality),
+G6.9 small. Fallback if G6.8 stalls: restructure W7 along Temkin's valuative proof (*Stable
+modification of relative curves*, §§3–5: finiteness of the vertex set from quasi-compactness of
+the Riemann–Zariski space and local uniformization, genus only for contracting to the stable
+model).
