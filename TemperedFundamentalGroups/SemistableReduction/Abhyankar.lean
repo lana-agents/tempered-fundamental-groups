@@ -426,6 +426,65 @@ theorem ramificationIdx_eq_one {ϖ : O} (hϖ : Irreducible ϖ) {e : ℕ} (he : I
   haveI := isUnramifiedAt (K := K) hϖ he yB' hyB' hF htame 𝔔
   exact Ideal.ramificationIdx_eq_one 𝔔 _
 
+include K L B in
+/-- **Abhyankar's lemma: étaleness.** In the situation of `isUnramifiedAt`, `B'` is étale over
+`O' = O[Y] ⧸ (Y ^ e - ϖ)`: it is finite and flat (torsion-free over the DVR `O'`), unramified at
+every maximal ideal by `isUnramifiedAt`, hence at every prime (the unramified locus is open). -/
+theorem etale {ϖ : O} (hϖ : Irreducible ϖ) {e : ℕ} (he : IsUnit (e : O))
+    (yB' : B') (hyB' : yB' ^ e = algebraMap O B' ϖ)
+    (hF : Algebra.adjoin L {algebraMap B' F yB'} = ⊤)
+    (htame : ∀ (𝔓 : Ideal B) [𝔓.IsPrime] [𝔓.LiesOver (maximalIdeal O)],
+      𝔓.ramificationIdx O ∣ e ∧ Algebra.IsSeparable (O ⧸ maximalIdeal O) (B ⧸ 𝔓)) :
+    letI := rootAlgebra yB' hyB'
+    Algebra.Etale (RootOfUniformizer.Ring ϖ e) B' := by
+  letI := rootAlgebra yB' hyB'
+  haveI := rootAlgebra_isScalarTower yB' hyB'
+  have he0 : 0 < e := Nat.pos_of_ne_zero (by rintro rfl; simp at he)
+  letI := RootOfUniformizer.isDomain hϖ he0
+  letI := RootOfUniformizer.isDiscreteValuationRing hϖ he0
+  set O' := RootOfUniformizer.Ring ϖ e
+  have hy : (algebraMap B' F yB') ^ e = algebraMap O F ϖ := by
+    rw [← map_pow, hyB', ← IsScalarTower.algebraMap_apply]
+  haveI : Module.Finite O B' := finite_integralClosure (K := K) (L := L) hϖ he hy hF
+  haveI : Algebra.FiniteType O' B' := Algebra.FiniteType.of_restrictScalars_finiteType O O' B'
+  haveI : Algebra.FinitePresentation O' B' := Algebra.FinitePresentation.of_finiteType.1 ‹_›
+  -- flatness: `O' → B'` is injective
+  have hOL : Function.Injective (algebraMap O L) := by
+    rw [IsScalarTower.algebraMap_eq O K L]
+    exact (algebraMap K L).injective.comp (IsFractionRing.injective O K)
+  have hOF : Function.Injective (algebraMap O F) := by
+    rw [IsScalarTower.algebraMap_eq O L F]
+    exact (algebraMap L F).injective.comp hOL
+  have hOB' : Function.Injective (algebraMap O B') := by
+    refine fun a b h ↦ hOF ?_
+    rw [IsScalarTower.algebraMap_apply O B' F, h, ← IsScalarTower.algebraMap_apply]
+  have hyB'0 : yB' ≠ 0 := by
+    rintro rfl
+    rw [zero_pow he0.ne', eq_comm, map_eq_zero_iff _ hOB'] at hyB'
+    exact hϖ.ne_zero hyB'
+  have hinj : Function.Injective (algebraMap O' B') := by
+    rw [injective_iff_map_eq_zero]
+    intro x hx
+    by_contra hx0
+    obtain ⟨k, u, rfl⟩ := IsDiscreteValuationRing.eq_unit_mul_pow_irreducible hx0
+      (RootOfUniformizer.irreducible_root hϖ he0)
+    rw [map_mul, map_pow, rootAlgebra_algebraMap_root] at hx
+    exact mul_ne_zero (u.isUnit.map _).ne_zero (pow_ne_zero _ hyB'0) hx
+  haveI : FaithfulSMul O' B' := (faithfulSMul_iff_algebraMap_injective _ _).2 hinj
+  -- unramified at every prime: the unramified locus is open and contains the closed points
+  haveI : Algebra.FormallyUnramified O' B' := by
+    rw [Algebra.formallyUnramified_iff_forall]
+    intro q
+    obtain ⟨𝔔, h𝔔, hq𝔔⟩ := Ideal.exists_le_maximal q.1 q.2.ne_top
+    haveI : Algebra.IsIntegral O B' := IsIntegralClosure.isIntegral_algebra O F
+    haveI : 𝔔.LiesOver (maximalIdeal O) :=
+      ⟨(eq_maximalIdeal (Ideal.isMaximal_comap_of_isIntegral_of_isMaximal (R := O) 𝔔)).symm⟩
+    have hmem : (⟨𝔔, h𝔔.isPrime⟩ : PrimeSpectrum B') ∈ Algebra.unramifiedLocus O' B' :=
+      isUnramifiedAt (K := K) hϖ he yB' hyB' hF htame 𝔔
+    exact Algebra.isOpen_unramifiedLocus.stableUnderGeneralization
+      ((PrimeSpectrum.le_iff_specializes q ⟨𝔔, h𝔔.isPrime⟩).1 hq𝔔) hmem
+  exact Algebra.Etale.of_formallyUnramified_of_flat
+
 end Unramified
 
 end Abhyankar
