@@ -1018,3 +1018,18 @@ in the universal cover of the dual graph from `z̃₀` to `e(γ) z̃₀`.
 
 Then `S_p := {γ : Φ f_p γ = δ(1)·x₀, len γ ≤ ℓ₀}` is finite, nonempty, and preserved by pointed
 morphisms, and K2 gives `α` with `deckCharacter α = 1`.
+
+#### 10.5 Status of Theorem A
+
+**[L], modulo W10.** `andreEquiv (V hV) (hW : Statement.Strong) (hR : ringKrullDim R = 1) :
+temperedPi1 O R A V hV ≃ₜ* andreGroup O R A V hV` is in `Andre/Refinement.lean`. It uses
+`andreInput` with base-change refinements, together with `pullback_input`. The standing
+hypotheses are:
+
+* `CharZero K` and `IsDiscreteValuationRing O`;
+* `IsAdicComplete (maximalIdeal O) O`;
+* `Algebra.Smooth K R`;
+* `SMulCommClass A K R` and `Finite A`;
+* `IsAlgClosed Ω`.
+
+`#print axioms` gives only `propext`, `Classical.choice`, `Quot.sound`.
