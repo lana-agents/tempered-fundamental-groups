@@ -884,6 +884,15 @@ W8: `x = ε·u'^d`, `y = ε'·v'^d`, `u', v' ∈ 𝔮`.)
 `TubePoints`; ≈ 1.9k lines) and the interface `AnnulusAt`. Remaining: S6 (≈ 1.3–1.5k), S7 (≈ 1.5k),
 S8 (the hard core, ≈ 2–3k: a valuative local Riemann–Hurwitz formula / the different function of
 Cohen–Temkin–Trushin), S9 (≈ 0.8k, witness form), S10 (≈ 0.6k): ≈ 6–7k lines.
+
+**Targeted list update.** `Statement.StrongComponent` (`SemistableReduction/StrongComponent.lean`,
+requested by Theorem B's domination step) supersedes `Statement.Strong`: identical except that the
+connected-special-fibre clause is replaced by the component clause (for every primitive idempotent
+`ε` of `K' ⊗_K B` a clopen split semistable sub-model with connected special fibre, stable under the
+stabiliser of `ε`). The targeted W10 Props are now `Statement`, `Statement.StrongComponent`
+(to be extended by `ModelCode.NoLoops` when it lands), `Statement.Simultaneous` (with
+`IsHarmonic`) and `Statement.HarmonicGeneral` (with `NoLoops` hypothesis, (H2) as `≥`).
+`Statement.Strong` is kept for reference, untargeted.
 ## 10. André's group and the `ℤ`-witness (branch `wp-andre`)
 
 This section turns steps 1–2 of §4 and item G1 of §5 into theorems. The only geometric inputs
