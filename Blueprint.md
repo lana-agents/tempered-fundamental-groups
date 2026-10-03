@@ -1303,6 +1303,17 @@ prove that the completion `\widehat{K̄}` is algebraically closed (`PadicComplex
 |---|---|---|
 | C0 | `IsAlgClosed (UniformSpace.Completion K̄)` for `K̄` algebraically closed nonarchimedean valued (continuity of roots + Krasner, Mathlib `Krasner`, `Normed/Field/Dense`) | open |
 | C1 | **Transfer `K̄ → Ĉ`**: for `F'/K̄(x)` finite, `F'_Ĉ = F' ⊗_{K̄(x)} Ĉ(x)` (a field); restriction is a bijection between type-2 points of `F'_Ĉ` with radius in `|K̄^×|` and type-2 points of `F'` (centres approximated by density, W2), with residue fields equal; consequently vertex sets, residue genera, `δ`, and the node/smooth-point data (`IsNodeODP`, exact node data) transfer, and the generators exposed for D3e can be chosen in `F'` | open |
-Alternatively C1 is avoided where a `Ĉ`-statement has a proof valid for algebraically closed `C`
-(as W4: "completeness of `C` is not needed"). Owner and size: to be assigned.
+**Decision (coordinator, 2026-10).** C0 first (generic, upstreamable; then W4/W6/DiscGerm apply to
+`Ĉ = \widehat{K̄}` while W9 works over `K̄`); C1 only as a thin transfer layer where the W10 assembly
+needs it; C2 (dropping completeness) only where it is trivially unused. Owner: agent `cbridge`
+(branch `wp-tempered-cbridge`).
+
+### 9.12 Open obligations (must be discharged before anything downstream is called proved)
+
+| # | Obligation | Discharged by | Status |
+|---|---|---|---|
+| O1 | R4's interim **exact node data** hypothesis (`u v = γ`, `σ x = e u^d`, `ord_{Q₁} ū = 1` at points over the node) | (a1): S7(b)/S7.9 descent to `IsOrdinaryDoublePoint` over `O_E` + `NodeDeformation.exists_node`, under `DefinedOverDVR F'` | open |
+| O2 | `DefinedOverDVR` passes to intermediate fields of the Galois closure | R4 step 3 | open |
+| O3 | `IsUnfolded` output of `Statement.StrongComponent` | W9/M9c (`IsWModelOf`) + W7 (c) | open |
+| O4 | §9.11 bridge C0/C1 | `cbridge` | open |
 
