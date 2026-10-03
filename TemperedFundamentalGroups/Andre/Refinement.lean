@@ -366,6 +366,12 @@ lemma tensorAut_eq_one_snd [Nontrivial B] {x : SemilinearAut R A B × (L ≃ₐ[
   simp only [tensorAut_σ_tmul, map_one] at this
   exact Algebra.TensorProduct.includeRight_injective (algebraMap K B).injective this
 
+omit [SMulCommClass A K R] [Algebra R B] [IsScalarTower K R B] in
+lemma subsingleton_tensor_left [Subsingleton B] : Subsingleton (TensorProduct K B L) := by
+  refine ⟨fun y z => ?_⟩
+  rw [← mul_one y, ← mul_one z, Subsingleton.elim (1 : TensorProduct K B L) 0, mul_zero,
+    mul_zero]
+
 lemma tensorAut_eq_one_of_subsingleton [Subsingleton B] (x : SemilinearAut R A B × (L ≃ₐ[K] L))
     (hx : x.1.a = 1) : tensorAut L x = 1 := by
   haveI : Subsingleton (TensorProduct K B L) := by
@@ -786,6 +792,136 @@ def commonφ₁ [Nontrivial L₁] [Nontrivial L₂] : D.finiteLevel ⟶ Lv₁.L 
 lemma commonφ₁_r [Nontrivial L₁] [Nontrivial L₂] (γ) :
     (commonφ₁ hH₁ D hΦ).r (D.proj γ) = commonF₁ hH₁ γ :=
   D.lift_proj _ (commonF₁_ker hH₁ D hΦ) γ
+
+open Classical in
+variable (Lv Γ₁ K' θ₂) in
+/-- The action on `L₂` used for the map to `H₂` (trivial if `B = 0`). -/
+@[irreducible] noncomputable def commonκ₂ : (Γ₁ × Γ₂) × (K' ≃ₐ[K] K') →* (L₂ ≃ₐ[K] L₂) :=
+  if Nontrivial Lv.L.B then θ₂.comp ((MonoidHom.snd _ _).comp (MonoidHom.fst _ _)) else 1
+
+lemma commonκ₂_mem (δ : (Γ₁ × Γ₂) × (K' ≃ₐ[K] K')) : ∃ γ, commonκ₂ Γ₁ θ₂ K' Lv δ = θ₂ γ := by
+  unfold commonκ₂
+  split_ifs
+  · exact ⟨δ.1.2, rfl⟩
+  · exact ⟨1, (map_one θ₂).symm⟩
+
+lemma commonκ₂_of_nontrivial [Nontrivial Lv.L.B] (δ : (Γ₁ × Γ₂) × (K' ≃ₐ[K] K')) :
+    commonκ₂ Γ₁ θ₂ K' Lv δ = θ₂ δ.1.2 := by
+  unfold commonκ₂
+  rw [if_pos ‹_›]
+  rfl
+
+include hΦ in
+lemma commonκ₂_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
+    commonκ₂ Γ₁ θ₂ K' Lv x.2 = 1 := by
+  rcases subsingleton_or_nontrivial Lv.L.B with hB | hB
+  · unfold commonκ₂
+    rw [if_neg (not_nontrivial_iff_subsingleton.2 hB)]
+    rfl
+  · rw [commonκ₂_of_nontrivial]
+    exact ((commonΦ_eq_one D hΦ hx).2 hB).2
+
+/-- The map of groups to `H₂`. -/
+noncomputable def commonF₂ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K')) →* Lv₂.L.H :=
+  ((SemilinearAut.transport e₂).comp ((tensorAut L₂).comp
+    ((Lv'.L.H.subtype.comp u.φ.r).prodMap (commonκ₂ Γ₁ θ₂ K' Lv)))).codRestrict Lv₂.L.H
+    fun x => by
+      obtain ⟨γ, hγ⟩ := commonκ₂_mem (Lv := Lv) (Γ₁ := Γ₁) (K' := K') (θ₂ := θ₂) x.2
+      refine (hH₂ _).2 ⟨u.φ.r x.1, γ, ?_⟩
+      change SemilinearAut.transport e₂ (tensorAut L₂ (_, commonκ₂ Γ₁ θ₂ K' Lv x.2)) = _
+      rw [hγ]
+      rfl
+
+lemma coe_commonF₂ (x : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) :
+    (commonF₂ u hH₂ x : SemilinearAut R A Lv₂.L.B) =
+      SemilinearAut.transport e₂ (tensorAut L₂ (((u.φ.r x.1 : Lv'.L.H) :
+        SemilinearAut R A Lv'.L.B), commonκ₂ Γ₁ θ₂ K' Lv x.2)) :=
+  rfl
+
+lemma commonF₂_σ (x : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (y : Lv₂.L.B) :
+    (commonF₂ u hH₂ x : SemilinearAut R A Lv₂.L.B).σ y =
+      e₂.symm ((tensorAut L₂ (((u.φ.r x.1 : Lv'.L.H) : SemilinearAut R A Lv'.L.B),
+        commonκ₂ Γ₁ θ₂ K' Lv x.2)).σ (e₂ y)) :=
+  rfl
+
+include hΦ in
+lemma commonF₂_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
+    commonF₂ u hH₂ x = 1 := by
+  apply Subtype.ext
+  rw [coe_commonF₂, (commonΦ_eq_one D hΦ hx).1, commonκ₂_ker D hΦ x hx, map_one]
+  exact (congrArg _ (map_one (tensorAut (A := A) (B := Lv'.L.B) L₂))).trans (map_one _)
+
+set_option synthInstance.maxHeartbeats 200000 in
+include hΦ in
+lemma commonσ₂ (γ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (z : TensorProduct K Lv'.L.B L₂) :
+    commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u
+      ((tensorAut L₂ (((u.φ.r γ.1 : Lv'.L.H) : SemilinearAut R A Lv'.L.B), θ₂ γ.2.1.2)).σ z)) =
+      (D.Φ γ).σ (commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u z)) := by
+  rw [hΦ]
+  induction z using TensorProduct.induction_on with
+  | zero => simp only [map_zero]
+  | add y z hy hz =>
+    rw [RingEquiv.map_add, map_add (commonM₂ L₁ L₂ u), map_add (commonML L₁ L₂ K' Lv), hy, hz,
+      map_add (commonM₂ L₁ L₂ u), map_add (commonML L₁ L₂ K' Lv), RingEquiv.map_add]
+  | tmul b l =>
+    rw [tensorAut_σ_tmul]
+    change u.φ.f ((u.φ.r γ.1 : SemilinearAut R A Lv'.L.B).σ b) ⊗ₜ[K]
+      (((1 : L₁) ⊗ₜ[K] θ₂ γ.2.1.2 l) ⊗ₜ[K] (1 : K')) =
+      (tensorAut _ ((γ.1 : SemilinearAut R A Lv.L.B), commonθ θ₁ θ₂ K' γ.2)).σ
+        (u.φ.f b ⊗ₜ[K] (((1 : L₁) ⊗ₜ[K] l) ⊗ₜ[K] (1 : K')))
+    rw [tensorAut_σ_tmul, commonθ_tmul, map_one, map_one, u.φ.f_σ]
+
+variable (e₂) in
+/-- The ring map `B₂ → B₃`. -/
+def commonF₂f : Lv₂.L.B →ₐ[R] D.finiteLevel.B :=
+  (LevelData.codeEquiv R _).symm.toAlgHom.comp
+    ((commonML L₁ L₂ K' Lv).comp ((commonM₂ L₁ L₂ u).comp e₂.toAlgHom))
+
+include hΦ in
+lemma commonF₂f_σ (γ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (y : Lv₂.L.B) :
+    commonF₂f u e₂ D ((commonF₂ u hH₂ γ : SemilinearAut R A Lv₂.L.B).σ y) =
+      ((D.proj γ : D.finiteLevel.H) : SemilinearAut R A D.finiteLevel.B).σ
+        (commonF₂f u e₂ D y) := by
+  rcases subsingleton_or_nontrivial Lv.L.B with hB | hB
+  · haveI : Subsingleton (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K')) :=
+      subsingleton_tensor_left
+    haveI : Subsingleton D.finiteLevel.B := (LevelData.codeEquiv R _).injective.subsingleton
+    exact Subsingleton.elim _ _
+  have hκ := commonκ₂_of_nontrivial (Lv := Lv) (Γ₁ := Γ₁) (K' := K') (θ₂ := θ₂) γ.2
+  let cs := (LevelData.codeEquiv R
+    (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))).symm
+  let h' : SemilinearAut R A Lv'.L.B := ((u.φ.r γ.1 : Lv'.L.H) : SemilinearAut R A Lv'.L.B)
+  calc commonF₂f u e₂ D ((commonF₂ u hH₂ γ : SemilinearAut R A Lv₂.L.B).σ y)
+      = cs (commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u
+          ((tensorAut L₂ (h', commonκ₂ Γ₁ θ₂ K' Lv γ.2)).σ (e₂ y)))) :=
+        congrArg (fun z => cs (commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u z)))
+          (e₂.apply_symm_apply _)
+    _ = cs (commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u
+          ((tensorAut L₂ (h', θ₂ γ.2.1.2)).σ (e₂ y)))) :=
+        congrArg (fun κ => cs (commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u
+          ((tensorAut L₂ (h', κ)).σ (e₂ y))))) hκ
+    _ = cs ((D.Φ γ).σ (commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u (e₂ y)))) :=
+        congrArg cs (commonσ₂ u D hΦ γ (e₂ y))
+    _ = _ := (congrArg (fun z => cs ((D.Φ γ).σ z))
+        ((LevelData.codeEquiv R _).apply_symm_apply _)).symm
+
+/-- The morphism of levels `B₃ ⟶ B₂`. -/
+noncomputable def commonφ₂ [Nontrivial L₁] [Nontrivial L₂] : D.finiteLevel ⟶ Lv₂.L where
+  f := commonF₂f u e₂ D
+  r := D.lift (commonF₂ u hH₂) (commonF₂_ker u hH₂ D hΦ)
+  r_a := D.proj_surjective.forall.2 fun γ => by
+    have h1 := D.lift_proj (commonF₂ u hH₂) (commonF₂_ker u hH₂ D hΦ) γ
+    simp only [h1]
+    rw [coe_commonF₂, LevelData.proj_a, hΦ, SemilinearAut.transport_a, tensorAut_a,
+      tensorAut_a, u.φ.r_a]
+  f_σ := D.proj_surjective.forall.2 fun γ y => by
+    have h1 := D.lift_proj (commonF₂ u hH₂) (commonF₂_ker u hH₂ D hΦ) γ
+    simp only [h1]
+    exact commonF₂f_σ u hH₂ D hΦ γ y
+
+lemma commonφ₂_r [Nontrivial L₁] [Nontrivial L₂] (γ) :
+    (commonφ₂ u hH₂ D hΦ).r (D.proj γ) = commonF₂ u hH₂ γ :=
+  D.lift_proj _ (commonF₂_ker u hH₂ D hΦ) γ
 
 end CommonLevel
 
