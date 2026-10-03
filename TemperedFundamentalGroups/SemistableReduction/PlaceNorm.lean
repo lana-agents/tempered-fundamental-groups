@@ -373,7 +373,7 @@ theorem res_norm_eq_prod (hx : x ∉ (algebraMap k κ).range) {f : κ}
     · exact O₀.zero_mem
     by_cases ha0 : a = 0
     · rw [ha0]; exact O₀.zero_mem
-    show ((a : k⟮x⟯) : κ) ∈ Q₀.V
+    change ((a : k⟮x⟯) : κ) ∈ Q₀.V
     rw [← Q₀.valuation_le_one_iff, valuation_eq_expo hx0 ha0 hQ₀, ← exp_zero, exp_le_exp]
     have := Int.natCast_nonneg (ord x Q₀)
     nlinarith
@@ -510,3 +510,7 @@ theorem res_norm_eq_prod (hx : x ∉ (algebraMap k κ).range) {f : κ}
   rw [Fintype.prod_sigma]
   simp only [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
   exact Finset.prod_coe_sort (zeros k x) (fun Q ↦ Q.res f ^ ord x Q)
+
+end PlaceNorm
+
+end SemistableReduction
