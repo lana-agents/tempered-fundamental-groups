@@ -1197,16 +1197,23 @@ stabilize).
 | R5 | **improvements** [AW Def 2.5, Lemma 2.6, Lemma 2.9]: genus formula `g = 1 + Σ(g_V − 1) + Σ δ_y` (S7), the comparison (`improveeq1`) `δ_y = m_y − |S| + Σ_{V ∈ S} g_V + Σ_{y' ∈ U} δ_{y'}` for the modification at an exhausting disc; *not an improvement* ⇒ unique singular point `y'`, rational unibranch components; *minimal exhausting* ⇔ improvement; termination measure `(δ, −m)` with `m ≤ δ + 1` | S7, G6.7 (`δ` as gluing conditions) | 0.6k |
 
 **L4. `p`-cyclic Kummer covers of a disc** ([KA §2], mixed characteristic, `ζ_p ∈ C`).
-`A = O[[t]]` (`O = O_E`, enlarged as needed), `f ∈ A^×` not a `p`-th power (étale case: over a
-small disc around a type-4 point every branch point is avoided, so no Weierstrass step is
-needed at type 4; the ramified case of [KA §2.1] uses Mathlib's `WeierstrassPreparation`),
-`B` = integral closure of `A` in `Frac(A)(f^{1/p})`, `v_η(g) = (min v(gᵢ), first index)`.
+**Decision (2026-10): no completions of local rings (no R0); power series over the field `C`
+(complete, algebraically closed — the S7/S8 setting), Gauss norms `PowerSeries.gaussNorm`.**
+The base of a Kummer step is a degree-one disc point `P'` of an intermediate field `L/C(x)`
+(B5); its functions are identified with power series by the **bridge** (`DiscGerm`, **proved**):
+for `y ∈ R'` there is `G = Σ aᵢ tⁱ`, `|aᵢ| ≤ 1`, with `Σ_{i<N} aᵢ tⁱ → y` at the extension centred
+at `P'` of every disc valuation (any type), and `w'(y) = sup_i |aᵢ| |l|^i` at the Gauss point
+`w_{a,|lc|}` (`exists_germ`, `exists_germ_gaussNorm`; construction by traces
+`Tr(Nⁿ(e) y) ∈ O_C[t]` of the idempotent iteration `N(u) = 3u² − 2u³` of a separating `e`, whose
+coefficients converge — no Hensel, no completion of local rings). In the rows below `A = O_C⟦t⟧`
+(power series with integral coefficients, Gauss norms at radii `< 1`), `f ∈ A^×` the germ of the
+Kummer generator; statements about the cover are transported back to valuations by the bridge.
 
 | # | Statement | Inputs | Size |
 |---|---|---|---|
-| K1 | **best approximation** [KA Prop 2.2, Cor 2.4/2.5]: `max_{h ∈ A} v_η(f − h^p) = (μ, m)` exists, `0 ≤ μ < p/(p−1)`, `μ/p ∈ v(E^×)` (after enlarging `E`), `p ∤ m`; `B = A[w]`, `w = (y − h)/λ`, `v(λ) = μ/p`, `w^p + ⋯ + pλ^{1−p}h^{p−1}w = (f − h^p)/λ^p`; one boundary point over `η`; `Y` a disc iff `m = 1` | Hensel in `A` (`(𝔪, t)`-complete), Serre normality (complete intersection + R1 at the unique height-one prime over `ϖ`), W4 F4-style residue computation | 0.6k |
+| K1 | **best approximation** [KA Prop 2.2, Cor 2.4/2.5]: `max_{h ∈ A} v_η(f − h^p) = (μ, m)` exists, `0 ≤ μ < p/(p−1)`, `μ/p ∈ v(E^×)` (after enlarging `E`), `p ∤ m`; `B = A[w]`, `w = (y − h)/λ`, `v(λ) = μ/p`, `w^p + ⋯ + pλ^{1−p}h^{p−1}w = (f − h^p)/λ^p`; one boundary point over `η`; `Y` a disc iff `m = 1` | (revised: no normality of `A[w]`) for `h ∈ A` the bridge puts `f − h^p` into the completions at the Gauss points `w_{a,|lc|}`; the extension of the degree-one point there is `K(φ(f)^{1/p})` and its residue extension is read off by F4 (`KummerNormalForm`) at each radius; `(μ, m)` is the limit behaviour as `|l| → 1` (S1-type monotonicity of `|l| ↦ sup_i |aᵢ||l|^i`) | 0.7k |
 | K2 | **recognizing best approximations** [KA Lemma 2.7, Rem 2.8]: `p ∤ m̃` ⇒ `v_η(f − h̃^p) = (μ, m)`; stable under algebraic base change | binomial expansion | 0.1k |
-| K3 | **formal `p`-Taylor expansion** (Matignon [Mat03], [KA Def 2.9, Lemma 2.10, Prop 2.12]): for every level `n` there are `h ∈ A^×` with `f − h^p = Σ a'ᵢ tⁱ`, `a'₀ = 0`, `v(a'_{pj}) ≥ ν_n = 1 + 1/p + ⋯ + 1/pⁿ`. *Only this part of Matignon's theory is used* (no equidistant geometry, no global `p`-Taylor polynomials). Over `O_C` it is elementary (`C` perfect: `b_j = a_{pj}^{1/p}`, induction on `n` with the binomial estimate `v(binom(p, j)) ≥ 1`); over `O_E` it needs the explicit finite extensions of [KA Lemma 2.10] (`p`-power roots of a uniformizer) | `PowerSeries` over `O_C`/`O_E` | 0.4k |
+| K3 | **formal `p`-Taylor expansion** (**proved**, `PTaylor.exists_pTaylor`, over the coefficient field `C`; Matignon [Mat03], [KA Def 2.9, Lemma 2.10, Prop 2.12]): for every level `n` there are `h ∈ A^×` with `f − h^p = Σ a'ᵢ tⁱ`, `a'₀ = 0`, `v(a'_{pj}) ≥ ν_n = 1 + 1/p + ⋯ + 1/pⁿ`. *Only this part of Matignon's theory is used* (no equidistant geometry, no global `p`-Taylor polynomials). Over `O_C` it is elementary (`C` perfect: `b_j = a_{pj}^{1/p}`, induction on `n` with the binomial estimate `v(binom(p, j)) ≥ 1`); over `O_E` it needs the explicit finite extensions of [KA Lemma 2.10] (`p`-power roots of a uniformizer) | `PowerSeries` over `O_C`/`O_E` | 0.4k |
 | K4 | **level suffices** [KA Cor 2.16, 2.23, Prop 2.28, Def 2.30]: if `ν_n > p/(p−1) − (p/(p−1) − μ)/m` the modified Newton polygon (start point `(0, p/(p−1))`) of `f − h^p` has critical segment `P_l P_m` with `P_m = (m, μ)`, `p ∤ l` or `P_l = P'₀`; the segment and the **critical radius** `ρ₀ = |slope|` are independent of the sufficiently precise `h` | Newton polygons of power series (finite truncations; Mathlib has none for power series — 0.3k of the estimate) | 0.6k |
 | K5 | **good centre** [KA Prop 2.31]: after a finite extension and a change of centre `t ↦ t − τ`, `l ≠ 1`; proof by the generic expansion of `f(t + T)` over integral extensions `S ⊇ O[[T]]`, `a(T) = N_{S̃/O[[T]]}(A₁^{[n]}(T))`, a zero `τ` of its Weierstrass polynomial (non-constant after the pre-approximation `f₂ = f/h₁^p`) | Mathlib `WeierstrassPreparation`, norms of integral extensions, K3 | 0.6k |
 | K6 | **minimal exhausting disc** [KA Prop 2.33 = AW Prop 3.4]: `D = {v(t) ≥ ρ₀}` is exhausting (on `X ∖ D`: `f − h^p = c₁^p t^m u₁`, R2) and minimal: on `D` the reduction is `w̄^p + c̄ w̄ = ḡ` (Artin–Schreier, genus `(p−1)(m−1)/2 > 0`) if `P_l = P'₀`, else `w̄^p = ḡ` with `t̄^l ∣ ḡ`, `1 < l < m`, `p ∤ lm`, singular at ≥ 2 zeros of `dḡ`; R5 ⇒ improvement | K1–K5, R2, R5, W4 F4 (`KummerNormalForm`: the residue extension at the Gauss point of `D`) | 0.6k |
