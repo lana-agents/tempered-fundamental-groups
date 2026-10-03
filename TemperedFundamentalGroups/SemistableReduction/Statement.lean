@@ -97,7 +97,8 @@ and finitely many given projective `O`-models `c₀ i` of `Spec B` (with `j₀ i
 * `G × Gal(K'/K)` acts on `c` over `O` with `j` equivariant (`g` acts on `K' ⊗ B` by `id ⊗ g`,
   `σ` by `σ ⊗ id`);
 * `c` dominates every `c₀ i` compatibly with the `j`s;
-* the special fibre of `c` has dimension `≤ 1`. -/
+* the special fibre of `c` has dimension `≤ 1`;
+* if `K' ⊗_K B` has no nontrivial idempotents, the special fibre of `c` is connected. -/
 def Statement.Strong : Prop :=
   ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
     [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
@@ -132,7 +133,9 @@ def Statement.Strong : Prop :=
       (∀ i, j ≫ dom i = Spec.map (CommRingCat.ofHom
         (Algebra.TensorProduct.includeRight.toRingHom : B →+* TensorProduct K K' B)) ≫ j₀ i) ∧
       (∀ i, dom i ≫ (c₀ i).toSpec = c.toSpec) ∧
-      topologicalKrullDim (specialFibre c.toSpec) ≤ 1
+      topologicalKrullDim (specialFibre c.toSpec) ≤ 1 ∧
+      ((∀ e : TensorProduct K K' B, IsIdempotentElem e → e = 0 ∨ e = 1) →
+        ConnectedSpace (specialFibre c.toSpec))
 
 end TemperedFundamentalGroups.SemistableReduction
 
