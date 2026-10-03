@@ -40,6 +40,7 @@ import TemperedFundamentalGroups.Orbicurve.Model
 import TemperedFundamentalGroups.Orbicurve.Nullstellensatz
 import TemperedFundamentalGroups.Orbicurve.Orbifold
 import TemperedFundamentalGroups.Orbicurve.Ring
+import TemperedFundamentalGroups.Orbicurve.Smooth
 import TemperedFundamentalGroups.Orbicurve.Stable
 import TemperedFundamentalGroups.Orbicurve.ZeroSet
 import TemperedFundamentalGroups.SemistableReduction.Abhyankar
