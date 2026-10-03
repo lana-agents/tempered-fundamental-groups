@@ -160,6 +160,7 @@ import TemperedFundamentalGroups.SemistableReduction.XResidue
 import TemperedFundamentalGroups.SemistableReduction.ZariskiHarmonic
 import TemperedFundamentalGroups.SemistableReduction.ZariskiModel
 import TemperedFundamentalGroups.SemistableReduction.ZariskiNormalization
+import TemperedFundamentalGroups.Setup.InvariantLine
 import TemperedFundamentalGroups.Setup.NoetherLine
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Schmidt
