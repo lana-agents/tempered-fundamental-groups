@@ -49,14 +49,14 @@ noncomputable def redVec (S : Finset (TypeTwo C F)) (f : F) : Π W : S, Kappa S 
 
 include hp hp1 in
 /-- **The δ-count for a set of vertices** (S7.6, abstract form). -/
-theorem sum_genus_add_le {I : Type*} [Fintype I] [Nonempty I] (x : I → F)
+theorem sum_genus_add_le {I : Type*} [Finite I] [Nonempty I] (x : I → F)
     (hx : ∀ i, Transcendental C (x i)) (S : Finset (TypeTwo C F))
     (hS : ∀ W, W ∈ S ↔ ∃ i, IsOver (hx i) W)
     (D : ℕ → CurveDivisor C F) (Db : ℕ → ∀ W : S, CurveDivisor 𝓀 (Kappa S W))
     (hdeg : ∀ m, ∑ W, (Db m W).degree = (D m).degree)
     (hlarge : ∀ (m : ℕ) W, (m : ℤ) ≤ (Db m W).degree)
     (hred : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → redVec S f ∈ piRR 𝓀 (Kappa S) (Db m))
-    {ι : Type*} [Fintype ι] [DecidableEq ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
+    {ι : Type*} [Fintype ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
     (hdisj : ∀ p q, p ≠ q → Disjoint (Sp p) (Sp q)) (hzero : ∀ m p, ∀ b ∈ Sp p, Db m b.1 b.2 = 0)
     (O : ι → Submodule 𝓀 (Π W : S, Kappa S W))
     (hO : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → ∀ p, redVec S f ∈ O p) (M : ℕ)
@@ -140,14 +140,14 @@ section Corollaries
 include hp hp1 in
 /-- The δ-count with independent finite sets (`sum_genus_add_le`). -/
 theorem sum_genus_add_card_le
-    {I : Type*} [Fintype I] [Nonempty I] (x : I → F)
+    {I : Type*} [Finite I] [Nonempty I] (x : I → F)
     (hx : ∀ i, Transcendental C (x i)) (S : Finset (TypeTwo C F))
     (hS : ∀ W, W ∈ S ↔ ∃ i, IsOver (hx i) W)
     (D : ℕ → CurveDivisor C F) (Db : ℕ → ∀ W : S, CurveDivisor 𝓀 (Kappa S W))
     (hdeg : ∀ m, ∑ W, (Db m W).degree = (D m).degree)
     (hlarge : ∀ (m : ℕ) W, (m : ℤ) ≤ (Db m W).degree)
     (hred : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → redVec S f ∈ piRR 𝓀 (Kappa S) (Db m))
-    {ι : Type*} [Fintype ι] [DecidableEq ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
+    {ι : Type*} [Fintype ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
     (hdisj : ∀ p q, p ≠ q → Disjoint (Sp p) (Sp q)) (hzero : ∀ m p, ∀ b ∈ Sp p, Db m b.1 b.2 = 0)
     (Oc : ι → Submodule 𝓀 (Π W : S, Kappa S W))
     (hO : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → ∀ p, redVec S f ∈ Oc p)
@@ -164,18 +164,17 @@ include hp hp1 in
 /-- **The `b₁` form** (S7.6): if the condition spaces consist of elements with equal residues at
 the `r_p ≥ 1` branches of `p`, then `Σ_W g(κ(W)) + Σ_p (r_p - 1) ≤ g(F) + #S - 1`. -/
 theorem sum_genus_add_sum_card_sub_one_le
-    {I : Type*} [Fintype I] [Nonempty I] (x : I → F)
+    {I : Type*} [Finite I] [Nonempty I] (x : I → F)
     (hx : ∀ i, Transcendental C (x i)) (S : Finset (TypeTwo C F))
     (hS : ∀ W, W ∈ S ↔ ∃ i, IsOver (hx i) W)
     (D : ℕ → CurveDivisor C F) (Db : ℕ → ∀ W : S, CurveDivisor 𝓀 (Kappa S W))
     (hdeg : ∀ m, ∑ W, (Db m W).degree = (D m).degree)
     (hlarge : ∀ (m : ℕ) W, (m : ℤ) ≤ (Db m W).degree)
     (hred : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → redVec S f ∈ piRR 𝓀 (Kappa S) (Db m))
-    {ι : Type*} [Fintype ι] [DecidableEq ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
+    {ι : Type*} [Fintype ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
     (hdisj : ∀ p q, p ≠ q → Disjoint (Sp p) (Sp q)) (hzero : ∀ m p, ∀ b ∈ Sp p, Db m b.1 b.2 = 0)
     (Oc : ι → Submodule 𝓀 (Π W : S, Kappa S W))
     (hO : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → ∀ p, redVec S f ∈ Oc p)
-    [DecidableEq (Branch 𝓀 (Kappa S))]
     (hOeq : ∀ p, Oc p ≤ eqRes 𝓀 (Kappa S) (Sp p)) (hne : ∀ p, (Sp p).Nonempty) :
     (∑ W : S, (genus 𝓀 (Kappa S W) : ℤ)) + ∑ p, (((Sp p).card : ℤ) - 1) ≤
       genus C F + S.card - 1 := by
@@ -195,18 +194,17 @@ include hp hp1 in
 a set of elements regular at the branches of `p₀` and independent modulo `Oc p₀ + K_{M, p₀}` has at
 most `r_{p₀} - 1` elements. -/
 theorem card_le_of_indep
-    {I : Type*} [Fintype I] [Nonempty I] (x : I → F)
+    {I : Type*} [Finite I] [Nonempty I] (x : I → F)
     (hx : ∀ i, Transcendental C (x i)) (S : Finset (TypeTwo C F))
     (hS : ∀ W, W ∈ S ↔ ∃ i, IsOver (hx i) W)
     (D : ℕ → CurveDivisor C F) (Db : ℕ → ∀ W : S, CurveDivisor 𝓀 (Kappa S W))
     (hdeg : ∀ m, ∑ W, (Db m W).degree = (D m).degree)
     (hlarge : ∀ (m : ℕ) W, (m : ℤ) ≤ (Db m W).degree)
     (hred : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → redVec S f ∈ piRR 𝓀 (Kappa S) (Db m))
-    {ι : Type*} [Fintype ι] [DecidableEq ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
+    {ι : Type*} [Fintype ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
     (hdisj : ∀ p q, p ≠ q → Disjoint (Sp p) (Sp q)) (hzero : ∀ m p, ∀ b ∈ Sp p, Db m b.1 b.2 = 0)
     (Oc : ι → Submodule 𝓀 (Π W : S, Kappa S W))
     (hO : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → ∀ p, redVec S f ∈ Oc p)
-    [DecidableEq (Branch 𝓀 (Kappa S))]
     (hOeq : ∀ p, Oc p ≤ eqRes 𝓀 (Kappa S) (Sp p)) (hne : ∀ p, (Sp p).Nonempty)
     (hS8 : genus C F + S.card - 1 ≤
       (∑ W : S, (genus 𝓀 (Kappa S W) : ℤ)) + ∑ p, (((Sp p).card : ℤ) - 1))

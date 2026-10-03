@@ -203,7 +203,7 @@ lemma jetKer_le_eqRes {M : ℕ} (hM : 1 ≤ M) (S : Finset (Branch k κ)) :
 
 /-- **`δ ≥ r - 1`** (S7.3): for a nonempty set `S` of `r` branches, there are `r - 1` elements
 regular at `S` (indexed by `S ∖ {b₀}`) that are independent modulo every subspace of `eqRes S`. -/
-theorem exists_indep_of_le_eqRes [DecidableEq J] [DecidableEq (Branch k κ)]
+theorem exists_indep_of_le_eqRes [DecidableEq (Branch k κ)]
     (S : Finset (Branch k κ)) (b₀ : Branch k κ) :
     ∃ t : S.erase b₀ → Π j, κ j, (∀ i, t i ∈ regAt k κ S) ∧ ∀ N : Submodule k (Π j, κ j),
       N ≤ eqRes k κ S → b₀ ∈ S → ∀ a : S.erase b₀ → k, ∑ i, a i • t i ∈ N → a = 0 := by
@@ -286,7 +286,7 @@ theorem exists_indep_of_le_eqRes [DecidableEq J] [DecidableEq (Branch k κ)]
 
 /-- `δ ≥ r - 1` in finset form: a set of `r - 1` elements regular at `S`, independent modulo every
 subspace of `eqRes S`. -/
-theorem exists_finset_indep_of_le_eqRes [DecidableEq J] [DecidableEq (Branch k κ)]
+theorem exists_finset_indep_of_le_eqRes
     (S : Finset (Branch k κ)) {b₀ : Branch k κ} (hb₀ : b₀ ∈ S) :
     ∃ A : Finset (Π j, κ j), A.card = S.card - 1 ∧ (∀ y ∈ A, y ∈ regAt k κ S) ∧
       ∀ N : Submodule k (Π j, κ j), N ≤ eqRes k κ S → ∀ a : A → k, ∑ i, a i • (i : Π j, κ j) ∈ N →
@@ -329,7 +329,7 @@ omit [IsAlgClosed k] in
 `w p i ∈ W` agree with `t p i` modulo `K p ≤ N p` and lie in `K q` for `q ≠ p`. If the `t p` are
 independent modulo `N p`, then `dim R + Σ_p #(T p) ≤ dim W`. -/
 theorem finrank_add_sum_le_of_lift {U : Type*} [AddCommGroup U] [Module k U] {ι : Type*}
-    [Fintype ι] [DecidableEq ι] {T : ι → Type*} [∀ p, Fintype (T p)] (W R : Submodule k U)
+    [Fintype ι] {T : ι → Type*} [∀ p, Fintype (T p)] (W R : Submodule k U)
     [FiniteDimensional k W] (N K : ι → Submodule k U) (hK : ∀ p, K p ≤ N p)
     (hR : R ≤ W) (hRN : ∀ p, R ≤ N p) (t w : ∀ p, T p → U) (hw : ∀ p i, w p i ∈ W)
     (hwt : ∀ p i, w p i - t p i ∈ K p) (hwK : ∀ p q, q ≠ p → ∀ i, w q i ∈ K p)
@@ -395,7 +395,8 @@ noncomputable def piRREquiv (D : ∀ j, CurveDivisor k (κ j)) :
   left_inv _ := rfl
   right_inv _ := rfl
 
-instance finiteDimensional_piRR (D : ∀ j, CurveDivisor k (κ j)) :
+omit [Fintype J] in
+instance finiteDimensional_piRR [Finite J] (D : ∀ j, CurveDivisor k (κ j)) :
     FiniteDimensional k (piRR k κ D) :=
   LinearEquiv.finiteDimensional (piRREquiv D).symm
 
@@ -408,7 +409,7 @@ lemma finrank_piRR (D : ∀ j, CurveDivisor k (κ j)) :
 M · Σ_p #(S p)`, the branch sets `S p` are pairwise disjoint with `D` vanishing there, `R ≤ Π_j
 L(D_j)` lies in `O p + K_{M, p}` for all `p`, and `t p` are families of elements regular at `S p`,
 independent modulo `O p + K_{M, p}`, then `dim R + Σ_p #(T p) ≤ Σ_j ℓ(D_j)`. -/
-theorem finrank_add_sum_le [DecidableEq J] {ι : Type*} [Fintype ι] [DecidableEq ι]
+theorem finrank_add_sum_le {ι : Type*} [Fintype ι]
     (S : ι → Finset (Branch k κ)) {T : ι → Type*} [∀ p, Fintype (T p)] :
     ∃ c : J → ℤ, ∀ (D : ∀ j, CurveDivisor k (κ j)) (M : ℕ),
     (∀ j, c j + M * ∑ p, (S p).card ≤ (D j).degree) →

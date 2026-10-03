@@ -206,12 +206,13 @@ include hp hp1 in
 /-- **Isometric coordinates for several Gauss points**: if `S` is the set of all extensions of
 the Gauss points of finitely many coordinates `xᵢ`, every finite-dimensional `V ⊆ F` embeds
 isometrically into `(C^J, sup)` for `‖·‖_S`. -/
-theorem exists_isometry_mnorm {I : Type*} [Fintype I] (x : I → F)
+theorem exists_isometry_mnorm {I : Type*} [Finite I] (x : I → F)
     (hx : ∀ i, Transcendental C (x i)) (S : Finset (TypeTwo C F))
     (hS : ∀ W, W ∈ S ↔ ∃ i, IsOver (hx i) W) (V : Submodule C F) [FiniteDimensional C V] :
     ∃ (n : ℕ) (T : V →ₗ[C] (Fin n → C)), ∀ f : V,
       supNorm (T f) = mnorm S f := by
   classical
+  haveI := Fintype.ofFinite I
   choose n T hT using fun i ↦ exists_isometry_coord hp hp1 (hx i) S
     (fun W hW ↦ (hS W).2 ⟨i, hW⟩) V
   set T₀ : V →ₗ[C] ((Σ i, Fin (n i)) → C) := LinearMap.pi fun j ↦
@@ -239,7 +240,7 @@ include hp hp1 in
 of the Gauss points of finitely many coordinates, then for every finite-dimensional `V ⊆ F` and
 every finite-dimensional `k`-subspace `W ⊆ Π_{W ∈ S} κ(W)` containing the reductions of the
 elements of `V` with `‖f‖_S ≤ 1`, `dim V ≤ dim W`. -/
-theorem finrank_le_of_red_mem {I : Type*} [Fintype I] [Nonempty I] (x : I → F)
+theorem finrank_le_of_red_mem {I : Type*} [Finite I] [Nonempty I] (x : I → F)
     (hx : ∀ i, Transcendental C (x i)) (S : Finset (TypeTwo C F))
     (hS : ∀ W, W ∈ S ↔ ∃ i, IsOver (hx i) W) (V : Submodule C F) [FiniteDimensional C V]
     (Wk : Submodule 𝓀 (Π W : S, ResidueField W.1.val.valuationSubring)) [FiniteDimensional 𝓀 Wk]
