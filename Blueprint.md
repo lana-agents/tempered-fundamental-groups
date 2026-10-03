@@ -989,3 +989,32 @@ W10 is stated for **complete** discretely valued `K` of characteristic `0`
 descent step W9 needs completeness). So Theorem A, the identification with André's group, holds
 for complete base fields such as IUT's `K_v`. For a henselian `K` that is not complete, the
 tempered group is still defined, but it is not identified with André's group.
+
+#### 10.3.4 B5 re-planned: only targeted statements
+
+The geometric input is **`Statement.HarmonicGeneral`**, which is targeted. It concerns any
+`ψ : c ⟶ c'` over `O` between split semistable models that is finite on generic fibres. For each
+node `x'` of thickness `n'`:
+
+* (H1) a crossing walk exists from every non-contracted component over a branch, with
+  `Σ dᵢnᵢ = n'`;
+* (H2) every crossing walk has `Σ dᵢnᵢ ≤ n'`;
+* (H3) a node that does not map to a node maps to a smooth point of a single component.
+
+B5 does not use `Statement.Modification` (an untargeted draft). `Statement.Simultaneous` alone is
+not enough. The index system of K1 contains Galois objects over all split semistable models of
+each level, so its model maps are arbitrary, and they need not factor through a semistable model.
+Simultaneous only produces new models for a tower.
+
+**Length.** Let `U` be a Galois object over the split semistable level `Lv` with model `c`. For
+`γ ∈ Φ U`, let `e(γ)` be the deck element in `Π` taking the base point to `γ`. Its length is
+`len(γ) := Σ dᵢnᵢ` (the `d`'s are degrees over `Y`) over the nodes crossed by the reduced edge path
+in the universal cover of the dual graph from `z̃₀` to `e(γ) z̃₀`.
+
+* **Finite:** for each bound `L`, only finitely many `γ` have length at most `L`. The dual graph is
+  finite, lengths are positive, and the fibres of `Π → H` are deck orbits.
+* **Non-increasing:** `len(Φ f γ) ≤ len(γ)` along pointed morphisms, by (H2) and (H3).
+* **Lifts:** the Tate loop lifts with `len = ℓ₀`, by (H1).
+
+Then `S_p := {γ : Φ f_p γ = δ(1)·x₀, len γ ≤ ℓ₀}` is finite, nonempty, and preserved by pointed
+morphisms, and K2 gives `α` with `deckCharacter α = 1`.
