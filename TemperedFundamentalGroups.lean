@@ -1,5 +1,6 @@
 import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.GaloisClass
+import TemperedFundamentalGroups.Andre.GaloisClass2
 import TemperedFundamentalGroups.Andre.GaloisObject
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
