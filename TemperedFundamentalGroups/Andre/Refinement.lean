@@ -8,7 +8,20 @@ import TemperedFundamentalGroups.Andre.Pullback
 /-!
 # Semistable refinements of levels (from W10)
 
-Blueprint §10.2, A3.
+Blueprint §10.2, A3. The admissible refinements of Theorem A are the **base changes**
+(`LevelHom.IsBaseChange`): `B' ≅ B ⊗_K L` for a finite étale `K`-algebra `L` with a group `Γ` acting
+transitively on `Hom_K(L, Ω)`, with group the image of `H × Γ`. From the strong form of W10
+(`SemistableReduction.Statement.Strong`, an explicit hypothesis `hW`):
+
+* `LevelHom.IsBaseChange.isRefinement`, `LevelHom.isBaseChange_id`;
+* `exists_core`: the base change along a Galois `K'/K` with a semistable model dominating given
+  ones;
+* `refinement_input`: every level has a semistable base change;
+* `common_input`: two base changes over a morphism of levels have a common semistable base change;
+* `andreInput`, `andreEquiv`: Theorem A, `temperedPi1 ≃ₜ* andreGroup`.
+
+Auxiliary: finiteness of the groups `H` of levels (`FiniteLevel.finite_H`, for finite `A`), levels
+from uncoded finite étale algebras (`LevelData`).
 -/
 
 universe u
@@ -718,6 +731,8 @@ lemma commonΦ_eq_one [Nontrivial L₁] [Nontrivial L₂] {x} (hx : D.Φ x = 1) 
   exact ⟨Subtype.ext (tensorAut_eq_one_fst hx), fun _ =>
     commonθ_eq_one θ₁ θ₂ K' (tensorAut_eq_one_snd hx)⟩
 
+omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 include hΦ in
 lemma commonF₁_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
     commonF₁ hH₁ x = 1 := by
@@ -751,7 +766,6 @@ def commonM₂ : TensorProduct K Lv'.L.B L₂ →ₐ[R] TensorProduct K Lv.L.B (
 
 omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
   [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
-set_option synthInstance.maxHeartbeats 200000 in
 include hΦ in
 lemma commonσ₁ (γ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (z : TensorProduct K Lv.L.B L₁) :
     commonML L₁ L₂ K' Lv (commonM₁ L₁ L₂ Lv
@@ -760,7 +774,9 @@ lemma commonσ₁ (γ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (z : 
   rw [hΦ]
   induction z using TensorProduct.induction_on with
   | zero => simp only [map_zero]
-  | add y z hy hz => simp only [map_add, hy, hz]
+  | add y z hy hz =>
+    rw [RingEquiv.map_add, map_add (commonM₁ L₁ L₂ Lv), map_add (commonML L₁ L₂ K' Lv), hy, hz,
+      map_add (commonM₁ L₁ L₂ Lv), map_add (commonML L₁ L₂ K' Lv), RingEquiv.map_add]
   | tmul b l =>
     rw [tensorAut_σ_tmul]
     change (γ.1 : SemilinearAut R A Lv.L.B).σ b ⊗ₜ[K] ((θ₁ γ.2.1.1 l ⊗ₜ[K] (1 : L₂)) ⊗ₜ[K]
@@ -823,6 +839,8 @@ lemma commonκ₂_of_nontrivial [Nontrivial Lv.L.B] (δ : (Γ₁ × Γ₂) × (K
   rw [if_pos ‹_›]
   rfl
 
+omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 include hΦ in
 lemma commonκ₂_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
     commonκ₂ Γ₁ θ₂ K' Lv x.2 = 1 := by
@@ -856,6 +874,8 @@ lemma commonF₂_σ (x : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (y :
         commonκ₂ Γ₁ θ₂ K' Lv x.2)).σ (e₂ y)) :=
   rfl
 
+omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 include hΦ in
 lemma commonF₂_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
     commonF₂ u hH₂ x = 1 := by
@@ -865,7 +885,6 @@ lemma commonF₂_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
 
 omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
   [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
-set_option synthInstance.maxHeartbeats 200000 in
 include hΦ in
 lemma commonσ₂ (γ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (z : TensorProduct K Lv'.L.B L₂) :
     commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u
@@ -937,7 +956,8 @@ lemma commonφ₂_r [Nontrivial L₁] [Nontrivial L₂] (γ) :
     (commonφ₂ u hH₂ D hΦ).r (D.proj γ) = commonF₂ u hH₂ γ :=
   D.lift_proj _ (commonF₂_ker u hH₂ D hΦ) γ
 
-omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+omit [SMulCommClass A K R]
+  [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
   [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 lemma commonML_M₁_tmul_one (y : Lv.L.B) :
     commonML L₁ L₂ K' Lv (commonM₁ L₁ L₂ Lv (y ⊗ₜ[K] 1)) = y ⊗ₜ[K] 1 := by
@@ -946,7 +966,8 @@ lemma commonML_M₁_tmul_one (y : Lv.L.B) :
       (A := L₁) (B := L₂) 1)) = _
   rw [map_one, map_one]
 
-omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+omit [SMulCommClass A K R]
+  [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
   [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 lemma commonML_M₂_tmul_one (y : Lv'.L.B) :
     commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u (y ⊗ₜ[K] 1)) = u.φ.f y ⊗ₜ[K] 1 := by
@@ -979,10 +1000,12 @@ end CommonLevel
 section Core
 
 variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
-  [HenselianLocalRing O] {R : Type u} [CommRing R] [Algebra K R] [Algebra.Smooth K R]
+  [IsAdicComplete (IsLocalRing.maximalIdeal O) O] {R : Type u} [CommRing R] [Algebra K R]
+  [Algebra.Smooth K R]
   {A : Type u} [Group A] [MulSemiringAction A R] [SMulCommClass A K R]
 
 set_option maxHeartbeats 1000000 in
+-- the proof unpacks the output of W10 and checks several tensor-product identities
 /-- **The core construction from W10**: for a finite étale `R`-algebra `B₀` with a group `G₀` of
 semilinear automorphisms, a finite étale `K`-algebra `M` with a group `Δ` of automorphisms and
 finitely many models of `Spec (B₀ ⊗_K M)`, W10 gives a finite Galois extension `K'/K` and a level
@@ -1051,9 +1074,9 @@ theorem exists_core (hW : SemistableReduction.Statement.Strong.{u}) (hR : ringKr
       | zero => simp only [TensorProduct.tmul_zero, map_zero]
       | add y z hy hz => simp only [TensorProduct.tmul_add, map_add, hy, hz]
       | tmul b m =>
-        simp [κ, Φ, ξ, B, L, C, MulSemiringAction.toAlgAut]
         change (Algebra.TensorProduct.assoc K K K B₀ M K')
-          (((ν' (γ.1⁻¹, γ.2.1⁻¹)).σ (b ⊗ₜ[K] m)) ⊗ₜ[K] γ.2.2.symm k) = _
+          (((ν' (γ.1⁻¹, γ.2.1⁻¹)).σ (b ⊗ₜ[K] m)) ⊗ₜ[K] γ.2.2.symm k) =
+          (ν γ.1).σ.symm b ⊗ₜ[K] ((θ γ.2.1).symm m ⊗ₜ[K] γ.2.2.symm k)
         simp only [ν', MonoidHom.coe_comp, Function.comp_apply, MonoidHom.coe_prodMap, Prod.map,
           map_inv]
         rw [tensorAut_σ_tmul M ((ν γ.1)⁻¹, (θ γ.2.1)⁻¹) b m,
@@ -1149,23 +1172,27 @@ end Input
 section Main
 
 variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
-  [HenselianLocalRing O] {R : Type u} [CommRing R] [Algebra K R] [Algebra.Smooth K R]
+  [IsAdicComplete (IsLocalRing.maximalIdeal O) O] {R : Type u} [CommRing R] [Algebra K R]
+  [Algebra.Smooth K R]
   {A : Type u} [Group A] [MulSemiringAction A R] [SMulCommClass A K R] [Finite A]
   {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω] [IsAlgClosed Ω]
 
-omit [CharZero K] [IsDiscreteValuationRing O] [HenselianLocalRing O] [Algebra.Smooth K R]
+omit [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+  [Algebra.Smooth K R]
   [SMulCommClass A K R] [Finite A] [Algebra R Ω] [IsScalarTower K R Ω] in
 lemma nonempty_algHom_tensor_of_finiteDimensional (M K' : Type u) [CommRing M] [Algebra K M]
     [Field K'] [Algebra K K'] [FiniteDimensional K K'] (h : Nonempty (M →ₐ[K] Ω)) :
     Nonempty (TensorProduct K M K' →ₐ[K] Ω) :=
   ⟨Algebra.TensorProduct.lift h.some (IsAlgClosed.lift : K' →ₐ[K] Ω) fun _ _ => .all _ _⟩
 
-omit [CharZero K] [IsDiscreteValuationRing O] [HenselianLocalRing O] [Algebra.Smooth K R]
+omit [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+  [Algebra.Smooth K R]
   [SMulCommClass A K R] [Finite A] [Algebra R Ω] [IsScalarTower K R Ω] [IsAlgClosed Ω] in
 lemma transitive_trivial (s₁ s₂ : K →ₐ[K] Ω) :
     ∃ γ : PUnit.{u + 1}, s₂ = s₁.comp ((1 : PUnit.{u + 1} →* (K ≃ₐ[K] K)) γ).toAlgHom :=
   ⟨1, Subsingleton.elim _ _⟩
 
+omit [Algebra R Ω] [IsScalarTower K R Ω] in
 variable (Ω) in
 /-- **Every level has a semistable base change** (from W10): `AndreInput.refinement` for
 `bc := IsBaseChange`. -/
@@ -1201,8 +1228,9 @@ theorem refinement_input (hW : SemistableReduction.Statement.Strong.{u})
   exact transitive_tensor Ω 1 (MonoidHom.id _) transitive_trivial
     (fun s₁ s₂ => exists_algEquiv_comp_eq s₁ s₂) s₁ s₂
 
-omit [Algebra R Ω] [IsScalarTower K R Ω] in
 set_option maxHeartbeats 1000000 in
+-- the proof assembles the data of two base changes and of W10 in one declaration
+omit [Algebra R Ω] [IsScalarTower K R Ω] in
 variable (Ω) in
 /-- **Two base changes over a morphism of levels have a common semistable base change** (from
 W10): `AndreInput.common` for `bc := IsBaseChange`. -/
@@ -1313,6 +1341,22 @@ theorem common_input (hW : SemistableReduction.Statement.Strong.{u}) (hR : ringK
   refine ext_of_isSchemeTheoreticallyDominant_of_isSeparated Lv'.c.toSpec ?_ D.level.j ?_
   · rw [((μ₁.comp ℓ₁).comp u).ψ_toSpec, (μ₂.comp ℓ₂).ψ_toSpec]
   · rw [((μ₁.comp ℓ₁).comp u).j_ψ, (μ₂.comp ℓ₂).j_ψ, hfu]
+
+variable (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+/-- **The geometric input for Theorem A** from W10, with base changes as admissible refinements. -/
+theorem andreInput (hW : SemistableReduction.Statement.Strong.{u}) (hR : ringKrullDim R = 1) :
+    AndreInput O R A Ω V hV (fun ℓ => ℓ.IsBaseChange Ω) where
+  bc_id := bc_id_input Ω
+  bc_isRefinement := bc_isRefinement_input Ω
+  pullback := pullback_input O R A V hV
+  refinement := refinement_input Ω hW hR
+  common := fun ℓ₁ ℓ₂ u h₁ h₂ => common_input Ω hW hR ℓ₁ ℓ₂ u h₁ h₂
+
+/-- **Theorem A** (Blueprint §10.1), from W10: the tempered fundamental group is André's group. -/
+def andreEquiv (hW : SemistableReduction.Statement.Strong.{u}) (hR : ringKrullDim R = 1) :
+    temperedPi1 O R A V hV ≃ₜ* andreGroup O R A V hV :=
+  andreEquivOfInput (andreInput V hV hW hR)
 
 end Main
 
