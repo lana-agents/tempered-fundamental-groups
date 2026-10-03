@@ -110,7 +110,7 @@ lemma comap_primeIdealOf_restrict {U V : c.scheme.Opens} (hU : IsAffineOpen U)
       (hU.primeIdealOf ⟨x, h hx⟩).asIdeal := by
   have := IsAffineOpen.comap_primeIdealOf_appLE (f := 𝟙 c.scheme) U hU V hV h hx
   have e : Scheme.Hom.appLE (𝟙 c.scheme) U V h = c.scheme.presheaf.map (homOfLE h).op := by
-    simp [Scheme.Hom.appLE]
+    rw [Scheme.Hom.appLE, Scheme.Hom.id_app]
     exact Category.id_comp _
   rw [e] at this
   exact congrArg PrimeSpectrum.asIdeal this
