@@ -634,6 +634,147 @@ theorem map_lift_eq_prod (hc : ‖c‖ < 1) (y : Rint c F') (P : (nodeRing c)[X]
 
 end Identity
 
+lemma rootMultiplicity_prod_monic {K ι : Type*} [Field K] (s : Finset ι) (g : ι → K[X])
+    (hg : ∀ i, (g i).Monic) (x : K) :
+    (∏ i ∈ s, g i).rootMultiplicity x = ∑ i ∈ s, (g i).rootMultiplicity x := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | insert a s ha ih =>
+    rw [Finset.prod_insert ha, Finset.sum_insert ha, rootMultiplicity_mul
+      ((hg a).mul (monic_prod_of_monic _ _ fun i _ ↦ hg i)).ne_zero, ih]
+
+lemma rootMultiplicity_prod_X_sub_C_pow {K ι : Type*} [Field K] [DecidableEq K] (s : Finset ι)
+    (r : ι → K) (m : ι → ℕ) :
+    (∏ i ∈ s, (X - Polynomial.C (r i)) ^ m i).rootMultiplicity 0 =
+      ∑ i ∈ s, if r i = 0 then m i else 0 := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | insert a s ha ih =>
+    rw [Finset.prod_insert ha, Finset.sum_insert ha, rootMultiplicity_mul
+      ((monic_X_sub_C _).pow _ |>.mul (monic_prod_of_monic _ _ fun i _ ↦
+        (monic_X_sub_C _).pow _)).ne_zero, ih]
+    congr 1
+    split_ifs with h
+    · rw [h, rootMultiplicity_X_sub_C_pow]
+    · refine rootMultiplicity_eq_zero fun hroot ↦ h ?_
+      simp only [IsRoot, eval_pow, eval_sub, eval_X, eval_C, zero_sub] at hroot
+      have := pow_eq_zero_iff'.1 hroot
+      simpa using this.1
+
+section Matching
+
+variable [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1) [Fintype (Ext C F')]
+  [Algebra.IsSeparable (RatFunc C) F']
+
+open Classical in
+/-- The **vertex degree** of a point `P'` of `R'` over the node: the sum of `ord_Q x̄` over the
+branches `Q` (zeros of `x̄` on the residue curves of the outer vertex) whose ideal is `P'`. -/
+noncomputable def vertexDegree (hc : ‖c‖ < 1) (P' : Ideal (Rint c F')) : ℕ :=
+  ∑ v : Ext C F', ∑ Q ∈ (zeros 𝓀 (red C (xF C F') v)).attach,
+    if placeIdeal hc v Q.2 = P' then ord (red C (xF C F') v) Q.1 else 0
+
+omit [CharZero C] [Fintype (Ext C F')] [Algebra.IsSeparable (RatFunc C) F'] in
+lemma mem_tubeIdeal_iff_placeHom (hc : ‖c‖ < 1) {s : ℝ≥0ˣ} (hs : s ∈ segment c)
+    (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (a : nodeRing c) :
+    a ∈ tubeIdeal c ↔ placeHom hc v hQ (algebraMap (nodeRing c) (Rint c F') a) = 0 := by
+  obtain ⟨κ, hκs, hκ⟩ := placeHom_algebraMap hc v hQ a
+  rw [hκ, mem_tubeIdeal_iff a hs, gaussRat_lt_one_iff hκs hs, residue_eq_zero_iff,
+    HenselComplete.mem_maximalIdeal_iff_norm_lt_one]
+
+include hp hp1 in
+/-- **Matching at the outer vertex (S6).** For a maximal ideal `P'` of `R'` over the node and a
+radius `s` of the open segment, the tube degree of `P'` (the sum of `e f` over the extensions of
+`w_{0,s}` centred at `P'`) equals its vertex degree (the sum of `ord_Q x̄` over the branches of
+the outer component through `P'`). -/
+theorem tubeDegree_eq_vertexDegree (hc : ‖c‖ < 1) (hc0 : c ≠ 0) {s : ℝ≥0ˣ} (hs : s ∈ segment c)
+    {cs : C} (hcs : NormedField.valuation cs = (s : ℝ≥0))
+    [Fintype (GaussExtension (0 : C) s F')] (P' : Ideal (Rint c F')) [hP' : P'.IsMaximal] :
+    tubeDegree hs P' = vertexDegree hc P' := by
+  classical
+  -- the finitely many maximal ideals to separate from `P'`
+  set T₁ : Finset (Ideal (Rint c F')) := Finset.univ.image (center hs)
+  set T₂ : Finset (Ideal (Rint c F')) := Finset.univ.biUnion fun v : Ext C F' ↦
+    (zeros 𝓀 (red C (xF C F') v)).attach.image fun Q ↦ placeIdeal hc v Q.2
+  set T := (T₁ ∪ T₂).erase P'
+  obtain ⟨e, he1, heQ⟩ := exists_separating P' T fun Q hQ ↦ by
+    obtain ⟨hne, hQ⟩ := Finset.mem_erase.1 hQ
+    refine ⟨?_, hne⟩
+    rcases Finset.mem_union.1 hQ with hQ | hQ
+    · obtain ⟨w', -, rfl⟩ := Finset.mem_image.1 hQ
+      exact center_isMaximal hc hc0 hs w'
+    · obtain ⟨v, -, hv⟩ := Finset.mem_biUnion.1 hQ
+      obtain ⟨Q, -, rfl⟩ := Finset.mem_image.1 hv
+      exact placeIdeal_isMaximal hc v Q.2
+  set y : Rint c F' := e - 1
+  obtain ⟨P, hP⟩ := exists_lift_normPoly hc0 hc.le y.2
+  -- the tube side
+  have htube : tubeDegree hs P' =
+      (P.map (Ideal.Quotient.mk (tubeIdeal c))).natTrailingDegree := by
+    rw [← sum_ramificationIdx_mul_inertiaDeg_eq hp hp1 hcs hs (y : F') P hP
+      fun w' ↦ valuation_le_one_of_isIntegral hs w' y.2, tubeDegree]
+    refine Finset.sum_congr (Finset.filter_congr fun w' _ ↦ ?_) fun _ _ ↦ rfl
+    constructor
+    · intro h
+      rw [← mem_center_iff hs, h]
+      exact he1
+    · intro hlt
+      by_contra hne
+      have he : w'.1 (e : F') < 1 := (mem_center_iff hs w' e).1
+        (heQ _ (Finset.mem_erase.2 ⟨hne, Finset.mem_union_left _ (Finset.mem_image_of_mem _
+          (Finset.mem_univ w'))⟩))
+      have : w'.1 ((y : F')) = 1 := by
+        rw [show (y : F') = -1 + (e : F') by simp [y]; ring,
+          Valuation.map_add_eq_of_lt_left _ (by rw [Valuation.map_neg, map_one]; exact he),
+          Valuation.map_neg, map_one]
+      exact lt_irrefl 1 (this ▸ hlt)
+  rw [htube]
+  -- the vertex side
+  obtain ⟨v₀⟩ : Nonempty (Ext C F') := by
+    rw [← Fintype.card_pos_iff, ← Finset.card_univ]
+    by_contra h0
+    simp only [not_lt, nonpos_iff_eq_zero, Finset.card_eq_zero] at h0
+    have := sum_inertiaDeg_eq hp hp1 (F := F')
+    rw [h0, Finset.sum_empty] at this
+    exact Module.finrank_pos.ne' this.symm
+  obtain ⟨Q₀, hQ₀⟩ := exists_mem_zeros v₀
+  set ψ := (placeHom hc v₀ hQ₀).comp (algebraMap (nodeRing c) (Rint c F'))
+  have hsupp : (P.map (Ideal.Quotient.mk (tubeIdeal c))).natTrailingDegree =
+      (P.map ψ).natTrailingDegree := by
+    unfold natTrailingDegree trailingDegree
+    congr 2
+    ext i
+    simp only [mem_support_iff, coeff_map, ne_eq, Ideal.Quotient.eq_zero_iff_mem]
+    rw [mem_tubeIdeal_iff_placeHom hc hs v₀ hQ₀]
+    rfl
+  rw [hsupp, map_lift_eq_prod hp hp1 hc y P hP v₀ hQ₀, ← rootMultiplicity_eq_natTrailingDegree']
+  -- the multiplicity of the root `0`
+  rw [rootMultiplicity_prod_monic _ _ (fun v ↦ monic_prod_of_monic _ _ fun Q _ ↦
+    (monic_X_sub_C _).pow _), vertexDegree]
+  refine Finset.sum_congr rfl fun v _ ↦ ?_
+  rw [rootMultiplicity_prod_X_sub_C_pow, ← Finset.sum_attach]
+  refine Finset.sum_congr rfl fun Q _ ↦ ?_
+  have hy : Q.1.res (red C (y : F') v) = placeHom hc v Q.2 e - 1 := by
+    rw [← placeHom_apply hc v Q.2, _root_.map_sub, map_one]
+  have hiff : Q.1.res (red C (y : F') v) = 0 ↔ placeIdeal hc v Q.2 = P' := by
+    constructor
+    · intro h0
+      by_contra hne
+      have heQ' := heQ _ (Finset.mem_erase.2 ⟨hne, Finset.mem_union_right _
+        (Finset.mem_biUnion.2 ⟨v, Finset.mem_univ _,
+          Finset.mem_image.2 ⟨Q, Finset.mem_attach _ _, rfl⟩⟩)⟩)
+      rw [mem_placeIdeal_iff, ← placeHom_apply hc v Q.2] at heQ'
+      rw [hy, heQ', zero_sub, neg_eq_zero] at h0
+      exact one_ne_zero h0
+    · intro h
+      rw [← placeHom_apply hc v Q.2, ← RingHom.mem_ker, ← placeIdeal, h]
+      exact he1
+  simp only [hiff]
+
+end Matching
+
 end GaussTube
 
 end SemistableReduction
