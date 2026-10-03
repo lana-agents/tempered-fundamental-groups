@@ -881,7 +881,7 @@ existing infrastructure (W4, W5 M6/M7, W6 G6.4–G6.8) is the **tube-degree + δ
 | S6 | **matching at the vertices**: `d_{P'} = Σ_{(v, Q) at P'} ord_Q(x̄)` over the branches `Q` (zeros of `x̄` on the residue curves `κ(v)`, `v ∣ w_{0,1}`) of the outer component through `P'`. Proof: (i) **residue of the norm at the Gauss point** `res N(z) = ∏_v N_{κ(v)/κ(w_{0,1})}(z̄_v)` — the reduced matrix of `z` in the orthonormal basis of G6.3 is block diagonal (`GaussFibre.exists_orthonormal_basis'` now exposes the residues of the basis; `Matrix.det_blockDiagonal''` for blocks of varying size); (ii) **norm specialization at a place**: for `x ∈ κ ∖ k` and `f` regular at the zeros `Q` of `x`, `N_{κ/k(x)}(f)(0) = ∏_Q f(Q)^{ord_Q x}`, by a *ramified orthonormal basis* `b_{Q,j}` (`ord_Q b_{Q,j} = j`, high order at the other zeros): the key valuation computation gives independence, integrality of coordinates and triangularity of the reduced matrix of `f` — **no separability is needed**, so the Frobenius twist is unnecessary; (iii) glue: node chart elements are constants plus elements vanishing at all branches (`exists_const_red`); branch reductions `placeHom`, maximal ideals `placeIdeal` over the node; values at `x̄ = 0` of elements of `κ(w_{0,1})` are independent of the residue curve (`res_algebraMap_eq`); the reduction of the characteristic polynomial at a branch is `∏_v ∏_Q (X − ȳ(Q))^{ord_Q x̄}` (`map_lift_eq_prod`); with a separating element for `P'` among the centres and branch ideals: **`tubeDegree_eq_vertexDegree`** | S5, G6.3, R5 | **proved** (`ResidueNorm`, `PlaceNorm`, `VertexMatch` for the outer vertex; `InnerVertex` for the inner vertex: the inversion `x ↦ c/x` exchanges `w_{0,s}` and `w_{0,|c|/s}` and preserves the node chart, the twist `Inv c F'` makes the inner vertex the outer one, `tubeDegree_eq_vertexDegree_inv`) | 1.8k |
 | S7 | **δ-count**: for the normalization `𝒳'_V`, `g(F') = Σ_{w' ∈ V'} g(κ(w')) + b₁(Γ_{V'}) + Σ_{P'} δ'_{P'}` with `δ'_{P'} = δ_{P'} − (r_{P'} − 1) ≥ 0` (`r` = number of branches), `δ'_{P'} = 0` iff the special fibre has an ordinary double (resp. smooth) point at `P'`; this is G6.6 with **equality** (the codimension of `ρ(L(m(x)_∞)°)` in `⊕ L_{κ_j}(m(x̄)_∞)` is the total `δ` of the special fibre: the gluing conditions of G6.7 at all branches of all closed points, independent for `m ≫ 0`) | G6.4–G6.8 (W6), R7 | planned (shares W6's sharp form) | 1.5k |
 | S8 | **upper bound / local Riemann–Hurwitz**: for `V` satisfying (a), (b) and the two-direction condition on every type-2 point over every edge (S3) and the one-direction condition in every disc, `g(F') ≤ Σ_{V'} g + b₁(Γ_{V'})`; proof by comparing Riemann–Hurwitz for `F'/C(x)` (`2g − 2 = −2n + deg Diff`, char 0: tame at type-1 points) with Riemann–Hurwitz for the residue curves `κ(w')/k(x̄)` (wild/inseparable: Hurwitz with the residue different) through the **different function** along the edges (piecewise monomial by S2 applied to `y = P'(θ)` with `θ` a primitive element integral at the tube; slope at a vertex in direction `Q` = local contribution of `Q` to the residue different — CTT Thm 4.6.4 / 3.4, in valuative form). With S7: `δ' = 0` everywhere | S2, S3, S5, S6, CTT §3–§4 | planned (**hard core**) | 2–3k |
-| S9 | **node lemma**: a closed point `P'` with `δ' = 0`, two branches (from `w'₁`, `w'₂`) and local degree `d` over the node: choose `u' ∈ \hat R'_{P'}` reducing to uniformizers of both branches (possible since the special fibre is an ordinary double point); `O_C[u', c'/u'] → \hat R'_{P'}` is finite of degree `1` (S5 for the subfield `C(u')`, whose Gauss points restrict from `w'_i` by W2), both normal ⇒ isomorphism after completion; descend to an étale neighbourhood (M7c `exists_awayChart_eq`) ⇒ `IsAnnulusAt`; `u = ε u'^d` by S1 for the norm | S5, M7c, `Node` | planned | 0.8k |
+| S9 | **node lemma** (over a DVR `O`, for a normal chart `B` of finite type): if the special fibre has an ordinary double point at `𝔭` (`IsOrdinaryDoublePoint` on `B_𝔭`: maximal ideal `(ϖ, u', v')`, residue field that of `O`, `u' v' ∈ (ϖ)`, branches `𝔔₁ ∌ u'`, `𝔔₂ ∌ v'` with `e = 1`, no other components through `𝔭`), `s x ≡ η u'^d` mod `(ϖ, v')` (`s, η ∉ 𝔭`) and `y ∉ 𝔔₂`, then `IsAnnulusAt ϖ x y d 𝔭` (`isAnnulusAt_of_isOrdinaryDoublePoint`). Proof: finite Newton iteration in `B_𝔭` (`B_𝔭 = O + (ϖ, u, v)`) to `u v = c + ϖ^{N+2} g`; a Krull-divisor argument (`KrullDVR`) and the order on the outer branch bound `v(c) ≤ N`, so `u v = ϖⁿ · unit` exactly, `N = d n`, `x = ε u^d`, `y = ε' v^d` (`IsOrdinaryDoublePoint.exists_node`); the node embeds (`Node.lift_injective`, coordinates transcendental); `B_t` is unramified hence étale over the node at `𝔭` (`formallyUnramified_of_map_maximalIdeal`, `isEtaleAt_of_isUnramifiedAt` via Mathlib's unramified local structure, `EtaleLocalDomain`). No completion is used (over `O_C` the `𝔪`-adic completion collapses, `𝔪_C = 𝔪_C²`) | S6, `Node`, Mathlib ZMT / unramified local structure | **proved** (`NodeLemma`, `NodeDeformation`, `UnramifiedNode`, `KrullDVR`, `EtaleLocalDomain`; `wp-w7-s9`) | 1.3k |
 | S10 | **choice of `V`** (a), (b): restrictions of the `≤ g(F')` positive-genus points (W2 + W6), the separating Gauss points of the branch points, and the finitely many breakpoints of the different function on the convex hull (S2/S8; outside the convex hull of the branch points every disc is mapped by discs, `d_{P'} = 1` beyond the last breakpoint); convex closure (M7b). **Also `ModelCode.NoLoops`** (requested by W10): every node point lies on two *distinct* components — achieved by subdividing every loop edge by an interior Gauss point of its annulus (a vertex in the middle of the segment; the tube degrees are unchanged by S5) | W2, W6, S2, S8 | planned | 0.6k |
 
 **Tame case shortcut.** If `p ∤ [F' : C(x)]` (or more generally `p ∤ d_{P'}` for all `P'`),
@@ -917,29 +917,23 @@ so they can stay over `O_C`; where a noetherian argument is unavoidable (S7's `�
 lengths of the special fibre), it is run over a DVR `O_E` after picking the field of definition
 of the finitely many witnesses below (W9 D1–D3c).
 
-**S9 in witness form (for W10's generator descent).** The node lemma will be stated as: for a
-point `P'` over the node of thickness `c` (`x · (c/x) = c`) with tube degree `d`, there are
-**finitely many elements** `u', v', ε, ε', h ∈ F'` and `c' ∈ O_C` such that
-1. `u' v' = c'`, `x = ε u'^d`, `c/x = ε' v'^d` (identities in `F'`);
-2. `ε, ε', ε⁻¹, ε'⁻¹, h⁻¹` and finitely many listed generators `b_1, …, b_m` of the chart
-   `A' := O_C[u', v'][1/h]` are given as explicit polynomials in `u', v', 1/h` with coefficients
-   in `O_C` (identities in `F'`), and conversely `u', v'` are integral over `O_C[x, c/x]` via
-   explicit monic equations with coefficients in `O_C[x, c/x]`;
-3. `F' = C(x)(u')` with an explicit minimal-polynomial identity, and `P'` is the centre of the
-   ideal `(u', v', 𝔪)` of `A'`.
-4. **branch data for W8′ H5** (`ZariskiHarmonic.IsBranchNode ϖ P u' v' n W₁ W₂` on `wp-w8prime`):
-   `u' v' = ϖⁿ` (after rescaling `c'` by a unit), the local ring `P` of the point lies in the
-   valuation rings `W₁ = O_{w'₁}` (outer branch, `w'₁(u') = 1`) and `W₂ = O_{w'₂}` (inner branch,
-   `w'₂(v') = 1`), and **uniqueness**: `W₁`, `W₂` are the only vertices whose valuation rings
-   contain `P` (S6: the tube degree of `P'` equals its vertex degree on each side, and the two
-   chosen branches already account for it); the base coordinate is `x = ε ϖ^α u'^d` with `ε` a
-   unit of `P`.
-Read over any subfield `E` (finite over `K`) containing all coefficients, the same identities
-show that `O_E[u', v']/(u'v' − c')[1/h] ≅ A'_E` is a localization of the normalization of the node
-chart over `O_E` (normal: a localized node over a DVR, `Node.isIntegrallyClosed`; integral over
-the node chart by 2; birational by 3), hence `IsAnnulusAt ϖ_E x (c/x) d 𝔭` with étale maps the
-two localizations. (`IsAnnulusAt` is defined in `SemistableReduction/AnnulusAt.lean`, agreed with
-W8: `x = ε·u'^d`, `y = ε'·v'^d`, `u', v' ∈ 𝔮`.)
+**S9 over a DVR (replaces the earlier witness form).** The earlier plan stated S9 over `O_C` in
+"witness form" with a birational chart `A' = O_C[u', v'][1/h]` and `F' = C(x)(u')`; this is false
+in general (it forces `F'` rational: a node point is only *étale*-locally a node), and over `O_C`
+the completion argument collapses and `R'` is not known to be of finite type (Mathlib's unramified
+local structure needs it). S9 is therefore stated and proved over a DVR `O = O_E` for a normal chart
+`B` of finite type (`isAnnulusAt_of_isOrdinaryDoublePoint`). Its hypotheses are special-fibre
+statements delivered by S7/S8 over `O_E` (agreed with the S7 agent): `𝔭B_𝔭 = (ϖ, u', v')`,
+`κ(𝔭) = κ(O_E)`, `u'v' ∈ ϖB_𝔭` (the reduced special fibre is the fibre product of the two branch
+rings), the branches `𝔔₁, 𝔔₂` with `e = 1` and no others, `x ≡ η u'^d` on the outer branch (S6),
+`y` a unit on the inner branch. The exact node identity `u v = ϖⁿ` is *produced* by S9 (Newton
+iteration), not assumed. The étale neighbourhood is a basic open of `B_t` which is standard étale
+over the node (Mathlib `IsEtaleAt.exists_isStandardEtale` gives explicit witnesses if W10 needs
+them). **Branch data for W8′ H5**: the output coordinates satisfy `u ∉ 𝔔₁`, `v ∉ 𝔔₂`,
+`u v = ϖⁿ`, and the only DVR primes of `B_𝔭` containing `ϖ` are `𝔔₁, 𝔔₂`
+(`IsOrdinaryDoublePoint.eq_or_eq_of_isDiscreteValuationRing`), i.e. `IsBranchNode` with the
+uniqueness of the two branch vertices (the translation to `ZariskiHarmonic.IsBranchNode` on
+subrings of the function field is part of H5's assembly).
 
 **Estimate and status.** Proved: S1, S2 (general and Gauss-point form), S3, S4, S5, S6 (outer
 vertex) (`AnnulusUnit`, `NormFormula`, `GaussNorm`, `TwoDirections`, `TubeCount`, `GaussTube`,
@@ -956,6 +950,61 @@ stabiliser of `ε`). The targeted W10 Props are now `Statement`, `Statement.Stro
 (to be extended by `ModelCode.NoLoops` when it lands), `Statement.Simultaneous` (with
 `IsHarmonic`) and `Statement.HarmonicGeneral` (with `NoLoops` hypothesis, (H2) as `≥`).
 `Statement.Strong` is kept for reference, untargeted.
+
+**S8 analysis (2026-10): the different-function route is circular; revised plan.**
+
+*Finding.* Cohen–Temkin–Trushin (arXiv 1408.2949) work throughout with skeletons, i.e. they
+*assume* the semistable reduction theorem (§3.5 "Global structure": "the semistable reduction
+theorem asserts that any nice compact curve possesses a skeleton"). Every global statement about
+the different function that S8 was to use depends on it: the restrictions on slopes (§4.2,
+`restrictth`, proof via simultaneous semistable reduction along an interval), the triviality of
+`δ_f` off a skeleton and `R_y = 0` at type-4 points (`deltatrivth`), and the genus formulas
+(`genusth`, `genusth2`, `coverdisclem`). Only the *local* Riemann–Hurwitz formula at a single type-2
+point (`prop:local_RH`) is skeleton-free, and it says nothing about genus hidden away from the type-2
+points one looks at. CTT state the logical status themselves (remark after `unramparam`, §2.1): the
+semistable reduction theorem is equivalent to Temkin's *uniformization of one-dimensional valued
+fields* (every one-dimensional analytic `C`-field has an unramified parameter; Temkin, *Stable
+modification of relative curves*, Thm `fieldunif1` of §2, proved in §6; "direct though involved"). Hence:
+
+* the S8 row as planned (RH for `F'/C(x)` + RH for the residue curves + the different along the
+  edges) cannot give `g(F') ≤ Σ g + b₁`: all three are compatible with genus hidden at non-type-2
+  limit points (types 4 and 5), and the different is piecewise monomial with *finitely many*
+  breakpoints only once a skeleton exists. The pointwise hypotheses of the S8 row (two directions
+  over edges, one direction in discs, at every type-2 point) do not help for the same reason;
+* the S10 claim "outside the convex hull of the branch points every disc is mapped by discs" is
+  **false** in the wild case. Example (Matignon type): `p ∤ m ≥ 2`, `λ^{p−1} = −p`,
+  `F' = C(x, y)`, `y^p = 1 + λ^p x^m`. The branch points are `∞` and the zeros of `1 + λ^p x^m`, on
+  `|x| = R = |p|^{−p/(m(p−1))} > 1`, so `w_{0,1}` lies in the residue disc of `w_{0,R}` towards
+  `0`, off the hull. With `y = 1 + λz` the equation becomes `z^p − z + (terms of norm < 1) = x^m`,
+  so the residue curve over `w_{0,1}` is the Artin–Schreier curve `z̄^p − z̄ = x̄^m` of genus
+  `(p−1)(m−1)/2 > 0`: the preimage of a branch-point-free disc carries genus.
+
+*What is (and is not) needed.* With S7.6 (`g(F') ≥ Σ_{V'} g + b₁ + Σ_{P'} δ'_{P'}`) the hidden genus
+`h(V) = g(F') − Σ_{V'} g − b₁(Γ_{V'})` is `≥ 0`, non-increasing under refinement of `V`, and local.
+S8 must show `inf_V h(V) = 0`; this is the analytic genus formula, i.e. the content of the
+semistable reduction theorem, and has to be proved, not quoted. Neither a Riemann–Hurwitz formula
+nor the different function is needed for it. (A characteristic-free Riemann–Hurwitz formula in
+Euler-characteristic form, `Σ_j (g(κ_j) − 1) + n = −Σ_u [O'_u : ⟨b⟩_{O_u}]` for a basis `b` of a
+product of function fields `κ_j` over `k(t)`, proved from `ell_eq_of_le_degree` by comparing
+`B ∩ tᵐ N` for `O_∞`-lattices `N`, localizes `h(V)` into lattice defects of the discs and annuli of
+`V` without S7; it is a reformulation, not a proof, and is not pursued.)
+
+*Revised lemma-level plan for S8 (existence form, merges S8 and S10).*
+
+| # | Statement | Inputs / remarks | Size |
+|---|---|---|---|
+| S8.0 | **limit valuations of `C(x)`**: every valuation `w` of `C(x)` extending `v_C` is approximated by Gauss points: for every polynomial `f` there is `a` with `w(f) = w_{a', w(x − a')}(f)` for all `a'` with `w(x − a') ≤ w(x − a)`; if `inf_a w(x − a)` is attained, `w = w_{a, w(x−a)}` (types 2, 3), otherwise `w` is the limit of a nested sequence of Gauss points (type 4) | factor into linear factors (as W2) | 0.2k, **proved** (`GaussLimit`) |
+| S8.1 | **compactness (König)**: if `h(V) > 0` for every finite `V ⊇ V₀`, there is a limit point `ξ` (type 1, 3, 4, or a type-5 direction at a type-2 point) every neighbourhood of which (disc or annulus of some refinement) carries hidden genus | `h` is additive over the discs/annuli of `V` (S7 localization) and integer-valued; refinements split it | 0.8k |
+| S8.2 | **type 1** (char 0): around `a ∈ P¹(C)` there is `s₀` such that the preimage of the disc `|x − a| < s₀` is a disjoint union of discs `y_P^{e_P} = (x − a)·ε_P` | Puiseux/algebraic power series converge (Eisenstein bounds); tube count S5 in the small disc | 1k |
+| S8.3 | **type 5** (directions at a type-2 point `z`): for `z'` close to `z` in direction `u` the annulus `(z', z)` carries no hidden genus | W4 at `z`, separating residue parameter (Temkin `fieldunif1`(iii)), S5/S6 | 0.8k |
+| S8.4 | **type 3** (Gauss points of irrational radius) | W4 for `r ∉ |C^×|` (cartesian, `e > 1` possible) | 0.6k |
+| S8.5 | **type 4** (the core): a one-dimensional field of type 4 over `C` has an unramified parameter; hence a small disc around the type-4 point carries no hidden genus | Temkin 2010 §6.1–6.3 (immediate degree-`p` extensions, critical cosets `b + S_{a,s}`, uniformization of fields topologically generated by one element); alternative: Arzdorf–Wewers (arXiv 1211.4624: Galois closure, inertia at a type-4 point is a `p`-group, reduction to `p`-cyclic Kummer covers analysed with Matignon's `p`-Taylor expansions; needs Bosch–Lütkebohmert Lemma 2.4) | 4–6k |
+| S8.6 | **assembly**: finitely many neighbourhoods of S8.2–S8.5 cover the limit points (S8.1), so some finite `V` has `h(V) = 0`; with S7, `δ' = 0` at every node point | S8.1–S8.5, S7 | 0.4k |
+
+Revised estimate for S8 (with S10): **8–10k lines**, dominated by S8.5, which needs the theory of
+type-4 valuations (completions of `C(x)` at non-Gauss valuations, immediate extensions) that the
+project does not have yet. The tame case (all residue extensions over the relevant points of
+degree prime to `p`, e.g. Galois group of order prime to `p`) needs none of this (Kummer, §9.2 (i)).
 `Statement.HarmonicX` (`XHarmonic.lean`, intrinsic x-lengths, arbitrary bases; §9.7) is added to
 the targeted list and supersedes `Statement.HarmonicW` for Theorem B (B5).
 

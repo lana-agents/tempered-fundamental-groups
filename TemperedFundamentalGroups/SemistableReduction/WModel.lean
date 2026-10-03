@@ -36,7 +36,8 @@ noncomputable abbrev xLineAlgebra (L : Type u) [Field L] [Algebra K' L] {x : L}
     exact fun h ↦ hp ((injective_iff_map_eq_zero _).mp
       (transcendental_iff_injective.mp hx) p h))).toRingHom.toAlgebra
 
-/-- **`c` is a W-model of `L` on the x-line `x`** (over `O'`): there are Gauss data `(a i, b i)`
+/-- **`c` is a W-model of `L` on the x-line `x`** (over `O'`): `L` is algebraic over `K'(x)`
+(a function field of a curve on the x-line), and there are Gauss data `(a i, b i)`
 on `K'(x)` and homogeneous coordinates `g` on `L` such that the projective model of `g` has the
 points of the normalization in `L` of `gaussJoinModel` (M9c), and `c` is isomorphic over `O'` to
 `ProjScheme.projModelCode O' g`, with `j : Spec L ⟶ c` corresponding to the generic point
@@ -50,7 +51,7 @@ def ModelCode.IsWModel (O' : ValuationSubring K') (L : Type u) [Field L] [Algebr
     haveI : IsScalarTower K' (RatFunc K') L := IsScalarTower.of_algebraMap_eq fun k ↦ by
       change algebraMap K' L k = RatFunc.liftAlgHom _ _ (algebraMap K' (RatFunc K') k)
       rw [AlgHom.commutes]
-    (∀ i, b i ≠ 0) ∧
+    Algebra.IsAlgebraic (RatFunc K') L ∧ (∀ i, b i ≠ 0) ∧
     (ZariskiModel.projModel (baseRing L O'.valuation.valuationSubring) g).points =
       ((gaussJoinModel O'.valuation a b).normalization L).points ∧
     ∃ e : c.scheme ≅ (ProjScheme.projModelCode O' hg).scheme,
