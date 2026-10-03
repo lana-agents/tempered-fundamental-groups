@@ -871,6 +871,13 @@ point `P'` over the node of thickness `c` (`x · (c/x) = c`) with tube degree `d
    explicit monic equations with coefficients in `O_C[x, c/x]`;
 3. `F' = C(x)(u')` with an explicit minimal-polynomial identity, and `P'` is the centre of the
    ideal `(u', v', 𝔪)` of `A'`.
+4. **branch data for W8′ H5** (`ZariskiHarmonic.IsBranchNode ϖ P u' v' n W₁ W₂` on `wp-w8prime`):
+   `u' v' = ϖⁿ` (after rescaling `c'` by a unit), the local ring `P` of the point lies in the
+   valuation rings `W₁ = O_{w'₁}` (outer branch, `w'₁(u') = 1`) and `W₂ = O_{w'₂}` (inner branch,
+   `w'₂(v') = 1`), and **uniqueness**: `W₁`, `W₂` are the only vertices whose valuation rings
+   contain `P` (S6: the tube degree of `P'` equals its vertex degree on each side, and the two
+   chosen branches already account for it); the base coordinate is `x = ε ϖ^α u'^d` with `ε` a
+   unit of `P`.
 Read over any subfield `E` (finite over `K`) containing all coefficients, the same identities
 show that `O_E[u', v']/(u'v' − c')[1/h] ≅ A'_E` is a localization of the normalization of the node
 chart over `O_E` (normal: a localized node over a DVR, `Node.isIntegrallyClosed`; integral over
