@@ -1046,7 +1046,7 @@ theorem exists_core (hW : SemistableReduction.Statement.StrongComponent.{u})
   let ν' : G₀ × Δ →* SemilinearAut R A B := (tensorAut M).comp (ν.prodMap θ)
   letI := actionOf ν'
   haveI := smulCommClass_actionOf (K := K) ν'
-  obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, -, he, -, hjd, hjS,
+  obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, hjd, hjS,
     hact, hactj, hdom, hdomS, -⟩ := hW K O R hR B (G₀ × Δ) ι c₀ j₀ hj₀
   haveI hK' : Algebra.Etale K K' :=
     ⟨Algebra.FormallyEtale.of_isSeparable K K',
