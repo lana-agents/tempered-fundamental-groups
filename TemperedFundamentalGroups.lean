@@ -19,6 +19,7 @@ import TemperedFundamentalGroups.Andre.TheoremB
 import TemperedFundamentalGroups.Andre.Transfer
 import TemperedFundamentalGroups.Andre.TransferTate
 import TemperedFundamentalGroups.Andre.WData
+import TemperedFundamentalGroups.Andre.WHarmonicWeight
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.GaloisLimit
 import TemperedFundamentalGroups.FibreFunctor.LengthLimit

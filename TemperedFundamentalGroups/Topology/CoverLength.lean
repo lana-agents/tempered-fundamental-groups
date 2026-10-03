@@ -600,6 +600,58 @@ theorem IncWalk.exists_short (Q : ι → Prop) : ∀ (n : ℕ) {i₀ : ι} {L : 
           simp only [List.mem_append, List.mem_cons] at hx ⊢
           tauto
 
+omit [TopologicalSpace Z] in
+/-- The `j`-th component of a walk of the incidence graph (`0 ≤ j ≤ length`). -/
+def cget (i₀ : ι) (L : List (Z × ι)) (j : Fin (L.length + 1)) : ι :=
+  (i₀ :: L.map Prod.snd)[j.1]'(by simpa using j.2)
+
+omit [TopologicalSpace Z] in
+@[simp] lemma cget_zero (i₀ : ι) (L : List (Z × ι)) : cget i₀ L 0 = i₀ := rfl
+
+omit [TopologicalSpace Z] in
+lemma cget_succ (i₀ : ι) (L : List (Z × ι)) (j : Fin L.length) :
+    cget i₀ L j.succ = L[j.1].2 := by
+  simp [cget]
+
+omit [TopologicalSpace Z] in
+lemma cget_last : ∀ (i₀ : ι) (L : List (Z × ι)), cget i₀ L (Fin.last _) = lastLab i₀ L
+  | _, [] => rfl
+  | _, (s, j) :: L => by
+    rw [lastLab_cons, ← cget_last j L]
+    simp [cget]
+
+lemma IncWalk.getElem : ∀ {i₀ : ι} {L : List (Z × ι)}, IncWalk K i₀ L → ∀ j : Fin L.length,
+    L[j.1].1 ∈ K.S ∧ L[j.1].1 ∈ K.C (cget i₀ L j.castSucc) ∧ L[j.1].1 ∈ K.C L[j.1].2
+  | _, [], _, j => j.elim0
+  | i₀, (s, i) :: L, ⟨h₁, h₂, h₃, h₄⟩, j => by
+    rcases j with ⟨_ | j, hj⟩
+    · exact ⟨h₁, h₂, h₃⟩
+    · have := IncWalk.getElem h₄ ⟨j, by simpa using hj⟩
+      simpa [cget] using this
+
+omit [TopologicalSpace Z] in
+lemma NoBack.getElem : ∀ {i₀ : ι} {L : List (Z × ι)}, NoBack i₀ L → ∀ j : Fin L.length,
+    cget i₀ L j.castSucc ≠ L[j.1].2
+  | _, [], _, j => j.elim0
+  | i₀, (s, i) :: L, ⟨h₁, h₂⟩, j => by
+    rcases j with ⟨_ | j, hj⟩
+    · exact h₁
+    · have := NoBack.getElem h₂ ⟨j, by simpa using hj⟩
+      simpa [cget] using this
+
+omit [TopologicalSpace Z] in
+lemma cget_mem_dropLast (i₀ : ι) (L : List (Z × ι)) (j : Fin (L.length + 1)) (h₀ : j ≠ 0)
+    (hl : j ≠ Fin.last _) : ∃ p ∈ L.dropLast, p.2 = cget i₀ L j := by
+  obtain ⟨j, hj⟩ := j
+  rcases j with _ | j
+  · exact (h₀ rfl).elim
+  · have hjl : j + 1 < L.length := by
+      have : j + 1 ≠ L.length := fun h => hl (Fin.ext h)
+      omega
+    refine ⟨L[j], ?_, by simp [cget]⟩
+    rw [List.mem_iff_getElem]
+    exact ⟨j, by simp; omega, by simp [List.getElem_dropLast]⟩
+
 end IncWalk
 
 section Map
