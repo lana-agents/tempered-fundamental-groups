@@ -1163,5 +1163,4 @@ action `ρ(σ)` and a lift of `ρ_s(σ)` to `Z̃`. Together they form the group 
 `K[x] → R`. So Theorem A carries the hypothesis
 `hxR : ∃ x : R, (Polynomial.aeval (R := K) x).toRingHom.Finite`. It follows from Noether
 normalization (Mathlib `exists_finite_inj_algHom_of_fg`) once one knows that the number of
-variables equals `ringKrullDim R = 1`. That dimension step is to be done: dimension is invariant
-under finite injective extensions, and `dim K[X₁..Xₛ] = s`.
+variables equals `ringKrullDim R = 1`. This is now proved as `exists_finite_aeval` (`Setup/NoetherLine.lean`), so `hxR` is discharged.

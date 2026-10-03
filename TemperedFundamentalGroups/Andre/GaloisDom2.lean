@@ -119,14 +119,14 @@ variable {K : Type u} [Field K] {O : ValuationSubring K} [IsDiscreteValuationRin
   (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
 
 /-- The level with trivial `H` on a finite étale `R`-algebra `Q` (coded). -/
-def trivialLevel (Q : Type u) [CommRing Q] [Algebra R Q] [Algebra.Etale R Q]
+def trivialHLevel (Q : Type u) [CommRing Q] [Algebra R Q] [Algebra.Etale R Q]
     [Module.Finite R Q] : FiniteLevel R A where
   toEtaleCode := LevelData.code R Q
   H := ⊥
   surjective a := ⟨1, Subgroup.one_mem _, by rw [Subsingleton.elim a 1]; rfl⟩
 
 lemma subsingleton_trivialLevel (Q : Type u) [CommRing Q] [Algebra R Q] [Algebra.Etale R Q]
-    [Module.Finite R Q] : Subsingleton (trivialLevel (R := R) (A := A) Q).H :=
+    [Module.Finite R Q] : Subsingleton (trivialHLevel (R := R) (A := A) Q).H :=
   ⟨fun a b => Subtype.ext ((Subgroup.mem_bot.1 a.2).trans (Subgroup.mem_bot.1 b.2).symm)⟩
 
 /-- **The core of domination**: a connected Galois finite étale `R`-algebra `Q` with a point
@@ -165,7 +165,7 @@ theorem dom_core (M : ModelCode O → Prop) {n : ℕ}
     ∃ G, galClass₂ O R A Ω M G ∧ Nonempty ((tempFibre O R A V hV).obj G) ∧
       ∀ k, ∃ (m : G ⟶ (P k).1) (u : (tempFibre O R A V hV).obj G),
         (tempFibre O R A V hV).map m u = (P k).2 := by
-  let L : FiniteLevel R A := trivialLevel Q
+  let L : FiniteLevel R A := trivialHLevel Q
   haveI : Subsingleton L.H := subsingleton_trivialLevel Q
   let φQ : Q ≃ₐ[R] L.B := (LevelData.codeEquiv R Q).symm
   let Lv : Level O R A :=
@@ -308,7 +308,9 @@ theorem dom_mid (hW : SemistableReduction.Statement.StrongComponent.{u})
     simp only [levelStructureMap, RingHom.comp_apply, AlgHom.coe_toRingHom]
     exact (f i.down).commutes _
   obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, -, hjS,
-    hact, hactj, hdomj, hdomS, hdim, hcomp⟩ := hW K O R hR B G (ULift.{u} (Fin n)) c₀ j₀ hj₀
+    hact, hactj, hdomj, hdomS, hdim, hcomp⟩ := hW K O R hR (exists_finite_aeval hR).choose
+      (exists_finite_aeval hR).choose_spec B G
+      (ULift.{u} (Fin n)) c₀ j₀ hj₀
   haveI hK' : Algebra.Etale K K' :=
     ⟨Algebra.FormallyEtale.of_isSeparable K K',
       Algebra.FinitePresentation.of_finiteType.1 inferInstance⟩
@@ -423,7 +425,7 @@ theorem dom_mid (hW : SemistableReduction.Statement.StrongComponent.{u})
     (ConcreteCategory.isIso_iff_bijective (CommRingCat.ofHom ξr)).2 ξ.bijective
   haveI : IsSchemeTheoreticallyDominant j₁Q := inferInstanceAs (IsSchemeTheoreticallyDominant
     (Spec.map (CommRingCat.ofHom ξr) ≫ j₁))
-  haveI : ConnectedSpace (specialFibre c₁.toSpec) := hconn
+  haveI : ConnectedSpace (specialFibre c₁.toSpec) := hconn.1
   have hdim₁ : topologicalKrullDim (specialFibre c₁.toSpec) ≤ 1 := by
     refine le_trans (Topology.IsInducing.topologicalKrullDim_le
       (f := specialFibreMap ι₁ hι₁S) ?_) hdim
