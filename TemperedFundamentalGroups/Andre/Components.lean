@@ -17,10 +17,12 @@ point of `Spec R`). For a finite étale `R`-algebra `C`:
 * `exists_primitive`: every geometric point `s` lies on a **primitive** idempotent `ε`
   (`f * ε ∈ {0, ε}` for all idempotents `f`), i.e. a connected component `C ⧸ (1 - ε)`
   (`isConnected_quotient`);
-* `exists_galoisClosure`: a finite étale `R`-algebra `B₀` with a geometric point `s₀` maps to a
-  connected finite étale `B*` with a point `t₀` over `s₀` on whose geometric fibre `Aut_R(B*)`
-  acts transitively: the connected component through an injective tuple of points of the tensor
-  power `⨂_{i < d} B₀`, `d = #(B₀ →ₐ[R] Ω)`.
+* `exists_algHom_of_pi`: restricting maps out of a finite product to a factor;
+* `exists_galoisClosure`: a finite étale `R`-algebra `B₀` with a geometric point maps to a
+  connected finite étale `B*` with a point `t₀` such that every geometric point of `B₀` is `t₀ ∘ g`
+  for some `g : B₀ → B*`, and on whose geometric fibre `Aut_R(B*)` acts transitively: the
+  connected component through an injective tuple of points of the tensor power `⨂_{i < d} B₀`,
+  `d = #(B₀ →ₐ[R] Ω)`.
 -/
 
 universe u

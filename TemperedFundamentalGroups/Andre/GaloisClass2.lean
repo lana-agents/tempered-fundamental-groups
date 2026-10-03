@@ -18,7 +18,9 @@ Scheme case (`[Subsingleton A]`). `galClass₂` is the class of tempered coverin
 * every `σ ∈ Aut_R(B)` extends to the model over `O` compatibly with `j` (by dominance of `j` the
   extensions are unique, so this is an action of `Aut_R(B)` on the model making `j` equivariant);
 * `j` is scheme-theoretically dominant, the level is semistable, and the special fibre satisfies
-  the hypotheses of N1 and is connected.
+  the hypotheses of N1 and is connected;
+* the model satisfies a given predicate `M` (a parameter; `M := fun _ => True` in
+  `Andre/GaloisDom2.lean`, to be specialised to restricted classes of models).
 
 Results:
 

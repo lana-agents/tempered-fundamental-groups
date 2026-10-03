@@ -70,6 +70,7 @@ variable {K : Type u} [Field K] {R : Type u} [CommRing R] [Algebra K R] [IsDomai
 
 open Components
 
+omit [IsDomain R] [IsAlgClosed Ω] in
 /-- **Components of a base change of a Galois algebra are Galois**: two geometric points of
 `B ⊗_K K'` through a primitive idempotent `ε` differ by an element `δ ⊗ γ` of
 `Aut_R(B) × Gal(K'/K)` fixing `ε`. -/
@@ -444,6 +445,44 @@ theorem dom_mid (hW : SemistableReduction.Statement.StrongComponent.{u})
     rw [← Category.assoc j₁, hj₁ι, Category.assoc, hdomj]
     simp only [j₀, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
     congr 3
+
+/-- **(dom)** The Galois objects over levels with trivial `H` dominate: finitely many pointed
+objects `(X_k, x_k)` are dominated by a member of `galClass₂`. -/
+theorem isDominating_galClass₂ (hW : SemistableReduction.Statement.StrongComponent.{u})
+    (hR : ringKrullDim R = 1) :
+    IsDominating (tempFibre O R A V hV) (galClass₂ O R A Ω (fun _ => True)) := by
+  classical
+  refine isDominating_of_forall_exists (isGaloisClass_galClass₂ V hV _) fun n P => ?_
+  let q : ∀ k, PreFibre Ω V hV (P k).1 := fun k => Quotient.out (P k).2
+  rcases Nat.eq_zero_or_pos n with hn | hn
+  · subst hn
+    haveI : Nonempty (R →ₐ[R] Ω) := ⟨Algebra.ofId R Ω⟩
+    obtain ⟨B, _, _, _, _, t₀, -, hBc, hBg⟩ := exists_galoisClosure (R := R) (Ω := Ω) (B₀ := R)
+    obtain ⟨G, hG, hne, -⟩ := dom_mid V hV hW hR P B hBc hBg t₀ (fun k => k.elim0)
+      (fun k => k.elim0)
+    exact ⟨G, hG, hne, fun k => k.elim0⟩
+  · haveI : ∀ k, Algebra.Etale R ((P k).1.Lv.L.B) := fun k => (P k).1.Lv.L.etale
+    haveI : ∀ k, Module.Finite R ((P k).1.Lv.L.B) := fun k => (P k).1.Lv.L.finite
+    let B₀ := Π k, (P k).1.Lv.L.B
+    haveI : Nonempty (B₀ →ₐ[R] Ω) :=
+      ⟨(q ⟨0, hn⟩).1.1.comp (Pi.evalAlgHom R (fun k => (P k).1.Lv.L.B) ⟨0, hn⟩)⟩
+    obtain ⟨B, _, _, _, _, t₀, hpts, hBc, hBg⟩ :=
+      exists_galoisClosure (R := R) (Ω := Ω) (B₀ := B₀)
+    have hf : ∀ k, ∃ f : (P k).1.Lv.L.B →ₐ[R] B, t₀.comp f = (q k).1.1 := fun k => by
+      obtain ⟨g, hg⟩ := hpts ((q k).1.1.comp (Pi.evalAlgHom R (fun k => (P k).1.Lv.L.B) k))
+      exact exists_algHom_of_pi hBc g t₀ k _ hg
+    choose f hf using hf
+    obtain ⟨G, hG, hne, hdom⟩ := dom_mid V hV hW hR P B hBc hBg t₀ f hf
+    exact ⟨G, hG, hne, fun k => let ⟨m, u, h⟩ := hdom k; ⟨m, u, h⟩⟩
+
+/-- **(gal), (dom), (rig)** for the Galois objects over levels with trivial `H` (scheme case),
+from W10 with components. -/
+theorem galoisLimitData₂ (hW : SemistableReduction.Statement.StrongComponent.{u})
+    (hR : ringKrullDim R = 1) :
+    IsGaloisClass (tempFibre O R A V hV) (galClass₂ O R A Ω (fun _ => True)) ∧
+      IsDominating (tempFibre O R A V hV) (galClass₂ O R A Ω (fun _ => True)) ∧
+      IsRigid (tempFibre O R A V hV) (galClass₂ O R A Ω (fun _ => True)) :=
+  ⟨isGaloisClass_galClass₂ V hV _, isDominating_galClass₂ V hV hW hR, isRigid_galClass₂ V hV _⟩
 
 end Mid
 
