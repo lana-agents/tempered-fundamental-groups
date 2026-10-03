@@ -14,7 +14,7 @@ Let `O ⊆ K` be a discrete valuation subring with uniformizer `ϖ`, `L / K` a f
 the monomial `g = u ^ d / ϖ ^ m` has transcendental residue (`U` is a monomial point at `s`,
 `IsMonomialPt`), then `U` restricts on `K[u]` to the Gauss valuation of radius `|ϖ| ^ s`:
 
-  `U(Σ qᵢ uⁱ) = max_i U(qᵢ) U(u) ^ i` (`valuation_aeval_eq_sup`).
+  `U(Σ qᵢ uⁱ) = max_i U(qᵢ) U(u) ^ i` (`valuation_aeval_eq_sup_of_monomial`).
 
 Proof: the terms of maximal value have exponents in one class modulo `d` (values of constants
 are integral powers of `U(ϖ)`, `gcd(m, d) = 1`); their sum is `q_{i₀} u ^ {i₀} R(g)` with
@@ -30,8 +30,8 @@ variable {K L : Type*} [Field K] [Field L] [Algebra K L]
   {O : ValuationSubring K} [IsDiscreteValuationRing O] {ϖ : O} {U : ValuationSubring L}
 
 /-- Values of nonzero constants are integral powers of the value of the uniformizer. -/
-lemma exists_valuation_eq_zpow (hU : U.comap (algebraMap K L) = O) (hϖ : Irreducible ϖ)
-    {q : K} (hq : q ≠ 0) :
+lemma exists_valuation_eq_zpow_of_comap (hU : U.comap (algebraMap K L) = O)
+    (hϖ : Irreducible ϖ) {q : K} (hq : q ≠ 0) :
     ∃ k : ℤ, U.valuation (algebraMap K L q) = U.valuation (algebraMap K L (ϖ : K)) ^ k := by
   have hunit : ∀ e : Oˣ, U.valuation (algebraMap K L ((e : O) : K)) = 1 := fun e ↦ by
     rw [valuation_eq_one_iff_mem_and_inv_mem]
@@ -76,7 +76,8 @@ lemma valuation_uniformizer (hU : U.comap (algebraMap K L) = O) (hϖ : Irreducib
 /-- **Monomial points restrict to Gauss points** (XL2): if `U(u) = U(ϖ) ^ s` and
 `u ^ den s / ϖ ^ num s` has transcendental residue over `O`, then
 `U(Σ qᵢ uⁱ) = max_i U(qᵢ) U(u) ^ i`. -/
-theorem valuation_aeval_eq_sup (hU : U.comap (algebraMap K L) = O) (hϖ : Irreducible ϖ)
+theorem valuation_aeval_eq_sup_of_monomial (hU : U.comap (algebraMap K L) = O)
+    (hϖ : Irreducible ϖ)
     {u : L} {s : ℚ} (hs : IsLogValue U (algebraMap K L (ϖ : K)) u s)
     (htr : IsResidueTranscendental O U (u ^ s.den / algebraMap K L (ϖ : K) ^ s.num))
     (Q : K[X]) :
@@ -113,7 +114,7 @@ theorem valuation_aeval_eq_sup (hU : U.comap (algebraMap K L) = O) (hϖ : Irredu
   have hM0 : M ≠ 0 := hterm0 i₁ hi₁
   -- exponents
   have hk : ∀ i ∈ Q.support, ∃ k : ℤ, w (algebraMap K L (Q.coeff i)) = w p ^ k :=
-    fun i hi ↦ exists_valuation_eq_zpow hU hϖ (hcoeff0 i hi)
+    fun i hi ↦ exists_valuation_eq_zpow_of_comap hU hϖ (hcoeff0 i hi)
   have hupow : ∀ i : ℕ, (w u ^ i) ^ s.den = w p ^ (s.num * i) := fun i ↦ by
     rw [← pow_mul, mul_comm, pow_mul, hs, ← zpow_natCast, ← zpow_mul, mul_comm]
   set I := Q.support.filter (fun i ↦ term i = M) with hI
@@ -252,7 +253,7 @@ lemma valuation_eq_zpow_ordO (hU : U.comap (algebraMap K L) = O) (hϖ : Irreduci
     U.valuation (algebraMap K L q) = U.valuation (algebraMap K L (ϖ : K)) ^ ordO O ϖ q := by
   have hex : ∃ k : ℤ, O.valuation q = O.valuation (ϖ : K) ^ k := by
     have hO : O.comap (algebraMap K K) = O := by ext; simp
-    simpa using exists_valuation_eq_zpow (L := K) (U := O) hO hϖ hq
+    simpa using exists_valuation_eq_zpow_of_comap (L := K) (U := O) hO hϖ hq
   have hk : O.valuation q = O.valuation (ϖ : K) ^ ordO O ϖ q := by
     rw [ordO, dif_pos hex]; exact hex.choose_spec
   have hϖ0 : (ϖ : K) ≠ 0 := by exact_mod_cast hϖ.ne_zero
@@ -310,7 +311,7 @@ theorem valuation_aeval_pow_den (hU : U.comap (algebraMap K L) = O) (hϖ : Irred
     exact hmin i hi
   have hsup : Q.support.sup term = term im :=
     le_antisymm (Finset.sup_le hge) (Finset.le_sup (f := term) him)
-  rw [valuation_aeval_eq_sup hU hϖ hs htr Q]
+  rw [valuation_aeval_eq_sup_of_monomial hU hϖ hs htr Q]
   change Q.support.sup term ^ s.den = _
   rw [hsup, hpow im him]
   congr 1
