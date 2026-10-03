@@ -1093,6 +1093,29 @@ Order of work: S8.1a–d, S8.2a, S8.2b–c, S8.3a, S8.4a, S8.4c; then S8.3b–c 
 `Statement.HarmonicX` (`XHarmonic.lean`, intrinsic x-lengths, arbitrary bases; §9.7) is added to
 the targeted list and supersedes `Statement.HarmonicW` for Theorem B (B5).
 
+**S7⁺ (genus equality; the "≤" direction).** S7 gives `p_a(𝒳_s) ≤ g(F)` (special-fibre sections
+contain the reductions of the generic ones). S7⁺ gives the reverse: every section of the special
+fibre lifts. The proof uses no S8 input and no completeness of `C`. It needs `C` algebraically
+closed with `char C = 0` (`[CharZero C]`, for the trace form) and W4 (`e = 1`, so the norms take
+values in `|C^×|`). Setting: the GaussFibre framework, i.e. `F / C(t)` finite for an arbitrary
+transcendental `t ∈ F`, vertex set `Ext C F` (all extensions of the Gauss point of `C(t)`), and
+charts `𝓡₀ = intRing t`, `𝓡_∞ = intRing t⁻¹` with reductions `Λ₀ = redRing t`, `Λ_∞ = redRing t⁻¹`.
+Below, `x = t`.
+
+| # | Statement | Proof / inputs |
+|---|---|---|
+| S7⁺.1 | **trace bound**: for an orthonormal basis `b ⊆ 𝓡₀` (G6.3, made integral), there is `Δ₀ ∈ O_C[x]` with Gauss norm `1` such that `Δ₀·φᵢ ∈ O_C[x]` for the coordinates `φ` of every `a ∈ 𝓡₀`. Hence `Δ̄₀ Λ₀ ⊆ ⊕ k[x̄] b̄ᵢ`, and `Λ₀` is a **finite free `k[x̄]`-module of rank `N`** | `Tr(a bⱼ) ∈ O_C[x]` (`exists_trace_eq`, `gauss1_trace_le`); Gram matrix `G`, `det G = γΔ₀`, `adj G`; then divide by `γ` (Gauss norm `≤ 1`). Over a PID: `Submodule.basisOfPid` |
+| S7⁺.2 | **chart basis**: lifts `sᵢ ∈ 𝓡₀` of a `k[x̄]`-basis of `Λ₀` are an orthonormal `C(x)`-basis of `F` | if `‖Σφᵢsᵢ‖ < max|φᵢ|`, clear denominators to get a `k[x̄]`-relation among the `s̄ᵢ`; count `N` from `b` |
+| S7⁺.3 | **no poles in the closed disc** (fibre argument): the coordinates of every `a ∈ 𝓡₀` in the basis `s` are `p/q` with `q` having no root in `|α| ≤ 1` and Gauss norm `≤ 1` | at a root `α` of `q` with `|α| ≤ 1`, `Σ pᵢ(α) sᵢ ∈ (x − α)·A₀`; normalized, `v = Σcᵢsᵢ/(x − α) ∈ 𝓡₀` (norm `1`), so `(x̄ − ᾱ) v̄ = Σ c̄ᵢ s̄ᵢ` contradicts the basis property; cancel `(x − α)`, induct on the roots. The same holds for `t⁻¹` (generic coordinate `ζ ∈ {X, X⁻¹}`) |
+| S7⁺.4 | **Laurent split on the circle**: `φ = p/(q_out q_in)` (roots `|α| > 1`, resp. `< 1`) with `|φ| ≤ 1` is `φ₊ + φ₋`, `φ₊` regular on `|x| ≤ 1`, `φ₋` regular on `|x| ≥ 1` with `φ₋(∞) = 0`, both of Gauss norm `≤ 1` | Mathlib partial fractions (`div_eq_quo_add_rem_div_add_rem_div`); norm: `q̄_in = x̄^d`, `q̄_out = 1`, so `p̄ = P̄₊ x̄^d + r̄₂` with `deg r̄₂ < d` (degree separation) |
+| S7⁺.5 | **lifting of sections** (integral Serre vanishing): there is `m₀` such that for `m ≥ m₀`, `a ∈ 𝓡₀`, `b ∈ 𝓡_∞` with `ā = x̄ᵐ b̄`, some `f ∈ L(m(x)_∞)` with `‖f‖ ≤ 1` has `f̄ = ā` | `d = a − xᵐb = Σχᵢsᵢ` with `χᵢ` regular on the circle (S7⁺.3 for `a`, for `b` in the basis `t`, and for `tⱼ`, `x^{-k}sᵢ`), `|χ| = ‖d‖ < 1`; split `γ⁻¹χ = χ₊ + χ₋` (S7⁺.4), `f = a − γΣχ₊sᵢ = xᵐb + γΣχ₋sᵢ`; `f ∈ A₀` and `x^{-m}f ∈ A_∞` by coprime denominators (roots `|α| > 1` vs `|α| < 1`), and `L(m(x)_∞) = A₀ ∩ xᵐA_∞` |
+| S7⁺.6 | **genus formula with total δ**: for `m ≫ 0`, `g(F) = 1 + Σ_w (g(κ(w)) − 1) + codim_{Π L(m(x̄)_∞)} H_m` with `H_m = Λ₀ ∩ x̄ᵐΛ_∞` | S7⁺.5, `dim ρ(L_m°) = ℓ(L_m)` (G6.4 and independence of lifts), R7 on `F` and on the `κ(w)`, R5 |
+| S7⁺.7 | **localization**: `codim H_m ≤ Σ_y δ_y^{(M)}` for `M ≫ 0` (points `y` = maximal ideals of `Λ₀`, and of `Λ_∞` over `x̄ = ∞`; `O_y = {a : ∃ s ∈ Λ ∖ y, s a ∈ Λ}`), i.e. `W_m ∩ ⋂_y (O_y + K_{M,y}) ⊆ H_m`. With S7.6 this gives the equality `g = 1 + Σ(g_w − 1) + Σ_y δ_y`, and the `δ'` form consumed by `card_le_of_indep` | conductor element `σ ∈ Λ₀` (finiteness of `Π_w Õ_w`, S7.7 `CurveIntegralClosure`); `K_M ⊆ O_y` at the finitely many `y ∋ σ` (CRT in `Λ₀`); `a ∈ O_y ∀ y ⇒ a ∈ Λ₀` |
+| S7⁺.8 | **Gauss trees** (bridge, separate row): for a finite convex Gauss tree `V` of `C(x)`, a `t ∈ C(x)` with `t⁻¹(w_{0,1}) = V`, and the identification of the normalization of `P¹_t` in `F` with `𝒳'_V` (M10-type uniqueness: a normal model is determined by its vertex set) | open; needed by R5 for `V` and `V ∪ {w_D}` |
+
+Files: `ChartBasis` (S7⁺.1–.3), `LaurentSplit` (S7⁺.4), `SectionLift` (S7⁺.5–.6), `SectionLocal`
+(S7⁺.7). Estimate: ≈ 1.5–2k lines; S7⁺.8 ≈ 1k (not started).
+
 ### 9.10 S8.5: local uniformization at type-4 points (Arzdorf–Wewers)
 
 **Sources** (in `.sources/`, gitignored): Arzdorf–Wewers, *Another proof of the semistable
