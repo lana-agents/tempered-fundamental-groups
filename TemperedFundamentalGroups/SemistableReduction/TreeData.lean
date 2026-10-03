@@ -14,8 +14,8 @@ Gauss point of a coordinate `t`* (`IsOver`) if `W(Q(t)) = ‖Q‖_{Gauss}`.
 
 * `isOver_affine`, `isOver_inv`: lying over the Gauss point of `t` is the same as lying over that
   of `α t + β` (`|α| = 1`, `|β| ≤ 1`), or of `t⁻¹`;
-* `comap_eq_gaussRat_of_isOver`: over the Gauss point of `(x - a) / c` means extending
-  `w_{a, |c|}`; distinct discs have disjoint sets of extensions (`eq_of_isOver_of_isOver`);
+* `eq_of_isOver_of_isOver`: distinct discs `D(a, |c|)` (coordinates `(x₀ - a) / c`) have
+  disjoint sets of extensions;
 * `finite_isOver`: the extensions of the Gauss point of a coordinate are finite (W4);
 * `TreeData`: a finite family of discs `D(aᵢ, |cᵢ|)` with edges (parent ⊋ child) and points `bᵢ`
   in the free residue directions of the vertices, recording the combinatorics used by the
@@ -135,66 +135,51 @@ end IsOver
 
 section Gauss
 
-variable [IsAlgClosed C] [Algebra (RatFunc C) F] [IsScalarTower C (RatFunc C) F]
+/-- The vertex coordinate `(x₀ - a) / c`. -/
+noncomputable def vcoord (x₀ : F) (a c : C) : F := (x₀ - algebraMap C F a) / algebraMap C F c
 
-variable (C F) in
-/-- The vertex coordinate `(x - a) / c`. -/
-noncomputable def vcoord (a c : C) : F := (xF C F - algebraMap C F a) / algebraMap C F c
-
-omit [IsUltrametricDist C] [IsAlgClosed C] [IsScalarTower C (RatFunc C) F] in
-lemma xF_eq_vcoord {a c : C} (hc : c ≠ 0) :
-    xF C F = algebraMap C F c * vcoord C F a c + algebraMap C F a := by
+omit [IsUltrametricDist C] in
+lemma eq_vcoord {x₀ : F} {a c : C} (hc : c ≠ 0) :
+    x₀ = algebraMap C F c * vcoord x₀ a c + algebraMap C F a := by
   have : algebraMap C F c ≠ 0 := by simpa using hc
   simp only [vcoord]
   field_simp
   ring
 
-/-- **Over the Gauss point of `(x - a)/c` means extending `w_{a,|c|}`.** -/
-lemma comap_eq_gaussRat_of_isOver {a c : C} (hc : c ≠ 0) (hx : Transcendental C (vcoord C F a c))
-    {W : TypeTwo C F} (h : IsOver hx W) :
-    W.val.comap (algebraMap (RatFunc C) F) =
-      gaussRat (NormedField.valuation (K := C)) a (Units.mk0 ‖c‖₊ (by simpa using hc)) := by
-  refine valuation_ratFunc_ext_of_linear (fun e ↦ ?_) fun β ↦ ?_
-  · rw [comap_apply, ← IsScalarTower.algebraMap_apply, TypeTwo.valuation_algebraMap,
-      gaussRat_algebraMap_C, NormedField.valuation_apply]
-  · have hc' : algebraMap C F c ≠ 0 := by simpa using hc
-    have heq : algebraMap (RatFunc C) F (algebraMap C[X] (RatFunc C) (X - Polynomial.C β)) =
-        algebraMap C F c * (vcoord C F a c - algebraMap C F ((β - a) / c)) := by
-      rw [_root_.map_sub, RatFunc.algebraMap_X, RatFunc.algebraMap_C, ← RatFunc.algebraMap_eq_C,
-        _root_.map_sub, ← IsScalarTower.algebraMap_apply,
-        show algebraMap (RatFunc C) F RatFunc.X = xF C F from rfl,
-        xF_eq_vcoord (a := a) hc]
-      simp only [map_div₀, _root_.map_sub]
-      field_simp
-      ring
-    rw [comap_apply, heq, map_mul, TypeTwo.valuation_algebraMap, h.valuation_sub,
-      gaussRat_algebraMap, gauss_X_sub_C, NormedField.valuation_apply, Units.val_mk0, nnnorm_div,
-      ← nnnorm_neg (a - β), neg_sub]
-    have hc0 : ‖c‖₊ ≠ 0 := nnnorm_ne_zero_iff.2 hc
-    rw [mul_max_of_nonneg _ _ zero_le, mul_div_cancel₀ _ hc0, mul_one]
+omit [IsUltrametricDist C] in
+/-- Change of vertex coordinate. -/
+lemma vcoord_eq {x₀ : F} {a c a' c' : C} (hc : c ≠ 0) (hc' : c' ≠ 0) :
+    vcoord x₀ a' c' = algebraMap C F (c / c') * (vcoord x₀ a c - algebraMap C F ((a' - a) / c)) := by
+  have h1 : algebraMap C F c ≠ 0 := by simpa using hc
+  have h2 : algebraMap C F c' ≠ 0 := by simpa using hc'
+  simp only [vcoord, map_div₀, _root_.map_sub]
+  field_simp
+  ring
 
 /-- Distinct discs have disjoint sets of extensions. -/
-lemma eq_of_isOver_of_isOver {a c a' c' : C} (hc : c ≠ 0) (hc' : c' ≠ 0)
-    (hx : Transcendental C (vcoord C F a c)) (hx' : Transcendental C (vcoord C F a' c'))
+lemma eq_of_isOver_of_isOver {x₀ : F} {a c a' c' : C} (hc : c ≠ 0) (hc' : c' ≠ 0)
+    (hx : Transcendental C (vcoord x₀ a c)) (hx' : Transcendental C (vcoord x₀ a' c'))
     {W : TypeTwo C F} (h : IsOver hx W) (h' : IsOver hx' W) :
     ‖c‖ = ‖c'‖ ∧ ‖a - a'‖ ≤ ‖c‖ := by
-  have e := (comap_eq_gaussRat_of_isOver hc hx h).symm.trans
-    (comap_eq_gaussRat_of_isOver hc' hx' h')
-  have h1 := congrArg (fun u : Valuation (RatFunc C) ℝ≥0 ↦
-    u (algebraMap C[X] (RatFunc C) (X - Polynomial.C a))) e
-  have h2 := congrArg (fun u : Valuation (RatFunc C) ℝ≥0 ↦
-    u (algebraMap C[X] (RatFunc C) (X - Polynomial.C a'))) e
-  simp only [gaussRat_algebraMap, gauss_X_sub_C, sub_self, map_zero, NormedField.valuation_apply,
-    Units.val_mk0] at h1 h2
-  rw [max_eq_right zero_le] at h1
-  rw [max_eq_right zero_le] at h2
+  have hc0 : ‖c‖₊ ≠ 0 := nnnorm_ne_zero_iff.2 hc
+  have hc0' : ‖c'‖₊ ≠ 0 := nnnorm_ne_zero_iff.2 hc'
+  -- `W(t') = 1` computed in the coordinate `t`, and symmetrically
+  have e1 := h'.valuation_self
+  rw [vcoord_eq hc hc', map_mul, TypeTwo.valuation_algebraMap, h.valuation_sub, nnnorm_div,
+    nnnorm_div] at e1
+  have e2 := h.valuation_self
+  rw [vcoord_eq hc' hc, map_mul, TypeTwo.valuation_algebraMap, h'.valuation_sub, nnnorm_div,
+    nnnorm_div] at e2
+  rw [div_mul_eq_mul_div, mul_max_of_nonneg _ _ zero_le, mul_div_cancel₀ _ hc0, mul_one,
+    div_eq_one_iff_eq hc0'] at e1
+  rw [div_mul_eq_mul_div, mul_max_of_nonneg _ _ zero_le, mul_div_cancel₀ _ hc0', mul_one,
+    div_eq_one_iff_eq hc0] at e2
   have hsw : ‖a - a'‖₊ = ‖a' - a‖₊ := by rw [← nnnorm_neg, neg_sub]
-  have hc1 : ‖c'‖₊ ≤ ‖c‖₊ := h1 ▸ le_max_right _ _
-  have hc2 : ‖c‖₊ ≤ ‖c'‖₊ := h2 ▸ le_max_right _ _
-  have hr : ‖c‖₊ = ‖c'‖₊ := le_antisymm hc2 hc1
+  have hc1 : ‖c‖₊ ≤ ‖c'‖₊ := e1 ▸ le_max_right _ _
+  have hc2 : ‖c'‖₊ ≤ ‖c‖₊ := e2 ▸ le_max_right _ _
+  have hr : ‖c‖₊ = ‖c'‖₊ := le_antisymm hc1 hc2
   refine ⟨by simpa using congrArg (fun r : ℝ≥0 ↦ (r : ℝ)) hr, ?_⟩
-  have : ‖a' - a‖₊ ≤ ‖c‖₊ := h1 ▸ le_max_left _ _
-  rw [← hsw] at this
+  have : ‖a - a'‖₊ ≤ ‖c‖₊ := e2 ▸ (hr ▸ le_max_left _ _)
   exact_mod_cast this
 
 end Gauss
@@ -221,17 +206,15 @@ end Finite
 
 section Transcendental
 
-variable [Algebra (RatFunc C) F] [IsScalarTower C (RatFunc C) F]
-
 omit [IsUltrametricDist C] in
-lemma transcendental_vcoord [FiniteDimensional (RatFunc C) F] {a c : C} (hc : c ≠ 0) :
-    Transcendental C (vcoord C F a c) := by
+lemma transcendental_vcoord {x₀ : F} (hx₀ : Transcendental C x₀) {a c : C} (hc : c ≠ 0) :
+    Transcendental C (vcoord x₀ a c) := by
   intro halg
-  apply transcendental_xF (C := C) (F := F)
-  rw [xF_eq_vcoord (a := a) hc]
+  apply hx₀
+  rw [eq_vcoord (x₀ := x₀) (a := a) hc]
   exact ((isAlgebraic_algebraMap c).mul halg).add (isAlgebraic_algebraMap a)
 
-omit [IsUltrametricDist C] [Algebra (RatFunc C) F] [IsScalarTower C (RatFunc C) F] in
+omit [IsUltrametricDist C] in
 lemma transcendental_inv {t : F} (ht : Transcendental C t) : Transcendental C t⁻¹ := fun h ↦
   ht (by simpa using h.inv)
 
@@ -298,34 +281,36 @@ lemma TreeData.norm_ce_lt_one (e : T.E) : ‖T.ce e‖ < 1 := by
 
 section Coordinates
 
-variable {F' : Type*} [Field F'] [Algebra C F'] [Algebra (RatFunc C) F']
-  [IsScalarTower C (RatFunc C) F'] [FiniteDimensional (RatFunc C) F']
+variable {F' : Type*} [Field F'] [Algebra C F'] {x₀ : F'} (hx₀ : Transcendental C x₀)
 
-variable (F') in
-/-- The coordinate `(x - aᵢ) / cᵢ` of a vertex. -/
-noncomputable def TreeData.vc (i : T.ι) : F' := vcoord C F' (T.a i) (T.c i)
+variable (x₀) in
+/-- The coordinate `(x₀ - aᵢ) / cᵢ` of a vertex. -/
+noncomputable def TreeData.vc (i : T.ι) : F' := vcoord x₀ (T.a i) (T.c i)
 
-variable (F') in
-/-- The coordinate `(x - a_{child}) / c_{parent}` of an edge (outer side). -/
-noncomputable def TreeData.ec (e : T.E) : F' := vcoord C F' (T.a (T.chi e)) (T.c (T.par e))
-
-omit [IsUltrametricDist C] in
-lemma TreeData.hvc (i : T.ι) : Transcendental C (T.vc F' i) := transcendental_vcoord (T.hc i)
+variable (x₀) in
+/-- The coordinate `(x₀ - a_{child}) / c_{parent}` of an edge (outer side). -/
+noncomputable def TreeData.ec (e : T.E) : F' := vcoord x₀ (T.a (T.chi e)) (T.c (T.par e))
 
 omit [IsUltrametricDist C] in
-lemma TreeData.hec (e : T.E) : Transcendental C (T.ec F' e) := transcendental_vcoord (T.hc _)
+include hx₀ in
+lemma TreeData.hvc (i : T.ι) : Transcendental C (T.vc x₀ i) := transcendental_vcoord hx₀ (T.hc i)
 
 omit [IsUltrametricDist C] in
-lemma TreeData.hinner (e : T.E) : Transcendental C (algebraMap C F' (T.ce e) / T.ec F' e) := by
+include hx₀ in
+lemma TreeData.hec (e : T.E) : Transcendental C (T.ec x₀ e) := transcendental_vcoord hx₀ (T.hc _)
+
+omit [IsUltrametricDist C] in
+include hx₀ in
+lemma TreeData.hinner (e : T.E) : Transcendental C (algebraMap C F' (T.ce e) / T.ec x₀ e) := by
   rw [div_eq_mul_inv]
   intro h
-  apply transcendental_inv (T.hec (F' := F') e)
+  apply transcendental_inv (T.hec hx₀ e)
   have hce : algebraMap C F' (T.ce e) ≠ 0 := by simpa using T.ce_ne_zero e
   have := (isAlgebraic_algebraMap (R := C) (A := F') (T.ce e)⁻¹).mul h
   rwa [map_inv₀, ← mul_assoc, inv_mul_cancel₀ hce, one_mul] at this
 
-omit [IsUltrametricDist C] [IsScalarTower C (RatFunc C) F'] [FiniteDimensional (RatFunc C) F'] in
-lemma TreeData.ec_eq (e : T.E) : T.ec F' e = algebraMap C F' 1 * T.vc F' (T.par e) +
+omit [IsUltrametricDist C] in
+lemma TreeData.ec_eq (e : T.E) : T.ec x₀ e = algebraMap C F' 1 * T.vc x₀ (T.par e) +
     algebraMap C F' (-((T.a (T.chi e) - T.a (T.par e)) / T.c (T.par e))) := by
   have hc : algebraMap C F' (T.c (T.par e)) ≠ 0 := by simpa using T.hc (T.par e)
   simp only [TreeData.ec, TreeData.vc, vcoord, map_one, one_mul, _root_.map_neg, map_div₀,
@@ -333,76 +318,73 @@ lemma TreeData.ec_eq (e : T.E) : T.ec F' e = algebraMap C F' 1 * T.vc F' (T.par 
   field_simp
   ring
 
-omit [IsUltrametricDist C] [IsScalarTower C (RatFunc C) F'] [FiniteDimensional (RatFunc C) F'] in
+omit [IsUltrametricDist C] in
 lemma TreeData.inner_eq (e : T.E) :
-    algebraMap C F' (T.ce e) / T.ec F' e = (T.vc F' (T.chi e))⁻¹ := by
+    algebraMap C F' (T.ce e) / T.ec x₀ e = (T.vc x₀ (T.chi e))⁻¹ := by
   have hc : algebraMap C F' (T.c (T.par e)) ≠ 0 := by simpa using T.hc (T.par e)
   have hc' : algebraMap C F' (T.c (T.chi e)) ≠ 0 := by simpa using T.hc (T.chi e)
   simp only [TreeData.ec, TreeData.vc, vcoord, TreeData.ce, map_div₀, inv_div]
-  rcases eq_or_ne (xF C F' - algebraMap C F' (T.a (T.chi e))) 0 with h | h
+  rcases eq_or_ne (x₀ - algebraMap C F' (T.a (T.chi e))) 0 with h | h
   · simp [h]
   · field_simp
 
 variable [IsAlgClosed C]
 
 lemma TreeData.isOver_ec_iff (e : T.E) (W : TypeTwo C F') :
-    IsOver (T.hvc (F' := F') (T.par e)) W ↔ IsOver (T.hec (F' := F') e) W := by
+    IsOver (T.hvc hx₀ (T.par e)) W ↔ IsOver (T.hec hx₀ e) W := by
   have hβ : ‖-((T.a (T.chi e) - T.a (T.par e)) / T.c (T.par e))‖ ≤ 1 := by
     rw [norm_neg, norm_div, div_le_one (norm_pos_iff.2 (T.hc _))]
     exact T.hedge_a e
   constructor
   · intro h
-    have := isOver_affine (T.hvc (F' := F') (T.par e)) (α := 1) (by simp) hβ
-      (by rw [← T.ec_eq (F' := F') e]; exact T.hec e) h
-    exact (isOver_congr (T.ec_eq (F' := F') e).symm _ _ W).1 this
+    have := isOver_affine (T.hvc hx₀ (T.par e)) (α := 1) (by simp) hβ
+      (by rw [← T.ec_eq (x₀ := x₀) e]; exact T.hec hx₀ e) h
+    exact (isOver_congr (T.ec_eq (x₀ := x₀) e).symm _ _ W).1 this
   · intro h
-    have hvc : T.vc F' (T.par e) = algebraMap C F' 1 * T.ec F' e +
+    have hvc : T.vc x₀ (T.par e) = algebraMap C F' 1 * T.ec x₀ e +
         algebraMap C F' ((T.a (T.chi e) - T.a (T.par e)) / T.c (T.par e)) := by
-      rw [T.ec_eq (F' := F') e, map_one, one_mul, one_mul, _root_.map_neg, neg_add_cancel_right]
+      rw [T.ec_eq (x₀ := x₀) e, map_one, one_mul, one_mul, _root_.map_neg, neg_add_cancel_right]
     have hβ' : ‖(T.a (T.chi e) - T.a (T.par e)) / T.c (T.par e)‖ ≤ 1 := by simpa using hβ
-    have := isOver_affine (T.hec (F' := F') e) (α := 1) (by simp) hβ'
-      (by rw [← hvc]; exact T.hvc _) h
+    have := isOver_affine (T.hec hx₀ e) (α := 1) (by simp) hβ'
+      (by rw [← hvc]; exact T.hvc hx₀ _) h
     exact (isOver_congr hvc.symm _ _ W).1 this
 
 lemma TreeData.isOver_inner_iff (e : T.E) (W : TypeTwo C F') :
-    IsOver (T.hvc (F' := F') (T.chi e)) W ↔ IsOver (T.hinner (F' := F') e) W := by
+    IsOver (T.hvc hx₀ (T.chi e)) W ↔ IsOver (T.hinner hx₀ e) W := by
   constructor
   · intro h
-    have := isOver_inv (T.hvc (F' := F') (T.chi e))
-      (by rw [← T.inner_eq (F' := F') e]; exact T.hinner e) h
-    exact (isOver_congr (T.inner_eq (F' := F') e).symm _ _ W).1 this
+    have := isOver_inv (T.hvc hx₀ (T.chi e))
+      (by rw [← T.inner_eq (x₀ := x₀) e]; exact T.hinner hx₀ e) h
+    exact (isOver_congr (T.inner_eq (x₀ := x₀) e).symm _ _ W).1 this
   · intro h
-    have h' := isOver_inv (T.hinner (F' := F') e) (transcendental_inv (T.hinner e)) h
-    have heq : (algebraMap C F' (T.ce e) / T.ec F' e)⁻¹ = T.vc F' (T.chi e) := by
-      rw [T.inner_eq (F' := F') e, inv_inv]
+    have h' := isOver_inv (T.hinner hx₀ e) (transcendental_inv (T.hinner hx₀ e)) h
+    have heq : (algebraMap C F' (T.ce e) / T.ec x₀ e)⁻¹ = T.vc x₀ (T.chi e) := by
+      rw [T.inner_eq (x₀ := x₀) e, inv_inv]
     exact (isOver_congr heq _ _ W).1 h'
 
 end Coordinates
 
 section Vertices
 
-variable {F' : Type*} [Field F'] [Algebra C F'] [Algebra (RatFunc C) F']
-  [IsScalarTower C (RatFunc C) F'] [FiniteDimensional (RatFunc C) F'] [IsAlgClosed C] [CharZero C]
+variable {F' : Type*} [Field F'] [Algebra C F'] [IsAlgClosed C] [CharZero C]
+  [IsCurveFunctionField C F'] {x₀ : F'} (hx₀ : Transcendental C x₀)
   {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
 
-attribute [local instance] isCurveFunctionField_F
-
 open Classical in
-variable (F') in
 /-- The vertex set: all extensions of the Gauss points of the tree. -/
 noncomputable def TreeData.S : Finset (TypeTwo C F') :=
-  Finset.univ.biUnion fun i ↦ (finite_isOver hp hp1 (T.hvc (F' := F') i)).toFinset
+  Finset.univ.biUnion fun i ↦ (finite_isOver hp hp1 (T.hvc hx₀ i)).toFinset
 
 lemma TreeData.mem_S (W : TypeTwo C F') :
-    W ∈ TreeData.S T F' hp hp1 ↔ ∃ i, IsOver (T.hvc (F' := F') i) W := by
+    W ∈ TreeData.S T hx₀ hp hp1 ↔ ∃ i, IsOver (T.hvc hx₀ i) W := by
   classical
   simp [TreeData.S]
 
-omit [CharZero C] in
+omit [CharZero C] [IsCurveFunctionField C F'] [IsAlgClosed C] in
 /-- A type-2 valuation lies over at most one vertex. -/
-lemma TreeData.eq_of_isOver {i j : T.ι} {W : TypeTwo C F'} (hi : IsOver (T.hvc (F' := F') i) W)
-    (hj : IsOver (T.hvc (F' := F') j) W) : i = j := by
-  obtain ⟨h1, h2⟩ := eq_of_isOver_of_isOver (T.hc i) (T.hc j) (T.hvc i) (T.hvc j) hi hj
+lemma TreeData.eq_of_isOver {i j : T.ι} {W : TypeTwo C F'} (hi : IsOver (T.hvc hx₀ i) W)
+    (hj : IsOver (T.hvc hx₀ j) W) : i = j := by
+  obtain ⟨h1, h2⟩ := eq_of_isOver_of_isOver (T.hc i) (T.hc j) (T.hvc hx₀ i) (T.hvc hx₀ j) hi hj
   exact T.hred i j h1 h2
 
 end Vertices
