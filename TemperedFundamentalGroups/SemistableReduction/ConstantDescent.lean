@@ -292,6 +292,69 @@ theorem exists_residue_eq [Algebra.IsAlgebraic k₀ k] {M₁ : Subring κ₁} {M
   rw [map_div₀, eq_div_iff hgn, hres n, map_sum]
   simp only [map_mul]
 
+/-- **Rational residues**: if every reduction is spanned by a subring `G ⊆ B` whose residues
+lie in `k₀`, then all residues of `B` lie in `k₀` (`M₁` linearly disjoint from `k`). -/
+theorem exists_residue_eq_of_span {M₁ : Subring κ₁} (hM₁ : ∀ b ∈ B, ρ₁ b ∈ M₁)
+    (hLD₁ : LinDisj k₀ k M₁)
+    (hconst : ∀ c : k₀, ∃ o ∈ B, ρ₁ o = algebraMap k κ₁ (algebraMap k₀ k c) ∧
+      ρ₂ o = algebraMap k κ₂ (algebraMap k₀ k c))
+    (V₁ : Subring κ₁) (r₁ : V₁ →+* k) (hρV : ∀ y, ρ₁ y ∈ V₁)
+    (hVk : ∀ t : k, algebraMap k κ₁ t ∈ V₁) (hr : ∀ t : k, r₁ ⟨_, hVk t⟩ = t)
+    {G : Subring R} (hGB : G ≤ B) (hGres : ∀ g ∈ G, ∃ c : k₀, r₁ ⟨ρ₁ g, hρV g⟩ = algebraMap k₀ k c)
+    (hspan : ∀ y, IsSpanned k G ρ₁ ρ₂ y) {b : R} (hb : b ∈ B) :
+    ∃ c : k₀, r₁ ⟨ρ₁ b, hρV b⟩ = algebraMap k₀ k c := by
+  classical
+  obtain ⟨n, lam, g, hg, h₁, -⟩ := hspan b
+  obtain ⟨m, β, hβ, hdec⟩ := exists_decomp (k₀ := k₀) (Finset.univ.image lam ∪ {1})
+  choose c hc using fun j ↦ hdec (lam j) (by simp)
+  obtain ⟨c₁, hc₁⟩ := hdec 1 (by simp)
+  choose o ho using hconst
+  set yl : Fin m → R := fun l ↦ ∑ j, o (c j l) * g j
+  have hyl : ∀ l, yl l ∈ B := fun l ↦
+    Subring.sum_mem _ fun j _ ↦ B.mul_mem (ho _).1 (hGB (hg j))
+  have ey : ρ₁ b = ∑ l, algebraMap k κ₁ (β l) * ρ₁ (yl l) := by
+    rw [h₁]; exact sum_split ρ₁ lam g β c hc (fun j l ↦ o (c j l)) fun j l ↦ (ho _).2.1
+  -- residues of the `y_l` are rational
+  have hres : ∀ l, ∃ c' : k₀, r₁ ⟨ρ₁ (yl l), hρV _⟩ = algebraMap k₀ k c' := by
+    intro l
+    choose d hd using fun j ↦ hGres (g j) (hg j)
+    refine ⟨∑ j, c j l * d j, ?_⟩
+    have : (⟨ρ₁ (yl l), hρV _⟩ : V₁) =
+        ∑ j, ⟨_, hVk (algebraMap k₀ k (c j l))⟩ * ⟨ρ₁ (g j), hρV _⟩ := by
+      apply Subtype.ext
+      change ρ₁ (yl l) = _
+      simp only [yl, map_sum, map_mul, (ho _).2.1]
+      push_cast
+      rfl
+    rw [this, map_sum, map_sum]
+    refine Finset.sum_congr rfl fun j _ ↦ ?_
+    rw [map_mul, hr, hd, map_mul]
+  -- compare with `1 = Σ c₁ β`
+  have e1 : ∀ l, ρ₁ (yl l) = algebraMap k κ₁ (algebraMap k₀ k (c₁ l)) * ρ₁ b := by
+    have := hLD₁ β (fun l ↦ ρ₁ (yl l) - algebraMap k κ₁ (algebraMap k₀ k (c₁ l)) * ρ₁ b) hβ
+      (fun l ↦ M₁.sub_mem (hM₁ _ (hyl l)) (M₁.mul_mem (by
+        rw [← (ho (c₁ l)).2.1]; exact hM₁ _ (ho _).1) (hM₁ _ hb))) (by
+        simp only [mul_sub, Finset.sum_sub_distrib, sub_eq_zero]
+        rw [← ey]
+        have : ρ₁ b = algebraMap k κ₁ 1 * ρ₁ b := by rw [map_one, one_mul]
+        conv_lhs => rw [this, hc₁]
+        rw [map_sum, Finset.sum_mul]
+        refine Finset.sum_congr rfl fun l _ ↦ ?_
+        rw [map_mul]; ring)
+    exact fun l ↦ sub_eq_zero.mp (this l)
+  obtain ⟨l, hl⟩ : ∃ l, c₁ l ≠ 0 := by
+    by_contra! hall
+    have h := hc₁
+    simp only [hall, map_zero, zero_mul, Finset.sum_const_zero] at h
+    exact one_ne_zero h
+  obtain ⟨c', hc'⟩ := hres l
+  refine ⟨c' / c₁ l, ?_⟩
+  have hb' : (⟨ρ₁ (yl l), hρV _⟩ : V₁) =
+      ⟨_, hVk (algebraMap k₀ k (c₁ l))⟩ * ⟨ρ₁ b, hρV b⟩ := Subtype.ext (e1 l)
+  rw [hb', map_mul, hr] at hc'
+  have hne : algebraMap k₀ k (c₁ l) ≠ 0 := (map_ne_zero_iff _ (algebraMap k₀ k).injective).mpr hl
+  rw [map_div₀, eq_div_iff hne, ← hc', mul_comm]
+
 end ConstantDescent
 
 end SemistableReduction
