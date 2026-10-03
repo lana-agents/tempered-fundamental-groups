@@ -301,6 +301,75 @@ lemma not_isUnit_dpoly : ¬ IsUnit (dpoly π b₄ b₆) := by
   rw [← hr, coeff_C] at this
   simp at this
 
+/-- The discriminant `Δ` of `y² + xy = x³ + π² b₄ x + π² b₆`
+(`a₁ = 1`, `a₂ = a₃ = 0`, `a₄ = π² b₄`, `a₆ = π² b₆`). -/
+def tateDisc : O :=
+  -(π ^ 2 * b₆ - (π ^ 2 * b₄) ^ 2) - 64 * (π ^ 2 * b₄) ^ 3 - 432 * (π ^ 2 * b₆) ^ 2 +
+    72 * (π ^ 2 * b₄) * (π ^ 2 * b₆)
+
+/-- `Δ = -π² E`; `E` is, up to `64 π`, the resultant of `d` and `d'`. -/
+def tateE : O :=
+  64 * b₄ ^ 3 * π ^ 4 - b₄ ^ 2 * π ^ 2 - 72 * b₄ * b₆ * π ^ 2 + 432 * b₆ ^ 2 * π ^ 2 + b₆
+
+omit [IsDomain O] in
+lemma tateDisc_eq : tateDisc π b₄ b₆ = -(π ^ 2 * tateE π b₄ b₆) := by
+  simp only [tateDisc, tateE]
+  ring
+
+omit [IsDomain O] in
+/-- The discriminant of a Weierstrass curve of Tate type. -/
+lemma Δ_eq_tateDisc {K : Type*} [CommRing K] (φ : O →+* K) (W : WeierstrassCurve K)
+    (h₁ : W.a₁ = 1) (h₂ : W.a₂ = 0) (h₃ : W.a₃ = 0) (h₄ : W.a₄ = φ (π ^ 2 * b₄))
+    (h₆ : W.a₆ = φ (π ^ 2 * b₆)) : W.Δ = φ (tateDisc π b₄ b₆) := by
+  simp only [WeierstrassCurve.Δ, WeierstrassCurve.b₂, WeierstrassCurve.b₄, WeierstrassCurve.b₆,
+    WeierstrassCurve.b₈, h₁, h₂, h₃, h₄, h₆, tateDisc, map_sub, map_add, map_mul, map_pow,
+    map_neg, map_ofNat]
+  ring
+
+/-- **`d` is squarefree for a curve of Tate type with `Δ ≠ 0`, if `2 ≠ 0`.** Indeed
+`-2 U d + V d' = 8 E` for explicit `U, V ∈ O[X]`, so a square factor of `d` divides the nonzero
+constant `8 E` and hence is a unit (the coefficient of `X²` in `d` is `1`). -/
+theorem squarefree_dpoly (h2 : (2 : O) ≠ 0) (hΔ : tateDisc π b₄ b₆ ≠ 0) :
+    Squarefree (dpoly π b₄ b₆) := by
+  have hE : tateE π b₄ b₆ ≠ 0 := by
+    intro h
+    rw [tateDisc_eq, h, mul_zero, neg_zero] at hΔ
+    exact hΔ rfl
+  intro q ⟨r, hr⟩
+  have hq1 : q ∣ dpoly π b₄ b₆ := ⟨q * r, by rw [hr]; ring⟩
+  have hq2 : q ∣ derivative (dpoly π b₄ b₆) := by
+    rw [hr, derivative_mul, derivative_mul]
+    exact ⟨derivative q * r + derivative q * r + q * derivative r, by ring⟩
+  set U : O[X] := C (288 * b₄ * π ^ 3 - 6 * π) * X + C (60 * b₄ * π ^ 2 - 432 * b₆ * π ^ 2 - 1)
+  set V : O[X] := C (192 * b₄ * π ^ 3 - 4 * π) * X ^ 2 +
+    C (56 * b₄ * π ^ 2 - 288 * b₆ * π ^ 2 - 1) * X +
+    C (128 * b₄ ^ 2 * π ^ 3 - 2 * b₄ * π - 24 * b₆ * π)
+  have hid : C (8 * tateE π b₄ b₆) =
+      -2 * U * dpoly π b₄ b₆ + V * derivative (dpoly π b₄ b₆) := by
+    have hd' : derivative (dpoly π b₄ b₆) = C (12 * π) * X ^ 2 + 2 * X + C (4 * π * b₄) := by
+      simp only [dpoly, cpoly, derivative_add, derivative_mul, derivative_X_pow, derivative_C,
+        derivative_X, derivative_ofNat, map_mul, map_ofNat]
+      simp only [Nat.cast_ofNat, zero_mul, zero_add, mul_one, Nat.add_one_sub_one, pow_one,
+        add_zero]
+      rw [show (C 2 : O[X]) = 2 from map_ofNat C 2, show (C 3 : O[X]) = 3 from map_ofNat C 3]
+      ring
+    rw [hd']
+    simp only [U, V, dpoly, cpoly, tateE, map_add, map_sub, map_mul, map_pow, map_ofNat, map_one]
+    ring
+  have hq : q ∣ C (8 * tateE π b₄ b₆) := by
+    rw [hid]
+    exact dvd_add (dvd_mul_of_dvd_right hq1 _) (dvd_mul_of_dvd_right hq2 _)
+  have h8 : (8 : O) ≠ 0 := by
+    rw [show (8 : O) = 2 * 2 * 2 by norm_num]
+    exact mul_ne_zero (mul_ne_zero h2 h2) h2
+  have hdeg : q.natDegree = 0 := by
+    have := natDegree_le_of_dvd hq (C_ne_zero.2 (mul_ne_zero h8 hE))
+    rwa [natDegree_C, Nat.le_zero] at this
+  rw [eq_C_of_natDegree_eq_zero hdeg] at hr ⊢
+  have h0 := congrArg (coeff · 2) hr
+  rw [dpoly_coeff_two, ← map_mul, coeff_C_mul] at h0
+  exact isUnit_C.2 (IsUnit.of_mul_eq_one (q.coeff 0 * r.coeff 2) (by rw [h0]; ring))
+
 variable [UniqueFactorizationMonoid O]
 
 variable {π b₄ b₆}
