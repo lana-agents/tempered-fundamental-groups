@@ -34,7 +34,7 @@ variable {C : Type*} [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClo
   (T : TreeData C) {x₀ : F} (hx₀ : Transcendental C x₀)
   {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
 
-attribute [local instance] DiscreteCoefficients.isAlgClosed_residueField
+attribute [local instance] isCurveFunctionField DiscreteCoefficients.isAlgClosed_residueField
 
 local notation "𝓀" => ResidueField (HenselComplete.integers C)
 
@@ -118,6 +118,16 @@ noncomputable def TreeData.outBr (e : T.E) :
   fun b ↦ ⟨⟨TypeTwo.ofComap (T.hec hx₀ e) b.1.1 b.1.2, (T.mem_S hx₀ hp hp1 _).2
     ⟨T.par e, (T.isOver_ec_iff hx₀ e _).2 (TypeTwo.isOver_ofComap _ _ _)⟩⟩, b.2.1⟩
 
+lemma TreeData.inner_comap (e : T.E) :
+    letI := T.edgeAlg hx₀ e
+    haveI := T.edgeTower hx₀ e
+    haveI := T.edgeFin hx₀ e
+    ∀ b : OuterBranch C (Inv (T.ce e) (T.ce_ne_zero e) F),
+      (b.1.1 : Valuation F ℝ≥0).comap (coordAlgHom (T.hinner hx₀ e)).toRingHom = gauss1 C := by
+  intro b
+  rw [← T.algebraMap_inv hx₀ e]
+  exact b.1.2
+
 /-- An inner branch of the edge `e` as a branch of the vertex set. -/
 noncomputable def TreeData.inBr (e : T.E) :
     (letI := T.edgeAlg hx₀ e
@@ -128,7 +138,7 @@ noncomputable def TreeData.inBr (e : T.E) :
   haveI := T.edgeTower hx₀ e
   haveI := T.edgeFin hx₀ e
   fun b ↦ ⟨⟨TypeTwo.ofComap (T.hinner hx₀ e) (b.1.1 : Valuation F ℝ≥0)
-    (by rw [← T.algebraMap_inv hx₀ e]; exact b.1.2), (T.mem_S hx₀ hp hp1 _).2
+    (T.inner_comap hx₀ e b), (T.mem_S hx₀ hp hp1 _).2
     ⟨T.chi e, (T.isOver_inner_iff hx₀ e _).2 (TypeTwo.isOver_ofComap _ _ _)⟩⟩, b.2.1⟩
 
 /-- The branches through a node point. -/
@@ -317,6 +327,154 @@ theorem TreeData.Oc_le_eqRes (P : T.Pt hx₀ hp hp1) :
   exact ⟨fun β hβ ↦ (hfrac β hβ).1, fun β hβ β' hβ' ↦ (hfrac β hβ).2.trans (hfrac β' hβ').2.symm⟩
 
 end Condition
+
+section Structure
+
+lemma _root_.SemistableReduction.CurvePlace.valuation_algebraMap_eq_one' {k κ : Type*} [Field k]
+    [Field κ] [Algebra k κ] [IsAlgClosed k] [IsCurveFunctionField k κ] (Q : CurvePlace k κ)
+    {c : k} (hc : c ≠ 0) : Q.valuation (algebraMap k κ c) = 1 := by
+  have h1 := Q.valuation_algebraMap_le_one c
+  have h2 := Q.valuation_algebraMap_le_one c⁻¹
+  rw [map_inv₀, map_inv₀] at h2
+  have h0 : Q.valuation (algebraMap k κ c) ≠ 0 := by simpa using hc
+  refine le_antisymm h1 ?_
+  have := mul_le_mul_right h2 (Q.valuation (algebraMap k κ c))
+  rwa [mul_inv_cancel₀ h0, mul_one] at this
+
+/-- The branches through a node point of `e`: outer ones (over the parent, zeros of `x̄_e`) and
+inner ones (over the child, zeros of `(c_e/x_e)‾`). -/
+theorem TreeData.Sp_cases (P : T.Pt hx₀ hp hp1) {β : Branch 𝓀 (Kappa (T.S hx₀ hp hp1))}
+    (hβ : β ∈ T.Sp hx₀ hp hp1 P) :
+    (IsOver (T.hvc hx₀ (T.par P.1)) β.1.1 ∧ β.2.valuation (β.1.1.red (T.ec x₀ P.1)) < 1) ∨
+    (IsOver (T.hvc hx₀ (T.chi P.1)) β.1.1 ∧
+      β.2.valuation (β.1.1.red (algebraMap C F (T.ce P.1) / T.ec x₀ P.1)) < 1) := by
+  letI := T.edgeAlg hx₀ P.1
+  haveI := T.edgeTower hx₀ P.1
+  haveI := T.edgeFin hx₀ P.1
+  simp only [TreeData.Sp, Set.Finite.mem_toFinset, Set.mem_union, Set.mem_image] at hβ
+  rcases hβ with ⟨b, -, rfl⟩ | ⟨b, -, rfl⟩
+  · refine Or.inl ⟨(T.isOver_ec_iff hx₀ _ _).2 (TypeTwo.isOver_ofComap _ _ b.1.2), ?_⟩
+    have h := valuation_x_lt_one b.2.2
+    have hx : xF C F = T.ec x₀ P.1 := xF_coord (T.hec hx₀ P.1)
+    exact (congrArg (fun t ↦ b.2.1.valuation (red C t b.1)) hx.symm).trans_lt h
+  · refine Or.inr ⟨(T.isOver_inner_iff hx₀ _ _).2 (TypeTwo.isOver_ofComap (T.hinner hx₀ P.1) _
+      (T.inner_comap hx₀ P.1 b)), ?_⟩
+    have hxI : xF C (Inv (T.ce P.1) (T.ce_ne_zero P.1) F) =
+        algebraMap C F (T.ce P.1) / T.ec x₀ P.1 := by
+      change algebraMap (RatFunc C) (Inv (T.ce P.1) (T.ce_ne_zero P.1) F) RatFunc.X = _
+      rw [T.algebraMap_inv hx₀ P.1]
+      exact coordAlgHom_X (T.hinner hx₀ P.1)
+    have h := valuation_x_lt_one b.2.2
+    exact (congrArg (fun t ↦ b.2.1.valuation (red C t b.1)) hxI.symm).trans_lt h
+
+omit [CharZero C] in
+/-- At an outer branch, the vertex coordinate is regular. -/
+lemma red_vc_mem_of_outer {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.par e)) W)
+    {Q : CurvePlace 𝓀 (ResidueField W.val.valuationSubring)}
+    (hQ : Q.valuation (W.red (T.ec x₀ e)) < 1) : W.red (T.vc x₀ (T.par e)) ∈ Q.V := by
+  have hδ : ‖-((T.a (T.chi e) - T.a (T.par e)) / T.c (T.par e))‖ ≤ 1 := by
+    rw [norm_neg, norm_div, div_le_one (norm_pos_iff.2 (T.hc _))]
+    exact T.hedge_a e
+  have hec := T.ec_eq (x₀ := x₀) e
+  rw [map_one, one_mul] at hec
+  have h1 : W.red (T.ec x₀ e) = W.red (T.vc x₀ (T.par e)) + algebraMap 𝓀 _ (residue _
+      ⟨_, (HenselComplete.mem_integers_iff _).2 hδ⟩) := by
+    rw [hec, TypeTwo.red_add (by rw [hW.valuation_self])
+      (by rw [TypeTwo.valuation_algebraMap]; exact_mod_cast hδ), TypeTwo.red_algebraMap _ hδ]
+  have h2 : W.red (T.vc x₀ (T.par e)) = W.red (T.ec x₀ e) - algebraMap 𝓀 _ (residue _
+      ⟨_, (HenselComplete.mem_integers_iff _).2 hδ⟩) := by rw [h1]; ring
+  rw [h2]
+  exact sub_mem (Q.valuation_le_one_iff.1 hQ.le) (Q.algebraMap_mem _)
+
+omit [CharZero C] in
+/-- At an inner branch, the vertex coordinate has a pole. -/
+lemma red_vc_notMem_of_inner {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.chi e)) W)
+    {Q : CurvePlace 𝓀 (ResidueField W.val.valuationSubring)}
+    (hQ : Q.valuation (W.red (algebraMap C F (T.ce e) / T.ec x₀ e)) < 1) :
+    W.red (T.vc x₀ (T.chi e)) ∉ Q.V := by
+  intro hmem
+  rw [T.inner_eq (x₀ := x₀) e, TypeTwo.red_inv hW.valuation_self, map_inv₀] at hQ
+  have h0 : W.red (T.vc x₀ (T.chi e)) ≠ 0 := TypeTwo.red_ne_zero hW.valuation_self
+  have h1 := Q.valuation_le_one_iff.2 hmem
+  have := mul_lt_one_of_nonneg_of_lt_one_left zero_le hQ h1
+  rw [inv_mul_cancel₀ ((Valuation.ne_zero_iff _).2 h0)] at this
+  exact lt_irrefl _ this
+
+/-- Membership in a node point is read off at any branch through it. -/
+theorem TreeData.mem_iff (P : T.Pt hx₀ hp hp1) {β : Branch 𝓀 (Kappa (T.S hx₀ hp hp1))}
+    (hβ : β ∈ T.Sp hx₀ hp hp1 P) (r : letI := T.edgeAlg hx₀ P.1; Rint (T.ce P.1) F) :
+    r ∈ P.2.1 ↔ β.2.res (β.1.1.red (r : F)) = 0 := by
+  letI := T.edgeAlg hx₀ P.1
+  haveI := T.edgeTower hx₀ P.1
+  haveI := T.edgeFin hx₀ P.1
+  obtain ⟨b₀, hb₀⟩ := T.exists_outer hx₀ hp hp1 P
+  have h := T.branch_spec hx₀ hp hp1 P hβ b₀ hb₀ r
+  have h2 := h.2.2
+  have hb₀' : placeIdeal (T.norm_ce_lt_one P.1) b₀.1 b₀.2.2 = P.2.1 := hb₀
+  exact ((Iff.of_eq (congrArg (r ∈ ·) hb₀'.symm)).trans RingHom.mem_ker).trans
+    (Eq.congr_left h2).symm
+
+/-- Every node point has a branch. -/
+theorem TreeData.Sp_nonempty (P : T.Pt hx₀ hp hp1) : (T.Sp hx₀ hp hp1 P).Nonempty := by
+  letI := T.edgeAlg hx₀ P.1
+  haveI := T.edgeTower hx₀ P.1
+  haveI := T.edgeFin hx₀ P.1
+  obtain ⟨b₀, hb₀⟩ := T.exists_outer hx₀ hp hp1 P
+  refine ⟨T.outBr hx₀ hp hp1 P.1 b₀, ?_⟩
+  simp only [TreeData.Sp, Set.Finite.mem_toFinset, Set.mem_union, Set.mem_image]
+  exact Or.inl ⟨b₀, hb₀, rfl⟩
+
+/-- Distinct node points have disjoint branch sets. -/
+theorem TreeData.Sp_disjoint (P Q : T.Pt hx₀ hp hp1) (hPQ : P ≠ Q) :
+    Disjoint (T.Sp hx₀ hp hp1 P) (T.Sp hx₀ hp hp1 Q) := by
+  rw [Finset.disjoint_left]
+  intro β hP hQ
+  apply hPQ
+  have he : P.1 = Q.1 := by
+    rcases T.Sp_cases hx₀ hp hp1 P hP with ⟨hW, hv⟩ | ⟨hW, hv⟩ <;>
+      rcases T.Sp_cases hx₀ hp hp1 Q hQ with ⟨hW', hv'⟩ | ⟨hW', hv'⟩
+    · have hpar := T.eq_of_isOver hx₀ hW hW'
+      by_contra hne
+      have hdir := T.hdir _ _ hpar hne
+      set γ : C := (T.a (T.chi Q.1) - T.a (T.chi P.1)) / T.c (T.par P.1)
+      have hγ : ‖γ‖ = 1 := by
+        rw [norm_div, norm_sub_rev, hdir, div_self (norm_ne_zero_iff.2 (T.hc _))]
+      have hdiff : T.ec x₀ P.1 - T.ec x₀ Q.1 = algebraMap C F γ := by
+        have hc : algebraMap C F (T.c (T.par P.1)) ≠ 0 := by simpa using T.hc _
+        simp only [TreeData.ec, vcoord, γ, ← hpar, map_div₀, _root_.map_sub]
+        field_simp
+        ring
+      have h1 : β.1.1.val (T.ec x₀ P.1) ≤ 1 :=
+        ((T.isOver_ec_iff hx₀ _ _).1 hW).valuation_self.le
+      have h2 : β.1.1.val (T.ec x₀ Q.1) ≤ 1 :=
+        ((T.isOver_ec_iff hx₀ _ _).1 hW').valuation_self.le
+      have hred := TypeTwo.red_sub (W := β.1.1) h1 h2
+      rw [hdiff, TypeTwo.red_algebraMap _ hγ.le] at hred
+      have hlt : β.2.valuation (β.1.1.red (T.ec x₀ P.1) - β.1.1.red (T.ec x₀ Q.1)) < 1 :=
+        (Valuation.map_sub _ _ _).trans_lt (max_lt hv hv')
+      rw [← hred, β.2.valuation_algebraMap_eq_one' (residue_ne_zero_of_norm_eq_one hγ)] at hlt
+      exact lt_irrefl _ hlt
+    · exfalso
+      have hi := T.eq_of_isOver hx₀ hW hW'
+      have h1 := red_vc_mem_of_outer T hx₀ hW hv
+      rw [hi] at h1
+      exact red_vc_notMem_of_inner T hx₀ hW' hv' h1
+    · exfalso
+      have hi := T.eq_of_isOver hx₀ hW' hW
+      have h1 := red_vc_mem_of_outer T hx₀ hW' hv'
+      rw [hi] at h1
+      exact red_vc_notMem_of_inner T hx₀ hW hv h1
+    · exact T.hchi _ _ (T.eq_of_isOver hx₀ hW hW')
+  obtain ⟨e, P', hP'⟩ := P
+  obtain ⟨e', Q', hQ'⟩ := Q
+  simp only at he
+  subst he
+  have : P' = Q' := Ideal.ext fun r ↦
+    (T.mem_iff hx₀ hp hp1 ⟨e, P', hP'⟩ hP r).trans (T.mem_iff hx₀ hp hp1 ⟨e, Q', hQ'⟩ hQ r).symm
+  subst this
+  rfl
+
+end Structure
 
 end TreeCount
 
