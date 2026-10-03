@@ -25,7 +25,7 @@ namespace SemistableReduction
 
 namespace GaussTube
 
-open FundamentalInequality GaussStability GaussFibre PlaceNorm
+open FundamentalInequality GaussStability GaussFibre PlaceNorm TubeCount
 
 universe u
 
@@ -497,6 +497,142 @@ theorem res_norm_residue (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.v
     Q.res ((i (Algebra.norm κ₁ z) : E) : ResidueField v.1.valuationSubring) = _
   rw [hnorm]
   exact this
+
+lemma _root_.SemistableReduction.CurvePlace.res_sub_algebraMap {k κ : Type*} [Field k] [Field κ]
+    [Algebra k κ] [IsAlgClosed k] [IsCurveFunctionField k κ] (Q : CurvePlace k κ) {a : κ}
+    (ha : a ∈ Q.V) (t : k) : Q.res (a - algebraMap k κ t) = Q.res a - t := by
+  refine Q.res_eq_of_valuation_sub_lt_one ?_
+  have : a - algebraMap k κ t - algebraMap k κ (Q.res a - t) = a - algebraMap k κ (Q.res a) := by
+    rw [_root_.map_sub]; ring
+  rw [this]
+  exact Q.valuation_sub_res_lt_one ha
+
+lemma _root_.SemistableReduction.CurvePlace.res_prod {k κ ι : Type*} [Field k] [Field κ]
+    [Algebra k κ] [IsAlgClosed k] [IsCurveFunctionField k κ] (Q : CurvePlace k κ)
+    (s : Finset ι) (f : ι → κ) (hf : ∀ i ∈ s, f i ∈ Q.V) :
+    Q.res (∏ i ∈ s, f i) = ∏ i ∈ s, Q.res (f i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simpa using Q.res_one
+  | insert a s ha ih =>
+    rw [Finset.prod_insert ha, Finset.prod_insert ha,
+      Q.res_mul (hf a (Finset.mem_insert_self a s))
+        (prod_mem fun i hi ↦ hf i (Finset.mem_insert_of_mem hi)),
+      ih fun i hi ↦ hf i (Finset.mem_insert_of_mem hi)]
+
+lemma exists_mem_zeros (v : Ext C F') : ∃ Q, Q ∈ zeros 𝓀 (red C (xF C F') v) := by
+  have hx : red C (xF C F') v ∉ (algebraMap 𝓀 (ResidueField v.1.valuationSubring)).range :=
+    fun ⟨a, ha⟩ ↦ transcendental_red_x (F := F') v (ha ▸ isAlgebraic_algebraMap a)
+  have h := sum_ord hx
+  by_contra! H
+  have : zeros 𝓀 (red C (xF C F') v) = ∅ := Finset.eq_empty_iff_forall_notMem.2 H
+  rw [this, Finset.sum_empty] at h
+  haveI := IsCurveFunctionField.finiteDimensional_adjoin (transcendental_of_notMem_range hx)
+  exact Module.finrank_pos.ne' h.symm
+
+section Identity
+
+variable [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1) [Fintype (Ext C F')]
+include hp hp1
+
+/-- `Σ_v Σ_{Q : x̄(Q) = 0} ord_Q x̄ = [F' : C(x)]`. -/
+lemma sum_sum_ord : ∑ v : Ext C F', ∑ Q ∈ zeros 𝓀 (red C (xF C F') v),
+    ord (red C (xF C F') v) Q = Module.finrank (RatFunc C) F' := by
+  rw [← sum_inertiaDeg_eq hp hp1 (F := F')]
+  refine Finset.sum_congr rfl fun v _ ↦ ?_
+  have hx : red C (xF C F') v ∉ (algebraMap 𝓀 (ResidueField v.1.valuationSubring)).range :=
+    fun ⟨a, ha⟩ ↦ transcendental_red_x (F := F') v (ha ▸ isAlgebraic_algebraMap a)
+  rw [sum_ord hx, finrank_adjoin_red_x]
+
+/-- **The reduction of the characteristic polynomial at a branch of the outer vertex.** For
+`y ∈ R'` with characteristic polynomial lifted to `P` over the node chart, the image of `P` under
+the reduction at a branch `Q₀` (`x̄ = 0` on `κ(v₀)`) is
+`∏_v ∏_{Q : x̄(Q) = 0} (X - ȳ_v(Q)) ^ ord_Q x̄`. -/
+theorem map_lift_eq_prod (hc : ‖c‖ < 1) (y : Rint c F') (P : (nodeRing c)[X])
+    (hP : P.map (nodeRing c).subtype = normPoly (RatFunc C) (y : F')) (v₀ : Ext C F')
+    {Q₀ : CurvePlace 𝓀 (ResidueField v₀.1.valuationSubring)}
+    (hQ₀ : Q₀ ∈ zeros 𝓀 (red C (xF C F') v₀)) :
+    P.map ((placeHom hc v₀ hQ₀).comp (algebraMap (nodeRing c) (Rint c F'))) =
+      ∏ v : Ext C F', ∏ Q ∈ zeros 𝓀 (red C (xF C F') v),
+        (X - Polynomial.C (Q.res (red C (y : F') v))) ^ ord (red C (xF C F') v) Q := by
+  classical
+  set n := Module.finrank (RatFunc C) F'
+  have he : ∀ v : Ext C F', ramificationIdx (RatFunc C) v.1 = 1 := ramificationIdx_eq_one
+  have hsum := sum_inertiaDeg_eq hp hp1 (F := F')
+  set ψ := (placeHom hc v₀ hQ₀).comp (algebraMap (nodeRing c) (Rint c F'))
+  refine eq_of_infinite_eval_eq _ _ (Set.infinite_univ.mono fun t _ ↦ ?_)
+  obtain ⟨κ, rfl⟩ := residue_surjective t
+  have hκ1 : ‖(κ : C)‖ ≤ 1 := (HenselComplete.mem_integers_iff _).1 κ.2
+  set t₀ : nodeRing c := ⟨algebraMap C (RatFunc C) κ, algebraMap_mem_nodeRing hκ1⟩
+  have hψt : ψ t₀ = residue _ κ := placeHom_const hc v₀ hQ₀ κ
+  simp only [Set.mem_setOf_eq]
+  rw [← hψt, eval_map, eval₂_at_apply, hψt]
+  -- the element `z = y - κ` and its norm
+  set z : F' := (y : F') - algebraMap (RatFunc C) F' (algebraMap C (RatFunc C) κ)
+  have hκv (v : Ext C F') : v.1 (algebraMap (RatFunc C) F' (algebraMap C (RatFunc C) κ)) ≤ 1 := by
+    rw [← IsScalarTower.algebraMap_apply, valuation_algebraMap_C']
+    exact_mod_cast hκ1
+  have hzv (v : Ext C F') : v.1 z ≤ 1 :=
+    (Valuation.map_sub _ _ _).trans (max_le (valuation_le_one_R hc v y) (hκv v))
+  have hz : gnorm C z ≤ 1 := gnorm_le_iff.2 hzv
+  obtain ⟨hN1, hres⟩ := residue_norm_eq_prod he hsum hz
+  have hPe : ((P.eval t₀ : nodeRing c) : RatFunc C) =
+      (-1) ^ n * Algebra.norm (RatFunc C) z := by
+    have h1 : ((P.eval t₀ : nodeRing c) : RatFunc C) =
+        (normPoly (RatFunc C) (y : F')).eval (t₀ : RatFunc C) := by
+      rw [← hP, eval_map]
+      exact (eval₂_at_apply (nodeRing c).subtype t₀).symm
+    have h2 := norm_sub_algebraMap (F := RatFunc C) (y : F') (t₀ : RatFunc C)
+    rw [h1, h2, ← mul_assoc, ← mul_pow, neg_one_mul, neg_neg, one_pow, one_mul]
+  set M : nodeRing c := (-1) ^ n * P.eval t₀
+  have hM : (M : RatFunc C) = Algebra.norm (RatFunc C) z := by
+    simp only [M, Subring.coe_mul, Subring.coe_pow, Subring.coe_neg, Subring.coe_one, hPe]
+    rw [← mul_assoc, ← mul_pow, neg_one_mul, neg_neg, one_pow, one_mul]
+  have hPM : P.eval t₀ = (-1) ^ n * M := by
+    simp only [M]
+    rw [← mul_assoc, ← mul_pow, neg_one_mul, neg_neg, one_pow, one_mul]
+  rw [hPM, map_mul, map_pow, _root_.map_neg, map_one]
+  -- the reduction of the norm at the outer vertex
+  have hψM : ψ M = Q₀.res (algebraMap κ₁ (ResidueField v₀.1.valuationSubring)
+      (∏ v : Ext C F', Algebra.norm κ₁ (red C z v))) := by
+    change Q₀.res (red C (algebraMap (RatFunc C) F' (M : RatFunc C)) v₀) = _
+    rw [← hres, ← red_algebraMap_rat v₀ hN1, hM]
+  -- the zeros on each residue curve and the reductions of `z`
+  have hzred (v : Ext C F') : red C z v = red C (y : F') v -
+      algebraMap 𝓀 (ResidueField v.1.valuationSubring) (residue _ κ) := by
+    rw [red_sub (valuation_le_one_R hc v y) (hκv v), ← IsScalarTower.algebraMap_apply,
+      red_algebraMap_C (κ : C) (by exact_mod_cast hκ1)]
+  have hzQ (v : Ext C F') : ∀ Q' ∈ zeros 𝓀 (red C (xF C F') v), red C z v ∈ Q'.V :=
+    fun Q' hQ' ↦ by
+      rw [hzred]
+      exact sub_mem (red_mem_V hc v y hQ') (Q'.algebraMap_mem _)
+  have hfac (v : Ext C F') :
+      algebraMap κ₁ (ResidueField v₀.1.valuationSubring) (Algebra.norm κ₁ (red C z v)) ∈ Q₀.V ∧
+      Q₀.res (algebraMap κ₁ (ResidueField v₀.1.valuationSubring) (Algebra.norm κ₁ (red C z v))) =
+        ∏ Q' ∈ zeros 𝓀 (red C (xF C F') v),
+          (Q'.res (red C (y : F') v) - residue _ κ) ^ ord (red C (xF C F') v) Q' := by
+    obtain ⟨Qv, hQv⟩ := exists_mem_zeros v
+    obtain ⟨hmem, hval⟩ := res_norm_residue v hQv (hzQ v)
+    obtain ⟨hmem0, hval0⟩ := res_algebraMap_eq _ v v₀ hQv hQ₀ hmem
+    refine ⟨hmem0, ?_⟩
+    rw [hval0, hval]
+    refine Finset.prod_congr rfl fun Q' hQ' ↦ ?_
+    rw [hzred, Q'.res_sub_algebraMap (red_mem_V hc v y hQ')]
+  rw [hψM, map_prod, CurvePlace.res_prod _ _ _ fun v _ ↦ (hfac v).1]
+  simp_rw [fun v ↦ (hfac v).2]
+  -- compare with the evaluation of the product
+  simp only [eval_prod, eval_pow, eval_sub, eval_X, eval_C]
+  have hsign : ∏ v : Ext C F', ∏ Q ∈ zeros 𝓀 (red C (xF C F') v),
+      ((-1 : 𝓀) ^ ord (red C (xF C F') v) Q) = (-1) ^ n := by
+    rw [show n = _ from (sum_sum_ord hp hp1 (F' := F')).symm, ← Finset.prod_pow_eq_pow_sum]
+    exact Finset.prod_congr rfl fun v _ ↦ by rw [Finset.prod_pow_eq_pow_sum]
+  rw [← hsign, ← Finset.prod_mul_distrib]
+  refine Finset.prod_congr rfl fun v _ ↦ ?_
+  rw [← Finset.prod_mul_distrib]
+  refine Finset.prod_congr rfl fun Q _ ↦ ?_
+  rw [← mul_pow, neg_one_mul, neg_sub]
+
+end Identity
 
 end GaussTube
 
