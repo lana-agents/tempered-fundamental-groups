@@ -141,7 +141,8 @@ namespace TemperedFundamentalGroups.SemistableReduction
 /-- **Simultaneous semistable reduction** (requested for W8′ / Theorem B of the André
 identification): for a tower of finite étale covers `Spec B' → Spec B → Spec R` of a smooth
 affine `K`-curve, after a finite extension `K'/K` there are semistable projective `O'`-models
-`c` of `Spec (K' ⊗ B)` and `c'` of `Spec (K' ⊗ B')`, both split (`ModelCode.IsSplit`), with open immersions `j, j'` over `O'` and a
+`c` of `Spec (K' ⊗ B)` and `c'` of `Spec (K' ⊗ B')`, both split (`ModelCode.IsSplit`), with
+open immersions `j, j'` over `O'` and a
 **finite** morphism `ψ : c' ⟶ c` over `O'` compatible with `j, j'` (e.g. `c'` the normalization of
 `c` in `K' ⊗ B'`). -/
 def Statement.Simultaneous : Prop :=
