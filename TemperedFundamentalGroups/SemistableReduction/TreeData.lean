@@ -149,7 +149,8 @@ lemma eq_vcoord {x₀ : F} {a c : C} (hc : c ≠ 0) :
 omit [IsUltrametricDist C] in
 /-- Change of vertex coordinate. -/
 lemma vcoord_eq {x₀ : F} {a c a' c' : C} (hc : c ≠ 0) (hc' : c' ≠ 0) :
-    vcoord x₀ a' c' = algebraMap C F (c / c') * (vcoord x₀ a c - algebraMap C F ((a' - a) / c)) := by
+    vcoord x₀ a' c' =
+      algebraMap C F (c / c') * (vcoord x₀ a c - algebraMap C F ((a' - a) / c)) := by
   have h1 : algebraMap C F c ≠ 0 := by simpa using hc
   have h2 : algebraMap C F c' ≠ 0 := by simpa using hc'
   simp only [vcoord, map_div₀, _root_.map_sub]
@@ -380,7 +381,7 @@ lemma TreeData.mem_S (W : TypeTwo C F') :
   classical
   simp [TreeData.S]
 
-omit [CharZero C] [IsCurveFunctionField C F'] [IsAlgClosed C] in
+omit [IsAlgClosed C] [CharZero C] [IsCurveFunctionField C F'] in
 /-- A type-2 valuation lies over at most one vertex. -/
 lemma TreeData.eq_of_isOver {i j : T.ι} {W : TypeTwo C F'} (hi : IsOver (T.hvc hx₀ i) W)
     (hj : IsOver (T.hvc hx₀ j) W) : i = j := by

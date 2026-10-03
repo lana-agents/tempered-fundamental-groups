@@ -44,13 +44,14 @@ section Edge
 noncomputable abbrev TreeData.edgeAlg (e : T.E) : Algebra (RatFunc C) F :=
   (coordAlgHom (T.hec hx₀ e)).toRingHom.toAlgebra
 
-omit [IsAlgClosed C] [CharZero C] [IsCurveFunctionField C F] in
+omit [IsUltrametricDist C] [IsAlgClosed C] [CharZero C] [IsCurveFunctionField C F] in
 lemma TreeData.edgeTower (e : T.E) :
     letI := T.edgeAlg hx₀ e
     IsScalarTower C (RatFunc C) F :=
   letI := T.edgeAlg hx₀ e
   IsScalarTower.of_algebraMap_eq fun c ↦ ((coordAlgHom (T.hec hx₀ e)).commutes c).symm
 
+omit [IsUltrametricDist C] [IsAlgClosed C] [CharZero C] in
 lemma TreeData.edgeFin (e : T.E) :
     letI := T.edgeAlg hx₀ e
     FiniteDimensional (RatFunc C) F := by
@@ -59,7 +60,7 @@ lemma TreeData.edgeFin (e : T.E) :
   have hxF : xF C F = T.ec x₀ e := xF_coord (T.hec hx₀ e)
   exact finiteDimensional_of_transcendental (C := C) (F := F) (hxF ▸ T.hec hx₀ e)
 
-omit [CharZero C] [IsCurveFunctionField C F] in
+omit [IsUltrametricDist C] [CharZero C] [IsCurveFunctionField C F] in
 lemma TreeData.algebraMap_inv (e : T.E) :
     letI := T.edgeAlg hx₀ e
     (algebraMap (RatFunc C) (Inv (T.ce e) (T.ce_ne_zero e) F) :
@@ -118,6 +119,7 @@ noncomputable def TreeData.outBr (e : T.E) :
   fun b ↦ ⟨⟨TypeTwo.ofComap (T.hec hx₀ e) b.1.1 b.1.2, (T.mem_S hx₀ hp hp1 _).2
     ⟨T.par e, (T.isOver_ec_iff hx₀ e _).2 (TypeTwo.isOver_ofComap _ _ _)⟩⟩, b.2.1⟩
 
+omit [CharZero C] in
 lemma TreeData.inner_comap (e : T.E) :
     letI := T.edgeAlg hx₀ e
     haveI := T.edgeTower hx₀ e
@@ -478,7 +480,7 @@ end Structure
 
 section Zero
 
-omit [CharZero C] in
+omit [IsAlgClosed C] [CharZero C] [IsCurveFunctionField C F] in
 lemma red_ec_eq {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.par e)) W)
     (hδ : ‖-((T.a (T.chi e) - T.a (T.par e)) / T.c (T.par e))‖ ≤ 1) :
     W.red (T.ec x₀ e) = W.red (T.vc x₀ (T.par e)) + algebraMap 𝓀 _ (residue _
@@ -563,7 +565,7 @@ theorem TreeData.res_twist_ne_zero (m : ℕ) (P : T.Pt hx₀ hp hp1)
     exact res_pow_ne_zero β.2 (key.2 j).1 (key.2 j).2 m
   rwa [TypeTwo.red_prod _ _ fun j _ ↦ by rw [map_pow, key.1 j, one_pow]]
 
-omit [CharZero C] in
+omit [IsUltrametricDist C] [CharZero C] in
 lemma TreeData.one_mem_rrSpace (m : ℕ) : (1 : F) ∈ rrSpace (T.D x₀ m) := by
   intro Q
   rw [map_one, ← exp_zero, exp_le_exp]
@@ -632,6 +634,110 @@ theorem TreeData.jets_of_le
     (T.Oc_le_eqRes hx₀ hp hp1) (T.Sp_nonempty hx₀ hp hp1) hS8 P hM
 
 end Count
+
+section ODP
+
+set_option maxHeartbeats 400000 in
+-- comparing the inner branch with its image in the vertex set unfolds the twisted structure
+/-- **Ordinary double points from the reverse inequality** (S7.6 ⇒ the hypothesis of
+`GaussTube.isNodeODP_of_jets`): under `g(F) + #S - 1 ≤ Σ_W g(κ(W)) + Σ_{P'} (r_{P'} - 1)`, every
+point of the normalized node chart of an edge with exactly one outer and one inner branch is an
+ordinary double point. -/
+theorem TreeData.isNodeODP_of_le
+    (hS8 : genus C F + (T.S hx₀ hp hp1).card - 1 ≤
+      (∑ W : T.S hx₀ hp hp1, (genus 𝓀 (Kappa (T.S hx₀ hp hp1) W) : ℤ)) +
+        ∑ P : T.Pt hx₀ hp hp1, (((T.Sp hx₀ hp hp1 P).card : ℤ) - 1)) (e : T.E) :
+    letI := T.edgeAlg hx₀ e
+    haveI := T.edgeTower hx₀ e
+    haveI := T.edgeFin hx₀ e
+    ∀ (P' : Ideal (Rint (T.ce e) F)) (b₁ : OuterBranch C F)
+      (b₂ : OuterBranch C (Inv (T.ce e) (T.ce_ne_zero e) F)),
+      outerBranches (T.norm_ce_lt_one e) P' = {b₁} →
+      innerBranches (T.norm_ce_lt_one e) (T.ce_ne_zero e) P' = {b₂} →
+      IsNodeODP (T.norm_ce_lt_one e) (T.ce_ne_zero e) P' := by
+  classical
+  letI := T.edgeAlg hx₀ e
+  haveI := T.edgeTower hx₀ e
+  haveI := T.edgeFin hx₀ e
+  intro P' b₁ b₂ h₁ h₂
+  have hc := T.norm_ce_lt_one e
+  have hc0 := T.ce_ne_zero e
+  have hb₁ : b₁ ∈ outerBranches hc P' := by rw [h₁]; rfl
+  have hb₂ : b₂ ∈ innerBranches hc hc0 P' := by rw [h₂]; rfl
+  have hmem : P' ∈ T.NP hx₀ hp hp1 e := by
+    simp only [TreeData.NP, Set.Finite.mem_toFinset, Set.mem_range]
+    exact ⟨b₁, hb₁⟩
+  set P : T.Pt hx₀ hp hp1 := ⟨e, ⟨P', hmem⟩⟩
+  set β₁ := T.outBr hx₀ hp hp1 e b₁
+  set β₂ := T.inBr hx₀ hp hp1 e b₂
+  have hβ₁ : β₁ ∈ T.Sp hx₀ hp hp1 P := by
+    simp only [TreeData.Sp, Set.Finite.mem_toFinset, Set.mem_union, Set.mem_image]
+    exact Or.inl ⟨b₁, hb₁, rfl⟩
+  have hβ₂ : β₂ ∈ T.Sp hx₀ hp hp1 P := by
+    simp only [TreeData.Sp, Set.Finite.mem_toFinset, Set.mem_union, Set.mem_image]
+    exact Or.inr ⟨b₂, hb₂, rfl⟩
+  have hSp (β : Branch 𝓀 (Kappa (T.S hx₀ hp hp1))) (hβ : β ∈ T.Sp hx₀ hp hp1 P) :
+      β = β₁ ∨ β = β₂ := by
+    simp only [TreeData.Sp, Set.Finite.mem_toFinset, Set.mem_union, Set.mem_image] at hβ
+    rcases hβ with ⟨b, hb, rfl⟩ | ⟨b, hb, rfl⟩
+    · change b ∈ outerBranches hc P' at hb
+      rw [h₁, Set.mem_singleton_iff] at hb
+      exact Or.inl (by rw [hb])
+    · change b ∈ innerBranches hc hc0 P' at hb
+      rw [h₂, Set.mem_singleton_iff] at hb
+      exact Or.inr (by rw [hb])
+  -- the two vertices are distinct
+  have hW₁ : IsOver (T.hvc hx₀ (T.par e)) β₁.1.1 :=
+    (T.isOver_ec_iff hx₀ _ _).2 (TypeTwo.isOver_ofComap _ _ b₁.1.2)
+  have hW₂ : IsOver (T.hvc hx₀ (T.chi e)) β₂.1.1 :=
+    (T.isOver_inner_iff hx₀ _ _).2 (TypeTwo.isOver_ofComap _ _ (T.inner_comap hx₀ e b₂))
+  have hne : β₁.1 ≠ β₂.1 := by
+    intro h
+    rw [h] at hW₁
+    have := T.eq_of_isOver hx₀ hW₁ hW₂
+    have h2 := T.hedge_c e
+    rw [this] at h2
+    exact lt_irrefl _ h2
+  refine isNodeODP_of_jets hc hc0 hp hp1 h₁ h₂ fun a ha b hb hab M ↦ ?_
+  set z : Π W : T.S hx₀ hp hp1, Kappa (T.S hx₀ hp hp1) W :=
+    Pi.single β₁.1 (a : Kappa (T.S hx₀ hp hp1) β₁.1) +
+      Pi.single β₂.1 (b : Kappa (T.S hx₀ hp hp1) β₂.1)
+  have hz₁ : z β₁.1 = a := by simp [z, hne]
+  have hz₂ : z β₂.1 = b := by simp [z, hne.symm]
+  have hzeq : z ∈ eqRes 𝓀 (Kappa (T.S hx₀ hp hp1)) (T.Sp hx₀ hp hp1 P) := by
+    have hreg (β : Branch 𝓀 (Kappa (T.S hx₀ hp hp1))) (hβ : β ∈ T.Sp hx₀ hp hp1 P) :
+        z β.1 ∈ β.2.V ∧ β.2.res (z β.1) = b₁.2.1.res a := by
+      rcases hSp β hβ with rfl | rfl
+      · refine ⟨?_, ?_⟩
+        · rw [hz₁]; exact ha
+        · rw [hz₁]; rfl
+      · refine ⟨?_, ?_⟩
+        · rw [hz₂]; exact hb
+        · rw [hz₂]; exact hab.symm
+    exact ⟨fun β hβ ↦ (hreg β hβ).1, fun β hβ β' hβ' ↦ (hreg β hβ).2.trans (hreg β' hβ').2.symm⟩
+  obtain ⟨o, ho, j, hj, hoj⟩ := Submodule.mem_sup.1
+    (T.jets_of_le hx₀ hp hp1 hS8 P (M := M + 1) (by omega) hzeq)
+  obtain ⟨y, s, hs, hys⟩ := ho
+  have hfrac (β : Branch 𝓀 (Kappa (T.S hx₀ hp hp1))) (hβ : β ∈ T.Sp hx₀ hp hp1 P) :
+      β.1.1.red (y : F) / β.1.1.red (s : F) - z β.1 = -j β.1 := by
+    rw [← hys β hβ, mul_div_cancel_right₀ _ (T.red_ne_zero' hx₀ hp hp1 P hβ hs), ← hoj,
+      Pi.add_apply]
+    ring
+  have hval (β : Branch 𝓀 (Kappa (T.S hx₀ hp hp1))) (hβ : β ∈ T.Sp hx₀ hp hp1 P) :
+      β.2.valuation (β.1.1.red (y : F) / β.1.1.red (s : F) - z β.1) ≤ exp (-(M : ℤ)) := by
+    rw [hfrac β hβ, Valuation.map_neg]
+    refine (hj β hβ).trans (exp_le_exp.2 ?_)
+    push_cast
+    omega
+  refine ⟨y, s, hs, ?_, ?_⟩
+  · have := hval β₁ hβ₁
+    rw [hz₁] at this
+    exact this
+  · have := hval β₂ hβ₂
+    rw [hz₂] at this
+    exact this
+
+end ODP
 
 end TreeCount
 

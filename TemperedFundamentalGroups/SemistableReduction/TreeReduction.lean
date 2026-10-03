@@ -157,9 +157,9 @@ section Affine
 variable [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
 
 include hp hp1 in
-/-- **Reductions at affine places away from the child directions**: `ord_Q f̄ ≥ -m ord_Q (x̄ᵢ - β̄ᵢ)`
-at every place `Q` of `κ(W)` where `x̄ᵢ` is regular and the reductions of the child edge
-coordinates are units. -/
+/-- **Reductions at affine places away from the child directions**:
+`ord_Q f̄ ≥ -m ord_Q (x̄ᵢ - β̄ᵢ)` at every place `Q` of `κ(W)` where `x̄ᵢ` is regular and the
+reductions of the child edge coordinates are units. -/
 theorem valuation_red_le_affine {m : ℕ} {f : F'} (hf : f ∈ rrSpace (T.D x₀ m))
     {i : T.ι} (hn : ∀ W : TypeTwo C F', IsOver (T.hvc hx₀ i) W → W.val f ≤ 1)
     {W : TypeTwo C F'} (hW : IsOver (T.hvc hx₀ i) W)
@@ -357,8 +357,8 @@ theorem valuation_red_le_root {m : ℕ} {f : F'} (hf : f ∈ rrSpace (T.D x₀ m
   -- bounds
   have hfac1 (W' : TypeTwo C F') (hW' : IsOver (T.hvc hx₀ i) W') (j : T.ι) :
       W'.val (fac j) = 1 := by
-    rw [hfac_eq, map_mul, map_inv₀, valuation_xF_sub T hx₀ hW', valuation_xF_sub T hx₀ hW', sub_self,
-      nnnorm_zero, max_eq_left zero_le, max_eq_left (by exact_mod_cast T.hroot i hroot j),
+    rw [hfac_eq, map_mul, map_inv₀, valuation_xF_sub T hx₀ hW', valuation_xF_sub T hx₀ hW',
+      sub_self, nnnorm_zero, max_eq_left zero_le, max_eq_left (by exact_mod_cast T.hroot i hroot j),
       mul_inv_cancel₀ (nnnorm_ne_zero_iff.2 (T.hc i))]
   have hg (W' : TypeTwo C F') (hW' : IsOver (T.hvc hx₀ i) W') : W'.val g ≤ 1 := by
     simp only [g, map_mul, map_prod, map_pow, hfac1 W' hW', one_pow, Finset.prod_const_one,

@@ -64,12 +64,12 @@ noncomputable def TypeTwo.ofComap {t : F} (ht : Transcendental C t) (v : Valuati
     letI := hasExtension_C (F := F) (⟨v, hv⟩ : Ext C F)
     exact Algebra.transcendental_def.2 ⟨_, transcendental_red_x (⟨v, hv⟩ : Ext C F)⟩⟩
 
-omit [IsCurveFunctionField C F] in
+omit [IsAlgClosed C] [IsCurveFunctionField C F] in
 lemma TypeTwo.ofComap_val {t : F} (ht : Transcendental C t) (v : Valuation F ℝ≥0)
     (hv : v.comap (coordAlgHom ht).toRingHom = gauss1 C) : (TypeTwo.ofComap ht v hv).val = v :=
   rfl
 
-omit [IsCurveFunctionField C F] in
+omit [IsAlgClosed C] [IsCurveFunctionField C F] in
 lemma TypeTwo.isOver_ofComap {t : F} (ht : Transcendental C t) (v : Valuation F ℝ≥0)
     (hv : v.comap (coordAlgHom ht).toRingHom = gauss1 C) : IsOver ht (TypeTwo.ofComap ht v hv) :=
   hv
@@ -183,18 +183,19 @@ noncomputable def TreeData.mu (e : T.E) (j : T.ι) : F :=
     (x₀ - algebraMap C F (T.b j)) / algebraMap C F (T.c (T.par e))
   else (x₀ - algebraMap C F (T.b j)) / algebraMap C F (T.a (T.chi e) - T.b j)
 
+omit [IsUltrametricDist C] [IsAlgClosed C] in
 lemma TreeData.norm_b_sub (e : T.E) (j : T.ι) (h1 : ¬ ‖T.b j - T.a (T.chi e)‖ ≤ ‖T.c (T.chi e)‖) :
     ‖T.c (T.par e)‖ ≤ ‖T.b j - T.a (T.chi e)‖ :=
   (T.hb_edge e j).resolve_left h1
 
-omit [IsAlgClosed C] [IsCurveFunctionField C F] in
+omit [IsUltrametricDist C] [IsAlgClosed C] [IsCurveFunctionField C F] in
 lemma TreeData.ec_eq_mul (e : T.E) :
     x₀ - algebraMap C F (T.a (T.chi e)) = algebraMap C F (T.c (T.par e)) * T.ec x₀ e := by
   have : algebraMap C F (T.c (T.par e)) ≠ 0 := by simpa using T.hc (T.par e)
   simp only [TreeData.ec, vcoord]
   field_simp
 
-omit [IsAlgClosed C] [IsCurveFunctionField C F] in
+omit [IsUltrametricDist C] [IsAlgClosed C] [IsCurveFunctionField C F] in
 lemma TreeData.vc_chi_eq (e : T.E) :
     T.ec x₀ e = algebraMap C F (T.ce e) * T.vc x₀ (T.chi e) := by
   have h1 : algebraMap C F (T.c (T.par e)) ≠ 0 := by simpa using T.hc (T.par e)
@@ -202,7 +203,7 @@ lemma TreeData.vc_chi_eq (e : T.E) :
   simp only [TreeData.ec, TreeData.vc, vcoord, TreeData.ce, map_div₀]
   field_simp
 
-omit [IsAlgClosed C] [IsCurveFunctionField C F] in
+omit [IsAlgClosed C] in
 lemma TreeData.nnnorm_b_sub_par_le (e : T.E) (j : T.ι) :
     ‖T.b j - T.a (T.par e)‖₊ ≤ max ‖T.b j - T.a (T.chi e)‖₊ ‖T.c (T.par e)‖₊ := by
   have h : T.b j - T.a (T.par e) = (T.b j - T.a (T.chi e)) + (T.a (T.chi e) - T.a (T.par e)) := by
@@ -211,7 +212,7 @@ lemma TreeData.nnnorm_b_sub_par_le (e : T.E) (j : T.ι) :
   refine (IsUltrametricDist.nnnorm_add_le_max _ _).trans (max_le_max le_rfl ?_)
   exact_mod_cast T.hedge_a e
 
-omit [IsAlgClosed C] [IsCurveFunctionField C F] in
+omit [IsAlgClosed C] in
 lemma TreeData.nnnorm_b_sub_par_eq (e : T.E) (j : T.ι)
     (h3 : ‖T.c (T.par e)‖ < ‖T.b j - T.a (T.chi e)‖) :
     ‖T.b j - T.a (T.par e)‖₊ = ‖T.b j - T.a (T.chi e)‖₊ := by
@@ -224,6 +225,7 @@ lemma TreeData.nnnorm_b_sub_par_eq (e : T.E) (j : T.ι)
     max_eq_left hlt.le]
 
 omit [IsCurveFunctionField C F] in
+omit [IsAlgClosed C] in
 lemma valuation_mu_par {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.par e)) W)
     (j : T.ι) : W.val (T.mu x₀ e j) = 1 := by
   have hcp : ‖T.c (T.par e)‖₊ ≠ 0 := nnnorm_ne_zero_iff.2 (T.hc _)
@@ -249,6 +251,7 @@ lemma valuation_mu_par {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.
       div_self (ne_of_gt (lt_of_le_of_lt zero_le h3'))]
 
 omit [IsCurveFunctionField C F] in
+omit [IsAlgClosed C] in
 lemma valuation_mu_chi {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.chi e)) W)
     (j : T.ι) : W.val (T.mu x₀ e j) = 1 := by
   have hcc : ‖T.c (T.chi e)‖₊ ≠ 0 := nnnorm_ne_zero_iff.2 (T.hc _)
@@ -285,7 +288,7 @@ noncomputable def TreeData.kap (e : T.E) (j : T.ι) : C :=
   if ‖T.b j - T.a (T.chi e)‖ ≤ ‖T.c (T.par e)‖ then (T.c (T.par e))⁻¹
   else (T.a (T.chi e) - T.b j)⁻¹
 
-omit [IsAlgClosed C] [IsCurveFunctionField C F] in
+omit [IsUltrametricDist C] [IsAlgClosed C] [IsCurveFunctionField C F] in
 include hx₀ in
 lemma TreeData.ec_pow_mul_mu (e : T.E) (j : T.ι) :
     T.ec x₀ e ^ T.eps e j * T.mu x₀ e j =
@@ -303,6 +306,7 @@ lemma TreeData.ec_pow_mul_mu (e : T.E) (j : T.ι) :
   · rw [pow_zero, one_mul, map_inv₀, div_eq_mul_inv]
   · rw [pow_zero, one_mul, map_inv₀, div_eq_mul_inv]
 
+omit [IsUltrametricDist C] in
 include hx₀ in
 /-- The twisted element `x̃ᴺ f Πⱼ μⱼᵐ` is integral over `C[x̃]` (`x̃` the edge coordinate). -/
 lemma isIntegral_ec_pow_mul {m : ℕ} {f : F} (hf : f ∈ rrSpace (T.D x₀ m)) (e : T.E) :
@@ -359,7 +363,8 @@ theorem isIntegral_twist {m : ℕ} {f : F} (hf : f ∈ rrSpace (T.D x₀ m))
 
 section Residues
 
-omit [IsAlgClosed C] [IsCurveFunctionField C F] in
+omit [CharZero C] in
+omit [IsUltrametricDist C] [IsAlgClosed C] [IsCurveFunctionField C F] in
 include hx₀ in
 lemma TreeData.mu_eq_one (e : T.E) (j : T.ι) (h1 : ‖T.b j - T.a (T.chi e)‖ ≤ ‖T.c (T.chi e)‖) :
     T.mu x₀ e j = 1 - algebraMap C F ((T.b j - T.a (T.chi e)) / T.c (T.chi e)) *
@@ -380,7 +385,7 @@ lemma TreeData.mu_eq_one (e : T.E) (j : T.ι) (h1 : ‖T.b j - T.a (T.chi e)‖ 
   field_simp
   ring
 
-omit [IsAlgClosed C] [IsCurveFunctionField C F] in
+omit [IsUltrametricDist C] [IsAlgClosed C] [IsCurveFunctionField C F] [CharZero C] in
 lemma TreeData.mu_eq_sub (e : T.E) (j : T.ι) (h1 : ¬ ‖T.b j - T.a (T.chi e)‖ ≤ ‖T.c (T.chi e)‖)
     (h2 : ‖T.b j - T.a (T.chi e)‖ ≤ ‖T.c (T.par e)‖) :
     T.mu x₀ e j = T.ec x₀ e - algebraMap C F ((T.b j - T.a (T.chi e)) / T.c (T.par e)) := by
@@ -391,7 +396,7 @@ lemma TreeData.mu_eq_sub (e : T.E) (j : T.ι) (h1 : ¬ ‖T.b j - T.a (T.chi e)�
   field_simp
   ring
 
-omit [IsAlgClosed C] [IsCurveFunctionField C F] in
+omit [IsUltrametricDist C] [IsAlgClosed C] [IsCurveFunctionField C F] [CharZero C] in
 lemma TreeData.mu_eq_add (e : T.E) (j : T.ι) (h1 : ¬ ‖T.b j - T.a (T.chi e)‖ ≤ ‖T.c (T.chi e)‖)
     (h2 : ¬ ‖T.b j - T.a (T.chi e)‖ ≤ ‖T.c (T.par e)‖) :
     T.mu x₀ e j = 1 + algebraMap C F (T.c (T.par e) / (T.a (T.chi e) - T.b j)) * T.ec x₀ e := by
@@ -409,7 +414,7 @@ lemma TreeData.mu_eq_add (e : T.E) (j : T.ι) (h1 : ¬ ‖T.b j - T.a (T.chi e)�
   field_simp
   ring
 
-omit [IsAlgClosed C] [IsCurveFunctionField C F] in
+omit [IsAlgClosed C] [IsCurveFunctionField C F] [CharZero C] in
 /-- An element close to a constant reduces to the residue of the constant. -/
 lemma red_eq_residue {W : TypeTwo C F} {y : F} {γ : C} (hγ : ‖γ‖ ≤ 1)
     (h : W.val (y - algebraMap C F γ) < 1) :
@@ -423,11 +428,13 @@ lemma red_eq_residue {W : TypeTwo C F} {y : F} {γ : C} (hγ : ‖γ‖ ≤ 1)
     exact (Valuation.map_add _ _ _).trans (max_le h.le hγ')
   exact ⟨hy, by rw [TypeTwo.red_eq_of_sub hy hγ' h, TypeTwo.red_algebraMap _ hγ]⟩
 
+omit [IsAlgClosed C] [CharZero C] in
 lemma residue_ne_zero_of_norm_eq_one {γ : C} (hγ : ‖γ‖ = 1) :
     residue (HenselComplete.integers C) ⟨γ, (HenselComplete.mem_integers_iff γ).2 hγ.le⟩ ≠ 0 := by
   rw [Ne, residue_eq_zero_iff, HenselComplete.mem_maximalIdeal_iff_norm_lt_one]
   simp [hγ]
 
+omit [CharZero C] in
 /-- **The twist is a unit at the outer branches.** -/
 lemma res_red_mu_par {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.par e)) W)
     (Q : CurvePlace 𝓀 (ResidueField W.val.valuationSubring))
@@ -468,6 +475,7 @@ lemma res_red_mu_par {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.pa
     have h3' : ‖T.c (T.par e)‖₊ < ‖T.a (T.chi e) - T.b j‖₊ := by exact_mod_cast h3
     exact (div_lt_one (lt_of_le_of_lt zero_le h3')).2 h3'
 
+omit [CharZero C] in
 /-- **The twist is a unit at the inner branches.** -/
 lemma res_red_mu_chi {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.chi e)) W)
     (Q : CurvePlace 𝓀 (ResidueField W.val.valuationSubring))
