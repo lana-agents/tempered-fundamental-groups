@@ -257,6 +257,196 @@ theorem dom_core (M : ModelCode O → Prop) {n : ℕ}
 
 end Core
 
+section Mid
+
+open TempObj GaloisObject GaloisLimit Components
+
+variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
+  [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+  {R : Type u} [CommRing R] [Algebra K R] [Algebra.Smooth K R] [IsDomain R]
+  {A : Type u} [Group A] [MulSemiringAction A R] [Subsingleton A]
+  {Ω : Type u} [Field Ω] [IsAlgClosed Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+/-- **Domination from a Galois closure and W10**: if a connected Galois finite étale `B` with a
+point `t₀` receives maps `f_k` from the levels of finitely many pointed objects `(X_k, x_k)` (with
+`t₀ ∘ f_k` the geometric point of `x_k`), then a member of `galClass₂` dominates every
+`(X_k, x_k)`. -/
+theorem dom_mid (hW : SemistableReduction.Statement.StrongComponent.{u})
+    (hR : ringKrullDim R = 1) {n : ℕ}
+    (P : Fin n → Σ X : TempObj O R A, (tempFibre O R A V hV).obj X)
+    (B : Type u) [CommRing B] [Algebra R B] [Algebra.Etale R B] [Module.Finite R B]
+    (hBc : ∀ e : B, IsIdempotentElem e → e = 0 ∨ e = 1)
+    (hBg : ∀ t t' : B →ₐ[R] Ω, ∃ σ : B ≃ₐ[R] B, t.comp (σ : B →ₐ[R] B) = t')
+    (t₀ : B →ₐ[R] Ω) (f : ∀ k, (P k).1.Lv.L.B →ₐ[R] B)
+    (hf : ∀ k, t₀.comp (f k) = (Quotient.out (P k).2 : PreFibre Ω V hV (P k).1).1.1) :
+    ∃ G, galClass₂ O R A Ω (fun _ => True) G ∧ Nonempty ((tempFibre O R A V hV).obj G) ∧
+      ∀ k, ∃ (m : G ⟶ (P k).1) (u : (tempFibre O R A V hV).obj G),
+        (tempFibre O R A V hV).map m u = (P k).2 := by
+  classical
+  letI : Algebra K B := ((algebraMap R B).comp (algebraMap K R)).toAlgebra
+  haveI : IsScalarTower K R B := IsScalarTower.of_algebraMap_eq fun _ => rfl
+  let G := B ≃ₐ[R] B
+  haveI : Finite G := Finite.of_injective (fun σ : G => t₀.comp (σ : B →ₐ[R] B)) fun σ σ' h => by
+    haveI : Algebra.FormallyUnramified R B := inferInstance
+    exact AlgEquiv.coe_toAlgHom_injective (algHom_eq_of_comp_eq hBc _ _ t₀ h)
+  haveI : SMulCommClass G K B := ⟨fun g k b => by
+    change g (k • b) = k • g b
+    rw [Algebra.smul_def, Algebra.smul_def, map_mul]
+    congr 1
+    exact (g : B →ₐ[R] B).commutes (algebraMap K R k)⟩
+  let c₀ : ULift.{u} (Fin n) → ModelCode O := fun i => (P i.down).1.Lv.c
+  let j₀ : ∀ i, Spec (CommRingCat.of B) ⟶ (c₀ i).scheme := fun i =>
+    Spec.map (CommRingCat.ofHom (f i.down : (P i.down).1.Lv.L.B →+* B)) ≫ (P i.down).1.Lv.j
+  have hj₀ : ∀ i, j₀ i ≫ (c₀ i).toSpec = Spec.map (CommRingCat.ofHom
+      ((algebraMap K B).comp O.subtype)) := fun i => by
+    simp only [j₀, c₀, Category.assoc]
+    rw [(P i.down).1.Lv.j_toSpec, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    congr 2
+    ext o
+    simp only [levelStructureMap, RingHom.comp_apply, AlgHom.coe_toRingHom]
+    exact (f i.down).commutes _
+  obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, -, he, -, -, hjS,
+    hact, hactj, hdomj, hdomS, hdim, hcomp⟩ := hW K O R hR B G (ULift.{u} (Fin n)) c₀ j₀ hj₀
+  haveI hK' : Algebra.Etale K K' :=
+    ⟨Algebra.FormallyEtale.of_isSeparable K K',
+      Algebra.FinitePresentation.of_finiteType.1 inferInstance⟩
+  let C := TensorProduct K B K'
+  haveI : Algebra.Etale R C := Algebra.Etale.comp R B C
+  haveI : Module.Finite R C := Module.Finite.trans B C
+  let a : K' →ₐ[K] Ω := IsAlgClosed.lift (R := K) (S := K') (M := Ω)
+  let s'' : C →ₐ[R] Ω := Algebra.TensorProduct.lift t₀ a (fun _ _ => Commute.all _ _)
+  obtain ⟨ε', hε', hsε'⟩ := exists_isPrimitive s''
+  let κ : TensorProduct K K' B ≃ₐ[K] C := Algebra.TensorProduct.comm K K' B
+  let ε := κ.symm ε'
+  have hε : IsPrimitive ε := hε'.map_ringEquiv κ.symm.toRingEquiv
+  have hε0 : ε ≠ 0 := fun h => by
+    have h' : ε' = 0 := by simpa [ε] using congrArg κ h
+    rw [h', map_zero] at hsε'
+    exact zero_ne_one hsε'
+  obtain ⟨c₁', c₁, e₁, ι₁, j₁, hss₁, -, he₁, hι₁, -, hι₁S, -, hj₁d, hj₁ι, hstab, hconn⟩ :=
+    hcomp ε hε.1 hε0 hε.2
+  let Q := C ⧸ Ideal.span {1 - ε'}
+  haveI : Algebra.Etale R Q := quotient_etale hε'.1
+  haveI : Module.Finite R Q := Module.Finite.trans C Q
+  have hI : Ideal.span {1 - ε'} = (Ideal.span {1 - ε}).map (κ : TensorProduct K K' B →+* C) := by
+    rw [Ideal.map_span, Set.image_singleton]
+    congr 2
+    change 1 - ε' = κ (1 - κ.symm ε')
+    rw [map_sub, map_one, AlgEquiv.apply_symm_apply]
+  let ξ : TensorProduct K K' B ⧸ Ideal.span {1 - ε} ≃+* Q :=
+    Ideal.quotientEquiv _ _ κ.toRingEquiv hI
+  let ξr : TensorProduct K K' B ⧸ Ideal.span {1 - ε} →+* Q := ξ
+  let j₁Q : Spec (CommRingCat.of Q) ⟶ c₁.scheme := Spec.map (CommRingCat.ofHom ξr) ≫ j₁
+  let s' : Q →ₐ[R] Ω := liftPoint s'' hsε'
+  have hQc := isConnected_quotient hε'
+  have hdesc : ∀ Θ : C ≃ₐ[R] C, Θ ε' = ε' →
+      Ideal.span {1 - ε'} = (Ideal.span {1 - ε'}).map (Θ : C →+* C) := fun Θ hΘ => by
+    rw [Ideal.map_span, Set.image_singleton]
+    congr 2
+    change 1 - ε' = Θ (1 - ε')
+    rw [map_sub, map_one, hΘ]
+  have hQg : ∀ v v' : Q →ₐ[R] Ω, ∃ σ : Q ≃ₐ[R] Q, v.comp (σ : Q →ₐ[R] Q) = v' := by
+    intro v v'
+    obtain ⟨δ, γ, hΘε, hΘw⟩ := exists_galois_component hBg hε'
+      (v.comp (Ideal.Quotient.mkₐ R _)) (v'.comp (Ideal.Quotient.mkₐ R _)) (comp_mk_eps v)
+      (comp_mk_eps v')
+    refine ⟨Ideal.quotientEquivAlg _ _ (Algebra.TensorProduct.congr δ γ) (hdesc _ hΘε),
+      Ideal.Quotient.algHom_ext R (AlgHom.ext fun x => ?_)⟩
+    have := DFunLike.congr_fun hΘw x
+    simp only [AlgHom.comp_apply, Ideal.Quotient.mkₐ_eq_mk, AlgEquiv.coe_toAlgHom] at this ⊢
+    rw [Ideal.quotientEquivAlg_mk]
+    exact this
+  haveI := hι₁
+  haveI := hj₁d
+  have hcongr : ∀ (δ : B ≃ₐ[R] B) (γ : K' ≃ₐ[K] K') (x : TensorProduct K K' B),
+      Algebra.TensorProduct.congr ((δ⁻¹, γ⁻¹) : G × (K' ≃ₐ[K] K')).2⁻¹
+        (MulSemiringAction.toAlgAut G K B ((δ⁻¹, γ⁻¹) : G × (K' ≃ₐ[K] K')).1⁻¹) x =
+      κ.symm (Algebra.TensorProduct.congr δ γ (κ x)) := by
+    intro δ γ x
+    induction x using TensorProduct.induction_on with
+    | zero => simp
+    | add x y hx hy => simp only [map_add, hx, hy]
+    | tmul k b =>
+      simp only [inv_inv, Algebra.TensorProduct.congr_apply, Algebra.TensorProduct.map_tmul, κ]
+      rfl
+  have hactQ : ∀ σ : Q ≃ₐ[R] Q, ∃ ψ : c₁.scheme ⟶ c₁.scheme, ψ ≫ c₁.toSpec = c₁.toSpec ∧
+      j₁Q ≫ ψ = Spec.map (CommRingCat.ofHom (σ : Q →+* Q)) ≫ j₁Q := by
+    intro σ
+    obtain ⟨δ, γ, hΘε, hΘw⟩ := exists_galois_component hBg hε' s''
+      ((s'.comp (σ : Q →ₐ[R] Q)).comp (Ideal.Quotient.mkₐ R _)) hsε' (comp_mk_eps _)
+    let Θ : C ≃ₐ[R] C := Algebra.TensorProduct.congr δ γ
+    let Θbar : Q ≃ₐ[R] Q := Ideal.quotientEquivAlg _ _ Θ (hdesc _ hΘε)
+    have hσ : (σ : Q →ₐ[R] Q) = (Θbar : Q →ₐ[R] Q) := by
+      refine algHom_eq_of_comp_eq hQc _ _ s' (Ideal.Quotient.algHom_ext R (AlgHom.ext fun x => ?_))
+      have := DFunLike.congr_fun hΘw x
+      simp only [AlgHom.comp_apply, Ideal.Quotient.mkₐ_eq_mk, AlgEquiv.coe_toAlgHom] at this ⊢
+      rw [Ideal.quotientEquivAlg_mk]
+      exact this.symm
+    let gσ : G × (K' ≃ₐ[K] K') := (δ⁻¹, γ⁻¹)
+    obtain ⟨ψ, hψ⟩ := hstab gσ (by
+      rw [hcongr]
+      change κ.symm (Θ (κ (κ.symm ε'))) = κ.symm ε'
+      rw [AlgEquiv.apply_symm_apply, hΘε])
+    refine ⟨ψ, ?_, ?_⟩
+    · rw [← hι₁S, ← Category.assoc, hψ, Category.assoc, hact gσ]
+    · rw [← cancel_mono ι₁]
+      simp only [j₁Q, Category.assoc]
+      rw [hψ, ← Category.assoc j₁, hj₁ι, Category.assoc, ← hactj gσ]
+      simp only [← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+      congr 3
+      refine RingHom.ext fun x => ?_
+      change ξ (Ideal.Quotient.mk _ (Algebra.TensorProduct.congr gσ.2⁻¹
+        (MulSemiringAction.toAlgAut G K B gσ.1⁻¹) x)) = σ (ξ (Ideal.Quotient.mk _ x))
+      rw [hcongr]
+      have h₁ : σ (ξ (Ideal.Quotient.mk _ x)) = Θbar (ξ (Ideal.Quotient.mk _ x)) :=
+        DFunLike.congr_fun hσ _
+      rw [h₁]
+      change Ideal.Quotient.mk _ (κ (κ.symm (Θ (κ x)))) = Θbar (Ideal.Quotient.mk _ (κ x))
+      rw [AlgEquiv.apply_symm_apply]
+      exact (Ideal.quotientEquivAlg_mk _ _ _ _).symm
+  have hj₁Q : j₁Q ≫ c₁.toSpec = Spec.map (CommRingCat.ofHom
+      ((algebraMap R Q).comp ((algebraMap K R).comp O.subtype))) := by
+    simp only [j₁Q, ← hι₁S, Category.assoc]
+    rw [← Category.assoc j₁, hj₁ι, Category.assoc, hjS]
+    simp only [← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    congr 2
+    refine RingHom.ext fun o => ?_
+    change Ideal.Quotient.mk _ (κ ((algebraMap K K' o) ⊗ₜ[K] (1 : B))) =
+      Ideal.Quotient.mk _ (algebraMap R C (algebraMap K R o))
+    congr 1
+    rw [← IsScalarTower.algebraMap_apply K R C, Algebra.TensorProduct.algebraMap_apply,
+      Algebra.TensorProduct.comm_tmul, Algebra.algebraMap_eq_smul_one,
+      Algebra.algebraMap_eq_smul_one, TensorProduct.tmul_smul, TensorProduct.smul_tmul']
+  haveI : IsIso (CommRingCat.ofHom ξr) :=
+    (ConcreteCategory.isIso_iff_bijective (CommRingCat.ofHom ξr)).2 ξ.bijective
+  haveI : IsSchemeTheoreticallyDominant j₁Q := inferInstanceAs (IsSchemeTheoreticallyDominant
+    (Spec.map (CommRingCat.ofHom ξr) ≫ j₁))
+  haveI : ConnectedSpace (specialFibre c₁.toSpec) := hconn
+  have hdim₁ : topologicalKrullDim (specialFibre c₁.toSpec) ≤ 1 := by
+    refine le_trans (Topology.IsInducing.topologicalKrullDim_le
+      (f := specialFibreMap ι₁ hι₁S) ?_) hdim
+    exact (Topology.IsInducing.subtypeVal.of_comp_iff).1
+      (ι₁.isOpenEmbedding.isInducing.comp Topology.IsInducing.subtypeVal)
+  let f' : ∀ k, (P k).1.Lv.L.B →ₐ[R] Q := fun k =>
+    (Ideal.Quotient.mkₐ R _).comp ((Algebra.TensorProduct.includeLeft : B →ₐ[R] C).comp (f k))
+  refine dom_core V hV (fun _ => True) P Q hQc hQg s' c₁ trivial j₁Q hj₁Q
+    ⟨K', inferInstance, inferInstance, inferInstance, O', hO', inferInstance, ϖ', hϖ', c₁', e₁,
+      hss₁, he₁⟩ hdim₁ hactQ f' (fun k => ?_) (fun k => ι₁ ≫ dom ⟨k⟩)
+    (fun k => by rw [Category.assoc, hdomS, hι₁S]) (fun k => ?_)
+  · rw [← hf k]
+    ext y
+    change liftPoint s'' hsε' (Ideal.Quotient.mk _ (f k y ⊗ₜ[K] 1)) = t₀ (f k y)
+    rw [liftPoint_mk]
+    change Algebra.TensorProduct.lift t₀ a _ (f k y ⊗ₜ[K] 1) = _
+    rw [Algebra.TensorProduct.lift_tmul, map_one, mul_one]
+  · simp only [j₁Q, Category.assoc]
+    rw [← Category.assoc j₁, hj₁ι, Category.assoc, hdomj]
+    simp only [j₀, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    congr 3
+
+end Mid
+
 end
 
 end TemperedFundamentalGroups
