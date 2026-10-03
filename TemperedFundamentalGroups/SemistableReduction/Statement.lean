@@ -3,7 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.SemistableReduction.LocalModel
+import TemperedFundamentalGroups.SemistableReduction.DualGraph
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Models.Projective
 
@@ -45,12 +45,6 @@ namespace TemperedFundamentalGroups.SemistableReduction
 namespace ModelCode
 
 variable {O : Type u} [CommRing O]
-
-/-- The `O`-algebra structure on the sections of a model over an open. -/
-noncomputable abbrev sectionsAlgebra (c : TemperedFundamentalGroups.ModelCode O)
-    (U : c.scheme.Opens) : Algebra O Γ(c.scheme, U) :=
-  ((Scheme.ΓSpecIso (CommRingCat.of O)).inv ≫ c.toSpec.appTop ≫
-    c.scheme.presheaf.map (homOfLE le_top).op).hom.toAlgebra
 
 /-- A projective `O`-model is **semistable** (relative to the uniformizer `ϖ`) if every point
 has an affine open neighbourhood whose ring of sections is, étale-locally at that point, a node
@@ -171,5 +165,32 @@ def Statement.Simultaneous : Prop :=
         ((Algebra.TensorProduct.includeLeftRingHom).comp O'.subtype)) ∧
       j' ≫ ψ = Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.map (AlgHom.id K K')
         (IsScalarTower.toAlgHom K B B')).toRingHom) ≫ j
+
+/-- **W8′(a): finite maps of semistable models are harmonic on dual graphs** (Blueprint §9.7,
+§10.3; consumed by Theorem B). Let `O` be a discrete valuation ring with uniformizer `ϖ`, `c`, `c'`
+semistable projective `O`-models and `ψ : c' ⟶ c` a finite morphism over `O` (as produced by
+`Statement.Simultaneous`). Dual graphs are read off on the special fibres
+(`SemistableReduction/DualGraph.lean`). Then:
+* the thickness of a node is well defined, and every node point has a thickness `n ≥ 1`;
+* every node `x'` of `c'` of thickness `n'` maps either to a node of `c` of thickness `n = d·n'`
+  for some `d ≥ 1` (the local degree; lengths are scaled by it), or to a smooth point of `c`
+  lying on exactly one component;
+* every component of `c'` maps onto a component of `c`;
+* points over nodes are nodes; in particular every node of `c` on the image of a component `v'`
+  of `c'` is the image of a node on `v'` (edge lifting). -/
+def Statement.Harmonic : Prop :=
+  ∀ (O : Type u) [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] (ϖ : O)
+    (_ : Irreducible ϖ) (c c' : TemperedFundamentalGroups.ModelCode O) (ψ : c'.scheme ⟶ c.scheme),
+    IsFinite ψ → ψ ≫ c.toSpec = c'.toSpec →
+    ModelCode.IsSemistable ϖ c → ModelCode.IsSemistable ϖ c' →
+      (∀ (x' : c'.scheme) (n m : ℕ), ModelCode.IsNodeOfThickness ϖ c' x' n →
+        ModelCode.IsNodeOfThickness ϖ c' x' m → n = m) ∧
+      (∀ x' : c'.scheme, ModelCode.IsNodePt c' x' →
+        ∃ n', 1 ≤ n' ∧ ModelCode.IsNodeOfThickness ϖ c' x' n') ∧
+      (∀ (x' : c'.scheme) (n' : ℕ), ModelCode.IsNodeOfThickness ϖ c' x' n' →
+        (∃ n d : ℕ, 1 ≤ d ∧ n = d * n' ∧ ModelCode.IsNodeOfThickness ϖ c (ψ x') n) ∨
+        (ModelCode.IsSmoothPt c (ψ x') ∧ ∃! v, v ∈ ModelCode.components c ∧ ψ x' ∈ v)) ∧
+      (∀ v' ∈ ModelCode.components c', ψ '' v' ∈ ModelCode.components c) ∧
+      (∀ x' : c'.scheme, ModelCode.IsNodePt c (ψ x') → ModelCode.IsNodePt c' x')
 
 end TemperedFundamentalGroups.SemistableReduction
