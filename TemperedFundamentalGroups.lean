@@ -1,4 +1,5 @@
 import TemperedFundamentalGroups.Andre.Defs
+import TemperedFundamentalGroups.Andre.GaloisObject
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
 import TemperedFundamentalGroups.Andre.TateCovering
