@@ -1331,12 +1331,23 @@ prove that the completion `\widehat{K̄}` is algebraically closed (`PadicComplex
 needs it; C2 (dropping completeness) only where it is trivially unused. Owner: agent `cbridge`
 (branch `wp-tempered-cbridge`).
 
+**Phase 1 finding and revised decision (2026-10).** C0 is essentially in Mathlib
+(`IsAlgClosed.of_denseRange`; only the instances `IsUltrametricDist`, `NontriviallyNormedField`,
+`CharZero` of the completion are missing). Completeness of `C` is genuinely used only in W6's
+`no_split` (`Connectedness`; inherited by `SharpGenus`, `TypeTwo`) and in `DiscGerm.exists_germ`.
+**Targeted setting: `C` algebraically closed (char 0, `‖p‖ < 1`), no completeness**, so W9 descent
+works over `K̄` and C1 is not needed. `Ĉ` (algebraically closed by C0) is used inside proofs as an
+auxiliary coefficient field: `no_split` over algebraically closed `C` (limits in `F ⊗_C Ĉ`, plus
+"`F ⊗_C L` has no nontrivial idempotents"), `DiscGerm` with germs in `PowerSeries Ĉ`, K5 by
+Weierstrass over `Ĉ` and approximation of the centre in `C`.
+
 ### 9.12 Open obligations (must be discharged before anything downstream is called proved)
 
 | # | Obligation | Discharged by | Status |
 |---|---|---|---|
 | O1 | R4's interim **exact node data** hypothesis (`u v = γ`, `σ x = e u^d`, `ord_{Q₁} ū = 1` at points over the node) | (a1): S7(b)/S7.9 descent to `IsOrdinaryDoublePoint` over `O_E` + `NodeDeformation.exists_node`, under `DefinedOverDVR F'` | open |
 | O2 | `DefinedOverDVR` passes to intermediate fields of the Galois closure | R4 step 3 | open |
+| O5 | S7⁺.8: identification of the normalized `P¹_t`-model with the Gauss-tree model `𝒳'_V` when `t⁻¹(η) = V` (and existence of such `t`), unless R5 is restated on `t`-models | S7⁺ / S8.5 | open |
 | O3 | `IsUnfolded` output of `Statement.StrongComponent` | W9/M9c (`IsWModelOf`) + W7 (c) | open |
-| O4 | §9.11 bridge C0/C1 | `cbridge` | open |
+| O4 | §9.11: C0, `no_split` over algebraically closed `C`, `DiscGerm` over `Ĉ`; `CompleteSpace C` removed from the targeted chain | `cbridge` | open |
 
