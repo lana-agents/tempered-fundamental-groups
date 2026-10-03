@@ -6,6 +6,7 @@ Authors: Christian Merten
 import TemperedFundamentalGroups.SemistableReduction.GaussDescent
 import TemperedFundamentalGroups.SemistableReduction.ZariskiNormalization
 import TemperedFundamentalGroups.Setup.Valuation
+import TemperedFundamentalGroups.SemistableReduction.UniqueExtension
 
 /-!
 # Descent of vertex sets
@@ -282,5 +283,82 @@ theorem exists_injOn_comap {L : Type*} [Field L] {J : Type*} [Nonempty J] (E : J
   apply hx
   rw [hmem, hmem]
   exact Iff.of_eq (congrArg (fun V : ValuationSubring (E j) ↦ (⟨x, hle hxE⟩ : E j) ∈ V) h12)
+
+/-- Unique extension passes up towers: if `O_v` is the only extension to `Ω` of `O_v ∩ K₀`, it is
+the only extension of `O_v ∩ K` for every intermediate `K₀ ⊆ K ⊆ Ω` (so the hypothesis `huniq`
+of D3b over a finite extension `K'` reduces to the henselian base field `K₀`). -/
+lemma eq_of_comap_eq_of_tower {K₀ K Ω : Type*} [Field K₀] [Field K] [Field Ω] [Algebra K₀ K]
+    [Algebra K Ω] [Algebra K₀ Ω] [IsScalarTower K₀ K Ω] {O : ValuationSubring Ω}
+    (huniq : ∀ V : ValuationSubring Ω, V.comap (algebraMap K₀ Ω) = O.comap (algebraMap K₀ Ω) →
+      V = O)
+    (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O.comap (algebraMap K Ω)) :
+    V = O := by
+  refine huniq V ?_
+  rw [IsScalarTower.algebraMap_eq K₀ K Ω, ← ValuationSubring.comap_comap,
+    ← ValuationSubring.comap_comap, hV]
+
+/-- **Unique extension over a complete base** (C3): over a complete non-archimedean field `K`,
+two valuation subrings of an algebraic extension `Ω` lying over the unit ball of `K` coincide. This
+discharges the hypothesis `huniq` of D3b when the base is complete. -/
+theorem eq_of_comap_eq_of_completeSpace {K Ω : Type*} [NontriviallyNormedField K]
+    [IsUltrametricDist K] [CompleteSpace K] [Field Ω] [Algebra K Ω] [Algebra.IsAlgebraic K Ω]
+    {V₁ V₂ : ValuationSubring Ω}
+    (h₁ : V₁.comap (algebraMap K Ω) = (NormedField.valuation (K := K)).valuationSubring)
+    (h₂ : V₂.comap (algebraMap K Ω) = (NormedField.valuation (K := K)).valuationSubring) :
+    V₁ = V₂ := by
+  have hext (V : ValuationSubring Ω)
+      (h : V.comap (algebraMap K Ω) = (NormedField.valuation (K := K)).valuationSubring) :
+      (NormedField.valuation (K := K)).HasExtension V.valuation := by
+    refine ⟨(Valuation.isEquiv_iff_valuationSubring _ _).2 ?_⟩
+    rw [← h]
+    ext x
+    simp [ValuationSubring.valuation_le_one_iff]
+  haveI := hext V₁ h₁
+  haveI := hext V₂ h₂
+  have := UniqueExtension.valuationSubring_eq (K := K) V₁.valuation V₂.valuation
+  rwa [ValuationSubring.valuationSubring_valuation, ValuationSubring.valuationSubring_valuation]
+    at this
+
+/-! ### D3b + D3c: bijection of vertex sets after enlarging the field -/
+
+section Bijection
+
+variable {Ω : Type*} [Field Ω] {Γ₀ : Type*} [LinearOrderedCommGroupWithZero Γ₀]
+  {v : Valuation Ω Γ₀} {L : Type*} [Field L] [Algebra (RatFunc Ω) L] [Algebra Ω L]
+  [IsScalarTower Ω (RatFunc Ω) L] [Algebra.IsAlgebraic (RatFunc Ω) L]
+  {J : Type*} [Nonempty J] {K : J → Type*} [∀ j, Field (K j)] [∀ j, Algebra (K j) Ω]
+  {E : J → Subfield L} [∀ j, Algebra (RatFunc (K j)) (E j)] [∀ j, Algebra (K j) (E j)]
+  [∀ j, IsScalarTower (K j) (RatFunc (K j)) (E j)]
+  [∀ j, Algebra.IsAlgebraic (RatFunc (K j)) (E j)] {ι : Type*} [Fintype ι]
+
+/-- **(W9, D3b + D3c) The vertex sets over `Ω` and over a large enough subfield are in bijection.**
+Let `K j ⊆ Ω` (`Ω/K j` algebraic, `O_v` the only extension of `O_v ∩ K j` to `Ω`) and subfields
+`E j ⊆ L` with compatible structures `K j(X) → E j`, the `E j` directed with union `L` (e.g.
+`E j = L' · K j` for finite `K j`). Given Gauss data `a, c` over `Ω` descending to every `K j`
+and a finite vertex set over `Ω` (W4), for some `j` restriction to `E j` is a bijection from the
+vertex set of the normalization in `L` of the tree model over `O_v` onto the vertex set of the
+normalization in `E j` of the tree model over `O_v ∩ K j`. -/
+theorem exists_vertexSet_bijOn [∀ j, Algebra.IsAlgebraic (K j) Ω]
+    (hE : ∀ j x, ((algebraMap (RatFunc (K j)) (E j) x : E j) : L) =
+      algebraMap (RatFunc Ω) L (ratFuncMap (algebraMap (K j) Ω) x))
+    (hdir : Directed (· ≤ ·) E) (hcov : ∀ x, ∃ j, x ∈ E j)
+    (huniq : ∀ j, ∀ V : ValuationSubring Ω, V.comap (algebraMap (K j) Ω) =
+      v.valuationSubring.comap (algebraMap (K j) Ω) → V = v.valuationSubring)
+    {a c : ι → Ω} {r : ι → Γ₀ˣ} (hc : ∀ i, v (c i) = r i) (a' c' : ∀ j, ι → K j)
+    (ha : ∀ j i, algebraMap (K j) Ω (a' j i) = a i)
+    (hc' : ∀ j i, algebraMap (K j) Ω (c' j i) = c i)
+    (hfin : ((gaussJoinModel v a c).normalization L).vertexSet.Finite) :
+    ∃ j, Set.BijOn (fun W : ValuationSubring L ↦ W.comap (E j).subtype)
+      ((gaussJoinModel v a c).normalization L).vertexSet
+      ((gaussJoinModel (v.comap (algebraMap (K j) Ω)) (a' j) (c' j)).normalization
+        (E j)).vertexSet := by
+  obtain ⟨j, hj⟩ := exists_injOn_comap E hdir hcov hfin
+  have hcj (i : ι) : v (algebraMap (K j) Ω (c' j i)) = r i := by rw [hc' j i]; exact hc i
+  obtain rfl : a = fun i ↦ algebraMap (K j) Ω (a' j i) := funext fun i ↦ (ha j i).symm
+  obtain rfl : c = fun i ↦ algebraMap (K j) Ω (c' j i) := funext fun i ↦ (hc' j i).symm
+  exact ⟨j, vertexSet_mapsTo (χ := (E j).subtype) (hE j) hcj, hj,
+    vertexSet_surjOn (χ := (E j).subtype) (hE j) (huniq j) hcj⟩
+
+end Bijection
 
 end SemistableReduction
