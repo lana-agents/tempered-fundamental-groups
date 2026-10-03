@@ -1623,3 +1623,9 @@ The base point is a type-I point, and its retraction to the skeleton moves under
    within D of a_p}`. Finiteness and maps need the same anchor compatibility.
 3. **Make the Tate level a W-level** on the chosen x-line, together with harmonicity of
    positive degree onto it. This gives `hbase`, and `X₀` becomes a member.
+
+**Decision (coordinator).** Theorem B is **parked**. No merged theorem claims it.
+`nondegenerate_of_length` / `nondegenerate_of_lenW` are formal reductions with hypotheses that
+are not satisfiable as designed, as recorded in their docstrings. The genuineness of the
+tempered group rests on Theorem A (`andreEquiv`, modulo the targeted `StrongComponent`);
+non-degeneracy of André's group is a known fact in the literature.

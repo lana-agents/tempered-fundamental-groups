@@ -19,11 +19,14 @@ nodes as weights. From `Statement.HarmonicX` and `Statement.NodeOfTwoComponents`
 * finitely many fibre elements have bounded length (`finite_lenW_le`);
 * lengths do not increase along pointed morphisms (`lenW_map_le`).
 
-So the only remaining input of Theorem B is the **Tate loop** (`hloop`): every pointed member
-over the pointed Tate object `(X₀, x₀)` has a fibre element of length `≤ ℓ₀` over `δ(n) · x₀`,
-for a fixed finite `ℓ₀`. Given it, the character of `X₀` takes the value `n`
-(`TateObject.exists_character_eq_of_lenW`), and for `n ≠ 0` the tempered group of `[Y/A]` is
-non-degenerate (`TateOrbicurve.nondegenerate_of_lenW`).
+The results below are conditional on the **Tate loop** (`hloop`), and **Theorem B is not proved**.
+`hloop` says that every pointed member over the pointed Tate object `(X₀, x₀)` has a fibre
+element of length `≤ ℓ₀` over `δ(n) · x₀`, for a fixed finite `ℓ₀`.
+
+**Warning (Blueprint §10.3.7).** For `lenW` this hypothesis is *not satisfiable in general*: as
+members are refined around the base point, lengths over `δ(n)·x₀` grow without bound, and the
+lifting hypothesis `hlift` is false. The theorems here are formal reductions only. Theorem B is
+parked until the length is redesigned (core-anchored lengths, §10.3.7).
 -/
 
 universe u
