@@ -609,6 +609,39 @@ with the B5 consumer):
   `∑ λ(xᵢ) = λ'(y')`; (X2) every such crossing walk has `∑ λ(xᵢ) ≥ λ'(y')`; (X3) a node not over
   a node maps to a point on exactly one component.
 
+**Status: PARKED** (Theorem B is parked; `Statement.HarmonicX` is only needed if B resumes). What is
+proved and what remains is recorded row by row below and in the following summary.
+
+*Done* (wp-tempered-hx; XL1 on wp-w8prime):
+* XL0, the definitions; XL1 `ModelCode.exists_nodeGerm` (W8′, wp-w8prime `WModelGerm.lean`);
+* XL2 interior: uniqueness `NodeGerm.eq_of_isMonomialPt` (`MonomialUnique`), existence
+  `NodeGerm.exists_isMonomialPt` (`MonomialExists`, flatness over the node + Chevalley);
+* XL3/XL4 unfolded, ring level (`XGauss`, `XLengthUnfolded`): Gauss formula over `K̄` from residue
+  transcendence (`valuation_aeval_eq_sup_of_residue`); Gauss centres minimise the distance, so the
+  x-radius is centre independent across constant fields (`valuation_sub_le_of_residue`);
+  `UnfoldedNodeGerm.isXGauss` (radius `(ord β + α + e s)/e₀`), `UnfoldedNodeGerm.isXLength`
+  (`λ = e n / e₀`), `exists_isXLength_pos` (X0 at ring level);
+* XL7 (`XHarmonicGlue`): `germs_map`, `map_genericPoint`;
+* XL8 interior restriction (`XResidue`, `XLift`): `NodeGerm.isMonomialPt_comap` (monomial points
+  of a node over a node restrict to monomial points at `(r + p s) f₂ / f₁`),
+  `IsResidueTranscendental.of_algebraic` / `of_pow` / `comap`, `IsLogValue.comap`;
+* XL6 partial (W8′, wp-w8prime `NodeBranches.lean`): `IsOrdinaryDoublePoint.eq_unit_mul_of_dvd`
+  (the divisor lemma `t = ε ϖ^α w^e`), `dvd_of_branches`, `swap`.
+
+*Remaining* (≈ 3–3.5k lines):
+* XL6: the branch valuation subrings `D_{𝔔ᵢ}` with uniqueness of the endpoint monomial points, the
+  residue conditions of `UnfoldedNodeGerm`, and the base coordinate `t ∈ P` from `IsUnfolded`
+  (Gauss-chart combinatorics), ≈ 0.6k;
+* XL5: invariance of `IsXLength` under `u ↦ ε u^k, n ↦ k n` and under `u ↔ v`, ≈ 0.3k;
+* component glue (C1) (germs at the generic point of a component are a DVR with a `K'`-rational
+  Gauss centre) and (C2) (the branches of a node are its components), ≈ 0.4k;
+* X2 (XL9) scheme assembly: telescoping of radii along the walk (centre independence at the ends),
+  ≈ 0.3k given the above;
+* X1 (XL8) edge lifting: the walk construction (a point of a component over `y'` is a node; zeros
+  of the residue of `u'^D/ϖ^N` on contracted components are nodes with higher position; positions
+  increase strictly), ≈ 1.5–2k;
+* X3 (XL10), ≈ 0.3k.
+
 *Proof plan* (all statements about valuation subrings of `L₁ ⊇ L₂`; scheme ↔ Zariski via H6):
 
 | # | Statement | Inputs | Status |
