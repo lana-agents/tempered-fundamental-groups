@@ -806,3 +806,13 @@ adic completions and Hensel's lemma for adically complete rings, but no henseliz
 substantially larger than the original W7 estimate; the alternative (Temkin's local
 uniformization at type-5 points plus gluing of annuli along the segment) has the same core
 (local structure of directions at type-2 points) and no smaller prerequisites.
+
+**Targeted W10 Props (and the base).** The W-chain targets exactly: `Statement`, `Statement.Strong`,
+`Statement.Simultaneous` (incl. the W8′ harmonic output clauses to be added there), all stated for
+**complete** discretely valued `K` of characteristic `0` (`[IsAdicComplete (maximalIdeal O) O]`;
+changed from henselian, since unique extension of valuations is proved for complete bases only).
+`Statement.Harmonic` and `Statement.Modification` are **not targeted**; anything consuming them
+must be re-planned on `Statement.Simultaneous`, or the needed birational clause (e.g. thicknesses
+along the chain over a node add up) must first be added to the targeted list here. Consequence for
+§4/§10: the identification with André's group (Theorem A) is claimed only for complete base fields;
+for henselian non-complete `K` the tempered group is defined but not identified.

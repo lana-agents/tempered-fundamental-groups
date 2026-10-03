@@ -59,7 +59,7 @@ end ModelCode
 
 /-- **Semistable reduction of finite étale covers of affine curves (W10)** — the statement.
 
-For every complete discretely valued field `K` of characteristic `0` (valuation subring `O`,
+For every complete discretely valued field `K` of characteristic `0` (valuation subring `O`, `O` adically complete,
 uniformizer `ϖ`), every `K`-algebra `R` smooth of relative dimension one (a smooth affine curve)
 and every finite étale `R`-algebra `B`, there are
 * a finite extension `K'` of `K`, with the valuation subring `O'` extending `O` and a
@@ -69,7 +69,7 @@ and every finite étale `R`-algebra `B`, there are
 Stated with `K`, `R`, `B` in a fixed universe `u`. -/
 def Statement : Prop :=
   ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
-    [HenselianLocalRing O]
+    [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
     (R : Type u) [CommRing R] [Algebra K R] [Algebra.Smooth K R] (_ : ringKrullDim R = 1)
     (B : Type u) [CommRing B] [Algebra R B] [Algebra K B] [IsScalarTower K R B]
     [Algebra.Etale R B] [Module.Finite R B],
@@ -100,7 +100,7 @@ and finitely many given projective `O`-models `c₀ i` of `Spec B` (with `j₀ i
 * the special fibre of `c` has dimension `≤ 1`. -/
 def Statement.Strong : Prop :=
   ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
-    [HenselianLocalRing O]
+    [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
     (R : Type u) [CommRing R] [Algebra K R] [Algebra.Smooth K R] (_ : ringKrullDim R = 1)
     (B : Type u) [CommRing B] [Algebra R B] [Algebra K B] [IsScalarTower K R B]
     [Algebra.Etale R B] [Module.Finite R B]
@@ -147,7 +147,7 @@ open immersions `j, j'` over `O'` and a
 `c` in `K' ⊗ B'`). -/
 def Statement.Simultaneous : Prop :=
   ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
-    [HenselianLocalRing O]
+    [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
     (R : Type u) [CommRing R] [Algebra K R] [Algebra.Smooth K R] (_ : ringKrullDim R = 1)
     (B : Type u) [CommRing B] [Algebra R B] [Algebra K B] [IsScalarTower K R B]
     [Algebra.Etale R B] [Module.Finite R B]
