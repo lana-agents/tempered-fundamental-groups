@@ -4,6 +4,7 @@ import TemperedFundamentalGroups.Andre.GaloisClass
 import TemperedFundamentalGroups.Andre.GaloisClass2
 import TemperedFundamentalGroups.Andre.GaloisDom2
 import TemperedFundamentalGroups.Andre.GaloisObject
+import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
 import TemperedFundamentalGroups.Andre.Refinement
@@ -16,6 +17,7 @@ import TemperedFundamentalGroups.Andre.Transfer
 import TemperedFundamentalGroups.Andre.TransferTate
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.GaloisLimit
+import TemperedFundamentalGroups.FibreFunctor.LengthLimit
 import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.SpanRealization
 import TemperedFundamentalGroups.Models.Projective
