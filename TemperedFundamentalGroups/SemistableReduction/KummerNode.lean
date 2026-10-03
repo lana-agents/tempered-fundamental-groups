@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.TameLocal
-import TemperedFundamentalGroups.SemistableReduction.LocalModel
+import TemperedFundamentalGroups.SemistableReduction.AnnulusAt
 import TemperedFundamentalGroups.SemistableReduction.AbhyankarProduct
 
 /-!
@@ -18,7 +18,8 @@ at `𝔪`, it is a product of Kummer covers of a node: there are
 
 * an étale `N`-algebra `N₁` with a prime `𝔫` over `𝔪`;
 * an étale node chart `O[u, v] ⧸ (u v - ϖ ⁿ) → N₁`, `u ↦ u₁`, `v ↦ v₁`;
-* an `N₁`-algebra isomorphism `N₁ ⊗_N F' ≃ ∏ᵢ N₁ ⊗_{O[u,v]/(uv - ϖⁿ)} Frac (O[w, z] ⧸ (w z - ϖ^{mᵢ}))`,
+* an `N₁`-algebra isomorphism
+  `N₁ ⊗_N F' ≃ ∏ᵢ N₁ ⊗_{O[u,v]/(uv - ϖⁿ)} Frac (O[w, z] ⧸ (w z - ϖ^{mᵢ}))`,
   where `n = mᵢ dᵢ` and `u ↦ w ^ dᵢ`, `v ↦ z ^ dᵢ` (`Node.kummer`).
 
 Then (`IsKummerAt.isEtaleLocallyAt`) every prime of the integral closure of `N` in `F'` over `𝔪`
@@ -54,11 +55,13 @@ end Node
 
 section Pi
 
-variable {ι : Type*} [Fintype ι] [DecidableEq ι] {S : ι → Type*} [∀ i, CommRing (S i)]
+variable {ι : Type*} [Finite ι] {S : ι → Type*} [∀ i, CommRing (S i)]
 
 /-- A prime of a finite product of rings comes from one factor. -/
 theorem exists_eq_comap_evalRingHom (P : Ideal (∀ i, S i)) [hP : P.IsPrime] :
     ∃ (i : ι) (Q : Ideal (S i)), Q.IsPrime ∧ P = Q.comap (Pi.evalRingHom S i) := by
+  classical
+  have := Fintype.ofFinite ι
   have h1 : ∃ i, (Pi.single i 1 : ∀ j, S j) ∉ P := by
     by_contra! H
     apply hP.ne_top
@@ -90,8 +93,9 @@ theorem exists_eq_comap_evalRingHom (P : Ideal (∀ i, S i)) [hP : P.IsPrime] :
   have : Ideal.comap (Pi.evalRingHom S i) ⊥ = RingHom.ker (Pi.evalRingHom S i) := rfl
   exact hker (by rwa [← this])
 
-omit [Fintype ι] in
+omit [Finite ι] in
 theorem etale_evalRingHom (i : ι) : (Pi.evalRingHom S i).Etale := by
+  classical
   letI : Algebra (∀ j, S j) (S i) := (Pi.evalRingHom S i).toAlgebra
   have : IsLocalization.Away (Pi.single i (1 : S i) : ∀ j, S j) (S i) := by
     apply IsLocalization.away_of_isIdempotentElem
@@ -211,20 +215,6 @@ def IsKummerAt {O : Type u} [CommRing O] (ϖ : O) (n : ℕ) {N : Type u} [CommRi
         Nonempty (N₁ ⊗[N] F' ≃ₐ[N₁] ∀ i, @KummerFactor O _ (ϖ ^ m i) (d i) N₁ _
           (nodeAlgebra N₁ (ϖ ^ m i) (d i) (by rw [← pow_mul, hmd i]; exact huv)))
 
-/-- **The cover is an annulus over the node at `𝔓`** (the W7 → W8 interface, Blueprint §9.3):
-`A` is an `O`-algebra (a chart of the normalization of a node chart with coordinates `u, v`,
-`u v = ϖ ^ n`), and `𝔓` a prime of `A`. At `𝔓`, `A` is étale-locally the singular point of a node
-`O[u', v'] ⧸ (u' v' - ϖ ^ n')`, and `u = ε u' ^ d`, `v = ε' v' ^ d` with `ε, ε'` units at the point
-(`d ≥ 1` the local degree; then `n = d n'`). -/
-def IsAnnulusAt {O : Type u} [CommRing O] (ϖ : O) {A : Type u} [CommRing A] [Algebra O A]
-    (u v : A) (𝔓 : Ideal A) : Prop :=
-  ∃ (n' d : ℕ) (C : Type u) (_ : CommRing C) (g : A →+* C) (f : Node O (ϖ ^ n') →+* C)
-    (𝔔 : Ideal C),
-    g.Etale ∧ f.Etale ∧ 𝔔.IsPrime ∧ 𝔔.comap g = 𝔓 ∧
-    f.comp (algebraMap O _) = g.comp (algebraMap O A) ∧
-    f (Node.u _) ∈ 𝔔 ∧ f (Node.v _) ∈ 𝔔 ∧ 0 < d ∧
-    ∃ ε ε' : C, ε ∉ 𝔔 ∧ ε' ∉ 𝔔 ∧ g u = ε * f (Node.u _) ^ d ∧ g v = ε' * f (Node.v _) ^ d
-
 section Main
 
 open Algebra.TensorProduct
@@ -261,8 +251,8 @@ theorem IsKummerAt.isAnnulusAt [IsDomain O] [IsIntegrallyClosed O] {ϖ : O}
     [CommRing F'] [Algebra N F'] [Algebra O F'] [IsScalarTower O N F'] {𝔪 : Ideal N}
     (h : IsKummerAt ϖ n u v F' 𝔪) (𝔮 : Ideal (integralClosure N F')) [𝔮.IsPrime]
     (h𝔮 : 𝔮.comap (algebraMap N (integralClosure N F')) = 𝔪) :
-    IsAnnulusAt ϖ (algebraMap N (integralClosure N F') u)
-      (algebraMap N (integralClosure N F') v) 𝔮 := by
+    ∃ d, 0 < d ∧ IsAnnulusAt ϖ (algebraMap N (integralClosure N F') u)
+      (algebraMap N (integralClosure N F') v) d 𝔮 := by
   classical
   obtain ⟨N₁, _, _, hN₁, 𝔫, _, h𝔫, h⟩ := h
   letI : Algebra O N₁ := ((algebraMap N N₁).comp (algebraMap O N)).toAlgebra
@@ -286,7 +276,8 @@ theorem IsKummerAt.isAnnulusAt [IsDomain O] [IsIntegrallyClosed O] {ϖ : O}
     Ψ₀.trans (e.mapIntegralClosure.trans
       (integralClosurePiEquiv.trans (AlgEquiv.piCongrRight Ψ₃)))
   -- a prime over `𝔫` and `𝔮`
-  obtain ⟨R, hR, hR₁, hR₂⟩ := exists_isPrime_tensorProduct (A := N) (B := N₁) (C := (integralClosure N F')) 𝔫 𝔮
+  obtain ⟨R, hR, hR₁, hR₂⟩ := exists_isPrime_tensorProduct (A := N) (B := N₁)
+    (C := integralClosure N F') 𝔫 𝔮
     (by rw [h𝔫, h𝔮])
   set R' : Ideal (∀ i, @KummerNodeFactor O _ (ϖ ^ m i) (d i) N₁ _ (nodeAlgebra N₁ _ _ (hi i))) :=
     R.comap Ψ.symm.toRingEquiv.toRingHom
@@ -337,14 +328,13 @@ theorem IsKummerAt.isAnnulusAt [IsDomain O] [IsIntegrallyClosed O] {ϖ : O}
         N₁ ⊗[N] (integralClosure N F')) (algebraMap N (integralClosure N F') x))) = _
     rw [AlgHom.commutes, IsScalarTower.algebraMap_apply N N₁ (N₁ ⊗[N] (integralClosure N F'))]
     exact hΨalg _
-  have hunit : ∀ y : N₁, IsUnit y →
-      algebraMap N₁ (KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁) y ∉ Q := fun y hy hQy ↦
-    hQ.ne_top (Ideal.eq_top_of_isUnit_mem _ hQy (hy.map _))
-  refine ⟨m i, d i, KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁, inferInstance, g,
+  refine ⟨d i, hd i, m i, KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁, inferInstance, g,
     (includeRight : KNode (ϖ ^ m i) (d i) →ₐ[Node O ((ϖ ^ m i) ^ d i)]
       KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁).toRingHom, Q, ?_, ?_, hQ, ?_, ?_, ?_, ?_,
-    hd i, algebraMap N₁ _ ↑hη.unit⁻¹, algebraMap N₁ _ ↑hη'.unit⁻¹,
-    hunit _ (Units.isUnit _), hunit _ (Units.isUnit _), ?_, ?_⟩
+    Units.map (algebraMap N₁ (KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁)).toMonoidHom
+      hη.unit⁻¹,
+    Units.map (algebraMap N₁ (KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁)).toMonoidHom
+      hη'.unit⁻¹, ?_, ?_⟩
   · exact RingHom.Etale.stableUnderComposition _ _
       (RingHom.Etale.stableUnderComposition _ _ (etale_includeRight hN₁')
         (RingHom.Etale.of_bijective Ψ.bijective)) (etale_evalRingHom i)

@@ -159,4 +159,31 @@ def IsHarmonic (ϖ : O) {c c' : TemperedFundamentalGroups.ModelCode O}
   (∀ v' ∈ components c', ψ '' v' ∈ components c) ∧
   (∀ x' : c'.scheme, IsNodePt c (ψ x') → IsNodePt c' x')
 
+/-- The morphism `ψ : c ⟶ c'` has **local degree `d` at the node `x`** of `c` (lying over a node
+of `c'`): there are affine opens `U ∋ x` and `U' ⊇ ψ U`, étale node charts
+`Node O (ϖ ^ n) → C` at `x` (at its singular point) and `Node O (ϖ ^ n') → C'` of `U'`, and a
+compatible map `C' → C`, such that the pulled back coordinates of `c'` are
+`u' = ε ϖ ^ a u ^ d`, `v' = ε' ϖ ^ b v ^ d` with units `ε, ε'` (for a finite `ψ` near `x`,
+`a = b = 0`; inner nodes of chains contracted by a modification have `a` or `b` positive). -/
+def HasLocalDegree (ϖ : O) {c c' : TemperedFundamentalGroups.ModelCode O}
+    (ψ : c.scheme ⟶ c'.scheme) (x : c.scheme) (d : ℕ) : Prop :=
+  ∃ (U : c.scheme.Opens) (hU : IsAffineOpen U) (hx : x ∈ U) (U' : c'.scheme.Opens)
+    (hle : U ≤ ψ ⁻¹ᵁ U'),
+    letI := sectionsAlgebra c U
+    letI := sectionsAlgebra c' U'
+    ∃ (n n' a b : ℕ) (C : Type u) (_ : CommRing C) (g : Γ(c.scheme, U) →+* C)
+      (f : _root_.SemistableReduction.Node O (ϖ ^ n) →+* C) (𝔮 : Ideal C)
+      (C' : Type u) (_ : CommRing C') (g' : Γ(c'.scheme, U') →+* C')
+      (f' : _root_.SemistableReduction.Node O (ϖ ^ n') →+* C') (k : C' →+* C) (ε ε' : Cˣ),
+      g.Etale ∧ f.Etale ∧ g'.Etale ∧ f'.Etale ∧ 𝔮.IsPrime ∧
+      𝔮.comap g = (hU.primeIdealOf ⟨x, hx⟩).asIdeal ∧
+      f.comp (algebraMap O _) = g.comp (algebraMap O _) ∧
+      f'.comp (algebraMap O _) = g'.comp (algebraMap O _) ∧
+      f (_root_.SemistableReduction.Node.u _) ∈ 𝔮 ∧ f (_root_.SemistableReduction.Node.v _) ∈ 𝔮 ∧
+      k.comp g' = g.comp (ψ.appLE U' U hle).hom ∧
+      k (f' (_root_.SemistableReduction.Node.u _)) =
+        ε * f (algebraMap O _ (ϖ ^ a)) * f (_root_.SemistableReduction.Node.u _) ^ d ∧
+      k (f' (_root_.SemistableReduction.Node.v _)) =
+        ε' * f (algebraMap O _ (ϖ ^ b)) * f (_root_.SemistableReduction.Node.v _) ^ d
+
 end TemperedFundamentalGroups.SemistableReduction.ModelCode
