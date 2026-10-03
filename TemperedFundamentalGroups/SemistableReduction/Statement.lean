@@ -140,3 +140,36 @@ def Statement.Strong : Prop :=
       topologicalKrullDim (specialFibre c.toSpec) ≤ 1
 
 end TemperedFundamentalGroups.SemistableReduction
+
+namespace TemperedFundamentalGroups.SemistableReduction
+
+/-- **Simultaneous semistable reduction** (requested for W8′ / Theorem B of the André
+identification): for a tower of finite étale covers `Spec B' → Spec B → Spec R` of a smooth
+affine `K`-curve, after a finite extension `K'/K` there are semistable projective `O'`-models
+`c` of `Spec (K' ⊗ B)` and `c'` of `Spec (K' ⊗ B')` with open immersions `j, j'` over `O'` and a
+**finite** morphism `ψ : c' ⟶ c` over `O'` compatible with `j, j'` (e.g. `c'` the normalization of
+`c` in `K' ⊗ B'`). -/
+def Statement.Simultaneous : Prop :=
+  ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
+    [HenselianLocalRing O]
+    (R : Type u) [CommRing R] [Algebra K R] [Algebra.Smooth K R] (_ : ringKrullDim R = 1)
+    (B : Type u) [CommRing B] [Algebra R B] [Algebra K B] [IsScalarTower K R B]
+    [Algebra.Etale R B] [Module.Finite R B]
+    (B' : Type u) [CommRing B'] [Algebra B B'] [Algebra K B'] [IsScalarTower K B B']
+    [Algebra.Etale B B'] [Module.Finite B B'],
+    ∃ (K' : Type u) (_ : Field K') (_ : Algebra K K') (_ : FiniteDimensional K K')
+      (O' : ValuationSubring K') (_ : O'.comap (algebraMap K K') = O)
+      (_ : IsDiscreteValuationRing O') (ϖ' : O') (_ : Irreducible ϖ')
+      (c c' : TemperedFundamentalGroups.ModelCode O')
+      (j : Spec (CommRingCat.of (TensorProduct K K' B)) ⟶ c.scheme)
+      (j' : Spec (CommRingCat.of (TensorProduct K K' B')) ⟶ c'.scheme)
+      (ψ : c'.scheme ⟶ c.scheme),
+      ModelCode.IsSemistable ϖ' c ∧ ModelCode.IsSemistable ϖ' c' ∧
+      IsOpenImmersion j ∧ IsOpenImmersion j' ∧ IsFinite ψ ∧
+      ψ ≫ c.toSpec = c'.toSpec ∧
+      j ≫ c.toSpec = Spec.map (CommRingCat.ofHom
+        ((Algebra.TensorProduct.includeLeftRingHom).comp O'.subtype)) ∧
+      j' ≫ ψ = Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.map (AlgHom.id K K')
+        (IsScalarTower.toAlgHom K B B')).toRingHom) ≫ j
+
+end TemperedFundamentalGroups.SemistableReduction

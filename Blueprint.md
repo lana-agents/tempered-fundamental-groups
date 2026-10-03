@@ -604,3 +604,9 @@ the valuations over `V'` (W5 (ii) in the form used downstream). Remaining for W5
 (the scheme/projectivity bridge to `ModelCode`, shared with W10). The W8 local analysis can now reuse
 M6 (local rings of the normalization = localizations of integral closures of the standard local
 rings) and M7c (transfer from local rings to `IsSemistableAt`).
+
+`Statement.Simultaneous` (same file): for a tower `B' / B / R` of finite étale algebras, semistable
+`O'`-models `c` of `K' ⊗ B` and `c'` of `K' ⊗ B'` with a finite morphism `c' ⟶ c` compatible with
+the open immersions (simultaneous semistable reduction; produced by W7 via preimages of vertex
+sets and normalization, M6). Requested by W8′ (finite maps only: with contracted components the
+length clause fails).
