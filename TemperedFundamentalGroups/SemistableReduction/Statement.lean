@@ -60,8 +60,8 @@ end ModelCode
 /-- **Semistable reduction of finite étale covers of affine curves (W10)** — the statement.
 
 For every complete discretely valued field `K` of characteristic `0` (valuation subring `O`,
-`O` adically complete, uniformizer `ϖ`), every `K`-algebra `R` smooth of relative dimension one (a smooth affine curve)
-and every finite étale `R`-algebra `B`, there are
+`O` adically complete, uniformizer `ϖ`), every `K`-algebra `R` smooth of relative dimension
+one (a smooth affine curve) and every finite étale `R`-algebra `B`, there are
 * a finite extension `K'` of `K`, with the valuation subring `O'` extending `O` and a
   uniformizer `ϖ'` of `O'`;
 * a projective `O'`-model `c` that is semistable (`ModelCode.IsSemistable ϖ' c`);
