@@ -1033,3 +1033,43 @@ hypotheses are:
 * `IsAlgClosed Ω`.
 
 `#print axioms` gives only `propext`, `Classical.choice`, `Quot.sound`.
+
+#### 10.3.5 Domination re-planned (Galois objects over levels with trivial `H`)
+
+The first Galois class did not work (`Andre/GaloisClass.lean`, branch `wp-andre-d`): Galois
+levels in the sense "`H⁰` acts simply transitively" fail (dom). An object `X` over `(B, 1)` with
+`deg B ≥ 2` receives no morphism from an object over a level whose `H⁰` acts transitively
+(`comp_eq_of_subsingleton`). The reason is that morphisms of levels must intertwine the groups.
+
+**New Galois class.** We stay in the scheme case `A = 1`. Take objects over levels `(B*, H = 1)`,
+where:
+
+* `B*` is a connected Galois finite étale `R`-algebra;
+* the model `c` carries an action of `G = Aut_R(B*)` over `O`, and `j` is `G`-equivariant and
+  scheme-theoretically dominant;
+* `c` is semistable and its special fibre `Z` is connected;
+* the covering is `P = Z̃`, the universal covering from N1.
+
+The automorphisms are **level automorphisms** `(f = σ ∈ G, r = id_1)`, combined with the model
+action `ρ(σ)` and a lift of `ρ_s(σ)` to `Z̃`. Together they form the group `Π` (as in K3, with
+`G` in place of `H`), and `Φ(U) = {(t, p)}` is a `Π`-torsor.
+
+* **Rigidity.** If two morphisms out of `U` agree at one fibre point, then their `f`'s agree
+  (`B*` connected, `algHom_eq_of_comp_eq`). Their model maps agree because `j` is dominant, and
+  their covering maps agree by lift uniqueness. So rigidity holds on the nose.
+* **Domination.** Let `X` be over `(B, H)`. A level morphism `(B*, 1) → (B, H)` only needs an
+  `R`-algebra map `B → B*`; equivariance is vacuous because the source group is trivial. The
+  covering map is a lift through `P_X`, using the universal property of `Z̃`. Finitely many
+  points are handled by `isDominating_of_forall_exists`.
+* **Models.** Apply W10.Strong to `B*` with `G = Aut_R(B*)`. It acts `K`-linearly only if `B*` is
+  geometrically connected over `K`; in general `G` acts semilinearly over the constant field
+  `K'' = B*^{...} ∩ K̄`. So:
+  1. Replace `B*` by a Galois closure containing the Galois extension `K'` that W10 produces.
+     Concretely, take `B* := ` a connected component of `K' ⊗_K B*`, Galois over `R`.
+  2. Take as model the **closure of that component** in the W10 model. Distinct generic
+     components have disjoint closures, because the local rings `O[u,v]/(uv − ϖⁿ)` and `O[u]`
+     are domains. So the closure is open and closed in `c`, and it is again a semistable
+     `ModelCode` (cut out by an idempotent ideal sheaf).
+  3. **Connected special fibre.** This is Zariski connectedness for normal proper models. It is
+     requested from the W-chain as an output clause of `Statement.Strong`: *the special fibre
+     of `c` has at most as many connected components as `Spec (K' ⊗_K B)`*.
