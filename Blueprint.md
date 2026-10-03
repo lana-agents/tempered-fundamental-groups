@@ -380,6 +380,7 @@ over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
 Realistic size: W1–W3 small/medium (weeks of agent time), W4 large (the heart; Temkin's
 algebraic proof ~20 pages), W5 large (needs blow-ups or the `ModelCode`+normalization
 dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`); **W5: the valuative dictionary (M1–M6) and the semistable tree of `ℙ¹`s (M7) proved** (§9.6); normality and finite type of normalizations over a DVR (M8) proved; the scheme realization (M9) open.
+dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`). W6: Riemann–Roch spaces, Riemann's inequality and the genus of the residue curves proved (§9.5 Part R); the genus reduction inequality is planned in §9.5 Part G (the hard step is G6.8, connectedness of the special fibre, with an elementary trace/Liouville proof).
 * W1 (`SemistableReduction/Gauss.lean`): `gauss v a r : Valuation K[X] Γ₀` (multiplicative
   convention, `w(Σ cᵢ(X−a)ⁱ) = max v(cᵢ)·rⁱ`, Gauss lemma `Gauss.sup_mul`), `gaussRat v a r` on
   `RatFunc K` extending `v`; for `v c = r` the residue of `(X − a)/c` is transcendental over
@@ -610,3 +611,84 @@ rings) and M7c (transfer from local rings to `IsSemistableAt`).
 the open immersions (simultaneous semistable reduction; produced by W7 via preimages of vertex
 sets and normalization, M6). Requested by W8′ (finite maps only: with contracted components the
 length clause fails).
+### 9.5 W6: genus
+
+Notation: `k` algebraically closed, `κ / k` a function field of one variable
+(`IsCurveFunctionField k κ`), `CurvePlace k κ` its places (E1). `C`, `O_C`, `k` as in §9.3,
+`F / C` a function field of one variable; a **type-2 valuation** of `F` is a real valuation `w`
+extending `v_C` whose residue field `κ(w)` is transcendental over `k` (then `Γ_w = Γ_C` by W3 and
+`κ(w)` is finite over `k(x̄)` for any `x` with `x̄` transcendental, so `κ(w)` is a function field
+of one variable over `k`).
+
+**Part R: Riemann–Roch spaces and genus over an algebraically closed field** (Stichtenoth,
+*Algebraic Function Fields and Codes*, §§1.3–1.4, specialised to `k` algebraically closed, where
+every place has degree `1`). All proved.
+
+| # | Statement | Status / API |
+|---|---|---|
+| R1 | **Weak approximation** for finitely many pairwise incomparable valuations (any `Γ`): `u` with `v_i(u) < 1 < v_j(u)` (induction, `y ↦ y + z^r` with `r` avoiding finitely many exponents), then `(1 + u^s)⁻¹` | **proved** (`SemistableReduction/WeakApproximation`: `Incomparable`, `exists_lt_one_and_one_lt`, `valuation_inv_one_add_pow`); for places: `CurvePlace.incomparable` (DVRs of Krull dimension 1), `exists_valuation_sub_one_lt_one`, `exists_valuation_eq_and_le` (prescribed order at `P`, high order at finitely many `Q`) |
+| R2 | `κ` is finite over `k(f)` for every `f ∉ k`; the residue field of every place is `k` | **proved** (`SemistableReduction/CurveDivisor`: `IsCurveFunctionField.isAlgebraic_adjoin` (exchange lemma of G2), `IsCurveFunctionField.finiteDimensional_adjoin` (`EssFiniteType` + algebraic), `transcendental_of_notMem_range`, `CurvePlace.exists_valuation_sub_lt_one` (otherwise `k(f) ⊆ O_P`, hence `κ ⊆ O_P`)) |
+| R3 | for `f ∉ k`: `∑_{P ∈ S} ord_P(1/f)^+ ≤ [κ : k(f)]` for every finite set `S` of places, so `f` has finitely many poles; divisors, pole divisor, principal divisor | **proved** (`CurvePlace.sum_poleOrder_le`: the `w_{P,j}` of R1 with `ord_P = j < e_P` and high order at the other poles are `k(f)`-independent, the coefficients having a common order at all zeros of `1/f` (`exists_zpow_of_mem_adjoin`); `finite_setOf_notMem`; `CurveDivisor k κ := CurvePlace k κ →₀ ℤ`, `deg = Finsupp.degree`, `poleDivisor k f`, `divisor k f = (1/f)_∞ − (f)_∞`, `valuation_eq_exp_neg_divisor`, `divisor_mul`, `divisor_inv`) |
+| R4 | `L(D) = {f | v_P(f) ≤ exp (D P)}`, `ℓ(D) = dim_k L(D) < ∞`, `ℓ(D') ≤ ℓ(D) + deg(D' − D)` for `D ≤ D'`, `ℓ(0) = 1`, `ℓ(D + (z)) = ℓ(D)` | **proved** (`SemistableReduction/RiemannRoch`: `rrSpace`, `ell`, `exists_rrSpace_add_single_le` (step `D → D + P`, uses R2), `finiteDimensional_rrSpace`, `ell_le_ell_add_degree`, `ell_zero`, `rrSpace_zero`, `mem_rrSpace_iff_le`, `ell_add_divisor`) |
+| R5 | `deg (x)_∞ = [κ : k(x)]` for `x ∉ k`; principal divisors have degree `0` | **proved** (`degree_poleDivisor`: `≤` is R3, `≥` from `(m+1)[κ:k(x)] ≤ ℓ(m(x)_∞ + ∑ (uᵢ)_∞) ≤ 1 + m·deg (x)_∞ + deg ∑(uᵢ)_∞` for a basis `u` (`card_mul_le_ell`); `degree_divisor`). No integrality or fundamental equality needed |
+| R6 | genus `g = sup_D (deg D + 1 − ℓ(D))` is finite; **Riemann's inequality** `ℓ(D) ≥ deg D + 1 − g`; `g(k(x)) = 0` | **proved** (`riemannDefect`, `riemannDefect_mono`, `riemannDefect_add_divisor`, `riemannDefect_nsmul_poleDivisor_le` (bounded on multiples of `(x)_∞`), `exists_add_divisor_le` (every `D` is equivalent to a divisor `≤ m(x)_∞`, Stichtenoth 1.4.15), `bddAbove_riemannDefect`, `genus`, `riemannDefect_le_genus`, `riemann_inequality`, `exists_riemannDefect_eq_genus`, `genus_eq_zero_of_adjoin_eq_top`, `isCurveFunctionField_ratFunc`, `genus_ratFunc`) |
+| R7 | `ℓ(D) = deg D + 1 − g` for `deg D ≥ c` (no canonical divisor needed: `g` is attained at some `D₀`, and `D ~ D' ≥ D₀` once `ℓ(D − D₀) > 0`) | **proved** (`ell_eq_of_le_degree`) |
+
+**Part G: the genus reduction inequality** `Σᵢ g(κ(wᵢ)) ≤ g(F)` for distinct type-2 `w₁, …, w_n`.
+
+*Choice of proof.* The inequality is `p_a(𝒳_s) = g(F)` plus `p_a(𝒳_s) ≥ Σ g(components)` for the
+normalization `𝒳` of `ℙ¹_{O_C}` in `F` (for a coordinate `x` in which all `wᵢ` lie over the Gauss
+point). We transport this to valuations and Riemann–Roch spaces of `F` and of the residue curves,
+comparing `L(m(x)_∞)` with its reductions (Matignon, *Genre et genre résiduel des corps de
+fonctions valués*, Manuscripta Math. 58 (1987); Green–Matignon–Pop, *On valued function fields
+I*, §3). The analytic proofs (Baker–Payne–Rabinoff genus formula) presuppose semistable
+reduction and are circular here.
+
+| # | Statement | Proof / inputs | Status |
+|---|---|---|---|
+| G6.1 | (common coordinate) there is `x ∈ F` with `wᵢ(x) = 1` and `x̄` transcendental in every `κ(wᵢ)`; then `wᵢ|_{C(x)} = w_{0,1}` for all `i`, so the `wᵢ` are among the extensions `w'₁, …, w'_s` of the Gauss valuation, and it suffices to prove `Σ_{j ≤ s} g(κ_j) ≤ g(F)` | distinct type-2 valuations are incomparable (rank one), R1 for real valuations; A1 for `Σ cⱼ xʲ` | open (small) |
+| G6.2 | `e(w'_j) = 1`, `Σ_j f_j = N := [F : C(x)]`, `κ_j / k(x̄)` finite, `κ_j` a curve function field | W4 (`GaussStability`), A3, A4' | **proved** (`GaussFibre`: `ramificationIdx_eq_one`, `finite_ext`, `sum_inertiaDeg_eq`; `ResidueCurve.isCurveFunctionField`, `finrank_adjoin_red_x`, `transcendental_red_x`) |
+| G6.3 | (orthonormal basis) `b₁, …, b_N ∈ F` with `‖Σ φᵢ bᵢ‖ = maxᵢ |φᵢ|_{Gauss}` for `‖·‖ = max_j w'_j` | lift `k(x̄)`-bases of the `κ_j`, separate the `w'_j` by R1; residues independent ⇒ norm is the max (A1 for several valuations) | **proved** (`GaussFibre.exists_orthonormal_basis`) |
+| G6.4 | (reduction dimension) for every finite-dimensional `C`-subspace `V ⊆ F`, the image `ρ(V°) ⊆ ⊕_j κ_j` of `V° = {‖f‖ ≤ 1}` has `k`-dimension `dim_C V` | clear denominators (Gauss is multiplicative): `qV ⊆ ⊕ᵢ C[x]_{≤M} bᵢ ≅ (C^{N(M+1)}, max)`, reduced row echelon form with maximal-entry pivots gives an orthonormal basis. No completeness or spherical completeness of `C` needed | **proved** (`LatticeReduction.exists_orthonormal_pi`, `exists_orthonormal_submodule`; `GaussReduction.finrank_le_of_red_mem`) |
+| G6.5 | (integrality) `f` integral over `C[x]` with `‖f‖ ≤ 1` ⇒ `f` integral over `O_C[x]` ⇒ `f̄_j` integral over `k[x̄]`; the same at `∞`; hence `ρ(L(m(x)_∞)°) ⊆ W_m := ⊕_j L_{κ_j}(m(x̄)_∞)` | conjugates of `f` in a normal closure: `W(σf) = (W∘σ)(f) ≤ 1` since `W∘σ|_F` is some `w'_j` | **proved** (`ResidueCurve.red_mem_of_isIntegral` via the characteristic polynomial in the orthonormal basis instead of normal closures; `InfinityChart.red_mem_of_isIntegral_inv`; `GenusCount.red_mem_rrSpace`) |
+| G6.6 | (counting) for `m ≫ 0`: `dim ρ(L(m(x)_∞)°) = mN + 1 − g`, `dim W_m = mN + s − Σ g_j`; hence `Σ g_j ≤ g + (s − 1) − codim_{W_m} ρ(L(m(x)_∞)°)`, in particular the **weak inequality** `Σ_j (g_j − 1) ≤ g − 1` | G6.4, G6.5, R5 (`deg (x)_∞ = N`, `deg (x̄)_∞ = f_j`), R7 on `F` and on each `κ_j` | **proved** (`GenusCount.ell_le_sum_ell`, weak inequality `sum_genus_le_add_card`) |
+| G6.7 | (gluing conditions) for places `Q ∈ κ_j`, `Q' ∈ κ_{j'}` centred on the same maximal ideal of `𝓡 = ` integral closure of `O_C[x]` (resp. of `O_C[1/x]`, evaluating `f/xᵐ`), `f̄_j(Q) = f̄_{j'}(Q')` on `ρ(L(m(x)_∞)°)`; the conditions along a spanning forest of the incidence graph `Γ` (components, closed points of `𝒳_s`) are independent on `W_m` for `m ≫ 0` (R7 on `κ_j`: evaluation at finitely many places is surjective): `codim ≥ s − c(Γ)` | G6.5 | infrastructure (`SpecialFibre`: `redRing`, `Edge`, `res_eq_of_edge`, `exists_place_of_isMaximal`); counting open |
+| G6.8 | **(connectedness)** `Γ` is connected, i.e. `𝒳_s` is connected (Zariski) | G8.1–G8.5 below | analytic core **proved** (`Connectedness.no_split`: Newton traces, Laurent comparison, trace duality); the CRT step G8.1 (`cut`) open |
+| G6.9 | consequences: `Σ g(κ(wᵢ)) ≤ g(F)`; at most `g(F)` type-2 valuations have positive genus residue curve (W7 input) | G6.1 + G6.6–G6.8 | — |
+
+*G6.8 (connectedness).* Equivalently: `H^0(𝒳_s, O) = k`, i.e. the reductions of `𝓡` and of
+`𝓡_∞ = ` integral closure of `O_C[1/x]` meet in `k` inside `⊕_j κ_j`; equivalently the Čech
+module `𝓡_{01}/(𝓡 + 𝓡_∞)` (`⊗ C = H^1(X, O)`, of dimension `g`) is torsion free. This is
+Zariski's connectedness theorem for `𝒳 → Spec O_C`; the counts G6.4–G6.7 alone do not exclude a
+disconnected `𝒳_s`. **Chosen proof** (elementary "GAGA for `ℙ¹`" by traces; `C` complete):
+suppose `Γ` splits as `J₀ ⊔ J₁` (both nonempty, no common closed point in either chart).
+
+| # | Step | Inputs |
+|---|---|---|
+| G8.1 | the kernels of `𝓡̄ → ⊕_{J₀} κ_j` and `𝓡̄ → ⊕_{J₁} κ_j` are comaximal (a maximal ideal containing both lies on a `J₀`- and a `J₁`-component: prime avoidance, and every maximal ideal of `𝓡̄/𝔭_j` is centred by a place of `κ_j`, Chevalley); CRT gives `e ∈ 𝓡` with `ē = (1_{J₀}, 0_{J₁})`, similarly `e' ∈ 𝓡_∞` | G6.5, `ValuationSubring` extension |
+| G8.2 | the characteristic polynomial `χ_e ∈ O_C[x][T]` reduces to `(T − 1)^{N₀} T^{N₁}` (`N_i = Σ_{J_i} f_j ≥ 1`; reduce the matrix of `e` in the orthonormal basis of G6.3); for every `C`-point `P` of `F` over `α ∈ O_C`, `e(P) ≡ 1` or `≡ 0`; this partitions the fibres over `|α| ≤ 1` into `U₀ ⊔ U₁` with `N₀`, `N₁` points (with multiplicity); likewise over `|α| ≥ 1` with `e'`, and both agree over `|α| = 1` (maximum principle: `‖e − e'‖ < 1` and integrality over `O_C[x, 1/x]` bound values at points) | Part R for `F / C` (places = `C`-points), charpoly specialization `χ_h(α, T) = Π_{P|α} (T − h(P))^{e_P}` |
+| G8.3 | for `y ∈ L(d(x)_∞)°`: `p_n := Tr_{F/C(x)}(N^n(e)·y) ∈ O_C[x]` (`N(t) = 3t² − 2t³`, `‖N^{n+1}(e) − N^n(e)‖ ≤ ‖e² − e‖^{2^n}`) is Cauchy for the Gauss norm, with pointwise limit `τ_y(α) = Σ_{P ∈ U₀, P|α} e_P y(P)` (trace specialization); at `∞`, `q_n := Tr(N^n(e')·y/x^d) ∈ O_C[1/x]` with limit `τ_y(α)/α^d` | G6.5, trace specialization |
+| G8.4 | (Liouville) a restricted power series `Σ aᵢ xⁱ` and `x^d Σ bᵢ x^{-i}` agreeing on `|α| = 1` coincide with a polynomial of degree `≤ d` (a restricted Laurent series vanishing on the unit circle is `0`: reduce a maximal-norm part, `k` infinite); hence `τ_y ∈ C[x]`, and `y ↦ τ_y` is `C[x]`-linear | completeness of `C` (limits of coefficients) |
+| G8.5 | trace duality: `τ_y = Tr(z y)` for some `z ∈ F`; at an étale fibre, interpolation (R7) gives `z(P) = 1_{U₀}(P)`, so `z² = z`, `z ∈ {0, 1}`, contradicting `N₀, N₁ ≥ 1` | nondegenerate trace form (char 0), R7 |
+
+**Target (coordinator decision): the sharp form.** For any finite set of distinct type-2
+valuations `w₁, …, w_n` of `F`: `Σ g(κ(wᵢ)) ≤ g(F)` (ideally `Σ g(κ(wᵢ)) + b₁(Γ) ≤ g(F)` for the
+dual graph `Γ` of the vertex set). The weak form `Σ_w g(κ(w)) ≤ g(F) + #{w} − 1` over one Gauss
+point (proved, `GenusCount.sum_genus_le_add_card`) does **not** give finiteness. Remaining plan:
+G6.7 (`codim ≥ s − c(Γ)` from `res_eq_of_edge` along a spanning forest; independence of the
+evaluation functionals on `L_{κ_j}(m(x̄)_∞)` for `m ≫ 0` by R7), G8.1 (`cut`: if `Γ` splits,
+CRT in `redRing x`, `redRing x⁻¹` produces `e, e'` contradicting `no_split`, so `c(Γ) = 1`),
+then G6.1 (common coordinate by weak approximation for real valuations) and G6.9. The sharper
+`b₁(Γ)` term needs, in addition, the count of edges rather than a spanning forest (independence
+of all edge functionals modulo cycles).
+
+**Status.** Part R complete (`SemistableReduction/WeakApproximation`,
+`SemistableReduction/CurveDivisor`, `SemistableReduction/RiemannRoch`). Part G: G6.2–G6.6
+proved, G6.8's analytic core proved (`GaussFibre`, `LatticeReduction`, `GaussReduction`,
+`ResidueCurve`, `InfinityChart`, `GenusCount`, `Connectedness`, `SpecialFibre`). Original
+estimate: estimate G6.1–G6.7 ≈ 1.5–2k lines, G6.8 ≈ 2–2.5k lines (C-points and
+charpoly/trace specialization for `F / C`, Newton traces, Laurent comparison, trace duality),
+G6.9 small. Fallback if G6.8 stalls: restructure W7 along Temkin's valuative proof (*Stable
+modification of relative curves*, §§3–5: finiteness of the vertex set from quasi-compactness of
+the Riemann–Zariski space and local uniformization, genus only for contracting to the stable
+model).
