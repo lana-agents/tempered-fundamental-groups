@@ -92,7 +92,7 @@ and finitely many given projective `O`-models `c₀ i` of `Spec B` (with `j₀ i
 * `K'/K` is Galois;
 * the semistable model is also a projective `O`-model `c` (isomorphic, over `O`, to the
   semistable `O'`-model `c'`), and `c'` is split (`ModelCode.IsSplit`: split nodes, geometrically
-  irreducible components) and has no loops (`ModelCode.NoLoops`);
+  irreducible components);
 * `j : Spec (K' ⊗_K B) ⟶ c` is an open immersion over `O` which is scheme-theoretically dominant;
 * `G × Gal(K'/K)` acts on `c` over `O` with `j` equivariant (`g` acts on `K' ⊗ B` by `id ⊗ g`,
   `σ` by `σ ⊗ id`);
@@ -119,7 +119,7 @@ def Statement.Strong : Prop :=
       (j : Spec (CommRingCat.of (TensorProduct K K' B)) ⟶ c.scheme)
       (act : G × (K' ≃ₐ[K] K') →* Aut c.scheme)
       (dom : ∀ i, c.scheme ⟶ (c₀ i).scheme),
-      ModelCode.IsSemistable ϖ' c' ∧ ModelCode.IsSplit ϖ' c' ∧ ModelCode.NoLoops c' ∧
+      ModelCode.IsSemistable ϖ' c' ∧ ModelCode.IsSplit ϖ' c' ∧
       e.hom ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom
         ((algebraMap K K').restrict O O' (fun x hx => by
           rw [← ‹O'.comap (algebraMap K K') = O›] at hx; exact hx))) = c.toSpec ∧
