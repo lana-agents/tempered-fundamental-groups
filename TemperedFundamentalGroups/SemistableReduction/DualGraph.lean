@@ -165,7 +165,8 @@ of `c'`): there are affine opens `U ∋ x` and `U' ⊇ ψ U`, étale node charts
 compatible map `C' → C`, such that the pulled back coordinates of `c'` are
 `u' = ε ϖ ^ a u ^ d`, `v' = ε' ϖ ^ b v ^ d` with units `ε, ε'` (for a finite `ψ` near `x`,
 `a = b = 0`; inner nodes of chains contracted by a modification have `a` or `b` positive). -/
-def HasLocalDegree (ϖ : O) {c c' : TemperedFundamentalGroups.ModelCode O}
+def HasLocalDegree {O' : Type u} [CommRing O'] (ϖ : O) (ϖ' : O')
+    {c : TemperedFundamentalGroups.ModelCode O} {c' : TemperedFundamentalGroups.ModelCode O'}
     (ψ : c.scheme ⟶ c'.scheme) (x : c.scheme) (d : ℕ) : Prop :=
   ∃ (U : c.scheme.Opens) (hU : IsAffineOpen U) (hx : x ∈ U) (U' : c'.scheme.Opens)
     (hle : U ≤ ψ ⁻¹ᵁ U'),
@@ -174,11 +175,11 @@ def HasLocalDegree (ϖ : O) {c c' : TemperedFundamentalGroups.ModelCode O}
     ∃ (n n' a b : ℕ) (C : Type u) (_ : CommRing C) (g : Γ(c.scheme, U) →+* C)
       (f : _root_.SemistableReduction.Node O (ϖ ^ n) →+* C) (𝔮 : Ideal C)
       (C' : Type u) (_ : CommRing C') (g' : Γ(c'.scheme, U') →+* C')
-      (f' : _root_.SemistableReduction.Node O (ϖ ^ n') →+* C') (k : C' →+* C) (ε ε' : Cˣ),
+      (f' : _root_.SemistableReduction.Node O' (ϖ' ^ n') →+* C') (k : C' →+* C) (ε ε' : Cˣ),
       g.Etale ∧ f.Etale ∧ g'.Etale ∧ f'.Etale ∧ 𝔮.IsPrime ∧
       𝔮.comap g = (hU.primeIdealOf ⟨x, hx⟩).asIdeal ∧
       f.comp (algebraMap O _) = g.comp (algebraMap O _) ∧
-      f'.comp (algebraMap O _) = g'.comp (algebraMap O _) ∧
+      f'.comp (algebraMap O' _) = g'.comp (algebraMap O' _) ∧
       f (_root_.SemistableReduction.Node.u _) ∈ 𝔮 ∧ f (_root_.SemistableReduction.Node.v _) ∈ 𝔮 ∧
       k.comp g' = g.comp (ψ.appLE U' U hle).hom ∧
       k (f' (_root_.SemistableReduction.Node.u _)) =
@@ -191,40 +192,45 @@ def NoLoops (c : TemperedFundamentalGroups.ModelCode O) : Prop :=
   ∀ x : c.scheme, IsNodePt c x → ∃ v ∈ components c, ∃ w ∈ components c, v ≠ w ∧ x ∈ v ∧ x ∈ w
 
 /-- A component `v` of `c` is **contracted** by `ψ : c ⟶ c'` if it maps to a point. -/
-def IsContracted' {c c' : TemperedFundamentalGroups.ModelCode O}
-    (ψ : c.scheme ⟶ c'.scheme) (v : Set c.scheme) : Prop :=
+def IsContracted' {O' : Type u} [CommRing O'] {c : TemperedFundamentalGroups.ModelCode O}
+    {c' : TemperedFundamentalGroups.ModelCode O'} (ψ : c.scheme ⟶ c'.scheme) (v : Set c.scheme) :
+    Prop :=
   ∃ y, ψ '' v = {y}
 
 /-- A walk in the dual graph of `c` **crosses** the point `x'` of `c'` along `ψ : c ⟶ c'`: it
 starts and ends on non-contracted components, its inner components are contracted to `x'`, its
 nodes lie over `x'`, and it uses each node at most once. -/
-def Walk.Crosses {c c' : TemperedFundamentalGroups.ModelCode O} (ψ : c.scheme ⟶ c'.scheme)
-    (x' : c'.scheme) (w : Walk c) : Prop :=
+def Walk.Crosses {O' : Type u} [CommRing O'] {c : TemperedFundamentalGroups.ModelCode O}
+    {c' : TemperedFundamentalGroups.ModelCode O'} (ψ : c.scheme ⟶ c'.scheme) (x' : c'.scheme)
+    (w : Walk c) : Prop :=
   1 ≤ w.k ∧ Function.Injective w.x ∧ ¬ IsContracted' ψ (w.v 0) ∧
     ¬ IsContracted' ψ (w.v (Fin.last w.k)) ∧
     (∀ i : Fin (w.k + 1), i ≠ 0 → i ≠ Fin.last w.k → ψ '' w.v i = {x'}) ∧
     (∀ i, ψ (w.x i) = x')
 
-/-- **Harmonicity of a map of models** (W8′, general form; `ψ` finite on generic fibres): for
-every node `x'` of `c'` of thickness `n'` on the components `w₁' ≠ w₂'`:
+/-- **Harmonicity of a map of models** (W8′, general form; `ψ : c ⟶ c'` finite on generic
+fibres, `c` over `O`, `c'` over `O'`, with ramification index `e` of `O` over `O'`, i.e. lengths
+are `n / e(O)` upstairs and `n' / e(O')` downstairs, so that thicknesses compare as `n` against
+`e n'`): for every node `x'` of `c'` of thickness `n'` on the components `w₁' ≠ w₂'`:
 * (H1) every component of `c` over `w₁'` starts a walk crossing `x'` to a component over `w₂'`
-  with `∑ dᵢ nᵢ = n'` (thicknesses `nᵢ`, local degrees `dᵢ`);
+  with `∑ dᵢ nᵢ = e n'` (thicknesses `nᵢ`, local degrees `dᵢ`);
 * (H2) every walk crossing `x'` from a component over `w₁'` to one over `w₂'` has
-  `n' ≤ ∑ dᵢ nᵢ`;
+  `e n' ≤ ∑ dᵢ nᵢ`;
 * (H3) a node of `c` not over a node maps to a point lying on exactly one component. -/
-def IsHarmonicGeneral (ϖ : O) {c c' : TemperedFundamentalGroups.ModelCode O}
+def IsHarmonicGeneral {O' : Type u} [CommRing O'] [IsLocalRing O'] (ϖ : O) (ϖ' : O') (e : ℕ)
+    {c : TemperedFundamentalGroups.ModelCode O} {c' : TemperedFundamentalGroups.ModelCode O'}
     (ψ : c.scheme ⟶ c'.scheme) : Prop :=
-  (∀ (x' : c'.scheme) (n' : ℕ), IsNodeOfThickness ϖ c' x' n' →
+  (∀ (x' : c'.scheme) (n' : ℕ), IsNodeOfThickness ϖ' c' x' n' →
     ∀ w₁' ∈ components c', ∀ w₂' ∈ components c', w₁' ≠ w₂' → x' ∈ w₁' → x' ∈ w₂' →
     ∀ v ∈ components c, ψ '' v = w₁' →
       ∃ w : Walk c, w.v 0 = v ∧ w.Crosses ψ x' ∧ ψ '' w.v (Fin.last w.k) = w₂' ∧
         ∃ t dd : Fin w.k → ℕ, (∀ i, IsNodeOfThickness ϖ c (w.x i) (t i)) ∧
-          (∀ i, HasLocalDegree ϖ ψ (w.x i) (dd i)) ∧ ∑ i, dd i * t i = n') ∧
-  (∀ (x' : c'.scheme) (n' : ℕ), IsNodeOfThickness ϖ c' x' n' →
+          (∀ i, HasLocalDegree ϖ ϖ' ψ (w.x i) (dd i)) ∧ ∑ i, dd i * t i = e * n') ∧
+  (∀ (x' : c'.scheme) (n' : ℕ), IsNodeOfThickness ϖ' c' x' n' →
     ∀ w₁' ∈ components c', ∀ w₂' ∈ components c', w₁' ≠ w₂' → x' ∈ w₁' → x' ∈ w₂' →
     ∀ w : Walk c, w.Crosses ψ x' → ψ '' w.v 0 = w₁' → ψ '' w.v (Fin.last w.k) = w₂' →
       ∀ t dd : Fin w.k → ℕ, (∀ i, IsNodeOfThickness ϖ c (w.x i) (t i)) →
-        (∀ i, HasLocalDegree ϖ ψ (w.x i) (dd i)) → n' ≤ ∑ i, dd i * t i) ∧
+        (∀ i, HasLocalDegree ϖ ϖ' ψ (w.x i) (dd i)) → e * n' ≤ ∑ i, dd i * t i) ∧
   (∀ x : c.scheme, IsNodePt c x → ¬ IsNodePt c' (ψ x) →
     ∃! w', w' ∈ components c' ∧ ψ x ∈ w')
 

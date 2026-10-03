@@ -245,14 +245,20 @@ abbrev OIndex (C F : Type*) [NontriviallyNormedField C] [IsUltrametricDist C] [F
     [Algebra (RatFunc C) F] [Fintype (Ext C F)] : Type _ :=
   Σ w : Ext C F, Fin (inertiaDeg (gauss1 C) w.1)
 
-/-- **G6.3** (orthonormal basis). If `e(w) = 1` for all extensions `w` of `w_{0,1}` and
-`Σ_w f(w) = [F : C(X)]` (W4), then `F` has a `C(X)`-basis `b` with
-`gnorm C (Σ φᵢ • bᵢ) = maxᵢ w_{0,1}(φᵢ)`. -/
-theorem exists_orthonormal_basis
+/-- **G6.3** (orthonormal basis, with residues). If `e(w) = 1` for all extensions `w` of `w_{0,1}`
+and `Σ_w f(w) = [F : C(X)]` (W4), then `F` has a `C(X)`-basis `b`, indexed by `Σ_w Fin f(w)`, with
+`gnorm C (Σ φᵢ • bᵢ) = maxᵢ w_{0,1}(φᵢ)`; moreover `w(b_{(w', l)}) < 1` for `w ≠ w'`, and the
+residues of the `b_{(w, l)}` at `w` form a `κ(w_{0,1})`-independent family. -/
+theorem exists_orthonormal_basis'
     (he : ∀ w : Ext C F, ramificationIdx (RatFunc C) w.1 = 1)
     (hsum : ∑ w : Ext C F, inertiaDeg (gauss1 C) w.1 = Module.finrank (RatFunc C) F) :
-    ∃ b : Module.Basis (OIndex C F) (RatFunc C) F, ∀ φ : OIndex C F → RatFunc C,
-      gnorm C (∑ i, φ i • b i) = Finset.univ.sup fun i ↦ gauss1 C (φ i) := by
+    ∃ b : Module.Basis (OIndex C F) (RatFunc C) F, (∀ φ : OIndex C F → RatFunc C,
+      gnorm C (∑ i, φ i • b i) = Finset.univ.sup fun i ↦ gauss1 C (φ i)) ∧
+      (∀ (i : OIndex C F) (w : Ext C F), w ≠ i.1 → w.1 (b i) < 1) ∧
+      ∀ w : Ext C F, ∃ ℓ : Fin (inertiaDeg (gauss1 C) w.1) → w.1.valuationSubring,
+        LinearIndependent (ResidueField (gauss1 C).valuationSubring)
+          (fun l ↦ residue w.1.valuationSubring (ℓ l)) ∧
+        ∀ l, w.1 (b ⟨w, l⟩ - ℓ l) < 1 := by
   classical
   -- bases of the residue fields and their lifts
   have hfin (w : Ext C F) : Module.Finite (ResidueField (gauss1 C).valuationSubring)
@@ -388,9 +394,26 @@ theorem exists_orthonormal_basis
   have : Nonempty (OIndex C F) := by
     rw [← Fintype.card_pos_iff, hcard]
     exact Module.finrank_pos
-  refine ⟨basisOfLinearIndependentOfCardEqFinrank hli hcard, fun φ ↦ ?_⟩
-  rw [coe_basisOfLinearIndependentOfCardEqFinrank]
-  exact key φ
+  refine ⟨basisOfLinearIndependentOfCardEqFinrank hli hcard, fun φ ↦ ?_, fun i w hw ↦ ?_,
+    fun w ↦ ⟨ℓ w, hℓli w, fun l ↦ ?_⟩⟩
+  · rw [coe_basisOfLinearIndependentOfCardEqFinrank]
+    exact key φ
+  · rw [coe_basisOfLinearIndependentOfCardEqFinrank]
+    exact hzsep i.1 w hw i.2
+  · rw [coe_basisOfLinearIndependentOfCardEqFinrank]
+    change w.1 (z w * ℓ w l - ℓ w l) < 1
+    rw [show z w * (ℓ w l : F) - ℓ w l = (z w - 1) * ℓ w l by ring, map_mul]
+    exact mul_lt_one_of_nonneg_of_lt_one_left zero_le (hz1 w) (hℓ1 w l)
+
+/-- **G6.3** (orthonormal basis). If `e(w) = 1` for all extensions `w` of `w_{0,1}` and
+`Σ_w f(w) = [F : C(X)]` (W4), then `F` has a `C(X)`-basis `b` with
+`gnorm C (Σ φᵢ • bᵢ) = maxᵢ w_{0,1}(φᵢ)`. -/
+theorem exists_orthonormal_basis
+    (he : ∀ w : Ext C F, ramificationIdx (RatFunc C) w.1 = 1)
+    (hsum : ∑ w : Ext C F, inertiaDeg (gauss1 C) w.1 = Module.finrank (RatFunc C) F) :
+    ∃ b : Module.Basis (OIndex C F) (RatFunc C) F, ∀ φ : OIndex C F → RatFunc C,
+      gnorm C (∑ i, φ i • b i) = Finset.univ.sup fun i ↦ gauss1 C (φ i) :=
+  (exists_orthonormal_basis' he hsum).imp fun _ h ↦ h.1
 
 end Orthonormal
 

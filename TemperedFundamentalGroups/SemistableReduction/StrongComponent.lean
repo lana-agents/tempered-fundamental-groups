@@ -3,7 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.SemistableReduction.Statement
+import TemperedFundamentalGroups.SemistableReduction.WModel
 
 /-!
 # W10 with connected components (a strengthened copy of `Statement.Strong`)
@@ -21,7 +21,11 @@ replaced by the **component clause**: for every primitive idempotent `ε` of `K'
   scheme-theoretically dominant;
 * the action of the stabiliser of `ε` in `G × Gal(K'/K)` restricts to `c₁`;
 * the special fibre of `c₁` is **connected** (Zariski connectedness for the normal proper model
-  `c₁` of the connected `Spec ((K' ⊗_K B) ⧸ (1 - ε))` over the complete DVR `O'`).
+  `c₁` of the connected `Spec ((K' ⊗_K B) ⧸ (1 - ε))` over the complete DVR `O'`);
+* `c₁'` is a **W-model** (`ModelCode.IsWModel`, Blueprint §9.7) of the function field `L₁` of the
+  component on the x-line given by the input `x ∈ R` (`R` finite over `K[x]`), with generic point
+  the restriction of `j₁`: the models produced by the W-chain, between which maps are harmonic
+  (`Statement.HarmonicW`).
 
 Domination of the `c₀ i` by `c₁` is `ι₁ ≫ dom i`. The case `ε = 1` (connected `K' ⊗_K B`)
 recovers the connectedness clause of `Strong` (with `c₁ = c`). This is the form of W10 consumed by
@@ -43,6 +47,7 @@ def Statement.StrongComponent : Prop :=
   ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
     [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
     (R : Type u) [CommRing R] [Algebra K R] [Algebra.Smooth K R] (_ : ringKrullDim R = 1)
+    (x : R) (_ : (Polynomial.aeval (R := K) x).toRingHom.Finite)
     (B : Type u) [CommRing B] [Algebra R B] [Algebra K B] [IsScalarTower K R B]
     [Algebra.Etale R B] [Module.Finite R B]
     (G : Type u) [Group G] [Finite G] [MulSemiringAction G B] [SMulCommClass G K B]
@@ -90,6 +95,18 @@ def Statement.StrongComponent : Prop :=
           (∀ gσ : G × (K' ≃ₐ[K] K'), Algebra.TensorProduct.congr (gσ.2⁻¹)
               (MulSemiringAction.toAlgAut G K B gσ.1⁻¹) ε = ε →
             ∃ ψ : c₁.scheme ⟶ c₁.scheme, ψ ≫ ι₁ = ι₁ ≫ (act gσ).hom) ∧
-          ConnectedSpace (specialFibre c₁.toSpec))
+          ConnectedSpace (specialFibre c₁.toSpec) ∧
+          ∃ (L₁ : Type u) (_ : Field L₁)
+            (_ : Algebra (TensorProduct K K' B ⧸ Ideal.span {1 - ε}) L₁)
+            (_ : IsFractionRing (TensorProduct K K' B ⧸ Ideal.span {1 - ε}) L₁)
+            (_ : Algebra K' L₁) (_ : Algebra O' L₁) (_ : IsScalarTower O' K' L₁)
+            (j₁' : Spec (CommRingCat.of L₁) ⟶ c₁'.scheme),
+            algebraMap K' L₁ = (algebraMap (TensorProduct K K' B ⧸ Ideal.span {1 - ε}) L₁).comp
+              ((Ideal.Quotient.mk (Ideal.span {1 - ε})).comp
+                Algebra.TensorProduct.includeLeftRingHom) ∧
+            ModelCode.IsWModel O' L₁ (algebraMap (TensorProduct K K' B ⧸ Ideal.span {1 - ε}) L₁
+              (Ideal.Quotient.mk _ (1 ⊗ₜ algebraMap R B x))) c₁' j₁' ∧
+            j₁' = Spec.map (CommRingCat.ofHom
+              (algebraMap (TensorProduct K K' B ⧸ Ideal.span {1 - ε}) L₁)) ≫ j₁ ≫ e₁.hom)
 
 end TemperedFundamentalGroups.SemistableReduction
