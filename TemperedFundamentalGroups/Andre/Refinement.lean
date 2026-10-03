@@ -1047,8 +1047,16 @@ theorem exists_core (hW : SemistableReduction.Statement.StrongA.{u})
   let ν' : G₀ × Δ →* SemilinearAut R A B := (tensorAut M).comp (ν.prodMap θ)
   letI := actionOf ν'
   haveI := smulCommClass_actionOf (K := K) ν'
+  letI : MulSemiringAction (G₀ × Δ) R :=
+    MulSemiringAction.compHom R ((SemilinearAut.toA.comp ν).comp (MonoidHom.fst G₀ Δ))
+  haveI : SMulCommClass (G₀ × Δ) K R := ⟨fun g k r => smul_comm ((ν g.1).a) k r⟩
+  have hequiv : ∀ (g : G₀ × Δ) (r : R), g • algebraMap R B r = algebraMap R B (g • r) := by
+    intro g r
+    change (ν' g).σ (algebraMap R B r) = algebraMap R B ((ν g.1).a • r)
+    rw [(ν' g).map_algebraMap]
+    rfl
   obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, he, hjd, hjS,
-    hact, hactj, hdom, hdomS⟩ := hW K O R hR B (G₀ × Δ) ι c₀ j₀ hj₀
+    hact, hactj, hdom, hdomS⟩ := hW K O R hR B (G₀ × Δ) hequiv ι c₀ j₀ hj₀
   haveI hK' : Algebra.Etale K K' :=
     ⟨Algebra.FormallyEtale.of_isSeparable K K',
       Algebra.FinitePresentation.of_finiteType.1 inferInstance⟩

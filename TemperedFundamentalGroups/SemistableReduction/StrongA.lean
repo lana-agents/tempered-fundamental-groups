@@ -11,7 +11,9 @@ import TemperedFundamentalGroups.Setup.NoetherLine
 
 `Statement.StrongA` is `Statement.StrongComponent` without the outputs that only Theorem B (now
 parked) used: split, no loops, open immersion of `j`, the fibre clause, the dimension bound, and
-the component clause (with W-models and `IsUnfolded`). It also drops the x-line input, which
+the component clause (with W-models and `IsUnfolded`). It adds the hypothesis that `G` also acts
+on `R`, with `R → B` equivariant (true for the levels of Theorem A), so that the x-line can be
+chosen `G`-invariant (Noether normalization of `R^G`). It also drops the x-line input, which
 Noether normalization supplies (`exists_finite_aeval`). Theorem A (`andreEquiv`) consumes exactly
 this form.
 -/
@@ -30,6 +32,8 @@ def Statement.StrongA : Prop :=
     (B : Type u) [CommRing B] [Algebra R B] [Algebra K B] [IsScalarTower K R B]
     [Algebra.Etale R B] [Module.Finite R B]
     (G : Type u) [Group G] [Finite G] [MulSemiringAction G B] [SMulCommClass G K B]
+    [MulSemiringAction G R] [SMulCommClass G K R]
+    (_ : ∀ (g : G) (r : R), g • algebraMap R B r = algebraMap R B (g • r))
     (ι : Type u) [Finite ι] (c₀ : ι → TemperedFundamentalGroups.ModelCode O)
     (j₀ : ∀ i, Spec (CommRingCat.of B) ⟶ (c₀ i).scheme)
     (_ : ∀ i, j₀ i ≫ (c₀ i).toSpec = Spec.map (CommRingCat.ofHom
@@ -61,7 +65,7 @@ def Statement.StrongA : Prop :=
 /-- `StrongComponent` implies the minimal form `StrongA`. -/
 theorem Statement.strongA_of_strongComponent (h : Statement.StrongComponent.{u}) :
     Statement.StrongA.{u} := by
-  intro K _ _ O _ _ R _ _ _ hR B _ _ _ _ _ _ G _ _ _ _ ι _ c₀ j₀ hj₀
+  intro K _ _ O _ _ R _ _ _ hR B _ _ _ _ _ _ G _ _ _ _ _ _ _ ι _ c₀ j₀ hj₀
   obtain ⟨K', i1, i2, i3, i4, O', hO', i5, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, hjd,
     hjS, hact, hactj, hdom, hdomS, -⟩ := h K O R hR (exists_finite_aeval hR).choose
       (exists_finite_aeval hR).choose_spec B G ι c₀ j₀ hj₀
