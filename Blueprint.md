@@ -1158,3 +1158,10 @@ action `ρ(σ)` and a lift of `ρ_s(σ)` to `Z̃`. Together they form the group 
   3. **Connected special fibre.** This is Zariski connectedness for normal proper models. It is
      requested from the W-chain as an output clause of `Statement.Strong`: *the special fibre
      of `c` has at most as many connected components as `Spec (K' ⊗_K B)`*.
+
+**Update (x-line).** `StrongComponent` now takes a finite x-line `x ∈ R`, i.e. a finite map
+`K[x] → R`. So Theorem A carries the hypothesis
+`hxR : ∃ x : R, (Polynomial.aeval (R := K) x).toRingHom.Finite`. It follows from Noether
+normalization (Mathlib `exists_finite_inj_algHom_of_fg`) once one knows that the number of
+variables equals `ringKrullDim R = 1`. That dimension step is to be done: dimension is invariant
+under finite injective extensions, and `dim K[X₁..Xₛ] = s`.

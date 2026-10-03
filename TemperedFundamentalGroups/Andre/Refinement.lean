@@ -1014,6 +1014,7 @@ with a semistable model on `B₀ ⊗_K (M ⊗_K K')` with group the image of `G�
 whose model dominates the given ones. -/
 theorem exists_core (hW : SemistableReduction.Statement.StrongComponent.{u})
     (hR : ringKrullDim R = 1)
+    (hxR : ∃ x : R, (Polynomial.aeval (R := K) x).toRingHom.Finite)
     (B₀ : Type u) [CommRing B₀] [Algebra R B₀] [Algebra K B₀] [IsScalarTower K R B₀]
     [Algebra.Etale R B₀] [Module.Finite R B₀]
     (G₀ : Type u) [Group G₀] [Finite G₀] (ν : G₀ →* SemilinearAut R A B₀)
@@ -1047,7 +1048,7 @@ theorem exists_core (hW : SemistableReduction.Statement.StrongComponent.{u})
   letI := actionOf ν'
   haveI := smulCommClass_actionOf (K := K) ν'
   obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, hjd, hjS,
-    hact, hactj, hdom, hdomS, -⟩ := hW K O R hR B (G₀ × Δ) ι c₀ j₀ hj₀
+    hact, hactj, hdom, hdomS, -⟩ := hW K O R hR hxR.choose hxR.choose_spec B (G₀ × Δ) ι c₀ j₀ hj₀
   haveI hK' : Algebra.Etale K K' :=
     ⟨Algebra.FormallyEtale.of_isSeparable K K',
       Algebra.FinitePresentation.of_finiteType.1 inferInstance⟩
@@ -1199,7 +1200,8 @@ variable (Ω) in
 /-- **Every level has a semistable base change** (from W10): `AndreInput.refinement` for
 `bc := IsBaseChange`. -/
 theorem refinement_input (hW : SemistableReduction.Statement.StrongComponent.{u})
-    (hR : ringKrullDim R = 1) (Lv : Level O R A) :
+    (hR : ringKrullDim R = 1)
+    (hxR : ∃ x : R, (Polynomial.aeval (R := K) x).toRingHom.Finite) (Lv : Level O R A) :
     ∃ (Lv₃ : Level O R A) (ℓ : LevelHom O R A Lv₃ Lv),
       IsSemistableLevel Lv₃ ∧ ℓ.IsBaseChange Ω := by
   haveI : IsNoetherianRing R := Algebra.FiniteType.isNoetherianRing K R
@@ -1212,7 +1214,7 @@ theorem refinement_input (hW : SemistableReduction.Statement.StrongComponent.{u}
     rw [Category.assoc, Lv.j_toSpec, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
     congr 2
   obtain ⟨K', _, _, _, _, hK', hL, hLf, hC, hCf, D, dom, hss, hdomj, hΦ, hdomS, hdom⟩ :=
-    exists_core hW hR Lv.L.B Lv.L.H Lv.L.H.subtype
+    exists_core hW hR hxR Lv.L.B Lv.L.H Lv.L.H.subtype
       (fun a => let ⟨g, hg, h⟩ := Lv.L.surjective a; ⟨⟨g, hg⟩, h⟩) K PUnit.{u + 1} 1
       PUnit.{u + 1} (fun _ => Lv.c) (fun _ => _) (fun _ => hj₀)
   haveI := hdomj
@@ -1238,6 +1240,7 @@ variable (Ω) in
 W10): `AndreInput.common` for `bc := IsBaseChange`. -/
 theorem common_input (hW : SemistableReduction.Statement.StrongComponent.{u})
     (hR : ringKrullDim R = 1)
+    (hxR : ∃ x : R, (Polynomial.aeval (R := K) x).toRingHom.Finite)
     {Lv₁ Lv Lv₂ Lv' : Level O R A} (ℓ₁ : LevelHom O R A Lv₁ Lv) (ℓ₂ : LevelHom O R A Lv₂ Lv')
     (u : LevelHom O R A Lv Lv') (h₁ : ℓ₁.IsBaseChange Ω) (h₂ : ℓ₂.IsBaseChange Ω) :
     ∃ (Lv₃ : Level O R A) (μ₁ : LevelHom O R A Lv₃ Lv₁) (μ₂ : LevelHom O R A Lv₃ Lv₂),
@@ -1280,7 +1283,7 @@ theorem common_input (hW : SemistableReduction.Statement.StrongComponent.{u})
     | ⟨true⟩ => hj Lv₁ ρ₁
     | ⟨false⟩ => hj Lv₂ ρ₂
   obtain ⟨K', _, _, _, _, hK', hL, hLf, hC, hCf, D, dom, hss, hdomj, hΦ, hdomS, hdom⟩ :=
-    exists_core hW hR Lv.L.B Lv.L.H Lv.L.H.subtype
+    exists_core hW hR hxR Lv.L.B Lv.L.H Lv.L.H.subtype
       (fun a => let ⟨g, hg, h⟩ := Lv.L.surjective a; ⟨⟨g, hg⟩, h⟩) M (Γ₁ × Γ₂) θ
       (ULift.{u} Bool) c₀ j₀ hj₀
   haveI := hdomj
@@ -1349,19 +1352,21 @@ variable (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
 
 /-- **The geometric input for Theorem A** from W10, with base changes as admissible refinements. -/
 theorem andreInput (hW : SemistableReduction.Statement.StrongComponent.{u})
-    (hR : ringKrullDim R = 1) :
+    (hR : ringKrullDim R = 1)
+    (hxR : ∃ x : R, (Polynomial.aeval (R := K) x).toRingHom.Finite) :
     AndreInput O R A Ω V hV (fun ℓ => ℓ.IsBaseChange Ω) where
   bc_id := bc_id_input Ω
   bc_isRefinement := bc_isRefinement_input Ω
   pullback := pullback_input O R A V hV
-  refinement := refinement_input Ω hW hR
-  common := fun ℓ₁ ℓ₂ u h₁ h₂ => common_input Ω hW hR ℓ₁ ℓ₂ u h₁ h₂
+  refinement := refinement_input Ω hW hR hxR
+  common := fun ℓ₁ ℓ₂ u h₁ h₂ => common_input Ω hW hR hxR ℓ₁ ℓ₂ u h₁ h₂
 
 /-- **Theorem A** (Blueprint §10.1), from W10: the tempered fundamental group is André's group. -/
 def andreEquiv (hW : SemistableReduction.Statement.StrongComponent.{u})
-    (hR : ringKrullDim R = 1) :
+    (hR : ringKrullDim R = 1)
+    (hxR : ∃ x : R, (Polynomial.aeval (R := K) x).toRingHom.Finite) :
     temperedPi1 O R A V hV ≃ₜ* andreGroup O R A V hV :=
-  andreEquivOfInput (andreInput V hV hW hR)
+  andreEquivOfInput (andreInput V hV hW hR hxR)
 
 end Main
 
