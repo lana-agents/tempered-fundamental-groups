@@ -120,11 +120,13 @@ lemma not_isField_range (j : J) :
 
 variable [Fintype J]
 
+omit [Fintype J] in
 /-- **Every closed point is a centre**: a maximal ideal of `Λ` is the centre of a place of some
 component. -/
-lemma exists_center_eq (𝔫 : Ideal Λ) [h𝔫 : 𝔫.IsMaximal] :
+lemma exists_center_eq [Finite J] (𝔫 : Ideal Λ) [h𝔫 : 𝔫.IsMaximal] :
     ∃ (j : J) (Q : CurvePlace k (κ j)) (hQ : z j ∈ Q.V), center hΛ Q hQ = 𝔫 := by
   classical
+  haveI := Fintype.ofFinite J
   -- a component whose kernel lies in `𝔫`
   obtain ⟨j, hj⟩ : ∃ j, RingHom.ker ((Pi.evalRingHom κ j).comp Λ.subtype) ≤ 𝔫 := by
     by_contra h
@@ -454,6 +456,13 @@ theorem mem_of_forall_mem_sup {σ : Π j, κ j} (hσ : σ ∈ Λ) (hσ0 : ∀ j,
   obtain ⟨s, hs, hsv⟩ := hloc' 𝔪 h𝔪p
   exact absurd (hle hsv) hs
 
+variable (k κ) in
+/-- The local `δ`-invariant (at jet order `M`) of the closed point `𝔫` of the chart:
+`dim regAt(B) / (Ō_𝔫 + K_M(B))` for the branches `B` of `𝔫`. -/
+noncomputable def delta (σ : Π j, κ j) (𝔫 : Ideal Λ) (M : ℕ) : ℕ :=
+  Module.finrank k (regAt k κ (branches hΛ σ 𝔫) ⧸
+    (locSpace k 𝔫 ⊔ jetKer k κ M (branches hΛ σ 𝔫)).comap (regAt k κ (branches hΛ σ 𝔫)).subtype)
+
 section Count
 
 omit [IsAlgClosed k] [∀ j, IsCurveFunctionField k (κ j)] [∀ j, Algebra k (κ j)] hΛ [Fintype J]
@@ -483,15 +492,68 @@ theorem finrank_le_finrank_add_sum {U : Type*} [AddCommGroup U] [Module k U]
     rwa [Submodule.finrank_map_subtype_eq] at this
   omega
 
+/-- `finrank_le_finrank_add_sum` with two families of local maps. -/
+theorem finrank_le_finrank_add_sum₂ {U : Type*} [AddCommGroup U] [Module k U]
+    (W H : Submodule k U) [FiniteDimensional k W] (hHW : H ≤ W)
+    {ι₁ ι₂ : Type*} [Fintype ι₁] [Fintype ι₂]
+    {Q₁ : ι₁ → Type*} [∀ p, AddCommGroup (Q₁ p)] [∀ p, Module k (Q₁ p)]
+    [∀ p, FiniteDimensional k (Q₁ p)] {Q₂ : ι₂ → Type*} [∀ p, AddCommGroup (Q₂ p)]
+    [∀ p, Module k (Q₂ p)] [∀ p, FiniteDimensional k (Q₂ p)]
+    (φ₁ : ∀ p, W →ₗ[k] Q₁ p) (φ₂ : ∀ p, W →ₗ[k] Q₂ p)
+    (hker : ∀ v : W, (∀ p, φ₁ p v = 0) → (∀ p, φ₂ p v = 0) → (v : U) ∈ H) :
+    Module.finrank k W ≤ Module.finrank k H + ∑ p, Module.finrank k (Q₁ p) +
+      ∑ p, Module.finrank k (Q₂ p) := by
+  classical
+  haveI : FiniteDimensional k H := Submodule.finiteDimensional_of_le hHW
+  set Φ := (LinearMap.pi φ₁).prod (LinearMap.pi φ₂)
+  have h1 := LinearMap.finrank_range_add_finrank_ker Φ
+  have h2 : Module.finrank k (LinearMap.range Φ) ≤
+      ∑ p, Module.finrank k (Q₁ p) + ∑ p, Module.finrank k (Q₂ p) := by
+    rw [← Module.finrank_pi_fintype, ← Module.finrank_pi_fintype, ← Module.finrank_prod]
+    exact Submodule.finrank_le _
+  have h3 : Module.finrank k (LinearMap.ker Φ) ≤ Module.finrank k H := by
+    have hle : (LinearMap.ker Φ).map W.subtype ≤ H := by
+      rintro _ ⟨v, hv, rfl⟩
+      have hv' := LinearMap.mem_ker.1 hv
+      refine hker v (fun p ↦ ?_) (fun p ↦ ?_)
+      · have := congrFun (congrArg Prod.fst hv') p
+        simpa [Φ] using this
+      · have := congrFun (congrArg Prod.snd hv') p
+        simpa [Φ] using this
+    have := Submodule.finrank_mono hle
+    rwa [Submodule.finrank_map_subtype_eq] at this
+  omega
+
+/-- `finrank_le_finrank_add_sum₂` for quotients of submodules. -/
+theorem finrank_le_finrank_add_sum_quot {U : Type*} [AddCommGroup U] [Module k U]
+    (W H : Submodule k U) [FiniteDimensional k W] (hHW : H ≤ W)
+    {ι₁ ι₂ : Type*} [Fintype ι₁] [Fintype ι₂]
+    (A₁ : ι₁ → Submodule k U) (B₁ : ∀ p, Submodule k (A₁ p))
+    (hfin₁ : ∀ p, FiniteDimensional k (A₁ p ⧸ B₁ p))
+    (A₂ : ι₂ → Submodule k U) (B₂ : ∀ p, Submodule k (A₂ p))
+    (hfin₂ : ∀ p, FiniteDimensional k (A₂ p ⧸ B₂ p))
+    (φ₁ : ∀ p, W →ₗ[k] A₁ p) (φ₂ : ∀ p, W →ₗ[k] A₂ p)
+    (hker : ∀ v : W, (∀ p, φ₁ p v ∈ B₁ p) → (∀ p, φ₂ p v ∈ B₂ p) → (v : U) ∈ H) :
+    Module.finrank k W ≤ Module.finrank k H + ∑ p, Module.finrank k (A₁ p ⧸ B₁ p) +
+      ∑ p, Module.finrank k (A₂ p ⧸ B₂ p) :=
+  haveI := hfin₁
+  haveI := hfin₂
+  finrank_le_finrank_add_sum₂ W H hHW (fun p ↦ (B₁ p).mkQ.comp (φ₁ p))
+    (fun p ↦ (B₂ p).mkQ.comp (φ₂ p)) fun v h₁ h₂ ↦ hker v
+      (fun p ↦ (Submodule.Quotient.mk_eq_zero _).1 (h₁ p))
+      (fun p ↦ (Submodule.Quotient.mk_eq_zero _).1 (h₂ p))
+
 end Count
 
 section Jets
 
 omit hΛ
 
+omit [Fintype J] in
 /-- `regAt S` modulo `K_M` is finite-dimensional when all branches of `S` contain `z`: jets are
 realized by elements of `Π_j L(n (z_j)_∞)`. -/
-theorem finiteDimensional_regAt_quot (hz : ∀ j, Transcendental k (z j)) {S : Finset (Branch k κ)}
+theorem finiteDimensional_regAt_quot [Finite J] (hz : ∀ j, Transcendental k (z j))
+    {S : Finset (Branch k κ)}
     (hS : ∀ b ∈ S, z b.1 ∈ b.2.V) (M : ℕ) (O : Submodule k (Π j, κ j)) :
     FiniteDimensional k (regAt k κ S ⧸ (O ⊔ jetKer k κ M S).comap (regAt k κ S).subtype) := by
   classical

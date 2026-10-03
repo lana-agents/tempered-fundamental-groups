@@ -34,6 +34,7 @@ local notation "𝓀" => ResidueField (HenselComplete.integers C)
 attribute [local instance] isCurveFunctionField_F isCurveFunctionField
   DiscreteCoefficients.isAlgClosed_residueField
 
+omit [Algebra C F] [IsScalarTower C (RatFunc C) F] in
 /-- **Surjectivity of the reduction** onto `Π_w κ(w)` (orthonormal basis with residues, G6.3). -/
 theorem exists_red_eq
     (hsum : ∑ w : Ext C F, inertiaDeg (gauss1 C) w.1 = Module.finrank (RatFunc C) F)
@@ -96,7 +97,7 @@ section Chart
 variable {ζ : RatFunc C} (hζ : IsCoord F ζ)
 include hζ
 
-omit [FiniteDimensional (RatFunc C) F] in
+omit [FiniteDimensional (RatFunc C) F] [IsAlgClosed C] in
 /-- The reduced chart ring is an affine chart, given G6.5 for the coordinate. -/
 theorem isChart_redRing
     (hle : ∀ a ∈ intRing C F (algebraMap (RatFunc C) F ζ), ∀ (w : Ext C F)
@@ -105,12 +106,13 @@ theorem isChart_redRing
     IsChart 𝓀 (fun w : Ext C F ↦ red C (algebraMap (RatFunc C) F ζ) w)
       (redRing C F (algebraMap (RatFunc C) F ζ)) where
   const c := algebraMap_mem_redRing _ c
-  mem := red_mem_redRing (by simpa using aeval_coord_mem_intRing hζ (P := X) (by simp [sup_X]))
+  mem := red_mem_redRing (by simpa using aeval_coord_mem_intRing hζ (P := X) (by simp))
   le := by
     rintro _ ⟨a, ha, rfl⟩ w Q hQ
     exact hle a ha w Q hQ
   tr w := transcendental_red_coord hζ w
 
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F] in
 /-- Polynomials in `z̄` lie in the reduced chart ring. -/
 lemma aeval_red_mem_redRing (P : 𝓀[X]) :
     (fun w : Ext C F ↦ aeval (red C (algebraMap (RatFunc C) F ζ) w) P) ∈
@@ -205,6 +207,194 @@ theorem exists_conductor
   exact mul_mem (aeval_red_mem_redRing hζ _) (hμ p)
 
 end Chart
+
+section PiRR
+
+omit [Fintype (Ext C F)] in
+lemma piRR_mem_V {m : ℕ} {v : Π w : Ext C F, ResidueField w.1.valuationSubring}
+    (hv : v ∈ piRR C F m) (w : Ext C F) (Q : CurvePlace 𝓀 (ResidueField w.1.valuationSubring))
+    (hQ : red C (xF C F) w ∈ Q.V) : v w ∈ Q.V := by
+  have := hv w trivial Q
+  rw [Finsupp.smul_apply, poleDivisor_apply, Q.poleOrder_eq_zero_iff.2 hQ] at this
+  simp only [Nat.cast_zero, smul_zero, exp_zero] at this
+  exact Q.valuation_le_one_iff.1 this
+
+omit [Fintype (Ext C F)] in
+lemma piRR_mem_V_inv {m : ℕ} {v : Π w : Ext C F, ResidueField w.1.valuationSubring}
+    (hv : v ∈ piRR C F m) (w : Ext C F) (Q : CurvePlace 𝓀 (ResidueField w.1.valuationSubring))
+    (hQ : red C (xF C F)⁻¹ w ∈ Q.V) : red C (xF C F)⁻¹ w ^ m * v w ∈ Q.V := by
+  rw [red_inv_xF] at hQ ⊢
+  by_cases hx : red C (xF C F) w ∈ Q.V
+  · exact mul_mem (pow_mem hQ _) (piRR_mem_V hv w Q hx)
+  · rw [← Q.valuation_le_one_iff, map_mul, map_pow, map_inv₀, Q.valuation_eq_exp_poleOrder hx]
+    have := hv w trivial Q
+    rw [Finsupp.smul_apply, poleDivisor_apply, nsmul_eq_mul] at this
+    calc (exp (Q.poleOrder (red C (xF C F) w) : ℤ))⁻¹ ^ m * Q.valuation (v w) ≤
+        (exp (Q.poleOrder (red C (xF C F) w) : ℤ))⁻¹ ^ m *
+          exp ((m : ℤ) * Q.poleOrder (red C (xF C F) w)) := by gcongr
+      _ = 1 := by
+        rw [← exp_neg, ← exp_nsmul, ← exp_add, nsmul_eq_mul]
+        ring_nf
+        exact exp_zero
+
+end PiRR
+
+section Main
+
+variable {ι : Type*} [Fintype ι] {b : Module.Basis ι (RatFunc C) F}
+  (hb : ∀ φ : ι → RatFunc C, gnorm C (∑ i, φ i • b i) = Finset.univ.sup fun i ↦ gauss1 C (φ i))
+  (hsum : ∑ w : Ext C F, inertiaDeg (gauss1 C) w.1 = Module.finrank (RatFunc C) F)
+include hb
+
+/-- The reduced chart at `0` is an affine chart. -/
+theorem isChart_x :
+    IsChart 𝓀 (fun w : Ext C F ↦ red C (xF C F) w) (redRing C F (xF C F)) :=
+  isChart_redRing isCoord_X fun _ ha w Q hQ ↦
+    red_mem_of_isIntegral hb ha.2 ha.1 w Q.V Q.algebraMap_mem hQ
+
+/-- The reduced chart at `∞` is an affine chart. -/
+theorem isChart_x_inv :
+    IsChart 𝓀 (fun w : Ext C F ↦ red C (xF C F)⁻¹ w) (redRing C F (xF C F)⁻¹) := by
+  have h := isChart_redRing (isCoord_X_inv (C := C) (F := F)) fun a ha w Q hQ ↦ by
+    rw [algebraMap_X_inv] at ha hQ
+    exact red_mem_of_isIntegral_inv hb ha.2 ha.1 w Q.V Q.algebraMap_mem hQ
+  rwa [algebraMap_X_inv] at h
+
+include hsum in
+lemma exists_conductor_x : ∃ σ ∈ redRing C F (xF C F), (∀ w, σ w ≠ 0) ∧
+    ∀ v ∈ regRing 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring)
+      (fun w : Ext C F ↦ red C (xF C F) w), σ * v ∈ redRing C F (xF C F) :=
+  exists_conductor isCoord_X hsum (isChart_x hb)
+
+include hsum in
+lemma exists_conductor_x_inv : ∃ σ ∈ redRing C F (xF C F)⁻¹, (∀ w, σ w ≠ 0) ∧
+    ∀ v ∈ regRing 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring)
+      (fun w : Ext C F ↦ red C (xF C F)⁻¹ w), σ * v ∈ redRing C F (xF C F)⁻¹ := by
+  have h := exists_conductor (isCoord_X_inv (C := C) (F := F)) hsum (by
+    rw [algebraMap_X_inv]; exact isChart_x_inv hb)
+  rwa [algebraMap_X_inv] at h
+
+set_option maxHeartbeats 1000000 in
+-- the dimension count over the closed points of both charts elaborates slowly
+open Classical in
+include hsum in
+/-- **The genus formula, upper bound by local `δ`-invariants** (S7⁺.7): there are conductor
+elements `σ₀`, `σ_∞` of the two reduced charts such that for `M ≫ 0`,
+`g(F) + #{w} - 1 ≤ Σ_w g(κ(w)) + Σ_y δ_y^{(M)}`, where `y` runs over the closed points of the
+chart at `0` containing `σ₀` and the closed points of the chart at `∞` over `x̄ = ∞` containing
+`σ_∞` (every closed point with `δ_y ≠ 0` is among them). -/
+theorem exists_genus_le_sum_delta [CharZero C] :
+    ∃ σ₀ ∈ redRing C F (xF C F), ∃ σi ∈ redRing C F (xF C F)⁻¹, ∃ M₀ : ℕ, ∀ M : ℕ, M₀ ≤ M →
+      (genus C F : ℤ) + Fintype.card (Ext C F) - 1 ≤
+        (∑ w : Ext C F, (genus 𝓀 (ResidueField w.1.valuationSubring) : ℤ)) +
+        (∑ y ∈ points (isChart_x hb) σ₀,
+          (delta 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) (isChart_x hb) σ₀ y M
+            : ℤ)) +
+        ∑ y ∈ (points (isChart_x_inv hb) σi).filter
+            (fun y ↦ (⟨_, (isChart_x_inv hb).mem⟩ : redRing C F (xF C F)⁻¹) ∈ y),
+          (delta 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) (isChart_x_inv hb) σi
+            y M : ℤ) := by
+  classical
+  set hΛ₀ := isChart_x hb
+  set hΛi := isChart_x_inv hb
+  obtain ⟨σ₀, hσ₀, hσ₀0, hσ₀c⟩ := exists_conductor_x hb hsum
+  obtain ⟨σi, hσi, hσi0, hσic⟩ := exists_conductor_x_inv hb hsum
+  obtain ⟨M₁, hM₁⟩ := mem_of_forall_mem_sup hΛ₀ hσ₀ hσ₀0 hσ₀c
+  obtain ⟨M₂, hM₂⟩ := mem_of_forall_mem_sup hΛi hσi hσi0 hσic
+  obtain ⟨m, hm⟩ := genus_add_card_sub_one_eq hb hsum
+  obtain ⟨hHW, hgen⟩ := hm m le_rfl
+  refine ⟨σ₀, hσ₀, σi, hσi, max M₁ M₂, fun M hM ↦ ?_⟩
+  set W := piRR C F m
+  set H := secSpace C F m
+  set Y₀ := points hΛ₀ σ₀
+  set Yi := (points hΛi σi).filter
+    (fun y ↦ (⟨_, hΛi.mem⟩ : redRing C F (xF C F)⁻¹) ∈ y)
+  -- the local quotients
+  let A₀ (y : Y₀) := regAt 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring)
+    (branches hΛ₀ σ₀ y.1)
+  let Ai (y : Yi) := regAt 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring)
+    (branches hΛi σi y.1)
+  let B₀ (y : Y₀) : Submodule 𝓀 (A₀ y) :=
+    (locSpace 𝓀 y.1 ⊔ jetKer 𝓀 _ M (branches hΛ₀ σ₀ y.1)).comap (A₀ y).subtype
+  let Bi (y : Yi) : Submodule 𝓀 (Ai y) :=
+    (locSpace 𝓀 y.1 ⊔ jetKer 𝓀 _ M (branches hΛi σi y.1)).comap (Ai y).subtype
+  have hne₀ (y : Y₀) : y.1 ≠ ⊤ := (isMaximal_of_mem_points hΛ₀ y.2).ne_top
+  have hnei (y : Yi) : y.1 ≠ ⊤ :=
+    (isMaximal_of_mem_points hΛi (Finset.mem_filter.1 y.2).1).ne_top
+  have hfin₀ (y : Y₀) : FiniteDimensional 𝓀 (A₀ y ⧸ B₀ y) :=
+    finiteDimensional_regAt_quot hΛ₀.tr (fun b hb ↦ mem_V_of_mem_branches hΛ₀ (hne₀ y) hb) M _
+  have hfini (y : Yi) : FiniteDimensional 𝓀 (Ai y ⧸ Bi y) :=
+    finiteDimensional_regAt_quot hΛi.tr (fun b hb ↦ mem_V_of_mem_branches hΛi (hnei y) hb) M _
+  -- the local maps
+  have hW₀ (y : Y₀) : W ≤ A₀ y := fun v hv b hb ↦
+    piRR_mem_V hv b.1 b.2 (mem_V_of_mem_branches hΛ₀ (hne₀ y) hb)
+  let mi : (Π w : Ext C F, ResidueField w.1.valuationSubring) →ₗ[𝓀]
+      (Π w : Ext C F, ResidueField w.1.valuationSubring) :=
+    { toFun := fun v w ↦ red C (xF C F)⁻¹ w ^ m * v w
+      map_add' := fun v v' ↦ funext fun w ↦ mul_add _ _ _
+      map_smul' := fun c v ↦ funext fun w ↦ by
+        change red C (xF C F)⁻¹ w ^ m * (c • v w) = c • (red C (xF C F)⁻¹ w ^ m * v w)
+        rw [Algebra.smul_def, Algebra.smul_def]
+        ring }
+  have hmi (v : Π w : Ext C F, ResidueField w.1.valuationSubring) :
+      mi v = fun w ↦ red C (xF C F)⁻¹ w ^ m * v w := rfl
+  have hWi (y : Yi) (v : W) : mi v ∈ Ai y := fun b hb ↦ by
+    rw [hmi]
+    exact piRR_mem_V_inv v.2 b.1 b.2 (mem_V_of_mem_branches hΛi (hnei y) hb)
+  let φ₀ (y : Y₀) : W →ₗ[𝓀] A₀ y := Submodule.inclusion (hW₀ y)
+  let φi (y : Yi) : W →ₗ[𝓀] Ai y := LinearMap.codRestrict _ (mi.comp W.subtype) (hWi y)
+  -- the kernel lies in `H`
+  have hker (v : W) (h₀ : ∀ y, φ₀ y v ∈ B₀ y) (hi : ∀ y, φi y v ∈ Bi y) :
+      (v : Π w : Ext C F, ResidueField w.1.valuationSubring) ∈ H := by
+    have hv := v.2
+    have hv₀ : (v : Π w : Ext C F, ResidueField w.1.valuationSubring) ∈
+        regRing 𝓀 _ (fun w : Ext C F ↦ red C (xF C F) w) := fun w Q hQ ↦ piRR_mem_V hv w Q hQ
+    have hvΛ : (v : Π w : Ext C F, ResidueField w.1.valuationSubring) ∈ redRing C F (xF C F) :=
+      hM₁ M (le_of_max_le_left hM) _ hv₀ fun y hy ↦ by
+        exact h₀ ⟨y, hy⟩
+    let u := mi v
+    have hu : u ∈ regRing 𝓀 _ (fun w : Ext C F ↦ red C (xF C F)⁻¹ w) := fun w Q hQ ↦ by
+      change red C (xF C F)⁻¹ w ^ m * (v : Π w : Ext C F, ResidueField w.1.valuationSubring) w ∈ Q.V
+      exact piRR_mem_V_inv hv w Q hQ
+    obtain ⟨a, ha, hav⟩ := hvΛ
+    obtain ⟨D, hD⟩ := exists_pow_mul_mem_intRing_x_inv ha
+    have huΛ : u ∈ redRing C F (xF C F)⁻¹ := hM₂ M (le_of_max_le_right hM) u hu fun y hy ↦ by
+      by_cases hz : (⟨_, hΛi.mem⟩ : redRing C F (xF C F)⁻¹) ∈ y
+      · exact hi ⟨y, Finset.mem_filter.2 ⟨hy, hz⟩⟩
+      · refine Submodule.mem_sup_left (subset_locSpace (k := 𝓀) y ⟨⟨_, hΛi.mem⟩ ^ D, ?_, ?_⟩)
+        · haveI := (isMaximal_of_mem_points hΛi hy).isPrime
+          exact fun h ↦ hz (Ideal.IsPrime.mem_of_pow_mem inferInstance D h)
+        · have hmem : (fun w ↦ red C ((xF C F)⁻¹ ^ m) w) *
+              (fun w ↦ red C ((xF C F)⁻¹ ^ D * a) w) ∈ redRing C F (xF C F)⁻¹ :=
+            mul_mem (red_mem_redRing (pow_mem_intRing_x_inv m)) (red_mem_redRing hD)
+          convert hmem using 1
+          funext w
+          have hxw : w.1 (xF C F)⁻¹ ≤ 1 := (valuation_xF_inv w).le
+          have haw : w.1 a ≤ 1 := (le_gnorm w a).trans ha.2
+          have hxDw : w.1 ((xF C F)⁻¹ ^ D) ≤ 1 := by
+            rw [map_pow]; exact pow_le_one₀ zero_le hxw
+          simp only [Pi.mul_apply, SubmonoidClass.coe_pow, Pi.pow_apply, u, hmi, ← hav]
+          rw [red_pow hxw, red_mul hxDw haw, red_pow hxw]
+          ring
+    refine ⟨⟨a, ha, hav⟩, u, huΛ, fun w ↦ ?_⟩
+    have hx0 : red C (xF C F) w ≠ 0 := fun h ↦ transcendental_red_x w (h ▸ isAlgebraic_zero)
+    simp only [u, hmi, red_inv_xF]
+    rw [← mul_assoc, ← mul_pow, mul_inv_cancel₀ hx0, one_pow, one_mul]
+  have hcount := finrank_le_finrank_add_sum_quot W H hHW A₀ B₀ hfin₀ Ai Bi hfini φ₀ φi hker
+  rw [hgen]
+  clear hker hgen hHW
+  have e₀ : ∑ y : Y₀, Module.finrank 𝓀 (A₀ y ⧸ B₀ y) =
+      ∑ y ∈ Y₀, delta 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) hΛ₀ σ₀ y M :=
+    Finset.sum_coe_sort Y₀ (fun y ↦ delta 𝓀 _ hΛ₀ σ₀ y M)
+  have ei : ∑ y : Yi, Module.finrank 𝓀 (Ai y ⧸ Bi y) =
+      ∑ y ∈ Yi, delta 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) hΛi σi y M :=
+    Finset.sum_coe_sort Yi (fun y ↦ delta 𝓀 _ hΛi σi y M)
+  rw [e₀, ei] at hcount
+  have key := (Nat.cast_le (α := ℤ)).2 hcount
+  push_cast at key
+  linarith
+
+end Main
 
 end GaussFibre
 
