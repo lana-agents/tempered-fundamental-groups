@@ -1359,9 +1359,11 @@ points of a finitely generated subalgebra), after which W6 holds over `K̄`; `Di
 
 | # | Obligation | Discharged by | Status |
 |---|---|---|---|
-| O1 | R4's interim **exact node data** hypothesis (`u v = γ`, `σ x = e u^d`, `ord_{Q₁} ū = 1` at points over the node) | (a1): S7(b)/S7.9 descent to `IsOrdinaryDoublePoint` over `O_E` + `NodeDeformation.exists_node`, under `DefinedOverDVR F'` | open |
+| O1 | R4's interim **exact node data** hypothesis (`u v = γ`, `σ x = e u^d`, `ord_{Q₁} ū = 1` at points over the node) | (a1): S7(b)/S7.9 descent to `IsOrdinaryDoublePoint` over `O_E` + `NodeDeformation.exists_node`, under `DefinedOverDVR F'` — owner: W8′ agent (`wp-tempered-o1`) | open |
 | O2 | `DefinedOverDVR` passes to intermediate fields of the Galois closure | R4 step 3 | open |
-| O5 | S7⁺.8: identification of the normalized `P¹_t`-model with the Gauss-tree model `𝒳'_V` when `t⁻¹(η) = V` (and existence of such `t`), unless R5 is restated on `t`-models | S7⁺ / S8.5 | open |
+| O5 | S7⁺.8: identification of the normalized `P¹_t`-model with the Gauss-tree model `𝒳'_V` when `t⁻¹(η) = V` (and existence of such `t`), unless R5 is restated on `t`-models | S7⁺ (after S7⁺.7); needed by S8.A (global induction: `h(V) > 0 ⇒ δ > 0` somewhere on `𝒳'_V`), **not** by R5 (R5 runs on the two local `t`-models `P¹_s`, `P¹_{s + c'/s}`) | open |
 | O3 | `IsUnfolded` output of `Statement.StrongComponent` | W9/M9c (`IsWModelOf`) + W7 (c) | open |
+| O6 | S8.A (AW global improvement induction on Gauss trees) | S7 agent after S7.5 | open |
+| O7 | W10 assembly `W7.Statement → Statement.StrongComponent` (minimized to Theorem A's consumption; D3e, S9 over `O_{K'}`, M9, actions, domination, component and Tate-loop clauses) | André agent (`wp-tempered-w10`) | open |
 | O4 | §9.11: C0, `no_split` over algebraically closed `C`, `DiscGerm` over `Ĉ`; `CompleteSpace C` removed from the targeted chain | `cbridge` | open |
 
