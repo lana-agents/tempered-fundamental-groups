@@ -74,4 +74,33 @@ def IsNodeOfThickness (ϖ : O) (c : TemperedFundamentalGroups.ModelCode O) (x : 
     (n : ℕ) : Prop :=
   IsNodePt c x ∧ IsEtaleLocallyAtPt (_root_.SemistableReduction.Node O (ϖ ^ n)) c x
 
+theorem isClosed_Z (c : TemperedFundamentalGroups.ModelCode O) : IsClosed (Z c) :=
+  (IsLocalRing.isClosed_singleton_closedPoint O).preimage c.toSpec.continuous
+
+/-- The generic fibre: the complement of the special fibre, as an open subscheme. -/
+def genericOpen (c : TemperedFundamentalGroups.ModelCode O) : c.scheme.Opens :=
+  ⟨(Z c)ᶜ, (isClosed_Z c).isOpen_compl⟩
+
+/-- The node point `x` **joins** the components `v` and `w` (an edge of the dual graph between
+`v` and `w`): `x ∈ v ∩ w`, and if `v = w` then `x` lies on no other component (a self-loop). -/
+def Joins (c : TemperedFundamentalGroups.ModelCode O) (x : c.scheme) (v w : Set c.scheme) :
+    Prop :=
+  IsNodePt c x ∧ x ∈ v ∧ x ∈ w ∧ (v ≠ w ∨ ∀ v' ∈ components c, x ∈ v' → v' = v)
+
+/-- A **walk** in the dual graph: components `v 0, …, v k` and node points `x 0, …, x (k-1)`,
+`x i` joining `v i` and `v (i+1)`. -/
+structure Walk (c : TemperedFundamentalGroups.ModelCode O) where
+  /-- The number of edges. -/
+  k : ℕ
+  /-- The components. -/
+  v : Fin (k + 1) → Set c.scheme
+  /-- The edges (node points). -/
+  x : Fin k → c.scheme
+  mem_components : ∀ i, v i ∈ components c
+  joins : ∀ i : Fin k, Joins c (x i) (v i.castSucc) (v i.succ)
+
+/-- A walk is a **cycle** if it is closed, nonempty and uses each node at most once. -/
+def Walk.IsCycle {c : TemperedFundamentalGroups.ModelCode O} (w : Walk c) : Prop :=
+  1 ≤ w.k ∧ w.v 0 = w.v (Fin.last w.k) ∧ Function.Injective w.x
+
 end TemperedFundamentalGroups.SemistableReduction.ModelCode

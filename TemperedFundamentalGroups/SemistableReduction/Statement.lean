@@ -193,4 +193,50 @@ def Statement.Harmonic : Prop :=
       (∀ v' ∈ ModelCode.components c', ψ '' v' ∈ ModelCode.components c) ∧
       (∀ x' : c'.scheme, ModelCode.IsNodePt c (ψ x') → ModelCode.IsNodePt c' x')
 
+/-- A component `v` of a model `c'` is **contracted** by `ψ : c' ⟶ c` if it maps to a point. -/
+def ModelCode.IsContracted {O : Type u} [CommRing O] {c c' : TemperedFundamentalGroups.ModelCode O}
+    (ψ : c'.scheme ⟶ c.scheme) (v : Set c'.scheme) : Prop :=
+  ∃ y, ψ '' v = {y}
+
+/-- A walk in the dual graph of `c'` **crosses** the point `x` of `c` along `ψ : c' ⟶ c`: it
+starts and ends on non-contracted components, its inner components are contracted to `x`, its
+nodes lie over `x`, and it uses each node at most once. -/
+def ModelCode.Walk.IsCrossing {O : Type u} [CommRing O] [IsLocalRing O]
+    {c c' : TemperedFundamentalGroups.ModelCode O} (ψ : c'.scheme ⟶ c.scheme) (x : c.scheme)
+    (w : ModelCode.Walk c') : Prop :=
+  1 ≤ w.k ∧ Function.Injective w.x ∧ ¬ ModelCode.IsContracted ψ (w.v 0) ∧
+    ¬ ModelCode.IsContracted ψ (w.v (Fin.last w.k)) ∧
+    (∀ i : Fin (w.k + 1), i ≠ 0 → i ≠ Fin.last w.k → ψ '' w.v i = {x}) ∧
+    (∀ i, ψ (w.x i) = x)
+
+/-- **W8′(b′): modifications of semistable models** (Blueprint §9.7, §10.3; consumed by
+Theorem B). Let `O` be a discrete valuation ring with separably closed residue field and
+uniformizer `ϖ`, `c`, `c'` semistable projective `O`-models and `ψ : c' ⟶ c` a morphism over
+`O` which is an isomorphism over the generic fibre. Then:
+* (forest) the components of `c'` contracted to a point `x` contain no cycle of the dual graph;
+* (node chains) over a node `x` of thickness `n`, `ψ⁻¹(x)` is connected, some walk crosses `x`,
+  and the thicknesses of the nodes of every walk crossing `x` sum to `n`;
+* every non-contracted component maps onto a component, and a node all of whose components are
+  non-contracted maps to a node of the same thickness.
+
+(Over a non-separably-closed residue field the dual graph read off on the special fibre is not the
+geometric one: a non-split node is a self-loop, and the chain clause fails.) -/
+def Statement.Modification : Prop :=
+  ∀ (O : Type u) [CommRing O] [IsDomain O] [IsDiscreteValuationRing O]
+    [IsSepClosed (IsLocalRing.ResidueField O)] (ϖ : O) (_ : Irreducible ϖ)
+    (c c' : TemperedFundamentalGroups.ModelCode O) (ψ : c'.scheme ⟶ c.scheme),
+    ψ ≫ c.toSpec = c'.toSpec → IsIso (ψ ∣_ ModelCode.genericOpen c) →
+    ModelCode.IsSemistable ϖ c → ModelCode.IsSemistable ϖ c' →
+      (∀ (x : c.scheme) (w : ModelCode.Walk c'), w.IsCycle →
+        ¬ ∀ i, ψ '' w.v i = {x}) ∧
+      (∀ (x : c.scheme) (n : ℕ), ModelCode.IsNodeOfThickness ϖ c x n →
+        _root_.IsConnected (ψ ⁻¹' {x}) ∧ (∃ w : ModelCode.Walk c', w.IsCrossing ψ x) ∧
+        ∀ w : ModelCode.Walk c', w.IsCrossing ψ x → ∀ t : Fin w.k → ℕ,
+          (∀ i, ModelCode.IsNodeOfThickness ϖ c' (w.x i) (t i)) → ∑ i, t i = n) ∧
+      (∀ v' ∈ ModelCode.components c',
+        ModelCode.IsContracted ψ v' ∨ ψ '' v' ∈ ModelCode.components c) ∧
+      (∀ (x' : c'.scheme) (n' : ℕ), ModelCode.IsNodeOfThickness ϖ c' x' n' →
+        (∀ v' ∈ ModelCode.components c', x' ∈ v' → ¬ ModelCode.IsContracted ψ v') →
+          ModelCode.IsNodeOfThickness ϖ c (ψ x') n')
+
 end TemperedFundamentalGroups.SemistableReduction
