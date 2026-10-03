@@ -543,6 +543,54 @@ theorem finrank_le_finrank_add_sum_quot {U : Type*} [AddCommGroup U] [Module k U
       (fun p ↦ (Submodule.Quotient.mk_eq_zero _).1 (h₁ p))
       (fun p ↦ (Submodule.Quotient.mk_eq_zero _).1 (h₂ p))
 
+/-- **Codimension at least the local defects**: if the local maps `W → A_p / B_p` are jointly
+surjective and kill `H ≤ W`, then `dim H + Σ_p dim A_p/B_p ≤ dim W`. -/
+theorem finrank_add_sum_le_of_surj {U : Type*} [AddCommGroup U] [Module k U]
+    (W H : Submodule k U) [FiniteDimensional k W] (hHW : H ≤ W)
+    {ι₁ ι₂ : Type*} [Fintype ι₁] [Fintype ι₂]
+    (A₁ : ι₁ → Submodule k U) (B₁ : ∀ p, Submodule k (A₁ p))
+    (hfin₁ : ∀ p, FiniteDimensional k (A₁ p ⧸ B₁ p))
+    (A₂ : ι₂ → Submodule k U) (B₂ : ∀ p, Submodule k (A₂ p))
+    (hfin₂ : ∀ p, FiniteDimensional k (A₂ p ⧸ B₂ p))
+    (φ₁ : ∀ p, W →ₗ[k] A₁ p) (φ₂ : ∀ p, W →ₗ[k] A₂ p)
+    (hH : ∀ v : W, (v : U) ∈ H → (∀ p, φ₁ p v ∈ B₁ p) ∧ ∀ p, φ₂ p v ∈ B₂ p)
+    (hsurj : ∀ (a₁ : ∀ p, A₁ p) (a₂ : ∀ p, A₂ p), ∃ v : W,
+      (∀ p, φ₁ p v - a₁ p ∈ B₁ p) ∧ ∀ p, φ₂ p v - a₂ p ∈ B₂ p) :
+    Module.finrank k H + ∑ p, Module.finrank k (A₁ p ⧸ B₁ p) +
+      ∑ p, Module.finrank k (A₂ p ⧸ B₂ p) ≤ Module.finrank k W := by
+  classical
+  haveI := hfin₁
+  haveI := hfin₂
+  haveI : FiniteDimensional k H := Submodule.finiteDimensional_of_le hHW
+  set Φ := (LinearMap.pi fun p ↦ (B₁ p).mkQ.comp (φ₁ p)).prod
+    (LinearMap.pi fun p ↦ (B₂ p).mkQ.comp (φ₂ p))
+  have hΦ : Function.Surjective Φ := by
+    rintro ⟨q₁, q₂⟩
+    choose a₁ ha₁ using fun p ↦ Submodule.mkQ_surjective (B₁ p) (q₁ p)
+    choose a₂ ha₂ using fun p ↦ Submodule.mkQ_surjective (B₂ p) (q₂ p)
+    obtain ⟨v, hv₁, hv₂⟩ := hsurj a₁ a₂
+    refine ⟨v, Prod.ext (funext fun p ↦ ?_) (funext fun p ↦ ?_)⟩
+    · change Submodule.Quotient.mk (φ₁ p v) = q₁ p
+      rw [← ha₁ p, Submodule.mkQ_apply, Submodule.Quotient.eq]
+      exact hv₁ p
+    · change Submodule.Quotient.mk (φ₂ p v) = q₂ p
+      rw [← ha₂ p, Submodule.mkQ_apply, Submodule.Quotient.eq]
+      exact hv₂ p
+  have h1 := LinearMap.finrank_range_add_finrank_ker Φ
+  rw [LinearMap.range_eq_top.2 hΦ, finrank_top, Module.finrank_prod, Module.finrank_pi_fintype,
+    Module.finrank_pi_fintype] at h1
+  have h3 : Module.finrank k H ≤ Module.finrank k (LinearMap.ker Φ) := by
+    have hle : H ≤ (LinearMap.ker Φ).map W.subtype := by
+      intro v hv
+      obtain ⟨h₁, h₂⟩ := hH ⟨v, hHW hv⟩ hv
+      refine ⟨⟨v, hHW hv⟩, LinearMap.mem_ker.2 (Prod.ext (funext fun p ↦ ?_)
+        (funext fun p ↦ ?_)), rfl⟩
+      · simpa [Φ, Submodule.Quotient.mk_eq_zero] using h₁ p
+      · simpa [Φ, Submodule.Quotient.mk_eq_zero] using h₂ p
+    have := Submodule.finrank_mono hle
+    rwa [Submodule.finrank_map_subtype_eq] at this
+  omega
+
 end Count
 
 section Jets
