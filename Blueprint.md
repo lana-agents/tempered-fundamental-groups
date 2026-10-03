@@ -756,7 +756,7 @@ existing infrastructure (W4, W5 M6/M7, W6 G6.4–G6.8) is the **tube-degree + δ
 | # | Statement | Inputs | Status | Size |
 |---|---|---|---|---|
 | S1 | **units of a base annulus**: `φ ∈ C(x)ˣ` with no zero/pole of absolute value in `S` is `c xᵐ (1 + g)` with `w_s(g) < 1` for `s ∈ S`; `w_s(φ) = |c| sᵐ` (`IsMonomialOn`, a subgroup) | Gauss lemma, `C` alg. closed | **proved** (`AnnulusUnit`) | 0.15k |
-| S2 | **norm formula**: `w(N_{F'/C(x)} y) = Π_{w' ∣ w} w'(y)^{f(w')}` for a Gauss point `w` (W4: `e = 1`, local degree `= f`); hence `s ↦ Π_{w' ∣ w_s} w'(y)^{f(w')}` is piecewise monomial (S1 applied to `N(y)`), and so is every elementary symmetric function of the multiset `{w'(y)}` (charpoly coefficients; Newton polygon) | `LocalGlobal` (`Local K g`, `toLocal`), `Algebra.norm_eq_prod_embeddings`, `spectralNorm` = function of the minimal polynomial | planned | 0.4k |
+| S2 | **norm formula**: `w(N_{F'/C(x)} y) = Π_{w' ∣ w} w'(y)^{f(w')}` for a Gauss point `w` (W4: `e = 1`, local degree `= f`); hence `s ↦ Π_{w' ∣ w_s} w'(y)^{f(w')}` is piecewise monomial (S1 applied to `N(y)`), and so is every elementary symmetric function of the multiset `{w'(y)}` (charpoly coefficients; Newton polygon) | `LocalGlobal` (`Local K g`, `toLocal`), `Algebra.norm_eq_prod_embeddings`, `spectralNorm` = function of the minimal polynomial | **proved** in the general local–global form (`NormFormula`: `algebraMap_norm_eq_prod` `N(y) = ∏_g N_{Local K g/K}(toLocal g y)` via `embeddingOf_bijective`, `norm_algebraNorm_local`, `norm_algebraMap_norm_eq_prod` `‖N y‖ = ∏_g extValuation g (y)^{deg g}`); the Gauss-point corollary (`deg g = f(w')` by G3) and the charpoly/Newton-polygon version open | 0.4k |
 | S3 | **two directions**: genus `0`, `z ∉ k` with one zero `P` and one pole `Q` ⇒ `κ = k(t)`, `(t) = P − Q`, `z = λ tᵈ`, `d = [κ : k(z)]` | R5–R7 | **proved** (`TwoDirections`) | 0.2k |
 | S4 | **tubes**: valuations of `F'` centred at a closed point `P'` of `𝒳'_V` over a node; the `(u, c/u, ϖ)`-adic completion `\hat R` of the node embeds into `\hat F_{w}` for every `w` in the tube (series converge since `w(u), w(c/u), |ϖ| < 1`); `F' ⊗ Frac \hat R = Π_{P'} \hat F'_{P'}` (idempotents lift, `IsAdicComplete.henselianRing`) | Mathlib `AdicCompletion`, M6 | planned | 1.2k |
 | S5 | **tube degree is constant**: for `w` in the tube, `Σ_{w' ∣ w, w' at P'} e f = [\hat F'_{P'} : Frac \hat R] =: d_{P'}` (B2/B3 applied over `Frac \hat R ⊆ \hat F_w`); in particular the number of extensions and their residue degrees are constant along the open segment once grouped by `P'` (the "piecewise constancy") | S4, W4 | planned | 0.6k |
@@ -771,7 +771,7 @@ S7–S8 are not needed: over the tube, `F'` is a product of Kummer extensions `T
 in normal form S1 (`p ∤ m` after a unit change), so `IsKummerAt` holds and W8's
 `Node.kummer_isIntegralClosure` applies. This covers the pro-`p'` applications.
 
-**Estimate and status.** S1, S3 proved (≈ 0.35k). The remainder ≈ **8–10k lines**, the core being
+**Estimate and status.** S1, S3 and the general form of S2 proved (≈ 0.6k: `AnnulusUnit`, `TwoDirections`, `NormFormula`). The remainder ≈ **8–10k lines**, the core being
 S7–S8 (a valuative local Riemann–Hurwitz formula / the different function of
 Cohen–Temkin–Trushin) and S4–S6 (completed node rings and their decompositions; Mathlib has
 adic completions and Hensel's lemma for adically complete rings, but no henselization). This is

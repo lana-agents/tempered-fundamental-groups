@@ -131,6 +131,40 @@ lemma isMonomialOn_X_sub_C {α : K}
     · rw [Valuation.map_neg, map_div₀, gaussRat_X, gaussRat_algebraMap_C]
       exact (div_lt_one₀ (lt_of_le_of_lt zero_le (hα s hs))).2 (hα s hs)
 
+section AlgClosed
+
+variable [IsAlgClosed K]
+
+/-- A nonzero polynomial whose roots avoid the radii `S` is monomial on `S`. -/
+theorem isMonomialOn_polynomial {Q : K[X]} (hQ : Q ≠ 0)
+    (hroots : ∀ α ∈ Q.roots, (∀ s ∈ S, v α < (s : Γ₀)) ∨ ∀ s ∈ S, (s : Γ₀) < v α) :
+    IsMonomialOn v S (algebraMap K[X] (RatFunc K) Q) := by
+  have hQ' := C_leadingCoeff_mul_prod_multiset_X_sub_C
+    (IsAlgClosed.card_roots_eq_natDegree (p := Q))
+  rw [← hQ', map_mul, map_multiset_prod, Multiset.map_map]
+  refine IsMonomialOn.mul ?_ (isMonomialOn_prod _ _ fun α hα ↦ ?_)
+  · convert isMonomialOn_C (v := v) (S := S) (leadingCoeff_ne_zero.2 hQ) using 1
+    rw [IsScalarTower.algebraMap_apply K K[X] (RatFunc K), Polynomial.algebraMap_eq]
+  · convert isMonomialOn_X_sub_C (v := v) (S := S) (hroots α hα) using 1
+    simp only [Function.comp_apply, map_sub, RatFunc.algebraMap_X]
+    rw [IsScalarTower.algebraMap_apply K K[X] (RatFunc K), Polynomial.algebraMap_eq]
+
+/-- **Units of an annulus of the base.** A nonzero rational function none of whose zeros and
+poles has absolute value in the range of the radii `S` is monomial on `S`:
+`φ = c Xᵐ (1 + g)` with `w_{0,s}(g) < 1` for all `s ∈ S`. -/
+theorem isMonomialOn_of_roots {φ : RatFunc K} (hφ : φ ≠ 0)
+    (hroots : ∀ α, (α ∈ φ.num.roots ∨ α ∈ φ.denom.roots) →
+      (∀ s ∈ S, v α < (s : Γ₀)) ∨ ∀ s ∈ S, (s : Γ₀) < v α) :
+    IsMonomialOn v S φ := by
+  have hnum : φ.num ≠ 0 := RatFunc.num_ne_zero hφ
+  have hden : algebraMap K[X] (RatFunc K) φ.denom ≠ 0 := by
+    simpa using φ.denom_ne_zero
+  rw [← RatFunc.num_div_denom φ, div_eq_mul_inv]
+  exact (isMonomialOn_polynomial hnum fun α h ↦ hroots α (Or.inl h)).mul
+    ((isMonomialOn_polynomial φ.denom_ne_zero fun α h ↦ hroots α (Or.inr h)).inv hden)
+
+end AlgClosed
+
 end AnnulusUnit
 
 end SemistableReduction
