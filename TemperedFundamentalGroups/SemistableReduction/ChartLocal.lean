@@ -454,6 +454,103 @@ theorem mem_of_forall_mem_sup {σ : Π j, κ j} (hσ : σ ∈ Λ) (hσ0 : ∀ j,
   obtain ⟨s, hs, hsv⟩ := hloc' 𝔪 h𝔪p
   exact absurd (hle hsv) hs
 
+section Count
+
+omit [IsAlgClosed k] [∀ j, IsCurveFunctionField k (κ j)] [∀ j, Algebra k (κ j)] hΛ [Fintype J]
+
+/-- **Codimension bounded by local defects**: if the kernels of finitely many linear maps
+`φ_p : W → Q_p` intersect inside `H ≤ W`, then `dim W ≤ dim H + Σ_p dim Q_p`. -/
+theorem finrank_le_finrank_add_sum {U : Type*} [AddCommGroup U] [Module k U]
+    (W H : Submodule k U) [FiniteDimensional k W] (hHW : H ≤ W) {ι : Type*} [Fintype ι]
+    {Q : ι → Type*} [∀ p, AddCommGroup (Q p)] [∀ p, Module k (Q p)]
+    [∀ p, FiniteDimensional k (Q p)] (φ : ∀ p, W →ₗ[k] Q p)
+    (hker : ∀ v : W, (∀ p, φ p v = 0) → (v : U) ∈ H) :
+    Module.finrank k W ≤ Module.finrank k H + ∑ p, Module.finrank k (Q p) := by
+  classical
+  haveI : FiniteDimensional k H := Submodule.finiteDimensional_of_le hHW
+  set Φ := LinearMap.pi φ
+  have h1 := LinearMap.finrank_range_add_finrank_ker Φ
+  have h2 : Module.finrank k (LinearMap.range Φ) ≤ ∑ p, Module.finrank k (Q p) := by
+    rw [← Module.finrank_pi_fintype]
+    exact Submodule.finrank_le _
+  have h3 : Module.finrank k (LinearMap.ker Φ) ≤ Module.finrank k H := by
+    have hle : (LinearMap.ker Φ).map W.subtype ≤ H := by
+      rintro _ ⟨v, hv, rfl⟩
+      refine hker v fun p ↦ ?_
+      have := congrFun (LinearMap.mem_ker.1 hv) p
+      simpa [Φ] using this
+    have := Submodule.finrank_mono hle
+    rwa [Submodule.finrank_map_subtype_eq] at this
+  omega
+
+end Count
+
+section Jets
+
+omit hΛ
+
+/-- `regAt S` modulo `K_M` is finite-dimensional when all branches of `S` contain `z`: jets are
+realized by elements of `Π_j L(n (z_j)_∞)`. -/
+theorem finiteDimensional_regAt_quot (hz : ∀ j, Transcendental k (z j)) {S : Finset (Branch k κ)}
+    (hS : ∀ b ∈ S, z b.1 ∈ b.2.V) (M : ℕ) (O : Submodule k (Π j, κ j)) :
+    FiniteDimensional k (regAt k κ S ⧸ (O ⊔ jetKer k κ M S).comap (regAt k κ S).subtype) := by
+  classical
+  choose c hc using fun j ↦ CurvePlace.exists_jet (k := k) (κ := κ j)
+  have hzr (j : J) : z j ∉ (algebraMap k (κ j)).range := fun ⟨a, ha⟩ ↦
+    hz j (ha ▸ isAlgebraic_algebraMap a)
+  -- a divisor of large degree vanishing at the branches
+  set S' : (j : J) → Finset (CurvePlace k (κ j)) := fun j ↦
+    S.preimage (fun Q : CurvePlace k (κ j) ↦ (⟨j, Q⟩ : Branch k κ))
+      fun _ _ _ _ h ↦ eq_of_heq (Sigma.mk.inj_iff.1 h).2
+  set n : J → ℕ := fun j ↦ (c j + M * (S' j).card).toNat
+  set D : ∀ j, CurveDivisor k (κ j) := fun j ↦ n j • poleDivisor k (z j)
+  have hdeg (j : J) : c j + M * (S' j).card ≤ (D j).degree := by
+    rw [map_nsmul, degree_poleDivisor (hzr j), nsmul_eq_mul]
+    have h1 : (1 : ℤ) ≤ (Module.finrank (IntermediateField.adjoin k {z j}) (κ j) : ℤ) := by
+      haveI := IsCurveFunctionField.finiteDimensional_adjoin (k := k) (hz j)
+      exact_mod_cast Module.finrank_pos
+    have h2 := Int.self_le_toNat (c j + M * (S' j).card)
+    nlinarith [Int.natCast_nonneg (c j + M * (S' j).card).toNat]
+  have hD0 (j : J) (Q : CurvePlace k (κ j)) (hQ : Q ∈ S' j) : D j Q = 0 := by
+    have hzQ : z j ∈ Q.V := hS _ (Finset.mem_preimage.1 hQ)
+    simp [D, poleDivisor_apply, Q.poleOrder_eq_zero_iff.2 hzQ]
+  -- `regAt ⊆ piRR D + K_M`
+  have hcover (a : Π j, κ j) (ha : a ∈ regAt k κ S) :
+      ∃ f ∈ piRR k κ D, a - f ∈ jetKer k κ M S := by
+    have hj (j : J) := hc j (D j) (S' j) M (hdeg j) (hD0 j) (fun _ ↦ a j)
+      (fun Q hQ ↦ ha ⟨j, Q⟩ (Finset.mem_preimage.1 hQ))
+    choose f hf hfQ using hj
+    refine ⟨f, fun j _ ↦ hf j, fun b hb ↦ ?_⟩
+    have := hfQ b.1 b.2 (Finset.mem_preimage.2 hb)
+    rw [← Valuation.map_neg, neg_sub] at this
+    exact this
+  -- the quotient is spanned by the image of `piRR D ⊓ regAt`
+  set A := regAt k κ S
+  set B := (O ⊔ jetKer k κ M S).comap A.subtype
+  set V := (piRR k κ D).comap A.subtype
+  haveI : FiniteDimensional k V := by
+    let ι : V →ₗ[k] piRR k κ D :=
+      LinearMap.codRestrict (piRR k κ D) (A.subtype.comp V.subtype) fun v ↦ v.2
+    refine Module.Finite.of_injective ι fun v v' h ↦ ?_
+    have h' := congrArg (fun x : piRR k κ D ↦ (x : Π j, κ j)) h
+    exact Subtype.ext (Subtype.ext h')
+  refine Module.Finite.of_surjective (B.mkQ.comp V.subtype) fun q ↦ ?_
+  obtain ⟨a, rfl⟩ := Submodule.mkQ_surjective B q
+  obtain ⟨f, hf, haf⟩ := hcover a a.2
+  have hfA : f ∈ A := by
+    have : f = (a : Π j, κ j) - (a - f) := by ring
+    rw [this]
+    exact sub_mem a.2 (jetKer_le_regAt M S haf)
+  refine ⟨⟨⟨f, hfA⟩, hf⟩, ?_⟩
+  simp only [LinearMap.coe_comp, Function.comp_apply, Submodule.coe_subtype,
+    Submodule.mkQ_apply]
+  rw [Submodule.Quotient.eq]
+  change ((⟨f, hfA⟩ : A) - a : A).1 ∈ O ⊔ jetKer k κ M S
+  rw [← neg_sub, Submodule.coe_neg, Submodule.coe_sub]
+  exact neg_mem (Submodule.mem_sup_right haf)
+
+end Jets
+
 end ChartLocal
 
 end SemistableReduction
