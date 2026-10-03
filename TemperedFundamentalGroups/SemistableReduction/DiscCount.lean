@@ -31,7 +31,10 @@ extending the norm of `C` with `ν(t) < 1`: a point of `U` of any type 2–4 tha
   (`center_isMaximal`, `comap_center`);
 * **`discDegree_eq` (B2)**: the *disc degree* of a maximal ideal `P'` of `R'` (the sum of the
   local degrees of the extensions of `ν` centred at `P'`) is the same for all disc valuations
-  `ν`; at a type-4 point of `U` it is a sum of defects, at a Gauss point a sum of `e · f`.
+  `ν`; at a type-4 point of `U` it is a sum of defects, at a Gauss point a sum of `e · f`;
+* **`discDegree_pos` (B4a)**: every maximal ideal of `R'` over `(𝔪_C, t)` is the centre of an
+  extension of *every* disc valuation (positive disc degree; Cayley–Hamilton for an element of
+  `P'` outside the other centres).
 -/
 
 open Polynomial NNReal IntermediateField
@@ -437,6 +440,84 @@ theorem discDegree_eq (hc : c ≠ 0) (ν ν' : DiscVal a c) (P' : Ideal (DRint a
       (Finset.mem_univ g))),
     hcount ν' fun g ↦ hmemT _ (Finset.mem_union_right _ (Finset.mem_image_of_mem _
       (Finset.mem_univ g)))]
+
+/-- **B4a: every point over the residue point is reached from every point of the disc.** For a
+maximal ideal `P'` of `R'` over `(𝔪_C, t)` and any disc valuation `ν`, some extension of `ν` is
+centred at `P'`: `0 < discDegree ν P'`. Proof: `f ∈ P'` outside the other centres; by B1 the
+disc degree of `P'` is the trailing degree of the reduced characteristic polynomial of `f`,
+which is positive since its constant term `± N(f) ∈ f R' ∩ O_C[t] ⊆ P' ∩ O_C[t]` lies in
+`(𝔪_C, t)` (Cayley–Hamilton). -/
+theorem discDegree_pos (hc : c ≠ 0) (ν : DiscVal a c) (P' : Ideal (DRint a c F')) [P'.IsMaximal]
+    (hP' : P'.comap (algebraMap (discRing a c) (DRint a c F')) = discIdeal a c) :
+    0 < discDegree ν P' := by
+  classical
+  set T : Finset (Ideal (DRint a c F')) :=
+    (Finset.univ.image (fun g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) F' ↦
+        center (isDiscVal_comap_extValuation g))).erase P'
+  obtain ⟨e, he1, heQ⟩ := GaussTube.exists_separating P' T fun Q hQ ↦ by
+    obtain ⟨hne, hQ⟩ := Finset.mem_erase.1 hQ
+    obtain ⟨g, -, rfl⟩ := Finset.mem_image.1 hQ
+    exact ⟨center_isMaximal hc _, hne⟩
+  set f : DRint a c F' := 1 - e
+  have hfP : f ∈ P' := by
+    have := P'.neg_mem he1
+    rwa [neg_sub] at this
+  obtain ⟨P, hP⟩ := exists_lift_normPoly hc f.2
+  have hfilter : ∀ g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) F',
+      ‖toLocal g (f : F')‖ < 1 ↔ center (isDiscVal_comap_extValuation g) = P' := by
+    intro g
+    have hval : ‖toLocal g (f : F')‖ < 1 ↔ extValuation g (f : F') < 1 := by
+      rw [extValuation_apply, ← NNReal.coe_lt_one, coe_nnnorm]
+    rw [hval]
+    constructor
+    · intro hlt
+      by_contra hne
+      have hmem : center (isDiscVal_comap_extValuation g) ∈ T :=
+        Finset.mem_erase.2 ⟨hne, Finset.mem_image_of_mem _ (Finset.mem_univ g)⟩
+      have he : extValuation g (e : F') < 1 :=
+        (mem_center_iff (isDiscVal_comap_extValuation g) e).1 (heQ _ hmem)
+      have : extValuation g (f : F') = 1 := by
+        rw [show (f : F') = 1 + -(e : F') by simp [f]; ring,
+          Valuation.map_add_eq_of_lt_left _ (by rw [Valuation.map_neg, map_one]; exact he),
+          map_one]
+      exact lt_irrefl 1 (this ▸ hlt)
+    · intro h
+      rw [← mem_center_iff (isDiscVal_comap_extValuation g), h]
+      exact hfP
+  have hcount := sum_natDegree_eq_natTrailingDegree ν f.2 P hP
+  rw [show discDegree ν P' = _ from Finset.sum_congr (Finset.filter_congr fun g _ ↦
+    (hfilter g).symm) fun _ _ ↦ rfl, hcount]
+  -- the constant term of `P` lies in the disc ideal
+  have hPmonic : P.Monic := by
+    have hm := monic_normPoly (F := RatFunc C) (f : F')
+    rw [← hP] at hm
+    exact monic_of_injective (discRing a c).subtype_injective hm
+  have h0 : P.coeff 0 ∈ discIdeal a c := by
+    rw [← hP', Ideal.mem_comap]
+    have hroot : aeval f P = 0 := by
+      apply Subtype.val_injective
+      change (DRint a c F').val (aeval f P) = 0
+      rw [← aeval_algHom_apply, aeval_def, show algebraMap (discRing a c) F' =
+        (algebraMap (RatFunc C) F').comp (discRing a c).subtype from rfl, ← eval₂_map, hP,
+        ← aeval_def, normPoly, map_pow]
+      change aeval (f : F') (minpoly (RatFunc C) (f : F')) ^ _ = 0
+      rw [minpoly.aeval, zero_pow Module.finrank_pos.ne']
+    have hdecomp := congrArg (aeval f) (X_mul_divX_add P)
+    rw [map_add, map_mul, aeval_X, aeval_C, hroot] at hdecomp
+    have : algebraMap (discRing a c) (DRint a c F') (P.coeff 0) = -(f * aeval f P.divX) := by
+      rw [eq_neg_iff_add_eq_zero, add_comm]
+      exact hdecomp
+    rw [this]
+    exact P'.neg_mem (P'.mul_mem_right _ hfP)
+  have hne : P.map (Ideal.Quotient.mk (discIdeal a c)) ≠ 0 :=
+    (hPmonic.map _).ne_zero_of_ne (by
+      haveI := discIdeal_isMaximal (a := a) hc
+      exact zero_ne_one)
+  refine Nat.pos_of_ne_zero fun h ↦ ?_
+  rw [natTrailingDegree_eq_zero] at h
+  rcases h with h | h
+  · exact hne h
+  · exact h (by rw [coeff_map, Ideal.Quotient.eq_zero_iff_mem]; exact h0)
 
 end DiscCount
 
