@@ -182,7 +182,7 @@ lemma not_isField_x_inv (w : Ext C F) : ¬ IsField (proj (xF C F)⁻¹ w).range 
   · rw [red_inv_xF, inv_inv]
     exact red_xF_notMem_range w
 
-variable [CompleteSpace C] [CharZero C]
+variable [CharZero C]
 
 /-- **G8.1** (connectedness of the graph of residue curves): every nonempty proper set of
 extensions of the Gauss valuation has an edge leaving it, in one of the two charts. -/
@@ -355,7 +355,7 @@ end Glue
 
 section Sharp
 
-variable [IsAlgClosed C] [FiniteDimensional (RatFunc C) F] [CompleteSpace C] [CharZero C]
+variable [IsAlgClosed C] [FiniteDimensional (RatFunc C) F] [CharZero C]
 
 attribute [local instance] isCurveFunctionField DiscreteCoefficients.isAlgClosed_residueField
   isCurveFunctionField_F
@@ -390,8 +390,9 @@ theorem ell_add_card_sub_one_le (m : ℕ) :
       Submodule.subset_span ⟨f, hf, hn, rfl⟩, rfl⟩
 
 /-- **The genus inequality over the Gauss point**: `Σ_w g(κ(w)) ≤ g(F)`, the sum over the
-extensions `w` of the Gauss valuation `w_{0,1}` of `C(X)` to `F` (`C` complete, algebraically
-closed of characteristic `0`; `F` with an orthonormal `C(X)`-basis, e.g. by W4). -/
+extensions `w` of the Gauss valuation `w_{0,1}` of `C(X)` to `F` (`C` algebraically closed
+of characteristic `0`, not necessarily complete; `F` with an orthonormal `C(X)`-basis, e.g. by
+W4). -/
 theorem sum_genus_le
     (hsum : ∑ w : Ext C F, inertiaDeg (gauss1 C) w.1 = Module.finrank (RatFunc C) F) :
     (∑ w : Ext C F, (genus 𝓀 (ResidueField w.1.valuationSubring) : ℤ)) ≤ genus C F := by

@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.GenusCount
+import TemperedFundamentalGroups.SemistableReduction.TensorIdempotent
 
 /-!
 # Connectedness of the special fibre over the Gauss point
 
-Blueprint §9.5, G6.8 (G8.2–G8.5). Let `C` be complete and algebraically closed, `F / C(X)` finite
-with an orthonormal `C(X)`-basis for `gnorm` (G6.3). The main result `no_split` is the
+Blueprint §9.5, G6.8 (G8.2–G8.5), and §9.11 (no completeness). Let `C` be algebraically closed
+(not necessarily complete, e.g. `K̄`), `F / C(X)` finite with an orthonormal `C(X)`-basis for
+`gnorm` (G6.3). The main result `no_split` is the
 elementary "GAGA for `ℙ¹`" replacing Zariski's connectedness theorem: if `e ∈ F` is integral over
 `C[x]` and `e' ∈ F` is integral over `C[x⁻¹]`, both of norm `≤ 1`, and at every extension `w` of
 the Gauss valuation both reduce to the same idempotent `ε_w ∈ {0, 1}`, then `ε` is constant.
@@ -17,9 +19,13 @@ the Gauss valuation both reduce to the same idempotent `ε_w ∈ {0, 1}`, then `
 Proof: the Newton iterates `eₙ = N^[n](e)`, `N(t) = 3t² - 2t³`, converge (for `gnorm`) to the
 idempotent, and so do the `e'ₙ`. For an integral `C(X)`-basis `d` of `F`, the traces
 `Tr(eₙ dₖ) ∈ C[X]` and `Tr(e'ₙ dₖ) ∈ X^D C[X⁻¹]` differ by `O(ρ^{2ⁿ})` in the Gauss norm, so the
-coefficients of `Tr(eₙ dₖ)` in degrees `> D` tend to `0` and `Tr(eₙ dₖ)` converges to a
-polynomial `Lₖ` (`C` complete). With the trace-dual basis `d*`, `z = Σ Lₖ d*ₖ ∈ F` is the limit of
-the `eₙ`, hence `z² = z`, `z ∈ {0, 1}`.
+coefficients of `Tr(eₙ dₖ)` in degrees `> D` tend to `0`. Truncating them gives elements
+`zₙ = Σ_{i ≤ D', k} aₙ(i, k) Xⁱ d*ₖ` (trace-dual basis `d*`) of a fixed finite-dimensional
+`C`-subspace, close to `eₙ`, whose coefficients are Cauchy and whose idempotency defects
+`h (zₙ² - zₙ)` (`h` a common denominator of the structure constants) tend to `0` coordinatewise.
+Their limit in `Ĉ ⊗_C F` (`Ĉ` the completion) is an idempotent, hence `0` or `1`
+(`TensorIdempotent.exists_tendsto_of_approx_idempotent`: `C` algebraically closed); so the `eₙ`
+tend to `0` or `1` in `gnorm`, contradicting the two given extensions.
 -/
 
 open Polynomial IsLocalRing Valuation WithZero
@@ -28,6 +34,8 @@ open scoped NNReal IntermediateField
 namespace SemistableReduction
 
 open FundamentalInequality GaussStability LatticeReduction DenseCompletion CurvePlace
+  TensorIdempotent
+open scoped TensorProduct
 
 namespace GaussFibre
 
@@ -75,8 +83,6 @@ section Limit
 
 open Filter Topology
 
-variable [CompleteSpace C]
-
 omit [IsUltrametricDist C] in
 lemma pow_two_pow_le {ρ : ℝ≥0} (hρ : ρ ≤ 1) (n : ℕ) : ρ ^ (2 ^ n) ≤ ρ ^ n :=
   pow_le_pow_of_le_one zero_le hρ (Nat.lt_two_pow_self).le
@@ -93,49 +99,6 @@ lemma tendsto_nnreal_zero_iff {u : ℕ → ℝ≥0} :
     Tendsto u atTop (𝓝 0) ↔ ∀ ε : ℝ≥0, 0 < ε → ∀ᶠ n in atTop, u n < ε := by
   rw [tendsto_order]
   exact ⟨fun h ↦ h.2, fun h ↦ ⟨fun a ha ↦ absurd ha (not_lt_zero (a := a)), h⟩⟩
-
-/-- A sequence of polynomials which is Cauchy for the Gauss norm, with coefficients in degrees
-`> D` tending to `0`, converges to a polynomial of degree `≤ D`. -/
-lemma exists_tendsto_sup_sub {P : ℕ → C[X]} {ρ : ℝ≥0} (hρ : ρ < 1) (D : ℕ)
-    (hP : ∀ n, Gauss.sup (NormedField.valuation (K := C)) 1 (P (n + 1) - P n) ≤ ρ ^ (2 ^ n))
-    (htail : ∀ n i, D < i → ‖(P n).coeff i‖₊ ≤ ρ ^ (2 ^ n)) :
-    ∃ L : C[X], Tendsto (fun n ↦ Gauss.sup (NormedField.valuation (K := C)) 1 (P n - L))
-      atTop (𝓝 0) := by
-  classical
-  -- the coefficients converge
-  have hcoeff (i : ℕ) : ∃ a : C, Tendsto (fun n ↦ (P n).coeff i) atTop (𝓝 a) := by
-    refine cauchySeq_tendsto_of_complete (cauchySeq_of_le_geometric (ρ : ℝ) 1 hρ fun n ↦ ?_)
-    rw [dist_eq_norm, ← norm_neg, neg_sub, ← coeff_sub, one_mul]
-    have h1 := Gauss.term_le_sup (v := NormedField.valuation (K := C)) (r := 1)
-      (P (n + 1) - P n) i
-    simp only [Gauss.term, Units.val_one, one_pow, mul_one, NormedField.valuation_apply] at h1
-    have h2 := (h1.trans (hP n)).trans (pow_two_pow_le hρ.le n)
-    exact_mod_cast h2
-  choose a ha using hcoeff
-  set L : C[X] := ∑ i ∈ Finset.range (D + 1), Polynomial.C (a i) * X ^ i
-  have hL (i : ℕ) : L.coeff i = if i ∈ Finset.range (D + 1) then a i else 0 := by
-    simp only [L, finsetSum_coeff, coeff_C_mul_X_pow]
-    exact Finset.sum_ite_eq (Finset.range (D + 1)) i a
-  refine ⟨L, tendsto_nnreal_zero_iff.2 fun ε hε ↦ ?_⟩
-  have hsmall : ∀ᶠ n in atTop, ∀ i ∈ Finset.range (D + 1), ‖(P n).coeff i - a i‖₊ < ε := by
-    refine (Filter.eventually_all_finset _).2 fun i _ ↦ ?_
-    have := (Metric.tendsto_atTop.1 (ha i)) ε hε
-    obtain ⟨N, hN⟩ := this
-    refine Filter.eventually_atTop.2 ⟨N, fun n hn ↦ ?_⟩
-    have := hN n hn
-    rw [dist_eq_norm] at this
-    exact_mod_cast this
-  have htail' := (tendsto_nnreal_zero_iff.1 (tendsto_pow_two_pow hρ)) ε hε
-  filter_upwards [hsmall, htail'] with n hn hn'
-  rw [Gauss.sup, Finset.sup_lt_iff hε]
-  intro i _
-  simp only [Gauss.term, Units.val_one, one_pow, mul_one, NormedField.valuation_apply,
-    coeff_sub, hL]
-  split_ifs with hi
-  · exact hn i hi
-  · rw [sub_zero]
-    refine (htail n i ?_).trans_lt hn'
-    simpa using hi
 
 end Limit
 
@@ -375,11 +338,28 @@ lemma exists_integral_basis [Fintype (Ext C F)] {ι : Type*} [Finite ι]
 
 end IntegralBasis
 
+section Bridge
+
+lemma nnnorm_coeff_le_gauss1_algebraMap (Q : C[X]) (i : ℕ) :
+    ‖Q.coeff i‖₊ ≤ gauss1 C (algebraMap C[X] (RatFunc C) Q) := by
+  rw [gauss1_algebraMap]
+  have h1 := Gauss.term_le_sup (v := NormedField.valuation (K := C)) (r := 1) Q i
+  simpa [Gauss.term] using h1
+
+lemma gauss1_algebraMap_le_of_coeff (Q : C[X]) {r : ℝ≥0} (h : ∀ i, ‖Q.coeff i‖₊ ≤ r) :
+    gauss1 C (algebraMap C[X] (RatFunc C) Q) ≤ r := by
+  rw [gauss1_algebraMap, Gauss.sup_le_iff]
+  intro i
+  simpa [Gauss.term] using h i
+
+end Bridge
+
 section Main
 
 open Filter Topology
 
-variable [CompleteSpace C] [IsAlgClosed C] [CharZero C] [FiniteDimensional (RatFunc C) F]
+
+variable [IsAlgClosed C] [CharZero C] [FiniteDimensional (RatFunc C) F]
   [Fintype (Ext C F)]
 
 attribute [local instance] isCurveFunctionField_F
@@ -489,60 +469,231 @@ theorem no_split {ι : Type*} [Fintype ι] {b : Module.Basis ι (RatFunc C) F}
     rw [← hP, ← htrE', ← _root_.map_sub, ← sub_mul]
     refine (gauss1_trace_le hb _).trans ((gnorm_mul_le _ _).trans ?_)
     exact (mul_le_of_le_one_right' (hdk k)).trans (hdiff' n)
-  choose L hL using fun k ↦ exists_tendsto_sup_sub hρ D (hPc k) (htail k)
-  -- the trace-dual basis and the limit `z`
+  haveI : Nonempty (Ext C F) := ⟨w₀⟩
+  -- the trace-dual basis
   set Bf := Algebra.traceForm (RatFunc C) F
   have hBf : Bf.Nondegenerate := traceForm_nondegenerate (RatFunc C) F
   set dd := Bf.dualBasis hBf d
-  have hexp (u : F) : u = ∑ k, Algebra.trace (RatFunc C) F (u * d k) • dd k := by
-    conv_lhs => rw [← dd.sum_repr u]
+  have hexp (v : F) : v = ∑ k, Algebra.trace (RatFunc C) F (v * d k) • dd k := by
+    conv_lhs => rw [← dd.sum_repr v]
     refine Finset.sum_congr rfl fun k _ ↦ ?_
     rw [LinearMap.BilinForm.dualBasis_repr_apply, Algebra.traceForm_apply]
-  set z : F := ∑ k, algebraMap C[X] (RatFunc C) (L k) • dd k
+  -- finite families `wv N (m, k) = Xᵐ dd k` and the polynomials of their coordinates
+  set wv : (N : ℕ) → Fin N × ι → F := fun N t ↦ (RatFunc.X : RatFunc C) ^ (t.1 : ℕ) • dd t.2
+  set pol : (N : ℕ) → (Fin N × ι → C) → ι → C[X] := fun N g k ↦
+    ∑ i : Fin N, Polynomial.C (g (i, k)) * X ^ (i : ℕ)
+  have hW1 (N : ℕ) (g : Fin N × ι → C) :
+      ∑ t, g t • wv N t = ∑ k, algebraMap C[X] (RatFunc C) (pol N g k) • dd k := by
+    rw [Fintype.sum_prod_type, Finset.sum_comm]
+    refine Finset.sum_congr rfl fun k _ ↦ ?_
+    simp only [pol, map_sum, Finset.sum_smul, wv]
+    refine Finset.sum_congr rfl fun m _ ↦ ?_
+    rw [map_mul, map_pow, ← Polynomial.algebraMap_eq, ← IsScalarTower.algebraMap_apply,
+      RatFunc.algebraMap_X, mul_smul, algebraMap_smul]
+  have hW2 (N : ℕ) (g : Fin N × ι → C) (k : ι) (j : ℕ) :
+      (pol N g k).coeff j = if h : j < N then g (⟨j, h⟩, k) else 0 := by
+    simp only [pol, finsetSum_coeff, coeff_C_mul_X_pow]
+    split_ifs with h
+    · rw [Finset.sum_eq_single (⟨j, h⟩ : Fin N)]
+      · simp
+      · intro i _ hi
+        rw [if_neg]
+        intro hj
+        exact hi (Fin.ext hj.symm)
+      · simp
+    · refine Finset.sum_eq_zero fun i _ ↦ ?_
+      rw [if_neg]
+      intro hj
+      exact h (hj ▸ i.2)
+  have hW3 {v : F} {φ : ι → C[X]}
+      (hφ : ∀ k, Algebra.trace (RatFunc C) F (v * d k) = algebraMap C[X] (RatFunc C) (φ k))
+      {N : ℕ} (hN : ∀ k, (φ k).natDegree < N) :
+      v = ∑ t, (φ t.2).coeff t.1 • wv N t := by
+    rw [hW1]
+    conv_lhs => rw [hexp v]
+    refine Finset.sum_congr rfl fun k _ ↦ ?_
+    rw [hφ k]
+    congr 2
+    ext j
+    simp only [hW2]
+    split_ifs with h
+    · rfl
+    · exact coeff_eq_zero_of_natDegree_lt ((hN k).trans_le (not_lt.1 h))
+  have hW4 (N : ℕ) (g : Fin N × ι → C) (j : ι) :
+      Algebra.trace (RatFunc C) F ((∑ t, g t • wv N t) * d j) =
+        algebraMap C[X] (RatFunc C) (pol N g j) := by
+    rw [hW1, ← Algebra.traceForm_apply, ← LinearMap.BilinForm.dualBasis_repr_apply hBf,
+      dd.repr_sum_self]
   set M := Finset.univ.sup fun k ↦ gnorm C (dd k)
-  have hEz (n : ℕ) : gnorm C (E n - z) ≤
-      (Finset.univ.sup fun k ↦ Gauss.sup (NormedField.valuation (K := C)) 1 (P n k - L k)) *
-        M := by
-    have : E n - z = ∑ k, algebraMap C[X] (RatFunc C) (P n k - L k) • dd k := by
+  have hwM (N : ℕ) (t : Fin N × ι) : gnorm C (wv N t) ≤ M := by
+    simp only [wv]
+    rw [gnorm_smul, map_pow, gauss1_X, one_pow, one_mul]
+    exact Finset.le_sup (f := fun k ↦ gnorm C (dd k)) (Finset.mem_univ t.2)
+  -- the coordinates of `1`
+  choose T hT using fun k ↦ exists_trace_eq (isIntegral_of_mem_rrSpace (hd k).1)
+  set D' := max D (Finset.univ.sup fun k ↦ (T k).natDegree)
+  have hTD (k : ι) : (T k).natDegree < D' + 1 :=
+    Nat.lt_succ_of_le ((Finset.le_sup (f := fun k ↦ (T k).natDegree)
+      (Finset.mem_univ k)).trans (le_max_right _ _))
+  set J := Fin (D' + 1) × ι
+  set u : J → F := wv (D' + 1)
+  set c : J → C := fun β ↦ (T β.2).coeff β.1
+  have hone : (1 : F) = ∑ β, c β • u β :=
+    hW3 (fun k ↦ by rw [one_mul, hT k]) hTD
+  -- the truncated iterates `zz n`
+  set a : ℕ → J → C := fun n β ↦ (P n β.2).coeff β.1
+  set zz : ℕ → F := fun n ↦ ∑ β, a n β • u β
+  have hEz (n : ℕ) : gnorm C (E n - zz n) ≤ ρ ^ (2 ^ n) * M := by
+    have h1 : E n = ∑ k, algebraMap C[X] (RatFunc C) (P n k) • dd k := by
       conv_lhs => rw [hexp (E n)]
-      simp only [z, ← Finset.sum_sub_distrib, ← sub_smul, hP, _root_.map_sub]
-    rw [this]
+      simp only [hP]
+    rw [h1, show zz n = ∑ β, a n β • wv (D' + 1) β from rfl, hW1, ← Finset.sum_sub_distrib]
     refine (gnorm_sum_le _ _).trans (Finset.sup_le fun k _ ↦ ?_)
-    rw [gnorm_smul, gauss1_algebraMap]
-    exact mul_le_mul' (Finset.le_sup (f := fun k ↦ Gauss.sup _ 1 (P n k - L k))
-      (Finset.mem_univ k)) (Finset.le_sup (f := fun k ↦ gnorm C (dd k)) (Finset.mem_univ k))
-  have hsup : Tendsto (fun n ↦ Finset.univ.sup fun k ↦
-      Gauss.sup (NormedField.valuation (K := C)) 1 (P n k - L k)) atTop (𝓝 0) := by
-    refine tendsto_nnreal_zero_iff.2 fun ε hε ↦ ?_
-    filter_upwards [(Filter.eventually_all_finset Finset.univ).2 fun k _ ↦
-      tendsto_nnreal_zero_iff.1 (hL k) ε hε] with n hn
-    exact (Finset.sup_lt_iff hε).2 hn
-  have hconv : Tendsto (fun n ↦ gnorm C (E n - z)) atTop (𝓝 0) := by
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_
-      (fun _ ↦ zero_le) hEz
-    simpa using hsup.mul_const M
-  -- `z` is an idempotent
-  haveI : Nonempty (Ext C F) := ⟨w₀⟩
-  set K := max (gnorm C z) 1
-  have hzz (n : ℕ) : gnorm C (z ^ 2 - z) ≤ max (gnorm C (E n - z) * K) (ρ ^ (2 ^ n)) := by
-    have : z ^ 2 - z = -(E n - z) * (z + E n - 1) + (E n ^ 2 - E n) := by ring
+    rw [← sub_smul, gnorm_smul, ← _root_.map_sub]
+    refine mul_le_mul' (gauss1_algebraMap_le_of_coeff _ fun i ↦ ?_)
+      (Finset.le_sup (f := fun k ↦ gnorm C (dd k)) (Finset.mem_univ k))
+    rw [coeff_sub, hW2]
+    split_ifs with h
+    · simp [a]
+    · rw [sub_zero]
+      exact htail k n i (lt_of_le_of_lt (le_max_left _ _) (not_lt.1 h))
+  -- `zz n` is an approximate idempotent
+  set K := max M 1
+  have hρle (n : ℕ) : ρ ^ (2 ^ n) ≤ 1 := pow_le_one₀ zero_le hρ.le
+  have hzzle (n : ℕ) : gnorm C (zz n ^ 2 - zz n) ≤ ρ ^ (2 ^ n) * max (M * K) 1 := by
+    have hzn : gnorm C (zz n) ≤ K := by
+      have : zz n = -(E n - zz n) + E n := by rw [neg_sub, sub_add_cancel]
+      rw [this]
+      refine (gnorm_add_le _ _).trans (max_le ?_ ?_)
+      · rw [gnorm_neg]
+        exact (hEz n).trans ((mul_le_of_le_one_left' (hρle n)).trans (le_max_left _ _))
+      · exact (gnorm_le_iff.2 fun w ↦ hE1 w n).trans (le_max_right _ _)
+    have hsum : gnorm C (zz n + E n - 1) ≤ K := by
+      refine (gnorm_sub_le _ _).trans (max_le ((gnorm_add_le _ _).trans (max_le hzn
+        ((gnorm_le_iff.2 fun w ↦ hE1 w n).trans (le_max_right _ _)))) ?_)
+      rw [gnorm_one]
+      exact le_max_right _ _
+    have key (p q : F) : p ^ 2 - p = -(q - p) * (p + q - 1) + (q ^ 2 - q) := by ring
+    rw [key (zz n) (E n)]
+    refine (gnorm_add_le _ _).trans (max_le ?_ ?_)
+    · refine (gnorm_mul_le _ _).trans ?_
+      rw [gnorm_neg]
+      calc gnorm C (E n - zz n) * gnorm C (zz n + E n - 1) ≤ (ρ ^ (2 ^ n) * M) * K :=
+            mul_le_mul' (hEz n) hsum
+        _ = ρ ^ (2 ^ n) * (M * K) := by ring
+        _ ≤ _ := mul_le_mul_right (le_max_left _ _) _
+    · exact (hidem n).trans (le_mul_of_one_le_right zero_le (le_max_right _ _))
+  -- a common denominator of the structure constants
+  set s : Finset (RatFunc C) :=
+    (Finset.univ.image fun t : J × J × ι ↦
+      Algebra.trace (RatFunc C) F (u t.1 * u t.2.1 * d t.2.2)) ∪
+    (Finset.univ.image fun t : J × ι ↦ Algebra.trace (RatFunc C) F (u t.1 * d t.2))
+  obtain ⟨⟨h, hh⟩, hint⟩ :=
+    IsLocalization.exist_integer_multiples_of_finset (nonZeroDivisors C[X]) s
+  have hh0 : h ≠ 0 := nonZeroDivisors.ne_zero hh
+  set Hr := algebraMap C[X] (RatFunc C) h
+  have hHr : Hr ≠ 0 := by
+    simpa [Hr] using (IsFractionRing.injective C[X] (RatFunc C)).ne hh0
+  set Hf := algebraMap (RatFunc C) F Hr
+  have hHf : Hf ≠ 0 := by
+    simpa [Hf] using (algebraMap (RatFunc C) F).injective.ne hHr
+  choose π2 hπ2 using fun t : J × J × ι ↦ RingHom.mem_rangeS.1
+    (hint _ (Finset.mem_union_left _ (Finset.mem_image_of_mem _ (Finset.mem_univ t))))
+  choose π1 hπ1 using fun t : J × ι ↦ RingHom.mem_rangeS.1
+    (hint _ (Finset.mem_union_right _ (Finset.mem_image_of_mem _ (Finset.mem_univ t))))
+  set N := (Finset.univ.sup fun t ↦ (π2 t).natDegree) +
+    (Finset.univ.sup fun t ↦ (π1 t).natDegree) + 1
+  have hN2 (t : J × J × ι) : (π2 t).natDegree < N := by
+    have := Finset.le_sup (f := fun t ↦ (π2 t).natDegree) (Finset.mem_univ t)
+    omega
+  have hN1 (t : J × ι) : (π1 t).natDegree < N := by
+    have := Finset.le_sup (f := fun t ↦ (π1 t).natDegree) (Finset.mem_univ t)
+    omega
+  have htrH (v : F) (j : ι) : Algebra.trace (RatFunc C) F (Hf * v * d j) =
+      Hr * Algebra.trace (RatFunc C) F (v * d j) := by
+    rw [mul_assoc, ← Algebra.smul_def, map_smul, smul_eq_mul]
+  set κ2 : J → J → Fin N × ι → C := fun β γ t ↦ (π2 (β, γ, t.2)).coeff t.1
+  set κ1 : J → Fin N × ι → C := fun β t ↦ (π1 (β, t.2)).coeff t.1
+  have hy2 (β γ : J) : Hf * (u β * u γ) = ∑ t, κ2 β γ t • wv N t := by
+    refine hW3 (fun k ↦ ?_) (fun k ↦ hN2 (β, γ, k))
+    rw [htrH, hπ2 (β, γ, k), Algebra.smul_def]
+  have hy1 (β : J) : Hf * u β = ∑ t, κ1 β t • wv N t := by
+    refine hW3 (fun k ↦ ?_) (fun k ↦ hN1 (β, k))
+    rw [htrH, hπ1 (β, k), Algebra.smul_def]
+  -- the quadratic coordinate functions
+  set gC : ℕ → Fin N × ι → C := fun n t ↦ ∑ β, ∑ γ, a n β * a n γ * κ2 β γ t -
+    ∑ β, a n β * κ1 β t
+  have hexpC (n : ℕ) : Hf * (zz n ^ 2 - zz n) = ∑ t, gC n t • wv N t := by
+    have h := one_tmul_mul_sq_sub (C := C) (a n) u Hf
+    rw [sum_sub_sum_tmul_eq (C := C) (R := C) (a n) _ _ (wv N) κ2 κ1 hy2 hy1] at h
+    have h' := congrArg (Algebra.TensorProduct.lid C F) h
+    simp only [map_mul, _root_.map_sub, map_sum, Algebra.TensorProduct.lid_tmul, one_smul,
+      Algebra.algebraMap_self, RingHom.id_apply] at h'
+    rw [sq]
+    exact h'
+  set K1 := gauss1 C Hr * max (M * K) 1
+  have hgC (n : ℕ) (t : Fin N × ι) : ‖gC n t‖₊ ≤ K1 * ρ ^ (2 ^ n) := by
+    have h1 : gC n t = (pol N (gC n) t.2).coeff t.1 := by
+      rw [hW2, dif_pos t.1.2]
+    rw [h1]
+    refine (nnnorm_coeff_le_gauss1_algebraMap _ _).trans ?_
+    rw [← hW4, ← hexpC]
+    refine (gauss1_trace_le hb _).trans ((gnorm_mul_le _ _).trans ?_)
+    refine (mul_le_of_le_one_right' (hdk t.2)).trans ((gnorm_mul_le _ _).trans ?_)
+    rw [gnorm_algebraMap]
+    calc gauss1 C Hr * gnorm C (zz n ^ 2 - zz n) ≤ gauss1 C Hr * (ρ ^ (2 ^ n) * max (M * K) 1) :=
+          mul_le_mul' le_rfl (hzzle n)
+      _ = K1 * ρ ^ (2 ^ n) := by ring
+  -- the coefficients are Cauchy, the idempotency defects tend to `0`
+  have hcauchy (β : J) : CauchySeq fun n ↦ a n β := by
+    refine cauchySeq_of_le_geometric (ρ : ℝ) 1 hρ fun n ↦ ?_
+    rw [dist_eq_norm, ← norm_neg, neg_sub, one_mul]
+    have h1 := (nnnorm_coeff_le_gauss1_algebraMap (P (n + 1) β.2 - P n β.2) β.1).trans
+      ((gauss1_algebraMap _).trans_le (hPc β.2 n))
+    have h2 := h1.trans (pow_two_pow_le hρ.le n)
+    rw [coeff_sub] at h2
+    exact_mod_cast h2
+  have hsmall (t : Fin N × ι) : Tendsto (fun n ↦ gC n t) atTop (𝓝 0) := by
+    refine squeeze_zero_norm (fun n ↦ ?_) (a := fun n ↦ ((K1 * ρ ^ (2 ^ n) : ℝ≥0) : ℝ))
+      (by simpa using NNReal.tendsto_coe.2 ((tendsto_pow_two_pow hρ).const_mul K1))
+    exact_mod_cast hgC n t
+  -- the coordinate functionals of the family `u`
+  have hli : LinearIndependent C u := by
+    refine Fintype.linearIndependent_iff.2 fun g hg β ↦ ?_
+    rw [show ∑ β, g β • u β = ∑ β, g β • wv (D' + 1) β from rfl, hW1] at hg
+    have hk := Fintype.linearIndependent_iff.1 dd.linearIndependent _ hg β.2
+    have hp : pol (D' + 1) g β.2 = 0 :=
+      (IsFractionRing.injective C[X] (RatFunc C)) (by rw [hk, map_zero])
+    have := hW2 (D' + 1) g β.2 β.1
+    rw [hp, coeff_zero, dif_pos β.1.2] at this
+    exact this.symm
+  obtain ⟨ε, hε, hlimε⟩ := exists_tendsto_of_approx_idempotent u hli c hone Hf hHf (wv N) κ2 κ1
+    hy2 hy1 a hcauchy hsmall
+  -- hence `zz n → ε` and `E n → ε`
+  have hcoef (β : J) : Tendsto (fun n ↦ ‖a n β - ε * c β‖₊) atTop (𝓝 0) := by
+    have h := tendsto_iff_norm_sub_tendsto_zero.1 (hlimε β)
+    exact NNReal.tendsto_coe.1 (by simpa using h)
+  have hzzε (n : ℕ) : gnorm C (zz n - ε • (1 : F)) ≤
+      (Finset.univ.sup fun β ↦ ‖a n β - ε * c β‖₊) * M := by
+    rw [hone, Finset.smul_sum, ← Finset.sum_sub_distrib]
+    refine (gnorm_sum_le _ _).trans (Finset.sup_le fun β _ ↦ ?_)
+    rw [smul_smul, ← sub_smul, LatticeReduction.gnorm_smul_C]
+    exact mul_le_mul' (Finset.le_sup (f := fun β ↦ ‖a n β - ε * c β‖₊) (Finset.mem_univ β))
+      (hwM _ β)
+  have hsup : Tendsto (fun n ↦ Finset.univ.sup fun β ↦ ‖a n β - ε * c β‖₊) atTop (𝓝 0) := by
+    refine tendsto_nnreal_zero_iff.2 fun δ hδ ↦ ?_
+    filter_upwards [(Filter.eventually_all_finset Finset.univ).2 fun β _ ↦
+      tendsto_nnreal_zero_iff.1 (hcoef β) δ hδ] with n hn
+    exact (Finset.sup_lt_iff hδ).2 hn
+  have hconv : Tendsto (fun n ↦ max (ρ ^ (2 ^ n) * M)
+      ((Finset.univ.sup fun β ↦ ‖a n β - ε * c β‖₊) * M)) atTop (𝓝 0) := by
+    simpa using ((tendsto_pow_two_pow hρ).mul_const M).max (hsup.mul_const M)
+  obtain ⟨n, hn⟩ := (tendsto_nnreal_zero_iff.1 hconv 1 one_pos).exists
+  have hEε : gnorm C (E n - ε • (1 : F)) < 1 := by
+    have : E n - ε • (1 : F) = (E n - zz n) + (zz n - ε • (1 : F)) :=
+      (sub_add_sub_cancel _ _ _).symm
     rw [this]
-    refine (gnorm_add_le _ _).trans (max_le_max ?_ (hidem n))
-    refine (gnorm_mul_le _ _).trans ?_
-    rw [gnorm_neg]
-    refine mul_le_mul_of_nonneg_left ?_ zero_le
-    refine (gnorm_sub_le _ _).trans (max_le ((gnorm_add_le _ _).trans (max_le
-      (le_max_left _ _) ((gnorm_le_iff.2 fun w ↦ hE1 w n).trans (le_max_right _ _)))) ?_)
-    rw [gnorm_one]
-    exact le_max_right _ _
-  have hlim : Tendsto (fun n ↦ max (gnorm C (E n - z) * K) (ρ ^ (2 ^ n))) atTop (𝓝 0) := by
-    simpa using (hconv.mul_const K).max (tendsto_pow_two_pow hρ)
-  have hz0 : gnorm C (z ^ 2 - z) = 0 :=
-    le_antisymm (ge_of_tendsto hlim (Eventually.of_forall hzz)) zero_le
-  have hz : z * (z - 1) = 0 := by
-    rw [mul_sub, mul_one, ← sq]
-    exact eq_zero_of_gnorm_eq_zero hz0
-  -- contradiction with `w₀` and `w₁`
+    exact ((gnorm_add_le _ _).trans (max_le_max (hEz n) (hzzε n))).trans_lt hn
   have hcase₁ : w₁.1 (e - 1) ≤ ρ ∧ w₁.1 (e' - 1) ≤ ρ := by
     rcases hcase w₁ with h | h
     · exact h
@@ -551,25 +702,26 @@ theorem no_split {ι : Type*} [Fintype ι] {b : Module.Basis ι (RatFunc C) F}
     rcases hcase w₀ with h | h
     · exact absurd (h.1.trans_lt hρ) (not_lt.2 hw₀)
     · exact h
-  obtain ⟨n, hn⟩ := (tendsto_nnreal_zero_iff.1 hconv 1 one_pos).exists
-  rcases mul_eq_zero.1 hz with h0 | h1
-  · -- `z = 0` contradicts `w₁`
+  clear_value zz a c u wv pol gC
+  rcases hε with hε | hε
+  · -- `ε = 0` contradicts `w₁`
+    rw [hε] at hEε
     have h1n : w₁.1 (E n) = 1 := by
-      have : E n = (E n - 1) + 1 := by ring
+      have : E n = (E n - 1) + 1 := (sub_add_cancel _ _).symm
       rw [this, Valuation.map_add_eq_of_lt_right, map_one]
       rw [map_one]
       exact ((hA w₁ hcase₁ n).1).trans_lt (hρ1 n)
-    have := (le_gnorm w₁ (E n - z)).trans_lt hn
-    rw [h0, sub_zero, h1n] at this
+    have := (le_gnorm w₁ _).trans_lt hEε
+    rw [zero_smul, sub_zero, h1n] at this
     exact lt_irrefl _ this
-  · -- `z = 1` contradicts `w₀`
-    rw [sub_eq_zero] at h1
+  · -- `ε = 1` contradicts `w₀`
+    rw [hε] at hEε
     have h0n : w₀.1 (E n - 1) = 1 := by
       rw [← Valuation.map_neg, neg_sub, sub_eq_add_neg, Valuation.map_add_eq_of_lt_left, map_one]
       rw [Valuation.map_neg, map_one]
       exact ((hB w₀ hcase₀ n).1).trans_lt (hρ1 n)
-    have := (le_gnorm w₀ (E n - z)).trans_lt hn
-    rw [h1, h0n] at this
+    have := (le_gnorm w₀ _).trans_lt hEε
+    rw [one_smul, h0n] at this
     exact lt_irrefl _ this
 
 end Main
