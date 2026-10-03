@@ -137,6 +137,7 @@ import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Topology.CountableFibres
+import TemperedFundamentalGroups.Topology.CoverLength
 import TemperedFundamentalGroups.Topology.CoveringCode
 import TemperedFundamentalGroups.Topology.CurveCovering
 import TemperedFundamentalGroups.Topology.GenericLift

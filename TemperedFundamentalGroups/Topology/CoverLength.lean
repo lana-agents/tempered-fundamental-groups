@@ -193,6 +193,15 @@ lemma PWalk.isComp_pend {t : K.Tree r} (ht : IsComp t) :
   | (_, _) :: _, ⟨h₁, h₂, h₃⟩ =>
     PWalk.isComp_pend (isComp_of_adj (isSpecial_of_adj ht h₁) h₂) h₃
 
+lemma PWalk.isComp_snd {t : K.Tree r} (ht : IsComp t) :
+    ∀ {L : List (K.Tree r × K.Tree r)}, PWalk t L → ∀ p ∈ L, IsComp p.2
+  | [], _ => by simp
+  | (_, _) :: _, ⟨h₁, h₂, h₃⟩ => by
+    have ht' := isComp_of_adj (isSpecial_of_adj ht h₁) h₂
+    rintro p (_ | ⟨_, hp⟩)
+    · exact ht'
+    · exact PWalk.isComp_snd ht' h₃ p hp
+
 lemma PWalk.isSpecial_fst {t : K.Tree r} (ht : IsComp t) :
     ∀ {L : List (K.Tree r × K.Tree r)}, PWalk t L → ∀ p ∈ L, IsSpecial p.1
   | [], _ => by simp
@@ -659,6 +668,371 @@ lemma map_gen_of_not_contr
   · have := Cover.eq_of_inr hs'
     rw [hpt] at this
     exact (hS (this ▸ hs)).elim
+
+omit hh hψ in
+lemma exists_split (P : K.Tree r × K.Tree r → Prop) : ∀ L : List (K.Tree r × K.Tree r),
+    (∀ p ∈ L, P p) ∨ ∃ L₁ x L₂, L = L₁ ++ x :: L₂ ∧ (∀ p ∈ L₁, P p) ∧ ¬ P x
+  | [] => .inl (by simp)
+  | x :: L => by
+    by_cases hx : P x
+    · rcases exists_split P L with h | ⟨L₁, y, L₂, rfl, h₁, h₂⟩
+      · exact .inl fun p hp => (List.mem_cons.1 hp).elim (fun e => e ▸ hx) (h p)
+      · exact .inr ⟨x :: L₁, y, L₂, rfl,
+          fun p hp => (List.mem_cons.1 hp).elim (fun e => e ▸ hx) (h₁ p), h₂⟩
+    · exact .inr ⟨[], x, L, rfl, by simp, hx⟩
+
+/-- (Seg) Along a walk whose inner components are contracted, all special vertices and inner
+components have the same image. -/
+lemma map_gen_seg : ∀ {t₀ σ₁ t₁ : K.Tree r} {L : List (K.Tree r × K.Tree r)}, IsComp t₀ →
+    PWalk t₀ ((σ₁, t₁) :: L) → (∀ p ∈ ((σ₁, t₁) :: L).dropLast, Contr (K := K) ψ (lab p.2)) →
+    (∀ p ∈ (σ₁, t₁) :: L, h (gen p.1) = h (gen σ₁)) ∧
+      ∀ p ∈ ((σ₁, t₁) :: L).dropLast, h (gen p.2) = h (gen σ₁)
+  | t₀, σ₁, t₁, [], _, _, _ => by simp
+  | t₀, σ₁, t₁, (σ₂, t₂) :: L, ht₀, ⟨h₁, h₂, h₃⟩, hc => by
+    have hσ₁ := isSpecial_of_adj ht₀ h₁
+    obtain ⟨i₁, hi₁⟩ := isComp_of_adj hσ₁ h₂
+    have hct₁ : Contr (K := K) ψ i₁ := by
+      have := hc (σ₁, t₁) (by simp [List.dropLast_cons_of_ne_nil])
+      rwa [lab_of hi₁] at this
+    have e₁ : h (gen σ₁) = h (gen t₁) :=
+      map_eq_map_gen hh hψ hi₁ hct₁ (gen_near_of_adj hσ₁ h₂)
+    have e₂ : h (gen σ₂) = h (gen t₁) :=
+      map_eq_map_gen hh hψ hi₁ hct₁
+        (gen_near_of_adj (isSpecial_of_adj ⟨i₁, hi₁⟩ h₃.1) (Tree.adj_comm.1 h₃.1))
+    obtain ⟨ih₁, ih₂⟩ := map_gen_seg (L := L) ⟨i₁, hi₁⟩ h₃ fun p hp =>
+      hc p (by rw [List.dropLast_cons_of_ne_nil (by simp)]; exact List.mem_cons_of_mem _ hp)
+    refine ⟨fun p hp => ?_, fun p hp => ?_⟩
+    · rcases List.mem_cons.1 hp with rfl | hp
+      · rfl
+      · rw [ih₁ p hp, e₂, e₁]
+    · rw [List.dropLast_cons_of_ne_nil (by simp)] at hp
+      rcases List.mem_cons.1 hp with rfl | hp
+      · exact e₁.symm
+      · rw [ih₂ p hp, e₂, e₁]
+
+omit hh hψ in
+lemma lab_mem_C_of_adj {t σ : K.Tree r} (ht : IsComp t) (hadj : t.Adj σ) :
+    spt σ ∈ K.S ∧ spt σ ∈ K.C (lab t) := by
+  obtain ⟨i, hi⟩ := ht
+  obtain ⟨s, hs, hS, hsi⟩ := head_inr_of_adj t.2 σ.2 hadj hi
+  rw [spt_of hs, lab_of hi]
+  exact ⟨hS, hsi⟩
+
+/-- The walk of the incidence graph underlying a walk of the tree. -/
+noncomputable def labW (L : List (K.Tree r × K.Tree r)) : List (Z × ι) :=
+  L.map fun p => (spt p.1, lab p.2)
+
+omit hh hψ in
+lemma incWalk_labW : ∀ {t : K.Tree r} {L : List (K.Tree r × K.Tree r)}, IsComp t →
+    PWalk t L → IncWalk K (lab t) (labW L)
+  | _, [], _, _ => trivial
+  | t, (σ, t') :: L, ht, ⟨h₁, h₂, h₃⟩ => by
+    have ht' := isComp_of_adj (isSpecial_of_adj ht h₁) h₂
+    exact ⟨(lab_mem_C_of_adj ht h₁).1, (lab_mem_C_of_adj ht h₁).2,
+      (lab_mem_C_of_adj ht' (Tree.adj_comm.1 h₂)).2, incWalk_labW ht' h₃⟩
+
+omit hh hψ in
+lemma lastLab_labW : ∀ (t : K.Tree r) (L : List (K.Tree r × K.Tree r)),
+    lastLab (lab t) (labW L) = lab (pend t L)
+  | _, [] => rfl
+  | _, (_, t') :: L => lastLab_labW t' L
+
+omit hh hψ in
+lemma sum_labW (w : Z → ℝ≥0∞) {t : K.Tree r} {L : List (K.Tree r × K.Tree r)} (ht : IsComp t)
+    (hL : PWalk t L) : ((labW L).map fun p => w p.1).sum = cost w L := by
+  rw [labW, List.map_map, cost]
+  congr 1
+  refine List.map_congr_left fun p hp => ?_
+  obtain ⟨s, hs⟩ := hL.isSpecial_fst ht p hp
+  simp [spt_of hs, tw_of_inr w hs]
+
+/-- The image vertex of a vertex: the vertex of the image of its generic point. -/
+noncomputable def img (h : K.Cover r → K'.Cover r') (t : K.Tree r) : K'.Tree r' := (h (gen t)).1.2
+
+variable (hNC : ∀ i, ¬ Contr (K := K) ψ i → ∃ i', ψ '' K.C i = K'.C i' ∧ ψ (K.η i) ∉ K'.S)
+  (hC' : Function.Injective K'.C) {w : Z → ℝ≥0∞} {w' : Z' → ℝ≥0∞}
+  (hw : IsHarmonicWeight K K' ψ w w')
+include hNC hC' hw
+
+/-- (Crossing) The images of the ends of a crossing segment are at distance at most its
+weight. -/
+lemma cross_le {t₀ : K.Tree r} {S : List (K.Tree r × K.Tree r)} {σ t : K.Tree r}
+    (ht₀ : IsComp t₀) (hc₀ : ¬ Contr (K := K) ψ (lab t₀)) (hS : PWalk t₀ (S ++ [(σ, t)]))
+    (hSc : ∀ p ∈ S, Contr (K := K) ψ (lab p.2)) (hct : ¬ Contr (K := K) ψ (lab t))
+    (hne : img h t₀ ≠ img h t) :
+    IsSpecial (h (gen σ)).1.2 ∧ (h (gen σ)).1.2.Adj (img h t₀) ∧
+      (h (gen σ)).1.2.Adj (img h t) ∧ w' (h (gen σ)).1.1 ≤ cost w (S ++ [(σ, t)]) := by
+  obtain ⟨i₀, hi₀⟩ := ht₀
+  have ht : IsComp t := by
+    have := PWalk.isComp_pend ⟨i₀, hi₀⟩ hS
+    rwa [pend_append] at this
+  obtain ⟨i, hi⟩ := ht
+  rw [lab_of hi₀] at hc₀
+  rw [lab_of hi] at hct
+  obtain ⟨a, ha, hia⟩ := map_gen_of_not_contr hψ hNC hi₀ hc₀
+  obtain ⟨b, hb, hib⟩ := map_gen_of_not_contr hψ hNC hi hct
+  -- the first special vertex
+  obtain ⟨σ₁, t₁, L, hSL⟩ : ∃ σ₁ t₁ L, S ++ [(σ, t)] = (σ₁, t₁) :: L := by
+    rcases S with _ | ⟨⟨σ₁, t₁⟩, L⟩
+    · exact ⟨σ, t, [], rfl⟩
+    · exact ⟨σ₁, t₁, L ++ [(σ, t)], rfl⟩
+  rw [hSL] at hS
+  have hdl : ((σ₁, t₁) :: L).dropLast = S := by rw [← hSL, List.dropLast_concat]
+  obtain ⟨hseg₁, hseg₂⟩ := map_gen_seg hh hψ ⟨i₀, hi₀⟩ hS (by rw [hdl]; exact hSc)
+  have hσσ₁ : h (gen σ) = h (gen σ₁) := hseg₁ (σ, t) (by rw [← hSL]; simp)
+  set P := h (gen σ)
+  have hσ₁ := isSpecial_of_adj ⟨i₀, hi₀⟩ hS.1
+  have hσ : IsSpecial σ := by
+    have := hS
+    rw [← hSL, pWalk_append] at this
+    exact isSpecial_of_adj (PWalk.isComp_pend ⟨i₀, hi₀⟩ this.1) this.2.1
+  have hσt : σ.Adj t := by
+    have := hS
+    rw [← hSL, pWalk_append] at this
+    exact this.2.2.1
+  have hb₀ : Below P.1.2 (img h t₀) := by
+    rw [show P = h (gen σ₁) from hσσ₁]
+    exact below_map_gen hh (gen_near_of_adj hσ₁ (Tree.adj_comm.1 hS.1))
+  have hb₁ : Below P.1.2 (img h t) := below_map_gen hh (gen_near_of_adj hσ hσt)
+  have hc₀' : IsComp (img h t₀) := ⟨a, ha⟩
+  have hc₁' : IsComp (img h t) := ⟨b, hb⟩
+  -- the image of the special vertices is a special vertex adjacent to both ends
+  have hsp : IsSpecial P.1.2 := by
+    rcases hb₀ with h₀ | h₀
+    · rcases hb₁ with h₁ | h₁
+      · exact (hne (h₀.symm.trans h₁)).elim
+      · exact h₁.1
+    · exact h₀.1
+  have hadj₀ : P.1.2.Adj (img h t₀) := by
+    rcases hb₀ with h₀ | h₀
+    · exact absurd (h₀ ▸ hc₀') (not_isComp_of_isSpecial hsp)
+    · exact h₀.2
+  have hadj₁ : P.1.2.Adj (img h t) := by
+    rcases hb₁ with h₁ | h₁
+    · exact absurd (h₁ ▸ hc₁') (not_isComp_of_isSpecial hsp)
+    · exact h₁.2
+  refine ⟨hsp, hadj₀, hadj₁, ?_⟩
+  obtain ⟨y', hy'⟩ := hsp
+  have hPy : P.1.1 = y' := Cover.eq_of_inr hy'
+  obtain ⟨a', ha', hy'S, hy'a⟩ := head_inl_of_adj P.1.2.2 (img h t₀).2 hadj₀ hy'
+  obtain ⟨b', hb', -, hy'b⟩ := head_inl_of_adj P.1.2.2 (img h t).2 hadj₁ hy'
+  rw [img, ha] at ha'
+  rw [img, hb] at hb'
+  obtain rfl : a' = a := by simpa using ha'.symm
+  obtain rfl : b' = b := by simpa using hb'.symm
+  have hab : a' ≠ b' := by
+    rintro rfl
+    exact hne ((Tree.eq_nbr hadj₀ hy' (v := .inl a') ⟨hy'S, hy'a⟩ ha).trans
+      (Tree.eq_nbr hadj₁ hy' (v := .inl a') ⟨hy'S, hy'a⟩ hb).symm)
+  -- the walk of the incidence graph
+  have hW := incWalk_labW ⟨i₀, hi₀⟩ hS
+  rw [lab_of hi₀] at hW
+  have hlast : lastLab i₀ (labW ((σ₁, t₁) :: L)) = i := by
+    rw [← lab_of hi₀, lastLab_labW, ← hSL, pend_append, pend_cons, pend_nil, lab_of hi]
+  obtain ⟨L', hW', hlast', hnd, hnb, hsub, hQ⟩ := IncWalk.exists_short
+    (fun j => ψ '' K.C j = {y'}) _ le_rfl hW (by
+      intro p hp
+      rw [labW, List.map_dropLast.symm, hdl] at hp
+      obtain ⟨q, hq, rfl⟩ := List.mem_map.1 hp
+      have hqS : q ∈ (σ₁, t₁) :: L := by rw [← hSL]; simp [hq]
+      obtain ⟨j, hj⟩ := hS.isComp_snd ⟨i₀, hi₀⟩ q hqS
+      obtain ⟨y, hy⟩ := hSc q hq
+      have hPq : h (gen q.2) = P := (hseg₂ q (by rw [hdl]; exact hq)).trans hσσ₁.symm
+      have hη : ψ (K.η j) = y' := by
+        rw [← hPy, ← hPq, hψ, gen_fst_of_inl hj]
+      have hηy : ψ (K.η j) ∈ ψ '' K.C (lab q.2) := ⟨_, by rw [lab_of hj]; exact K.η_mem j, rfl⟩
+      rw [hy, hη] at hηy
+      change ψ '' K.C (lab q.2) = {y'}
+      rw [hy, mem_singleton_iff.1 hηy])
+  have hsum : ((labW ((σ₁, t₁) :: L)).map fun p => w p.1).sum = cost w (S ++ [(σ, t)]) := by
+    rw [hSL]; exact sum_labW w ⟨i₀, hi₀⟩ hS
+  rw [← hsum, hPy]
+  have hL'ne : L' ≠ [] := by
+    rintro rfl
+    rw [lastLab_nil, hlast] at hlast'
+    subst hlast'
+    exact hab (hC' (hia.symm.trans hib))
+  have hmem : ∀ p ∈ L', ψ p.1 = y' := by
+    intro p hp
+    have h₁ : p.1 ∈ (labW ((σ₁, t₁) :: L)).map Prod.fst :=
+      hsub.subset (List.mem_map_of_mem hp)
+    rw [labW, List.map_map] at h₁
+    obtain ⟨q, hq, hq'⟩ := List.mem_map.1 h₁
+    rw [← hq']
+    change ψ (gen q.1).1.1 = y'
+    rw [← hψ, hseg₁ q hq, ← hσσ₁, hPy]
+  refine (hw i₀ L' y' a' b' hL'ne hW' hnd hnb hmem hQ hc₀ (by rw [hlast', hlast]; exact hct)
+    hia (by rw [hlast', hlast]; exact hib) hab hy'S hy'a hy'b).trans ?_
+  rw [show (L'.map fun p => w p.1) = (L'.map Prod.fst).map w by simp [List.map_map],
+    show ((labW ((σ₁, t₁) :: L)).map fun p => w p.1) =
+      ((labW ((σ₁, t₁) :: L)).map Prod.fst).map w by simp [List.map_map]]
+  exact (hsub.map w).sum_le_sum fun _ _ => zero_le
+
+omit hNC hC' hw in
+/-- Along a walk all of whose components are contracted, the end component has the image of
+the first special vertex. -/
+lemma map_gen_pend_of_contr : ∀ {t₀ σ₁ t₁ : K.Tree r} {L : List (K.Tree r × K.Tree r)},
+    IsComp t₀ → PWalk t₀ ((σ₁, t₁) :: L) → (∀ p ∈ (σ₁, t₁) :: L, Contr (K := K) ψ (lab p.2)) →
+    h (gen (pend t₀ ((σ₁, t₁) :: L))) = h (gen σ₁)
+  | t₀, σ₁, t₁, L, ht₀, ⟨h₁, h₂, h₃⟩, hc => by
+    have hσ₁ := isSpecial_of_adj ht₀ h₁
+    obtain ⟨i₁, hi₁⟩ := isComp_of_adj hσ₁ h₂
+    have hct₁ : Contr (K := K) ψ i₁ := by
+      have := hc (σ₁, t₁) (by simp)
+      rwa [lab_of hi₁] at this
+    have e₁ : h (gen σ₁) = h (gen t₁) :=
+      map_eq_map_gen hh hψ hi₁ hct₁ (gen_near_of_adj hσ₁ h₂)
+    rcases L with _ | ⟨⟨σ₂, t₂⟩, L⟩
+    · exact e₁.symm
+    · have e₂ : h (gen σ₂) = h (gen t₁) :=
+        map_eq_map_gen hh hψ hi₁ hct₁
+          (gen_near_of_adj (isSpecial_of_adj ⟨i₁, hi₁⟩ h₃.1) (Tree.adj_comm.1 h₃.1))
+      rw [pend_cons, map_gen_pend_of_contr ⟨i₁, hi₁⟩ h₃
+        (fun p hp => hc p (List.mem_cons_of_mem _ hp)), e₂, e₁]
+
+omit hh hψ hNC hC' hw in
+lemma tlen_eq_zero_of_below {X Y V : K'.Tree r'} (hX : Below X V) (hY : Below Y V) :
+    tlen w' X Y = 0 := by
+  rcases isComp_or_isSpecial V with hV | hV
+  · exact le_antisymm ((tlen_le w' (hX.near hV) (hY.near hV) (L := []) trivial rfl).trans_eq rfl)
+      zero_le
+  · rw [hX.eq_of_isSpecial hV, hY.eq_of_isSpecial hV, tlen_self]
+
+/-- (Claim D) A walk from a non-contracted component vertex maps to a walk from its image of no
+larger weight, ending near anything below the image of the end. -/
+theorem exists_walk_img_aux : ∀ (n : ℕ) {t₀ : K.Tree r} {L : List (K.Tree r × K.Tree r)},
+    L.length ≤ n → IsComp t₀ → ¬ Contr (K := K) ψ (lab t₀) → PWalk t₀ L → ∀ (Y : K'.Tree r'),
+    Below Y (img h (pend t₀ L)) →
+    ∃ Y' L', Near Y Y' ∧ PWalk (img h t₀) L' ∧ pend (img h t₀) L' = Y' ∧
+      cost w' L' ≤ cost w L
+  | 0, t₀, L, hn, ht₀, hc₀, _, Y, hY => by
+    obtain rfl := List.length_eq_zero_iff.1 (Nat.le_zero.1 hn)
+    obtain ⟨i₀, hi₀⟩ := ht₀
+    rw [lab_of hi₀] at hc₀
+    obtain ⟨a, ha, -⟩ := map_gen_of_not_contr hψ hNC hi₀ hc₀
+    exact ⟨img h t₀, [], hY.near ⟨a, ha⟩, trivial, rfl, zero_le⟩
+  | n + 1, t₀, L, hn, ht₀, hc₀, hL, Y, hY => by
+    obtain ⟨i₀, hi₀⟩ := ht₀
+    have hc₀' := hc₀
+    rw [lab_of hi₀] at hc₀'
+    obtain ⟨a, ha, -⟩ := map_gen_of_not_contr hψ hNC hi₀ hc₀'
+    have hcomp₀ : IsComp (img h t₀) := ⟨a, ha⟩
+    rcases exists_split (fun p => Contr (K := K) ψ (lab p.2)) L with
+      hall | ⟨L₁, ⟨σ, t⟩, L₃, rfl, h₁, hct⟩
+    · rcases L with _ | ⟨⟨σ₁, t₁⟩, L⟩
+      · exact ⟨img h t₀, [], hY.near hcomp₀, trivial, rfl, zero_le⟩
+      · have e := map_gen_pend_of_contr hh hψ ⟨i₀, hi₀⟩ hL hall
+        have hσ₁ := isSpecial_of_adj ⟨i₀, hi₀⟩ hL.1
+        have hb : Below (h (gen σ₁)).1.2 (img h t₀) :=
+          below_map_gen hh (gen_near_of_adj hσ₁ (Tree.adj_comm.1 hL.1))
+        rw [img, e] at hY
+        refine ⟨img h t₀, [], ?_, trivial, rfl, zero_le⟩
+        rcases hb with hb | ⟨hsp, hadj⟩
+        · exact (hb ▸ hY).near hcomp₀
+        · rw [hY.eq_of_isSpecial hsp]
+          exact .inr ⟨hsp, hadj⟩
+    · rw [show L₁ ++ (σ, t) :: L₃ = (L₁ ++ [(σ, t)]) ++ L₃ by simp] at hL hY ⊢
+      rw [pWalk_append] at hL
+      have hpend : pend t₀ (L₁ ++ [(σ, t)]) = t := by simp [pend_append]
+      rw [hpend] at hL
+      rw [pend_append, hpend] at hY
+      have ht : IsComp t := by
+        have := PWalk.isComp_pend ⟨i₀, hi₀⟩ hL.1
+        rwa [hpend] at this
+      obtain ⟨Y', L₃', hY', hL₃', hend, hcost⟩ := exists_walk_img_aux n (L := L₃)
+        (by simp only [List.length_append, List.length_cons] at hn; omega)
+        ht hct hL.2 Y hY
+      by_cases he : img h t₀ = img h t
+      · refine ⟨Y', L₃', hY', he ▸ hL₃', he ▸ hend, hcost.trans ?_⟩
+        rw [cost_append]
+        exact le_add_self
+      · obtain ⟨hsp, hadj₀, hadj₁, hcross⟩ :=
+          cross_le hh hψ hNC hC' hw ⟨i₀, hi₀⟩ hc₀ hL.1 h₁ hct he
+        refine ⟨Y', ((h (gen σ)).1.2, img h t) :: L₃', hY',
+          ⟨Tree.adj_comm.1 hadj₀, hadj₁, hL₃'⟩, hend, ?_⟩
+        obtain ⟨y', hy'⟩ := hsp
+        rw [cost_cons, cost_append, tw_of_inr w' hy', ← Cover.eq_of_inr hy']
+        exact add_le_add hcross hcost
+
+theorem exists_walk_img {t₀ : K.Tree r} {L : List (K.Tree r × K.Tree r)} (ht₀ : IsComp t₀)
+    (hc₀ : ¬ Contr (K := K) ψ (lab t₀)) (hL : PWalk t₀ L) (Y : K'.Tree r')
+    (hY : Below Y (img h (pend t₀ L))) :
+    ∃ Y' L', Near Y Y' ∧ PWalk (img h t₀) L' ∧ pend (img h t₀) L' = Y' ∧
+      cost w' L' ≤ cost w L :=
+  exists_walk_img_aux hh hψ hNC hC' hw _ le_rfl ht₀ hc₀ hL Y hY
+
+/-- (Claim C) The length between points below the images of the ends of a walk is at most the
+weight of the walk. -/
+theorem tlen_le_cost {t₀ : K.Tree r} {L : List (K.Tree r × K.Tree r)} (ht₀ : IsComp t₀)
+    (hL : PWalk t₀ L) {X Y : K'.Tree r'} (hX : Below X (img h t₀))
+    (hY : Below Y (img h (pend t₀ L))) : tlen w' X Y ≤ cost w L := by
+  by_cases hc₀ : Contr (K := K) ψ (lab t₀)
+  · obtain ⟨i₀, hi₀⟩ := ht₀
+    rw [lab_of hi₀] at hc₀
+    rcases exists_split (fun p => Contr (K := K) ψ (lab p.2)) L with
+      hall | ⟨L₁, ⟨σ, t⟩, L₃, rfl, h₁, hct⟩
+    · rcases L with _ | ⟨⟨σ₁, t₁⟩, L⟩
+      · exact (tlen_eq_zero_of_below hX hY).trans_le zero_le
+      · have e := map_gen_pend_of_contr hh hψ ⟨i₀, hi₀⟩ hL hall
+        have hσ₁ := isSpecial_of_adj ⟨i₀, hi₀⟩ hL.1
+        have e₀ : h (gen σ₁) = h (gen t₀) :=
+          map_eq_map_gen hh hψ hi₀ hc₀ (gen_near_of_adj hσ₁ (Tree.adj_comm.1 hL.1))
+        rw [img, e, e₀] at hY
+        exact (tlen_eq_zero_of_below hX hY).trans_le zero_le
+    · rw [show L₁ ++ (σ, t) :: L₃ = (L₁ ++ [(σ, t)]) ++ L₃ by simp] at hL hY ⊢
+      rw [pWalk_append] at hL
+      have hpend : pend t₀ (L₁ ++ [(σ, t)]) = t := by simp [pend_append]
+      rw [hpend] at hL
+      rw [pend_append, hpend] at hY
+      have ht : IsComp t := by
+        have := PWalk.isComp_pend ⟨i₀, hi₀⟩ hL.1
+        rwa [hpend] at this
+      -- the image of the start is the image of the first crossing
+      obtain ⟨σ₁, t₁, M, hSM⟩ : ∃ σ₁ t₁ M, L₁ ++ [(σ, t)] = (σ₁, t₁) :: M := by
+        rcases L₁ with _ | ⟨⟨σ₁, t₁⟩, M⟩
+        · exact ⟨σ, t, [], rfl⟩
+        · exact ⟨σ₁, t₁, M ++ [(σ, t)], rfl⟩
+      have hS := hL.1
+      rw [hSM] at hS
+      have hdl : ((σ₁, t₁) :: M).dropLast = L₁ := by rw [← hSM, List.dropLast_concat]
+      obtain ⟨hseg₁, -⟩ := map_gen_seg hh hψ ⟨i₀, hi₀⟩ hS (by rw [hdl]; exact h₁)
+      have hσσ₁ : h (gen σ) = h (gen σ₁) := hseg₁ (σ, t) (by rw [← hSM]; simp)
+      have hσ₁ := isSpecial_of_adj ⟨i₀, hi₀⟩ hS.1
+      have e₀ : h (gen σ₁) = h (gen t₀) :=
+        map_eq_map_gen hh hψ hi₀ hc₀ (gen_near_of_adj hσ₁ (Tree.adj_comm.1 hS.1))
+      have hσ : IsSpecial σ ∧ σ.Adj t := by
+        have := hL.1
+        rw [pWalk_append] at this
+        exact ⟨isSpecial_of_adj (PWalk.isComp_pend ⟨i₀, hi₀⟩ this.1) this.2.1, this.2.2.1⟩
+      have hb : Below (img h t₀) (img h t) := by
+        rw [img, ← e₀, ← hσσ₁]
+        exact below_map_gen hh (gen_near_of_adj hσ.1 hσ.2)
+      obtain ⟨Y', L₃', hY', hL₃', hend, hcost⟩ :=
+        exists_walk_img hh hψ hNC hC' hw ht hct hL.2 Y hY
+      have hXn : Near X (img h t) := by
+        obtain ⟨b, hb', -⟩ := map_gen_of_not_contr hψ hNC (i := lab t)
+          (by obtain ⟨j, hj⟩ := ht; rw [lab_of hj]; exact hj) hct
+        rcases hb with hb | ⟨hsp, hadj⟩
+        · exact (hb ▸ hX).near ⟨b, hb'⟩
+        · rw [hX.eq_of_isSpecial hsp]
+          exact .inr ⟨hsp, hadj⟩
+      refine (tlen_le w' hXn hY' hL₃' hend).trans (hcost.trans ?_)
+      rw [cost_append]
+      exact le_add_self
+  · obtain ⟨Y', L', hY', hL', hend, hcost⟩ := exists_walk_img hh hψ hNC hC' hw ht₀ hc₀ hL Y hY
+    obtain ⟨i₀, hi₀⟩ := ht₀
+    rw [lab_of hi₀] at hc₀
+    obtain ⟨a, ha, -⟩ := map_gen_of_not_contr hψ hNC hi₀ hc₀
+    exact (tlen_le w' (hX.near ⟨a, ha⟩) hY' hL' hend).trans hcost
+
+/-- **Monotonicity of lengths along maps of tree coverings**: for `h : K.Cover r → K'.Cover r'`
+continuous over `ψ`, with every component contracted or mapped onto a component (its generic
+point to a non-special point), and harmonic weights, lengths do not increase. -/
+theorem tlen_map_le (p q : K.Cover r) : tlen w' (h p).1.2 (h q).1.2 ≤ tlen w p.1.2 q.1.2 := by
+  refine le_sInf ?_
+  rintro _ ⟨a', b', L, ha, hb, hL, hend, rfl⟩
+  exact tlen_le_cost hh hψ hNC hC' hw ha.isComp hL (below_map_gen hh ha)
+    (hend ▸ below_map_gen hh hb)
 
 end Map
 
