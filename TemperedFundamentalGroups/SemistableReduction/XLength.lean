@@ -37,6 +37,7 @@ space is used: everything is a statement about valuation subrings of `F`.
 
 * `IsLogValue.unique`, `IsXGauss.rho_unique`: the normalised log radius of a Gauss point is
   well defined (independent of the chosen centre);
+* `IsMonomialPt.param_unique`: monomial points at different parameters differ;
 * `XChain.length_nonneg`, `IsXLength.unique`, `IsXLength.nonneg`: the x-length is well defined
   and nonnegative; `IsXLength.le_of_chain` (every chain gives a lower bound), in particular
   `IsXLength.abs_sub_le`: `λ ≥ |ρ(W₂) - ρ(W₁)|` (the radii of the two branches).
@@ -127,6 +128,12 @@ transcendental residue over the residue field of `O'`. The branches are the mono
 def IsMonomialPt (O' : ValuationSubring K) (P : Set F) (ϖ' u : F) (s : ℚ)
     (U : ValuationSubring F) : Prop :=
   P ⊆ U ∧ IsLogValue U ϖ' u s ∧ IsResidueTranscendental O' U (u ^ s.den / ϖ' ^ s.num)
+
+/-- Monomial points at different parameters are different (XL4: the path is injective). -/
+theorem IsMonomialPt.param_unique {O' : ValuationSubring K} {P : Set F} {ϖ' u : F} {s t : ℚ}
+    {U : ValuationSubring F} (hϖ0 : U.valuation ϖ' ≠ 0) (hϖ : U.valuation ϖ' < 1)
+    (hs : IsMonomialPt O' P ϖ' u s U) (ht : IsMonomialPt O' P ϖ' u t U) : s = t :=
+  IsLogValue.unique hϖ0 hϖ hs.2.1 ht.2.1
 
 /-- The algebraic closure of `F`, over which the centres of Gauss points live. -/
 abbrev Fbar (F : Type*) [Field F] : Type _ := AlgebraicClosure F

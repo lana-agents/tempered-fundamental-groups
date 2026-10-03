@@ -613,7 +613,7 @@ with the B5 consumer):
 
 | # | Statement | Inputs | Status |
 |---|---|---|---|
-| XL0 | definitions, uniqueness, telescoping lower bound, `germs_iso` | — | **done** |
+| XL0 | definitions, uniqueness, telescoping lower bound, `germs_iso`, `IsMonomialPt.param_unique` | — | **done** |
 | XL1 | **Zariski node coordinates**: at a node `y` of a split semistable W-model, `germs c j y` is the local ring `P` of the Zariski point (c integral, `j` generic: `IsWModel`), and there are `u, v ∈ P` with `u v = ϖ'ⁿ` (`n` the thickness), `u` a unit with transcendental residue on one branch, `v` on the other (étale-locally `u = ε u_h`; `n[b₁]` principal in `P` since `Cl(P) → Cl(P^h)` is injective; or directly from S9 witness form) | H3, H6, S9 | planned, 0.3k |
 | XL2 | **monomial points exist and are unique**: for `s ∈ [0, n] ∩ ℚ` exactly one `U_s` (base change `ϖ'' ^ a = ϖ'` makes `s` integral; the subdivided node chart `O''[u/ϖ''ᵇ, ϖ''ᵇ/u]` (M7a) has a normal local ring at the new component, a DVR, giving existence; uniqueness: the extensions of the Gauss point `w_{0,|ϖ|^s}` of `K'(u)` centred at `P` have `∑ e f` = tube degree of `P` over the `u`-annulus = vertex degree `= 1` (S5 `tubeDegree_eq`, S6 `tubeDegree_eq_vertexDegree`: `ū` is a uniformizer of the branches), after base change to `C`; Galois descent since the node is split) | M7a, S5, S6, W9 | planned, 0.6k |
 | XL3 | **piecewise linearity**: for `f ∈ K̄'(x)ˣ`, `s ↦ log U_s(f)` is continuous, piecewise linear with integer slopes and finitely many breaks (Laurent expansion `Node.laurent` in the étale node chart: `U_s(Σ αᵢ uⁱ + Σ βⱼ vʲ) = max(|αᵢ| |ϖ|^{s i}, |βⱼ| |ϖ|^{(n−s) j})`; alternatively S1 + S2 for the norm to `K'(u)`); hence `s ↦ U_s|K̄'(x)` is a path with finitely many monotone pieces, every `U_s` has Gauss data (W2 over `K̄'`), and the chain through the breakpoints attains the supremum: **existence of `λ`** | S1, S2, `Node.laurent`, W2 | planned, 0.5k |
@@ -625,7 +625,9 @@ with the B5 consumer):
 | XL9 | **(X2) no shortening**: the concatenated monomial paths of a crossing walk restrict to a path `Γ` in the closed tube of `y'` from `W_{w₁'}` to `W_{w₂'}` (inner components and nodes are centred over `y'`); `s(U) = log_{|ϖ'|} U(u')` is continuous along `Γ` and every `U` with `s(U) = s` is `U'_s` or lies in a disc hanging at `U'_s` (attached only there), so `Γ` passes through `U'_{s₁}, …, U'_{s_m}` in this order for every partition; hence `TV(x ∘ Γ) ≥ ∑ d(x(U'_{sᵢ}), x(U'_{sᵢ₊₁}))` and `∑ λ(xᵢ) = TV(x ∘ Γ) ≥ λ'(y')`. For unfolded `y'` (XL6) this is just the triangle inequality for positions (`abs_sub_le_sum_of_branchNodes`) | XL3, XL7, `IsXLength.le_of_chain` | planned, 0.6k |
 | XL10 | **(X3)**: `ψ y ∈ Z c'` (`ψ` over `O`); not a node ⇒ smooth; a point of `Z` lies on some component (Zorn, `exists_preirreducible` in the subspace `Z`) and a smooth point on at most one (minimal primes of `O_{Z,y}` inject into those of a local étale neighbourhood of `κ[u]`, a domain; flat ⇒ going down) | DualGraph, LocalModel | planned, 0.3k |
 
-Estimate: ≈ 3.7k lines on top of W7 S5/S6 and H6.
+Estimate: ≈ 3.7k lines on top of W7 S5/S6 and H6. Split: XL1, XL5, XL6, XL10 and the H6 glue on the
+W8′ branch (`NodeDeformation.exists_node`, `eq_or_eq_of_isDiscreteValuationRing`, `NodeLemma`);
+XL2–XL4, XL7–XL9 on `wp-tempered-hx`.
 ### 9.6 W5: models and vertex sets
 
 **Formulation (decision).** Models are formalized *birationally*, as Zariski's abstract varieties
