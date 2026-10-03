@@ -956,3 +956,54 @@ Revised estimate for S8 (with S10): **8–10k lines**, dominated by S8.5, which 
 type-4 valuations (completions of `C(x)` at non-Gauss valuations, immediate extensions) that the
 project does not have yet. The tame case (all residue extensions over the relevant points of
 degree prime to `p`, e.g. Galois group of order prime to `p`) needs none of this (Kummer, §9.2 (i)).
+
+**S8.1–S8.4: lemma-level plan (2026-10, branch `wp-tempered-s81`).**
+
+*Interface with S7.* S7 (`DeltaGenus`, branch `wp-tempered-s7`) proves, for a fixed vertex set,
+`Σ_{V'} g + b₁ + Σ_{P'} δ'_{P'} ≤ g(F')` with `b₁ = Σ_{P'}(r_{P'} − 1) − #V' + 1`
+(`sum_genus_add_sum_card_sub_one_le`) and "`h(V) ≤ 0` ⇒ every `δ'_{P'} = 0`"
+(`card_le_of_indep`). It does **not** give monotonicity of `h` under refinement or its locality
+(both need the equality `g = Σ g + b₁ + Σ δ'`, i.e. S8 itself). Hence S8.1 is formulated without
+`h`: it is the valuation-theoretic limit construction for nested pieces (discs, annuli) of
+`P¹_C`, and the assembly S8.6 works with a predicate "the piece `U` is *good*" (its preimage
+is a disjoint union of discs, resp. annuli), which is hereditary for sub-pieces, together with
+S7's bound `Σ δ' ≤ h(V)` (finitely many bad pieces for a fixed `V`) and an S9-type bridge
+"good piece ⇔ `δ' = 0` at the points over it".
+
+*S8.1 (compactness: limits of nested pieces).* `K` algebraically closed with a valuation `v`
+(any value group), pieces are closed discs `D(a, r) = {w : w(X − a) ≤ r}`.
+
+| # | Statement | Inputs | Size |
+|---|---|---|---|
+| S8.1a | **eventual limits of valuations**: a sequence of valuations `wₙ` of a ring which is eventually constant at every element has a limit valuation `w` (`w f = wₙ f` for `n ≫ 0`) | — | 0.05k |
+| S8.1b | **type 4**: for nested discs `D(aₙ, rₙ)` (`r_{n+1} ≤ rₙ`, `v(a_{n+1} − aₙ) ≤ rₙ`) without a common point of `K`, `w_{aₙ,rₙ}(f)` is eventually constant for every `f ∈ K(X)`; the limit `w` extends `v`, lies in every disc (`w(X − aₙ) ≤ rₙ`), is the **unique** valuation extending `v` with this property, and is not a Gauss valuation; `w(X − b) = v(b − a_m)` as soon as `b ∉ D(a_m, r_m)` | S8.1a, W1, `valuation_ratFunc_ext_of_linear` | 0.2k |
+| S8.1c | **common point**: if `b ∈ ⋂ D(aₙ, rₙ)` then `w_{aₙ,rₙ} = w_{b,rₙ}`; **type 1**: if moreover `rₙ` tends to `0` (below every unit), no valuation extending `v` lies in all discs, and `w_{aₙ,rₙ}(p) = v(p(b))` for `n ≫ 0` whenever `p(b) ≠ 0` | W1 | 0.1k |
+| S8.1d | **types 3 and 5 (germs at a radius)**: for `φ ≠ 0` and a radius `ρ`, `φ` is monomial (S1) on a one-sided interval `(ρ, ρ')` (resp. `(ρ', ρ)`), and on a two-sided interval `(ρ₁, ρ₂) ∋ ρ` if `ρ ∉ v(K^×)` (no zero or pole of `φ` has absolute value `ρ`) | S1 (`AnnulusUnit`) | 0.1k |
+
+*S8.2 (type 1, `char C = 0`).*
+
+| # | Statement | Inputs | Size |
+|---|---|---|---|
+| S8.2a | **split over a small disc at an unramified point**: `P ∈ C[x][Y]` monic in `Y`, `P(a, Y)` separable of degree `n`. There is `s₀ > 0` such that for **every** real valuation `w` of `C(x)` extending the norm of `C` with `w(x − a) < s₀` (any type), `P` has `n` distinct roots in the completion `\hat{C(x)}_w`; hence (B3) `w` has exactly `n` extensions to `F' = C(x)[Y]/(P)`, each of local degree `1` (`e = f = 1`, completions equal) | Hensel in the completion (`PthPower.exists_root`), `LocalGlobal` | 0.4k |
+| S8.2b | **Kummer base change**: for `a ∈ C` and `E` divisible by all ramification indices over `x = a`, every factor of `F' ⊗ C(t)`, `t^E = x − a`, is unramified over `t = 0` (Abhyankar's lemma at the DVR `C[x]_{(x−a)}`, residue field `C` of characteristic `0`, so tame); hence it has a generator integral over `C[t]` with separable reduction at `t = 0`, and S8.2a applies in the `t`-disc | `Abhyankar`, S8.2a | 0.5k |
+| S8.2c | **descent**: for `w` in the `x`-disc `|x − a| < s₀^E` the extensions of `w` to `F'` are restrictions of those of its extensions to the `t`-line; for a Gauss point the residue curves are subfields of `k(t̄)` containing `k(x̄)`, hence rational (Lüroth), with one point over `x̄ = 0` | S8.2b | 0.3k |
+
+*S8.3 (type 5: a direction at a type-2 point; after a coordinate change `z = w_{0,1}`, direction
+`x̄ = 0`).*
+
+| # | Statement | Inputs | Size |
+|---|---|---|---|
+| S8.3a | **direction parameter**: for `w' ∣ w_{0,1}` and a place `Q` of `κ(w')` with `x̄(Q) = 0`, `e_Q = ord_Q x̄`, some `t ∈ F'` has `w'(t) = 1`, `t̄` a uniformizer at `Q`; `w'` restricts to the Gauss point `w^{(t)}_{0,1}` of `C(t)` | A1/`TypeTwo.valuation_aeval_eq_sup`, W2, R5 | 0.2k |
+| S8.3b | **tube degree one**: choosing `t̄` with `Q` its only zero among the branches through the point `P'` of the `t`-node (Riemann–Roch R7, separation `TubePoints.exists_separating`), S6 for `F'/C(t)` gives tube degree `1` at `P'`: for `ρ` close to `1` exactly one extension of `w^{(t)}_{0,ρ}` is centred at `P'`, with `e = f = 1` and residue curve `k(t̄)` (two directions) | S5, S6 (`VertexMatch`, `InnerVertex`) | 0.5k |
+| S8.3c | `x = ε t^{e_Q}` with `ε` a unit along `(ρ₀, 1)` (finitely many zeros/poles of `x / t^{e_Q}`, norm formula S2): the `t`-annulus maps onto the `x`-annulus `(ρ₀^{e_Q}, 1)` with degree `e_Q` | S1, S2 | 0.3k |
+
+*S8.4 (type 3: `w_{a,r}`, `r ∉ |C^×|`).*
+
+| # | Statement | Inputs | Size |
+|---|---|---|---|
+| S8.4a | **dominant monomials**: `w_{a,r}(Σ cᵢ (x − a)^i)` is attained at a unique `i`; residue field `k`, value group `|C^×| · r^ℤ`; extensions `w'` to `F'` have `f = 1` and `Γ_{w'} = |C^×| · ρ^ℤ` with `ρ^{e(w')} ∈ r · |C^×|` | W1, A3 | 0.2k |
+| S8.4b | **stability at irrational radius** (W4 for type 3): `Σ_{w' ∣ w_{a,r}} e(w') = [F' : C(x)]`. Route as G1–G3: tame part `H((c(x − a))^{1/m})` is again of type 3; wild part a tower of Galois degree-`p` Kummer steps over type-3 fields, defectless because modulo `p`-th powers a `1`-unit has a dominant monomial `d yⁿ` with `p ∤ n` (orthogonal basis `{yⁿ}`, F4 simplified), so `e = p`; finiteness over the closure of `C(y)` as in G2 | G1–G3 pattern, `PthPower`, `LocalGlobal` B4 | 1.5k (the 0.6k of the S8 table was too low) |
+| S8.4c | **no visible genus near `r`**: the finitely many type-2 points of positive genus (`TypeTwo.card_le_genus`) project to rational radii, so a small annulus `(r₁, r₂) ∋ r` avoids them | W6 | 0.2k |
+| S8.4d | **unramified parameter**: `y ∈ F'` with `w'(y)` generating `Γ_{w'}` modulo `|C^×|`: by S8.4b for `F'/C(y)` the completion of `F'` at `w'` is that of `C(y)`; with S5 on a small `y`-annulus this gives tube degree `1` | S8.4b, S5 | 0.4k |
+
+Order of work: S8.1a–d, S8.2a, S8.2b–c, S8.3a, S8.4a, S8.4c; then S8.3b–c and S8.4b, d.
