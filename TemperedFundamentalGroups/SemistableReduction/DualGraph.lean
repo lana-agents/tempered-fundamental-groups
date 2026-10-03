@@ -186,4 +186,8 @@ def HasLocalDegree (ϖ : O) {c c' : TemperedFundamentalGroups.ModelCode O}
       k (f' (_root_.SemistableReduction.Node.v _)) =
         ε' * f (algebraMap O _ (ϖ ^ b)) * f (_root_.SemistableReduction.Node.v _) ^ d
 
+/-- The dual graph of `c` has **no loops**: every node point lies on two distinct components. -/
+def NoLoops (c : TemperedFundamentalGroups.ModelCode O) : Prop :=
+  ∀ x : c.scheme, IsNodePt c x → ∃ v ∈ components c, ∃ w ∈ components c, v ≠ w ∧ x ∈ v ∧ x ∈ w
+
 end TemperedFundamentalGroups.SemistableReduction.ModelCode

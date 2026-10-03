@@ -92,7 +92,7 @@ and finitely many given projective `O`-models `c₀ i` of `Spec B` (with `j₀ i
 * `K'/K` is Galois;
 * the semistable model is also a projective `O`-model `c` (isomorphic, over `O`, to the
   semistable `O'`-model `c'`), and `c'` is split (`ModelCode.IsSplit`: split nodes, geometrically
-  irreducible components);
+  irreducible components) and has no loops (`ModelCode.NoLoops`);
 * `j : Spec (K' ⊗_K B) ⟶ c` is an open immersion over `O` which is scheme-theoretically dominant;
 * `G × Gal(K'/K)` acts on `c` over `O` with `j` equivariant (`g` acts on `K' ⊗ B` by `id ⊗ g`,
   `σ` by `σ ⊗ id`);
@@ -119,7 +119,7 @@ def Statement.Strong : Prop :=
       (j : Spec (CommRingCat.of (TensorProduct K K' B)) ⟶ c.scheme)
       (act : G × (K' ≃ₐ[K] K') →* Aut c.scheme)
       (dom : ∀ i, c.scheme ⟶ (c₀ i).scheme),
-      ModelCode.IsSemistable ϖ' c' ∧ ModelCode.IsSplit ϖ' c' ∧
+      ModelCode.IsSemistable ϖ' c' ∧ ModelCode.IsSplit ϖ' c' ∧ ModelCode.NoLoops c' ∧
       e.hom ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom
         ((algebraMap K K').restrict O O' (fun x hx => by
           rw [← ‹O'.comap (algebraMap K K') = O›] at hx; exact hx))) = c.toSpec ∧
@@ -144,7 +144,8 @@ namespace TemperedFundamentalGroups.SemistableReduction
 /-- **Simultaneous semistable reduction** (requested for W8′ / Theorem B of the André
 identification): for a tower of finite étale covers `Spec B' → Spec B → Spec R` of a smooth
 affine `K`-curve, after a finite extension `K'/K` there are semistable projective `O'`-models
-`c` of `Spec (K' ⊗ B)` and `c'` of `Spec (K' ⊗ B')`, both split (`ModelCode.IsSplit`), with
+`c` of `Spec (K' ⊗ B)` and `c'` of `Spec (K' ⊗ B')`, both split (`ModelCode.IsSplit`) and
+without loops (`ModelCode.NoLoops`), with
 open immersions `j, j'` over `O'` and a
 **finite** morphism `ψ : c' ⟶ c` over `O'` compatible with `j, j'` (e.g. `c'` the normalization of
 `c` in `K' ⊗ B'`), which is harmonic on dual graphs (`ModelCode.IsHarmonic`, W8′). -/
@@ -164,7 +165,8 @@ def Statement.Simultaneous : Prop :=
       (j' : Spec (CommRingCat.of (TensorProduct K K' B')) ⟶ c'.scheme)
       (ψ : c'.scheme ⟶ c.scheme),
       ModelCode.IsSemistable ϖ' c ∧ ModelCode.IsSemistable ϖ' c' ∧
-      ModelCode.IsSplit ϖ' c ∧ ModelCode.IsSplit ϖ' c' ∧
+      ModelCode.IsSplit ϖ' c ∧ ModelCode.IsSplit ϖ' c' ∧ ModelCode.NoLoops c ∧
+      ModelCode.NoLoops c' ∧
       IsOpenImmersion j ∧ IsOpenImmersion j' ∧ IsFinite ψ ∧
       ψ ≫ c.toSpec = c'.toSpec ∧ ModelCode.IsHarmonic ϖ' ψ ∧
       j ≫ c.toSpec = Spec.map (CommRingCat.ofHom
@@ -243,15 +245,16 @@ def Statement.Modification : Prop :=
 
 /-- **W8′ (general form): harmonicity of maps of split semistable models which are finite on
 generic fibres** (targeted; consumed by Theorem B, B5; Blueprint §9.7). Let `O` be a discrete
-valuation ring with uniformizer `ϖ`, `c`, `c'` split semistable projective `O`-models and
-`ψ : c ⟶ c'` a morphism over `O`, finite over the generic fibre of `c'` (a finite map composed
-with a modification). For every node `x'` of `c'` of thickness `n'`:
-* (H1) for every component `v` of `c` mapping onto a component through `x'`, some walk crosses
-  `x'` (inner components contracted to `x'`, nodes over `x'`) starting on `v`, ending on a
-  component mapping onto a component through `x'` (onto the other branch if `x'` lies on two
-  components), with `∑ dᵢ nᵢ = n'` (`nᵢ` the thicknesses, `dᵢ` the local degrees,
-  `ModelCode.HasLocalDegree`);
-* (H2) every walk crossing `x'` has `∑ dᵢ nᵢ ≤ n'`;
+valuation ring with uniformizer `ϖ`, `c`, `c'` split semistable projective `O`-models without
+loops (`ModelCode.NoLoops`) and `ψ : c ⟶ c'` a morphism over `O`, finite over the generic fibre
+of `c'` (a finite map composed with a modification). For every node `x'` of `c'` of thickness
+`n'`, lying on the two components `w₁' ≠ w₂'`:
+* (H1) for every component `v` of `c` mapping onto `w₁'`, some walk crossing `x'` (inner
+  components contracted to `x'`, nodes over `x'`) runs from `v` to a component mapping onto
+  `w₂'`, with `∑ dᵢ nᵢ = n'` (`nᵢ` the thicknesses, `dᵢ` the local degrees,
+  `ModelCode.HasLocalDegree`; a monotone walk);
+* (H2) every walk crossing `x'` from a component over `w₁'` to a component over `w₂'` has
+  `∑ dᵢ nᵢ ≥ n'` (lengths do not decrease);
 * (H3) a node of `c` which does not map to a node maps to a point lying on exactly one component.
 Supersedes `Statement.Harmonic` (finite `ψ`) and `Statement.Modification` (birational `ψ`). -/
 def Statement.HarmonicGeneral : Prop :=
@@ -259,18 +262,22 @@ def Statement.HarmonicGeneral : Prop :=
     (_ : Irreducible ϖ) (c c' : TemperedFundamentalGroups.ModelCode O) (ψ : c.scheme ⟶ c'.scheme),
     ψ ≫ c'.toSpec = c.toSpec → IsFinite (ψ ∣_ ModelCode.genericOpen c') →
     ModelCode.IsSemistable ϖ c → ModelCode.IsSemistable ϖ c' →
-    ModelCode.IsSplit ϖ c → ModelCode.IsSplit ϖ c' →
+    ModelCode.IsSplit ϖ c → ModelCode.IsSplit ϖ c' → ModelCode.NoLoops c → ModelCode.NoLoops c' →
       (∀ (x' : c'.scheme) (n' : ℕ), ModelCode.IsNodeOfThickness ϖ c' x' n' →
-        ∀ v ∈ ModelCode.components c, (∃ w' ∈ ModelCode.components c', x' ∈ w' ∧ ψ '' v = w') →
+        ∀ w₁' ∈ ModelCode.components c', ∀ w₂' ∈ ModelCode.components c', w₁' ≠ w₂' →
+        x' ∈ w₁' → x' ∈ w₂' →
+        ∀ v ∈ ModelCode.components c, ψ '' v = w₁' →
           ∃ w : ModelCode.Walk c, w.v 0 = v ∧ w.IsCrossing ψ x' ∧
-            (∃ w' ∈ ModelCode.components c', x' ∈ w' ∧ ψ '' w.v (Fin.last w.k) = w' ∧
-              ((∃ w'' ∈ ModelCode.components c', x' ∈ w'' ∧ w'' ≠ ψ '' v) → w' ≠ ψ '' v)) ∧
+            ψ '' w.v (Fin.last w.k) = w₂' ∧
             ∃ t dd : Fin w.k → ℕ, (∀ i, ModelCode.IsNodeOfThickness ϖ c (w.x i) (t i)) ∧
               (∀ i, ModelCode.HasLocalDegree ϖ ψ (w.x i) (dd i)) ∧ ∑ i, dd i * t i = n') ∧
       (∀ (x' : c'.scheme) (n' : ℕ), ModelCode.IsNodeOfThickness ϖ c' x' n' →
-        ∀ w : ModelCode.Walk c, w.IsCrossing ψ x' → ∀ t dd : Fin w.k → ℕ,
+        ∀ w₁' ∈ ModelCode.components c', ∀ w₂' ∈ ModelCode.components c', w₁' ≠ w₂' →
+        x' ∈ w₁' → x' ∈ w₂' →
+        ∀ w : ModelCode.Walk c, w.IsCrossing ψ x' → ψ '' w.v 0 = w₁' →
+          ψ '' w.v (Fin.last w.k) = w₂' → ∀ t dd : Fin w.k → ℕ,
           (∀ i, ModelCode.IsNodeOfThickness ϖ c (w.x i) (t i)) →
-          (∀ i, ModelCode.HasLocalDegree ϖ ψ (w.x i) (dd i)) → ∑ i, dd i * t i ≤ n') ∧
+          (∀ i, ModelCode.HasLocalDegree ϖ ψ (w.x i) (dd i)) → n' ≤ ∑ i, dd i * t i) ∧
       (∀ x : c.scheme, ModelCode.IsNodePt c x → ¬ ModelCode.IsNodePt c' (ψ x) →
         ∃! w', w' ∈ ModelCode.components c' ∧ ψ x ∈ w')
 
