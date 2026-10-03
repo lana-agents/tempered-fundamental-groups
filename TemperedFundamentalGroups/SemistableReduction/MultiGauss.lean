@@ -142,6 +142,25 @@ variable [IsAlgClosed C] [CharZero C] [IsCurveFunctionField C F]
 def IsOver {x : F} (hx : Transcendental C x) (W : TypeTwo C F) : Prop :=
   W.val.comap (coordAlgHom hx).toRingHom = gauss1 C
 
+include hp hp1 in
+/-- The Gauss point of a coordinate has an extension. -/
+lemma exists_isOver {x : F} (hx : Transcendental C x) : ∃ W : TypeTwo C F, IsOver hx W := by
+  letI : Algebra (RatFunc C) F := (coordAlgHom hx).toRingHom.toAlgebra
+  haveI : IsScalarTower C (RatFunc C) F :=
+    IsScalarTower.of_algebraMap_eq fun c ↦ ((coordAlgHom hx).commutes c).symm
+  have hxF : xF C F = x := xF_coord hx
+  haveI := finiteDimensional_of_transcendental (C := C) (F := F) (hxF ▸ hx)
+  haveI : Finite (Ext C F) := finite_ext (F := F) hp hp1
+  letI : Fintype (Ext C F) := Fintype.ofFinite _
+  obtain ⟨b, hb⟩ := exists_orthonormal_basis ramificationIdx_eq_one
+    (sum_inertiaDeg_eq (F := F) hp hp1)
+  obtain ⟨v⟩ := nonempty_ext_of_orthonormal hb
+  exact ⟨⟨v.1, by
+    ext c
+    rw [comap_apply, valuation_algebraMap_C', NormedField.valuation_apply], by
+    letI := hasExtension_C (F := F) v
+    exact Algebra.transcendental_def.2 ⟨_, transcendental_red_x v⟩⟩, v.2⟩
+
 open Classical in
 include hp hp1 in
 /-- **Isometric coordinates for one Gauss point** (G6.3–G6.4 in the coordinate `x`): if `S`
@@ -228,24 +247,10 @@ theorem finrank_le_of_red_mem {I : Type*} [Fintype I] [Nonempty I] (x : I → F)
     Module.finrank C V ≤ Module.finrank 𝓀 Wk := by
   classical
   obtain ⟨n, T, hT⟩ := exists_isometry_mnorm hp hp1 x hx S hS V
-  -- `S` is nonempty: the Gauss point of a coordinate has an extension
   have hSne : S.Nonempty := by
     obtain ⟨i⟩ := ‹Nonempty I›
-    letI : Algebra (RatFunc C) F := (coordAlgHom (hx i)).toRingHom.toAlgebra
-    haveI : IsScalarTower C (RatFunc C) F :=
-      IsScalarTower.of_algebraMap_eq fun c ↦ ((coordAlgHom (hx i)).commutes c).symm
-    have hxF : xF C F = x i := xF_coord (hx i)
-    haveI := finiteDimensional_of_transcendental (C := C) (F := F) (hxF ▸ hx i)
-    haveI : Finite (Ext C F) := finite_ext (F := F) hp hp1
-    letI : Fintype (Ext C F) := Fintype.ofFinite _
-    obtain ⟨b, hb⟩ := exists_orthonormal_basis ramificationIdx_eq_one
-      (sum_inertiaDeg_eq (F := F) hp hp1)
-    obtain ⟨v⟩ := nonempty_ext_of_orthonormal hb
-    refine ⟨⟨v.1, by
-      ext c
-      rw [comap_apply, valuation_algebraMap_C', NormedField.valuation_apply], by
-      letI := hasExtension_C (F := F) v
-      exact Algebra.transcendental_def.2 ⟨_, transcendental_red_x v⟩⟩, (hS _).2 ⟨i, v.2⟩⟩
+    obtain ⟨W, hW⟩ := exists_isOver hp hp1 (hx i)
+    exact ⟨W, (hS W).2 ⟨i, hW⟩⟩
   have hν (f : F) (h : mnorm S f = 0) : f = 0 := by
     obtain ⟨W, hW⟩ := hSne
     have := le_mnorm hW f

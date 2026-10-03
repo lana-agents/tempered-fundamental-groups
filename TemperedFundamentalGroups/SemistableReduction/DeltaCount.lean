@@ -284,6 +284,42 @@ theorem exists_indep_of_le_eqRes [DecidableEq J] [DecidableEq (Branch k κ)]
   simp only [hii, Finset.sum_ite_eq', Finset.mem_univ, if_true] at h1
   rw [Pi.zero_apply, ← h1, hseq _ hi b₀ hb₀, h0]
 
+/-- `δ ≥ r - 1` in finset form: a set of `r - 1` elements regular at `S`, independent modulo every
+subspace of `eqRes S`. -/
+theorem exists_finset_indep_of_le_eqRes [DecidableEq J] [DecidableEq (Branch k κ)]
+    (S : Finset (Branch k κ)) {b₀ : Branch k κ} (hb₀ : b₀ ∈ S) :
+    ∃ A : Finset (Π j, κ j), A.card = S.card - 1 ∧ (∀ y ∈ A, y ∈ regAt k κ S) ∧
+      ∀ N : Submodule k (Π j, κ j), N ≤ eqRes k κ S → ∀ a : A → k, ∑ i, a i • (i : Π j, κ j) ∈ N →
+        a = 0 := by
+  classical
+  obtain ⟨t, ht, hind⟩ := exists_indep_of_le_eqRes S b₀
+  have hinj : Function.Injective t := by
+    intro i i' h
+    by_contra hne
+    have := hind (eqRes k κ S) le_rfl hb₀ (Pi.single i 1 - Pi.single i' 1) (by
+      simp only [Pi.sub_apply, sub_smul, Finset.sum_sub_distrib, Pi.single_apply, ite_smul,
+        one_smul, zero_smul, Finset.sum_ite_eq', Finset.mem_univ, if_true, h, sub_self]
+      exact zero_mem _)
+    have h1 := congrFun this i
+    simp [Ne.symm hne] at h1
+  refine ⟨Finset.univ.image t, ?_, fun y hy ↦ ?_, fun N hN a ha ↦ ?_⟩
+  · rw [Finset.card_image_of_injective _ hinj, Finset.card_univ, Fintype.card_coe,
+      Finset.card_erase_of_mem hb₀]
+  · obtain ⟨i, -, rfl⟩ := Finset.mem_image.1 hy
+    exact ht i
+  · set e : S.erase b₀ → (Finset.univ.image t : Finset (Π j, κ j)) := fun i ↦
+      ⟨t i, Finset.mem_image_of_mem t (Finset.mem_univ i)⟩
+    have he : Function.Bijective e := ⟨fun i i' h ↦ hinj (congrArg Subtype.val h), fun y ↦ by
+      obtain ⟨i, -, hi⟩ := Finset.mem_image.1 y.2
+      exact ⟨i, Subtype.ext hi⟩⟩
+    have hsum : ∑ i, a i • (i : Π j, κ j) = ∑ i, (a ∘ e) i • t i :=
+      (Fintype.sum_bijective e he _ _ fun _ ↦ rfl).symm
+    rw [hsum] at ha
+    have h0 := hind N hN hb₀ (a ∘ e) ha
+    funext y
+    obtain ⟨i, rfl⟩ := he.2 y
+    exact congrFun h0 i
+
 end Res
 
 section Count
@@ -372,20 +408,20 @@ lemma finrank_piRR (D : ∀ j, CurveDivisor k (κ j)) :
 M · Σ_p #(S p)`, the branch sets `S p` are pairwise disjoint with `D` vanishing there, `R ≤ Π_j
 L(D_j)` lies in `O p + K_{M, p}` for all `p`, and `t p` are families of elements regular at `S p`,
 independent modulo `O p + K_{M, p}`, then `dim R + Σ_p #(T p) ≤ Σ_j ℓ(D_j)`. -/
-theorem finrank_add_sum_le [DecidableEq J] :
-    ∃ c : J → ℤ, ∀ (D : ∀ j, CurveDivisor k (κ j)) {ι : Type*}
-    [Fintype ι] [DecidableEq ι] (S : ι → Finset (Branch k κ)) (M : ℕ),
+theorem finrank_add_sum_le [DecidableEq J] {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (S : ι → Finset (Branch k κ)) {T : ι → Type*} [∀ p, Fintype (T p)] :
+    ∃ c : J → ℤ, ∀ (D : ∀ j, CurveDivisor k (κ j)) (M : ℕ),
     (∀ j, c j + M * ∑ p, (S p).card ≤ (D j).degree) →
     (∀ p, ∀ b ∈ S p, D b.1 b.2 = 0) → (∀ p q, p ≠ q → Disjoint (S p) (S q)) →
     ∀ (O : ι → Submodule k (Π j, κ j)) (R : Submodule k (Π j, κ j)), R ≤ piRR k κ D →
     (∀ p, R ≤ O p ⊔ jetKer k κ M (S p)) →
-    ∀ {T : ι → Type*} [∀ p, Fintype (T p)] (t : ∀ p, T p → Π j, κ j),
+    ∀ (t : ∀ p, T p → Π j, κ j),
     (∀ p i, t p i ∈ regAt k κ (S p)) →
     (∀ p, ∀ a : T p → k, ∑ i, a i • t p i ∈ O p ⊔ jetKer k κ M (S p) → a = 0) →
     Module.finrank k R + ∑ p, Fintype.card (T p) ≤ ∑ j, ell (D j) := by
   classical
   choose c hc using fun j ↦ CurvePlace.exists_jet (k := k) (κ := κ j)
-  refine ⟨c, fun D ι _ _ S M hdeg hD hdisj O R hR hRO T _ t ht hind ↦ ?_⟩
+  refine ⟨c, fun D M hdeg hD hdisj O R hR hRO t ht hind ↦ ?_⟩
   -- all branches on the component `j`
   set A : Finset (Branch k κ) := Finset.univ.biUnion S
   set B : (j : J) → Finset (CurvePlace k (κ j)) := fun j ↦
