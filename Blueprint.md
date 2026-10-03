@@ -1164,3 +1164,36 @@ action `ρ(σ)` and a lift of `ρ_s(σ)` to `Z̃`. Together they form the group 
 `hxR : ∃ x : R, (Polynomial.aeval (R := K) x).toRingHom.Finite`. It follows from Noether
 normalization (Mathlib `exists_finite_inj_algHom_of_fg`) once one knows that the number of
 variables equals `ringKrullDim R = 1`. This is now proved as `exists_finite_aeval` (`Setup/NoetherLine.lean`), so `hxR` is discharged.
+
+#### 10.3.6 B5 in Lean: the plan
+
+Status: K1 and K2 (`GaloisLimit`) are done, as are `galClass₂` with gal, rig and dom
+(`galoisLimitData₂`, from `StrongComponent`) and `exists_finite_aeval`.
+
+1. **Fixed base model.** Fix the x-line `x` from `exists_finite_aeval`. Apply `StrongComponent`
+   to `B = R` with `c₀ = ` the Tate model of `X₀` (`Andre/TateModel.lean`). This gives a W-model
+   `𝒴` of `Y` over some `O₀'`, together with a map `𝒴 → 𝒯_Tate`.
+2. **Model predicate.** Set `M c := (c is a W-model on x) ∧ (c has a map to 𝒴 compatible with
+   the generic points)`. Restrict to `galClass₂ M`. Domination with `M` comes from `dom_core`,
+   adding `𝒴` to the list of `c₀` and threading the `IsWModel` conjunct of `StrongComponent`.
+   Morphisms between members commute with the maps to `𝒴`, because `j` is dominant.
+3. **Y-length.** For a member `U` with model `c₁` over `O''`, an edge (node) `x` of `Z(c₁)` has
+   `len_Y(x) = d_{x/𝒴} · n_x / e(O''/O)`. Here `d_{x/𝒴}` is the local degree of `c₁ → 𝒴`
+   (`HarmonicW`, `HasLocalDegree`). For `γ ∈ Φ U` with `γ = (t, p)` and base point `(t₀, p₀)`,
+   set `len(γ) := ` the length of the reduced edge path from `p₀` to `p` in the universal cover
+   `Z̃` (a tree).
+   * **Finite:** for every bound, only finitely many `γ` have bounded length (`Z̃` is locally
+     finite and lengths are positive).
+   * **Monotone:** `len(Φ f γ) ≤ len γ` along morphisms `f` of the index, by (H2)/(H3) of
+     `HarmonicW` for `c₁ → c₁'` and multiplicativity of local degrees over `𝒴`.
+4. **The Tate loop.**
+   * Pull `X₀` back to the level of `𝒴` (cartesian, Φ-bijective; `Andre/Pullback.lean`). Its
+     ℤ-covering corresponds to `π₁(Z(𝒴)) → ℤ`.
+   * A loop of `Z(𝒴)` mapping to the generator needs `π₁(Z(𝒴)) → π₁(Z(𝒯_Tate)) = ℤ` to be
+     surjective. This holds if `ψ_s : Z(𝒴) → Z(𝒯_Tate)` is surjective with connected fibres
+     (Zariski, since `𝒯_Tate` is normal). **Possibly missing geometric input;** if so, it is to be
+     requested as a targeted clause.
+   * `ℓ₀` is the `Y`-length of that loop. Path lifting via (H1) in each member gives nonempty
+     `S_p := {γ : Φ f_p γ = δ(1)·x₀, len γ ≤ ℓ₀}`. The index is restricted to the cofinal pointed
+     objects over `(X₀, x₀)`.
+5. **K2** gives `α`, with `deckCharacter α = 1`.
