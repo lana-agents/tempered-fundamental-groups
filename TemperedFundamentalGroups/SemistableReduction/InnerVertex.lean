@@ -22,7 +22,7 @@ namespace SemistableReduction
 
 namespace GaussTube
 
-open FundamentalInequality GaussStability GaussFibre
+open FundamentalInequality GaussStability GaussFibre ZariskiModel
 
 universe u
 
@@ -139,6 +139,45 @@ theorem gaussRat_inv (s : ℝ≥0ˣ) (φ : RatFunc C) : w s (inv hc0 φ) = w (in
     rw [this, map_div₀, gaussRat_C_sub_mul_X, AnnulusUnit.gaussRat_X]
     rw [← max_div_div_right zero_le, mul_div_cancel_right₀ _ (by simp)]
     exact max_comm _ _
+
+/-! ### The node chart is stable under the inversion -/
+
+lemma inv_mem_nodeRing {a : RatFunc C} (ha : a ∈ nodeRing c) : inv hc0 a ∈ nodeRing c := by
+  induction ha using Subring.closure_induction with
+  | mem z hz =>
+    rcases hz with ⟨b, hb, rfl⟩ | rfl | rfl
+    · refine baseRing_le_nodeChart ⟨b, hb, ?_⟩
+      change algebraMap C (RatFunc C) b = inv hc0 (algebraMap C (RatFunc C) b)
+      rw [AlgEquiv.commutes]
+    · rw [inv_apply, invHom_X]
+      exact div_mem_nodeChart (v := NormedField.valuation (K := C))
+    · rw [map_div₀, AlgEquiv.commutes, inv_apply, invHom_X]
+      have hc : algebraMap C (RatFunc C) c ≠ 0 := by simpa using hc0
+      rw [div_div_cancel₀ hc]
+      exact self_mem_nodeChart (v := NormedField.valuation (K := C))
+  | zero => simp
+  | one => simp
+  | add a b _ _ ha hb => rw [map_add]; exact add_mem ha hb
+  | neg a _ ha => rw [_root_.map_neg]; exact neg_mem ha
+  | mul a b _ _ ha hb => rw [map_mul]; exact mul_mem ha hb
+
+/-- The inversion restricted to the node chart. -/
+noncomputable def invNode : nodeRing c →+* nodeRing c :=
+  ((inv hc0).toRingHom.restrict (nodeRing c) (nodeRing c) fun _ ha ↦ inv_mem_nodeRing hc0 ha)
+
+lemma coe_invNode (a : nodeRing c) : (invNode hc0 a : RatFunc C) = inv hc0 a := rfl
+
+omit [IsAlgClosed C] in
+lemma invRad_mem_segment {s : ℝ≥0ˣ} (hs : s ∈ segment c) : invRad hc0 s ∈ segment c := by
+  obtain ⟨h1, h2⟩ := hs
+  have hc' : (0 : ℝ≥0) < ‖c‖₊ := by simpa using hc0
+  have hs0 : (0 : ℝ≥0) < (s : ℝ≥0) := by simp
+  refine ⟨?_, ?_⟩ <;> rw [coe_invRad]
+  · rw [lt_div_iff₀ hs0]
+    calc ‖c‖₊ * s < ‖c‖₊ * 1 := mul_lt_mul_of_pos_left h2 hc'
+      _ = ‖c‖₊ := mul_one _
+  · rw [div_lt_one hs0]
+    exact h1
 
 end Inversion
 
