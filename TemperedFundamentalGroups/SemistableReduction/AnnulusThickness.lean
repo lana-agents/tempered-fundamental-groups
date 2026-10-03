@@ -152,11 +152,11 @@ theorem eq_of_pow_eq_mul_pow {C : Type*} [CommRing C] {𝔮 : Ideal C} (h𝔮 : 
 the singular point of the node `O[u, v] ⧸ (u v - ϖ ^ n)` with `x = ε ϖ ^ α u ^ d` and
 `y = ε' ϖ ^ β v ^ d` (`ε, ε'` units). Then `N = α + β + d n`: the node spans the segment
 `[α, α + d n]` of the base annulus (positions measured by the valuation of `x`). -/
-theorem exponent_eq_of_chart (hϖ : ϖ ≠ 0) {x y : B} {N α β d n : ℕ} {𝔭 : Ideal B}
+theorem exponent_eq_of_chart (hϖ : ϖ ≠ 0) {x y : B} {N α β d n : ℕ}
     (hxy : x * y = algebraMap O B (ϖ ^ N)) {C : Type u} [CommRing C] {g : B →+* C}
     {f : Node O (ϖ ^ n) →+* C} {𝔮 : Ideal C} (hf : f.Etale) (h𝔮 : 𝔮.IsPrime)
     (hO : f.comp (algebraMap O _) = g.comp (algebraMap O B)) (hu : f (Node.u (ϖ ^ n)) ∈ 𝔮)
-    (hn : 0 < n) (ε ε' : Cˣ)
+    (ε ε' : Cˣ)
     (hx : g x = ε * f (algebraMap O _ (ϖ ^ α)) * f (Node.u (ϖ ^ n)) ^ d)
     (hy : g y = ε' * f (algebraMap O _ (ϖ ^ β)) * f (Node.v (ϖ ^ n)) ^ d) :
     N = α + β + d * n := by
