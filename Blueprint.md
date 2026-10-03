@@ -1442,7 +1442,8 @@ denominator `h` of the structure constants and applies it. Remaining: `DiscGerm`
 | O2 | `DefinedOverDVR` passes to intermediate fields of the Galois closure | R4 step 3 | open |
 | O5 | S7⁺.8: identification of the normalized `P¹_t`-model with the Gauss-tree model `𝒳'_V` when `t⁻¹(η) = V` (and existence of such `t`), unless R5 is restated on `t`-models | S7⁺ (after S7⁺.7); needed by S8.A (global induction: `h(V) > 0 ⇒ δ > 0` somewhere on `𝒳'_V`), **not** by R5 (R5 runs on the two local `t`-models `P¹_s`, `P¹_{s + c'/s}`) | open |
 | O3 | `IsUnfolded` output of `Statement.StrongComponent` | — | **dropped**: the targeted W10 statement is now `Statement.StrongA`, which has no component/W-model clause |
-| O6 | S8.A (AW global improvement induction on Gauss trees) | S7 agent after S7.5 | open |
+| O6 | S8.A (AW global improvement induction on Gauss trees; monotone form `∃ V_min, ∀ V ⊇ V_min`) | S8.A agent (`wp-tempered-s8a`) | open |
+| O8 | Bridge `TreeData` (S7.5's tree `(a, c, par, chi)` + free directions) ↔ `gaussJoinModel` charts (consumed by W10) | S8.A agent | open |
 | O4 | §9.11: C0, `no_split` over algebraically closed `C`, `DiscGerm` over `Ĉ`; `CompleteSpace C` removed from the targeted chain | `cbridge` | C0 and `no_split` (W6 over `K̄`) done; `DiscGerm` open |
 | O7 | W10 assembly: `W7.Statement` + W9 descent ⇒ **`Statement.StrongA`** (the targeted W10; D3e, S9 over `O_{K'}`, M9, actions, domination) | André agent (`wp-tempered-w10`) | open |
 
