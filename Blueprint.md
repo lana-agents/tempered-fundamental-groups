@@ -975,10 +975,10 @@ S7's bound `Σ δ' ≤ h(V)` (finitely many bad pieces for a fixed `V`) and an S
 
 | # | Statement | Inputs | Size |
 |---|---|---|---|
-| S8.1a | **eventual limits of valuations**: a sequence of valuations `wₙ` of a ring which is eventually constant at every element has a limit valuation `w` (`w f = wₙ f` for `n ≫ 0`) | — | 0.05k |
-| S8.1b | **type 4**: for nested discs `D(aₙ, rₙ)` (`r_{n+1} ≤ rₙ`, `v(a_{n+1} − aₙ) ≤ rₙ`) without a common point of `K`, `w_{aₙ,rₙ}(f)` is eventually constant for every `f ∈ K(X)`; the limit `w` extends `v`, lies in every disc (`w(X − aₙ) ≤ rₙ`), is the **unique** valuation extending `v` with this property, and is not a Gauss valuation; `w(X − b) = v(b − a_m)` as soon as `b ∉ D(a_m, r_m)` | S8.1a, W1, `valuation_ratFunc_ext_of_linear` | 0.2k |
-| S8.1c | **common point**: if `b ∈ ⋂ D(aₙ, rₙ)` then `w_{aₙ,rₙ} = w_{b,rₙ}`; **type 1**: if moreover `rₙ` tends to `0` (below every unit), no valuation extending `v` lies in all discs, and `w_{aₙ,rₙ}(p) = v(p(b))` for `n ≫ 0` whenever `p(b) ≠ 0` | W1 | 0.1k |
-| S8.1d | **types 3 and 5 (germs at a radius)**: for `φ ≠ 0` and a radius `ρ`, `φ` is monomial (S1) on a one-sided interval `(ρ, ρ')` (resp. `(ρ', ρ)`), and on a two-sided interval `(ρ₁, ρ₂) ∋ ρ` if `ρ ∉ v(K^×)` (no zero or pole of `φ` has absolute value `ρ`) | S1 (`AnnulusUnit`) | 0.1k |
+| S8.1a | **eventual limits of valuations**: a sequence of valuations `wₙ` of a ring which is eventually constant at every element has a limit valuation `w` (`w f = wₙ f` for `n ≫ 0`) | — | 0.05k, **proved** (`DiscLimit.limit`) |
+| S8.1b | **type 4**: for nested discs `D(aₙ, rₙ)` (`r_{n+1} ≤ rₙ`, `v(a_{n+1} − aₙ) ≤ rₙ`) without a common point of `K`, `w_{aₙ,rₙ}(f)` is eventually constant for every `f ∈ K(X)`; the limit `w` extends `v`, lies in every disc (`w(X − aₙ) ≤ rₙ`), is the **unique** valuation extending `v` with this property, and is not a Gauss valuation; `w(X − b) = v(b − a_m)` as soon as `b ∉ D(a_m, r_m)` | S8.1a, W1, `valuation_ratFunc_ext_of_linear` | 0.2k, **proved** (`DiscLimit`: `isEventuallyConst_gaussRat`, `limitVal`, `limitVal_lin_le`, `eq_limitVal`, `limitVal_ne_gaussRat`) |
+| S8.1c | **common point**: if `b ∈ ⋂ D(aₙ, rₙ)` then `w_{aₙ,rₙ} = w_{b,rₙ}`; **type 1**: if moreover `rₙ` tends to `0` (below every unit), no valuation extending `v` lies in all discs, and `w_{aₙ,rₙ}(p) = v(p(b))` for `n ≫ 0` whenever `p(b) ≠ 0` | W1 | 0.1k, **proved** (`gaussRat_eq_of_le`, `not_forall_le_of_tendsto_zero`, `eventually_gaussRat_eq_eval`) |
+| S8.1d | **types 3 and 5 (germs at a radius)**: for `φ ≠ 0` and a radius `ρ`, `φ` is monomial (S1) on a one-sided interval `(ρ, ρ')` (resp. `(ρ', ρ)`), and on a two-sided interval `(ρ₁, ρ₂) ∋ ρ` if `ρ ∉ v(K^×)` (no zero or pole of `φ` has absolute value `ρ`) | S1 (`AnnulusUnit`) | 0.1k, **proved** (`exists_isMonomialOn_above`, `_below`, `_around`) |
 
 *S8.2 (type 1, `char C = 0`).*
 
