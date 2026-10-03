@@ -161,7 +161,8 @@ lemma comap_eq_gaussRat_of_isOver {a c : C} (hc : c ≠ 0) (hx : Transcendental 
     have heq : algebraMap (RatFunc C) F (algebraMap C[X] (RatFunc C) (X - Polynomial.C β)) =
         algebraMap C F c * (vcoord C F a c - algebraMap C F ((β - a) / c)) := by
       rw [_root_.map_sub, RatFunc.algebraMap_X, RatFunc.algebraMap_C, ← RatFunc.algebraMap_eq_C,
-        _root_.map_sub, ← IsScalarTower.algebraMap_apply, show algebraMap (RatFunc C) F RatFunc.X = xF C F from rfl,
+        _root_.map_sub, ← IsScalarTower.algebraMap_apply,
+        show algebraMap (RatFunc C) F RatFunc.X = xF C F from rfl,
         xF_eq_vcoord (a := a) hc]
       simp only [map_div₀, _root_.map_sub]
       field_simp
@@ -177,7 +178,8 @@ lemma eq_of_isOver_of_isOver {a c a' c' : C} (hc : c ≠ 0) (hc' : c' ≠ 0)
     (hx : Transcendental C (vcoord C F a c)) (hx' : Transcendental C (vcoord C F a' c'))
     {W : TypeTwo C F} (h : IsOver hx W) (h' : IsOver hx' W) :
     ‖c‖ = ‖c'‖ ∧ ‖a - a'‖ ≤ ‖c‖ := by
-  have e := (comap_eq_gaussRat_of_isOver hc hx h).symm.trans (comap_eq_gaussRat_of_isOver hc' hx' h')
+  have e := (comap_eq_gaussRat_of_isOver hc hx h).symm.trans
+    (comap_eq_gaussRat_of_isOver hc' hx' h')
   have h1 := congrArg (fun u : Valuation (RatFunc C) ℝ≥0 ↦
     u (algebraMap C[X] (RatFunc C) (X - Polynomial.C a))) e
   have h2 := congrArg (fun u : Valuation (RatFunc C) ℝ≥0 ↦
