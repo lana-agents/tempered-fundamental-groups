@@ -564,6 +564,69 @@ theorem drint_eq :
   rw [← gaussCoord_eq_coord hc0]
   exact integralClosure_toSubring_eq _
 
+/-- `C`-algebra endomorphisms of `C(x)` map line charts to line charts. -/
+lemma map_polyChart_algHom (f : RatFunc C →ₐ[C] RatFunc C) (y : RatFunc C) :
+    (polyChart ν y).map f.toRingHom = polyChart ν (f y) := by
+  rw [polyChart, polyChart, RingHom.map_closure, Set.image_union, Set.image_singleton]
+  congr 2
+  ext g
+  simp only [baseRing, Subring.coe_map, Set.mem_image]
+  constructor
+  · rintro ⟨_, ⟨o, ho, rfl⟩, rfl⟩
+    exact ⟨o, ho, (f.commutes o).symm⟩
+  · rintro ⟨o, ho, rfl⟩
+    exact ⟨_, ⟨o, ho, rfl⟩, f.commutes o⟩
+
+omit [IsUltrametricDist C] [Algebra C F'] [IsScalarTower C (RatFunc C) F'] in
+/-- **Integral closures in twisted fields.** If `e : G ≃+* F'` turns the `C(x)`-structure of `G`
+into that of `F'` precomposed with `ψ`, then `e` maps the integral closure of `A` in `G` onto the
+integral closure of the twisted subring `ψ(A)` in `F'`. -/
+lemma map_integralClosure_twist {G : Type*} [Field G] [Algebra (RatFunc C) G] (e : G ≃+* F')
+    (ψ : RatFunc C →+* RatFunc C)
+    (he : ∀ φ, e (algebraMap (RatFunc C) G φ) = algebraMap (RatFunc C) F' (ψ φ))
+    (A : Subring (RatFunc C)) :
+    (integralClosure A G).toSubring.map e.toRingHom =
+      (integralClosure ((A.map ψ).map (algebraMap (RatFunc C) F')) F').toSubring := by
+  set φ : RatFunc C →+* F' := (algebraMap (RatFunc C) F').comp ψ
+  have hφ : Function.Injective φ := (algebraMap (RatFunc C) F').injective.comp ψ.injective
+  rw [Subring.map_map]
+  set eA : A ≃+* A.map φ := A.equivMapOfInjective φ hφ
+  ext y
+  simp only [Subring.mem_map, Subalgebra.mem_toSubring, mem_integralClosure_iff]
+  constructor
+  · rintro ⟨z, hz, rfl⟩
+    exact IsIntegral.map_of_comp_eq eA.toRingHom e.toRingHom
+      (RingHom.ext fun b ↦ (he b).symm) hz
+  · intro hy
+    refine ⟨e.symm y, ?_, e.apply_symm_apply y⟩
+    refine IsIntegral.map_of_comp_eq eA.symm.toRingHom e.symm.toRingHom
+      (RingHom.ext fun b ↦ ?_) hy
+    change algebraMap (RatFunc C) G (eA.symm b : RatFunc C) = e.symm (b : F')
+    rw [← e.symm_apply_apply (algebraMap (RatFunc C) G _), he]
+    congr 1
+    have := Subring.coe_equivMapOfInjective_apply A φ hφ (eA.symm b)
+    rw [show algebraMap (RatFunc C) F' (ψ (eA.symm b : RatFunc C)) = φ (eA.symm b) from rfl,
+      ← this]
+    exact congrArg Subtype.val (eA.apply_symm_apply b)
+
+omit [Algebra C F'] [IsScalarTower C (RatFunc C) F'] in
+/-- **O8, the chart at `∞` of a vertex**: the normalized vertex chart of the inversion of the
+twist, `DRint 0 1 (Inv 1 (Aff a c F'))` (coordinate `c/(x - a)`), is the normalization of the
+`gaussJoinModel` line chart `O[((x - a)/c)⁻¹]`. -/
+theorem map_drint_inv_aff :
+    (DiscCount.DRint (0 : C) 1 (GaussTube.Inv (1 : C) one_ne_zero (Aff a c hc0 F'))).toSubring.map
+        ((GaussTube.toInv (c := (1 : C)) one_ne_zero (F' := Aff a c hc0 F')).symm.trans
+          (toAff hc0).symm).toRingHom =
+      normChart F' (polyChart ν (coord (RatFunc.X : RatFunc C) a c)⁻¹) := by
+  rw [map_integralClosure_twist _ ((affHom a c hc0).toRingHom.comp
+    (GaussTube.invHom (c := (1 : C)) one_ne_zero).toRingHom) (fun φ ↦ rfl),
+    ← Subring.map_map, map_polyChart_algHom, map_polyChart_algHom]
+  have hy : affHom a c hc0 (GaussTube.invHom (c := (1 : C)) one_ne_zero (gaussCoord (0 : C) 1)) =
+      (coord (RatFunc.X : RatFunc C) a c)⁻¹ := by
+    rw [SmoothVertex.gaussCoord_zero_one, GaussTube.invHom_X, map_one, map_div₀, map_one,
+      affHom_X, gaussCoord_eq_coord hc0, one_div]
+  rw [hy]
+  rfl
 end Twist
 
 section Vertices
