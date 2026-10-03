@@ -65,7 +65,11 @@ rings with fraction fields `K' ⊆ K''`, uniformizers `ϖ'`, `ϖ''` and ramifica
 morphism over `Spec O'' ⟶ Spec O'` inducing `L ⊆ L'` on generic points. Then `ψ` is harmonic on
 dual graphs (`ModelCode.IsHarmonicGeneral ϖ'' ϖ' e`: monotone walks over each node with
 `∑ dᵢ nᵢ = e n'`, lengths do not decrease, nodes map to nodes or to points on a single
-component). -/
+component).
+
+**Superseded for B5 by `Statement.HarmonicX`** (`XHarmonic.lean`): the consumer's models live
+over incomparable bases, and lengths pulled back from a fixed base vanish on nodes over smooth
+points; the intrinsic x-lengths of `HarmonicX` avoid both. Kept as a targeted intermediate. -/
 def Statement.HarmonicW : Prop :=
   ∀ (K' K'' : Type u) [Field K'] [Field K''] [Algebra K' K''] (O' : ValuationSubring K')
     (O'' : ValuationSubring K'') (_ : O''.comap (algebraMap K' K'') = O')
