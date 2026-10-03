@@ -31,7 +31,7 @@ universe u
 
 variable {C : Type u} [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
   {F' : Type*} [Field F'] [Algebra (RatFunc C) F'] [Algebra C F']
-  [IsScalarTower C (RatFunc C) F'] [Fintype (Ext C F')] [FiniteDimensional (RatFunc C) F']
+  [IsScalarTower C (RatFunc C) F'] [FiniteDimensional (RatFunc C) F']
 
 attribute [local instance] isCurveFunctionField DiscreteCoefficients.isAlgClosed_residueField
 
@@ -39,7 +39,6 @@ local notation "𝓀" => ResidueField (HenselComplete.integers C)
 
 local notation "w" => gaussRat (NormedField.valuation (K := C)) 0
 
-omit [Fintype (Ext C F')] in
 /-- Every element of the node chart is a constant plus an element which is small on the open
 segment, has value `≤ 1` at every extension of the outer Gauss point, and whose reductions vanish
 at all zeros of `x̄`. -/
@@ -170,7 +169,6 @@ lemma valuation_le_one_of_root {K Γ : Type*} [Field K] [LinearOrderedCommGroupW
 
 variable {c : C}
 
-omit [Fintype (Ext C F')] in
 lemma valuation_algebraMap_nodeRing_le (hc : ‖c‖ < 1) (v : Ext C F') {a : RatFunc C}
     (ha : a ∈ nodeRing c) : v.1 (algebraMap (RatFunc C) F' a) ≤ 1 := by
   obtain ⟨κ, hκ, -, h⟩ := exists_const_red (F' := F') hc ha
@@ -182,7 +180,6 @@ lemma valuation_algebraMap_nodeRing_le (hc : ‖c‖ < 1) (v : Ext C F') {a : Ra
   rw [valuation_algebraMap_C']
   exact_mod_cast hκ
 
-omit [Fintype (Ext C F')] in
 lemma red_algebraMap_nodeRing_mem (hc : ‖c‖ < 1) (v : Ext C F') {a : RatFunc C}
     (ha : a ∈ nodeRing c) {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
     (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) :
@@ -206,7 +203,6 @@ lemma red_algebraMap_nodeRing_mem (hc : ‖c‖ < 1) (v : Ext C F') {a : RatFunc
   · rw [heq, Q.res_add (Q.valuation_le_one_iff.1 (hQv Q hQ).le) (Q.algebraMap_mem _),
       Q.res_eq_zero_of_lt_one (hQv Q hQ), zero_add, Q.res_algebraMap]
 
-omit [Fintype (Ext C F')] in
 lemma valuation_le_one_R (hc : ‖c‖ < 1) (v : Ext C F') (y : Rint c F') : v.1 (y : F') ≤ 1 := by
   let φ : nodeRing c →+* v.1.integer :=
     { toFun := fun a ↦ ⟨algebraMap (RatFunc C) F' a, valuation_algebraMap_nodeRing_le hc v a.2⟩
@@ -218,7 +214,6 @@ lemma valuation_le_one_R (hc : ‖c‖ < 1) (v : Ext C F') (y : Rint c F') : v.1
     IsIntegral.map_of_comp_eq φ (RingHom.id F') (by ext; rfl) y.2
   exact (Valuation.integer.integers v.1).mem_of_integral hint
 
-omit [Fintype (Ext C F')] in
 /-- Reductions of elements of `R'` are regular at the zeros of `x̄`. -/
 lemma red_mem_V (hc : ‖c‖ < 1) (v : Ext C F') (y : Rint c F')
     {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
@@ -254,6 +249,64 @@ lemma red_mem_V (hc : ‖c‖ < 1) (v : Ext C F') (y : Rint c F')
     refine Finset.sum_congr rfl fun i _ ↦ ?_
     rw [coeff_map, red_mul (hle _) (by rw [map_pow]; exact pow_le_one' hy1 _), red_pow hy1]
     rfl
+
+section Place
+
+
+/-- The reduction of `R'` at a branch `Q` of the outer vertex through the node:
+`y ↦ ȳ_v(Q)`. -/
+noncomputable def placeHom (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) : Rint c F' →+* 𝓀 where
+  toFun y := Q.res (red C (y : F') v)
+  map_one' := by simp [Q.res_one]
+  map_mul' y z := by
+    simp only [Subalgebra.coe_mul]
+    rw [red_mul (valuation_le_one_R hc v y) (valuation_le_one_R hc v z),
+      Q.res_mul (red_mem_V hc v y hQ) (red_mem_V hc v z hQ)]
+  map_zero' := by simp [Q.res_zero]
+  map_add' y z := by
+    simp only [Subalgebra.coe_add]
+    rw [red_add (valuation_le_one_R hc v y) (valuation_le_one_R hc v z),
+      Q.res_add (red_mem_V hc v y hQ) (red_mem_V hc v z hQ)]
+
+lemma placeHom_apply (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (y : Rint c F') : placeHom hc v hQ y = Q.res (red C (y : F') v) := rfl
+
+lemma placeHom_algebraMap (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (a : nodeRing c) :
+    ∃ κ : HenselComplete.integers C,
+      (∀ s ∈ segment c, w s ((a : RatFunc C) - algebraMap C (RatFunc C) κ) < 1) ∧
+      placeHom hc v hQ (algebraMap (nodeRing c) (Rint c F') a) =
+        residue (HenselComplete.integers C) κ := by
+  obtain ⟨κ, hs, -, hres⟩ := red_algebraMap_nodeRing_mem hc v a.2 hQ
+  exact ⟨κ, hs, hres⟩
+
+lemma placeHom_surjective (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) : Function.Surjective (placeHom hc v hQ) := by
+  intro t
+  obtain ⟨κ, rfl⟩ := residue_surjective t
+  have hmem : algebraMap C (RatFunc C) κ ∈ nodeRing c :=
+    algebraMap_mem_nodeRing ((HenselComplete.mem_integers_iff _).1 κ.2)
+  refine ⟨algebraMap (nodeRing c) (Rint c F') ⟨_, hmem⟩, ?_⟩
+  rw [placeHom_apply]
+  change Q.res (red C (algebraMap (RatFunc C) F' (algebraMap C (RatFunc C) κ)) v) = _
+  rw [← IsScalarTower.algebraMap_apply,
+    red_algebraMap_C (κ : C) (by exact_mod_cast (HenselComplete.mem_integers_iff _).1 κ.2),
+    Q.res_algebraMap]
+
+/-- The ideal of `R'` of the branch `Q`: a maximal ideal over the node. -/
+noncomputable def placeIdeal (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) : Ideal (Rint c F') := RingHom.ker (placeHom hc v hQ)
+
+lemma placeIdeal_isMaximal (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) : (placeIdeal hc v hQ).IsMaximal :=
+  RingHom.ker_isMaximal_of_surjective _ (placeHom_surjective hc v hQ)
+
+lemma mem_placeIdeal_iff (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (y : Rint c F') :
+    y ∈ placeIdeal hc v hQ ↔ Q.res (red C (y : F') v) = 0 := RingHom.mem_ker
+
+end Place
 
 end GaussTube
 
