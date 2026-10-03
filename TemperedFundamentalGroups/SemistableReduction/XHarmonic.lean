@@ -82,6 +82,31 @@ theorem germs_iso {O : Type u} [CommRing O] {c c' : TemperedFundamentalGroups.Mo
 
 variable [Algebra K' L]
 
+/-- **`c` is an unfolded W-model** of `L` on the x-line `x` (over `O'`): `c` is the W-model of
+Gauss data `(a, b)` (`ModelCode.IsWModelOf`), and **every node of `c` lies over a node of its
+Gauss tree**: the functions of `K'(x)` regular at a node point `y` of `c` (germs at `y` lying in
+`K'(x)`) lie in two distinct vertices of `gaussJoinModel O' a b`. Equivalently (W7 (c)) the points
+of `c` over smooth points of the Gauss tree are smooth; the two branches of every node then
+restrict to distinct points of the x-line and the x-path of every node is monotone. The models
+produced by the W-chain are unfolded (W7 (c)). -/
+def IsUnfolded (O' : ValuationSubring K') [Algebra O' L] [IsScalarTower O' K' L] (x : L)
+    (c : TemperedFundamentalGroups.ModelCode O') (j : Spec (CommRingCat.of L) ⟶ c.scheme) :
+    Prop :=
+  ∃ (hx : Transcendental K' x) (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a b : ι → K'),
+    ModelCode.IsWModelOf O' L x hx a b c j ∧
+    letI := xLineAlgebra L hx
+    ∀ y : c.scheme, IsNodePt c y →
+      ∃ W₁ ∈ (_root_.SemistableReduction.gaussJoinModel O'.valuation a b).vertexSet,
+      ∃ W₂ ∈ (_root_.SemistableReduction.gaussJoinModel O'.valuation a b).vertexSet, W₁ ≠ W₂ ∧
+        ∀ f : RatFunc K', algebraMap (RatFunc K') L f ∈ germs c j y → f ∈ W₁ ∧ f ∈ W₂
+
+/-- An unfolded W-model is a W-model. -/
+lemma IsUnfolded.isWModel {O' : ValuationSubring K'} [Algebra O' L] [IsScalarTower O' K' L]
+    {x : L} {c : TemperedFundamentalGroups.ModelCode O'}
+    {j : Spec (CommRingCat.of L) ⟶ c.scheme} (h : IsUnfolded O' x c j) : IsWModel O' L x c j := by
+  obtain ⟨hx, ι, _, _, a, b, h, -⟩ := h
+  exact ⟨hx, ι, inferInstance, inferInstance, a, b, h⟩
+
 /-- **The x-length of a node of a model** (Blueprint §9.7): `λ` is the x-length of the point
 `y` of `c` (a projective `O'`-model of `L`, generic point `j`, `ϖ'` a uniformizer of `O'`) on the
 x-line `x ∈ L`, normalised by the image `ϖ₀ ∈ L` of the uniformizer of the base: there are an
@@ -145,7 +170,8 @@ a complete discretely valued field of characteristic `0` (valuation subring `O`,
 subrings `O₁`, `O₂` over `O` and uniformizers `ϖ₁`, `ϖ₂`, `L₂ ⊆ L₁` function fields of curves
 over `K₂` resp. `K₁` (compatibly over `K`, `L₁ / L₂` finite), `x ∈ L₂` (the x-line), `c` a
 W-model of `L₁` over `O₁` and `c'` a W-model of `L₂` over `O₂` on `x` (generic points `j`,
-`j'`), both split, semistable and without loops, and `ψ : c ⟶ c'` a morphism over `Spec O`
+`j'`), both **unfolded** (`ModelCode.IsUnfolded`: every node lies over a node of the Gauss tree,
+W7 (c)), split, semistable and without loops, and `ψ : c ⟶ c'` a morphism over `Spec O`
 inducing `L₂ ⊆ L₁` on generic points. Then `ψ` is x-harmonic (`ModelCode.IsHarmonicX`, lengths
 normalised to `v(ϖ) = 1`): positive x-lengths (X0), monotone crossing walks of the same total
 x-length (X1), crossing walks do not shorten (X2), nodes not over nodes map to points on a single
@@ -166,7 +192,7 @@ def Statement.HarmonicX : Prop :=
     (c : TemperedFundamentalGroups.ModelCode O₁) (c' : TemperedFundamentalGroups.ModelCode O₂)
     (ψ : c.scheme ⟶ c'.scheme)
     (j : Spec (CommRingCat.of L₁) ⟶ c.scheme) (j' : Spec (CommRingCat.of L₂) ⟶ c'.scheme),
-    ModelCode.IsWModel O₁ L₁ (algebraMap L₂ L₁ x) c j → ModelCode.IsWModel O₂ L₂ x c' j' →
+    ModelCode.IsUnfolded O₁ (algebraMap L₂ L₁ x) c j → ModelCode.IsUnfolded O₂ x c' j' →
     j ≫ ψ = Spec.map (CommRingCat.ofHom (algebraMap L₂ L₁)) ≫ j' →
     ψ ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom ((algebraMap K K₂).restrict O O₂
       (fun y hy ↦ by rw [← h₂] at hy; exact hy))) =
