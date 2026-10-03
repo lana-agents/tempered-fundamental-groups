@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.TameLocal
 import TemperedFundamentalGroups.SemistableReduction.LocalModel
+import TemperedFundamentalGroups.SemistableReduction.AbhyankarProduct
 
 /-!
 # Kummer covers of nodes (W8 at a node, and W8′)
@@ -101,36 +102,6 @@ theorem etale_evalRingHom (i : ι) : (Pi.evalRingHom S i).Etale := by
 
 end Pi
 
-section IntegralClosure
-
-variable {R : Type*} [CommRing R] {ι : Type*} [Fintype ι] {X : ι → Type*} [∀ i, CommRing (X i)]
-  [∀ i, Algebra R (X i)]
-
-/-- An element of a finite product is integral iff its components are. -/
-theorem isIntegral_pi_iff {x : ∀ i, X i} : IsIntegral R x ↔ ∀ i, IsIntegral R (x i) := by
-  classical
-  refine ⟨fun h i ↦ h.map (Pi.evalAlgHom R X i), fun h ↦ ?_⟩
-  choose p hpm hp using h
-  refine ⟨∏ i, p i, Polynomial.monic_prod_of_monic _ _ fun i _ ↦ hpm i, ?_⟩
-  funext j
-  rw [← Polynomial.aeval_def, Pi.zero_apply]
-  have : (Polynomial.aeval x (∏ i, p i)) j = Polynomial.aeval (x j) (∏ i, p i) :=
-    (Polynomial.aeval_algHom_apply (Pi.evalAlgHom R X j) x (∏ i, p i)).symm
-  rw [this, map_prod]
-  exact Finset.prod_eq_zero (Finset.mem_univ j) (by rw [Polynomial.aeval_def]; exact hp j)
-
-/-- The integral closure in a finite product is the product of the integral closures. -/
-noncomputable def integralClosurePiEquiv :
-    integralClosure R (∀ i, X i) ≃ₐ[R] ∀ i, integralClosure R (X i) where
-  toFun x i := ⟨x.1 i, isIntegral_pi_iff.mp x.2 i⟩
-  invFun y := ⟨fun i ↦ (y i).1, isIntegral_pi_iff.mpr fun i ↦ (y i).2⟩
-  left_inv _ := rfl
-  right_inv _ := rfl
-  map_mul' _ _ := rfl
-  map_add' _ _ := rfl
-  commutes' _ := rfl
-
-end IntegralClosure
 
 section KummerField
 
@@ -223,18 +194,36 @@ noncomputable abbrev nodeAlgebra (h : u₁ * v₁ = algebraMap O N₁ (c ^ d)) :
 end Factors
 
 /-- **The cover `F'` of `N` is Kummer at the node point `𝔪`** (the W7 → W8 interface, Blueprint
-§9.3): étale-locally at `𝔪` the base is a node `O[u, v] ⧸ (u v - ϖ ^ n)` and `F'` is a product of
-Kummer covers `u = w ^ dᵢ` of it, `n = mᵢ dᵢ`. -/
+§9.3, tame case): étale-locally at `𝔪` the base is a node `O[u₁, v₁] ⧸ (u₁ v₁ - ϖ ^ n)`, with
+coordinates `u₁, v₁` unit multiples of the given `u, v ∈ N`, and `F'` is a product of Kummer
+covers `u₁ = w ^ dᵢ` of it, `n = mᵢ dᵢ`. (In the wild case covers of annuli need not be Kummer;
+the general interface is `IsAnnulusAt`.) -/
 def IsKummerAt {O : Type u} [CommRing O] (ϖ : O) (n : ℕ) {N : Type u} [CommRing N] [Algebra O N]
-    (F' : Type u) [CommRing F'] [Algebra N F'] (𝔪 : Ideal N) : Prop :=
+    (u v : N) (F' : Type u) [CommRing F'] [Algebra N F'] (𝔪 : Ideal N) : Prop :=
   ∃ (N₁ : Type u) (_ : CommRing N₁) (_ : Algebra N N₁) (_ : Algebra.Etale N N₁) (𝔫 : Ideal N₁)
     (_ : 𝔫.IsPrime) (_ : 𝔫.comap (algebraMap N N₁) = 𝔪),
     letI : Algebra O N₁ := ((algebraMap N N₁).comp (algebraMap O N)).toAlgebra
     ∃ (u₁ v₁ : N₁) (huv : u₁ * v₁ = algebraMap O N₁ (ϖ ^ n)),
       (Node.lift u₁ v₁ huv).toRingHom.Etale ∧ u₁ ∈ 𝔫 ∧ v₁ ∈ 𝔫 ∧
+      (∃ η η' : N₁, IsUnit η ∧ IsUnit η' ∧ u₁ = η * algebraMap N N₁ u ∧
+        v₁ = η' * algebraMap N N₁ v) ∧
       ∃ (r : ℕ) (m d : Fin r → ℕ) (_ : ∀ i, 0 < d i) (hmd : ∀ i, m i * d i = n),
         Nonempty (N₁ ⊗[N] F' ≃ₐ[N₁] ∀ i, @KummerFactor O _ (ϖ ^ m i) (d i) N₁ _
           (nodeAlgebra N₁ (ϖ ^ m i) (d i) (by rw [← pow_mul, hmd i]; exact huv)))
+
+/-- **The cover is an annulus over the node at `𝔓`** (the W7 → W8 interface, Blueprint §9.3):
+`A` is an `O`-algebra (a chart of the normalization of a node chart with coordinates `u, v`,
+`u v = ϖ ^ n`), and `𝔓` a prime of `A`. At `𝔓`, `A` is étale-locally the singular point of a node
+`O[u', v'] ⧸ (u' v' - ϖ ^ n')`, and `u = ε u' ^ d`, `v = ε' v' ^ d` with `ε, ε'` units at the point
+(`d ≥ 1` the local degree; then `n = d n'`). -/
+def IsAnnulusAt {O : Type u} [CommRing O] (ϖ : O) {A : Type u} [CommRing A] [Algebra O A]
+    (u v : A) (𝔓 : Ideal A) : Prop :=
+  ∃ (n' d : ℕ) (C : Type u) (_ : CommRing C) (g : A →+* C) (f : Node O (ϖ ^ n') →+* C)
+    (𝔔 : Ideal C),
+    g.Etale ∧ f.Etale ∧ 𝔔.IsPrime ∧ 𝔔.comap g = 𝔓 ∧
+    f.comp (algebraMap O _) = g.comp (algebraMap O A) ∧
+    f (Node.u _) ∈ 𝔔 ∧ f (Node.v _) ∈ 𝔔 ∧ 0 < d ∧
+    ∃ ε ε' : C, ε ∉ 𝔔 ∧ ε' ∉ 𝔔 ∧ g u = ε * f (Node.u _) ^ d ∧ g v = ε' * f (Node.v _) ^ d
 
 section Main
 
@@ -267,21 +256,17 @@ theorem lift_etale_of_eq {N₁ : Type u} [CommRing N₁] [Algebra O N₁] {u₁ 
 prime `𝔮` of the normalization of `N` in `F'` over `𝔪` is étale-locally the singular point of a node
 `O[w, z] ⧸ (w z - ϖ ^ m)` with `m d = n` (`d ≥ 1` the local degree: the thickness of the base
 node is `d` times that of the node above it). -/
-theorem IsKummerAt.exists_isEtaleLocallyAt [IsDomain O] [IsIntegrallyClosed O] {ϖ : O}
-    (hϖ : ϖ ≠ 0) {n : ℕ} {N : Type u} [CommRing N] [Algebra O N] {F' : Type u} [CommRing F']
-    [Algebra N F'] [Algebra O F'] [IsScalarTower O N F'] {𝔪 : Ideal N} (h : IsKummerAt ϖ n F' 𝔪)
-    (𝔮 : Ideal (integralClosure N F')) [𝔮.IsPrime]
+theorem IsKummerAt.isAnnulusAt [IsDomain O] [IsIntegrallyClosed O] {ϖ : O}
+    (hϖ : ϖ ≠ 0) {n : ℕ} {N : Type u} [CommRing N] [Algebra O N] {u v : N} {F' : Type u}
+    [CommRing F'] [Algebra N F'] [Algebra O F'] [IsScalarTower O N F'] {𝔪 : Ideal N}
+    (h : IsKummerAt ϖ n u v F' 𝔪) (𝔮 : Ideal (integralClosure N F')) [𝔮.IsPrime]
     (h𝔮 : 𝔮.comap (algebraMap N (integralClosure N F')) = 𝔪) :
-    ∃ m d : ℕ, 0 < d ∧ m * d = n ∧
-      ∃ (C : Type u) (_ : CommRing C) (g : integralClosure N F' →+* C)
-        (f : Node O (ϖ ^ m) →+* C) (𝔔 : Ideal C),
-        g.Etale ∧ f.Etale ∧ 𝔔.IsPrime ∧ 𝔔.comap g = 𝔮 ∧
-        f.comp (algebraMap O _) = g.comp (algebraMap O _) ∧
-        Node.u (ϖ ^ m) ∈ 𝔔.comap f ∧ Node.v (ϖ ^ m) ∈ 𝔔.comap f := by
+    IsAnnulusAt ϖ (algebraMap N (integralClosure N F') u)
+      (algebraMap N (integralClosure N F') v) 𝔮 := by
   classical
   obtain ⟨N₁, _, _, hN₁, 𝔫, _, h𝔫, h⟩ := h
   letI : Algebra O N₁ := ((algebraMap N N₁).comp (algebraMap O N)).toAlgebra
-  obtain ⟨u₁, v₁, huv, hf, hu𝔫, hv𝔫, r, m, d, hd, hmd, ⟨e⟩⟩ := h
+  obtain ⟨u₁, v₁, huv, hf, hu𝔫, hv𝔫, ⟨η, η', hη, hη', hu₁, hv₁⟩, r, m, d, hd, hmd, ⟨e⟩⟩ := h
   have hi : ∀ i, u₁ * v₁ = algebraMap O N₁ ((ϖ ^ m i) ^ d i) := fun i ↦ by
     rw [← pow_mul, hmd i]; exact huv
   have hfi : ∀ i, (Node.lift u₁ v₁ (hi i)).toRingHom.Etale := fun i ↦
@@ -342,11 +327,24 @@ theorem IsKummerAt.exists_isEtaleLocallyAt [IsDomain O] [IsIntegrallyClosed O] {
     change v₁ ⊗ₜ 1 = _
     congr 1
     exact (Node.lift_v u₁ v₁ (hi i)).symm
-  refine ⟨m i, d i, hd i, hmd i, KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁, inferInstance,
+  set g : integralClosure N F' →+* KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁ :=
     (Pi.evalRingHom _ i).comp (Ψ.toRingEquiv.toRingHom.comp
-      (includeRight : (integralClosure N F') →ₐ[N] N₁ ⊗[N] (integralClosure N F')).toRingHom),
+      (includeRight : (integralClosure N F') →ₐ[N] N₁ ⊗[N] (integralClosure N F')).toRingHom)
+  have hgN : ∀ x : N, g (algebraMap N (integralClosure N F') x) =
+      algebraMap N₁ (KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁) (algebraMap N N₁ x) := by
+    intro x
+    change Pi.evalRingHom _ i (Ψ ((includeRight : (integralClosure N F') →ₐ[N]
+        N₁ ⊗[N] (integralClosure N F')) (algebraMap N (integralClosure N F') x))) = _
+    rw [AlgHom.commutes, IsScalarTower.algebraMap_apply N N₁ (N₁ ⊗[N] (integralClosure N F'))]
+    exact hΨalg _
+  have hunit : ∀ y : N₁, IsUnit y →
+      algebraMap N₁ (KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁) y ∉ Q := fun y hy hQy ↦
+    hQ.ne_top (Ideal.eq_top_of_isUnit_mem _ hQy (hy.map _))
+  refine ⟨m i, d i, KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁, inferInstance, g,
     (includeRight : KNode (ϖ ^ m i) (d i) →ₐ[Node O ((ϖ ^ m i) ^ d i)]
-      KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁).toRingHom, Q, ?_, ?_, hQ, ?_, ?_, ?_, ?_⟩
+      KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁).toRingHom, Q, ?_, ?_, hQ, ?_, ?_, ?_, ?_,
+    hd i, algebraMap N₁ _ ↑hη.unit⁻¹, algebraMap N₁ _ ↑hη'.unit⁻¹,
+    hunit _ (Units.isUnit _), hunit _ (Units.isUnit _), ?_, ?_⟩
   · exact RingHom.Etale.stableUnderComposition _ _
       (RingHom.Etale.stableUnderComposition _ _ (etale_includeRight hN₁')
         (RingHom.Etale.of_bijective Ψ.bijective)) (etale_evalRingHom i)
@@ -364,12 +362,10 @@ theorem IsKummerAt.exists_isEtaleLocallyAt [IsDomain O] [IsIntegrallyClosed O] {
       rw [AlgHom.commutes, Algebra.TensorProduct.algebraMap_apply]
       change (Node.lift u₁ v₁ (hi i)) (algebraMap O _ o) ⊗ₜ 1 = algebraMap O N₁ o ⊗ₜ 1
       rw [AlgHom.commutes]
-    have eR : Pi.evalRingHom _ i (Ψ ((includeRight : (integralClosure N F') →ₐ[N]
-        N₁ ⊗[N] (integralClosure N F')) (algebraMap O (integralClosure N F') o))) =
+    have eR : g (algebraMap O (integralClosure N F') o) =
         algebraMap N₁ (KummerNodeFactor (c := ϖ ^ m i) (d := d i) N₁) (algebraMap O N₁ o) := by
-      rw [IsScalarTower.algebraMap_apply O N (integralClosure N F'), AlgHom.commutes,
-        IsScalarTower.algebraMap_apply N N₁ (N₁ ⊗[N] (integralClosure N F'))]
-      exact hΨalg _
+      rw [IsScalarTower.algebraMap_apply O N (integralClosure N F'), hgN]
+      rfl
     exact eL.trans eR.symm
   · refine hQ.mem_of_pow_mem (d i) ?_
     change ((1 : N₁) ⊗ₜ[Node O ((ϖ ^ m i) ^ d i)] KNode.u (ϖ ^ m i) (d i)) ^ d i ∈ Q
@@ -379,6 +375,18 @@ theorem IsKummerAt.exists_isEtaleLocallyAt [IsDomain O] [IsIntegrallyClosed O] {
     change ((1 : N₁) ⊗ₜ[Node O ((ϖ ^ m i) ^ d i)] KNode.v (ϖ ^ m i) (d i)) ^ d i ∈ Q
     rw [← hv]
     exact hmemQ v₁ hv𝔫
+  · rw [hgN]
+    have e : algebraMap N N₁ u = ↑hη.unit⁻¹ * u₁ := by
+      rw [hu₁]
+      exact (hη.unit.inv_mul_cancel_left _).symm
+    rw [e, map_mul, hu]
+    rfl
+  · rw [hgN]
+    have e : algebraMap N N₁ v = ↑hη'.unit⁻¹ * v₁ := by
+      rw [hv₁]
+      exact (hη'.unit.inv_mul_cancel_left _).symm
+    rw [e, map_mul, hv]
+    rfl
 
 end Main
 
