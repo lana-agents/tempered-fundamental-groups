@@ -9,7 +9,30 @@ import TemperedFundamentalGroups.Topology.UniversalCovering
 /-!
 # Galois objects of the tempered category (K3, topological part)
 
-Blueprint §10.3.3, K3.
+Blueprint §10.3.3, K3. Let `Lv` be a level with a model with finite `H`, and let `p : Z̃ → Z` be a
+universal covering (N1, `IsUniversalCovering`) of its special fibre `Z`, with countable fibres.
+
+* `Pi Lv p`: the group `Π` of pairs `(g, g̃)`, `g ∈ H`, `g̃ : Z̃ ≃ₜ Z̃` with `p ∘ g̃ = g • p`.
+  `toH_surjective`: `Π → H` is surjective (`Z` connected); `kerEquiv`: its kernel is the deck
+  group of `p`.
+* `obj Lv hp hc`: **the Galois object** `U_Lv = (Lv, Ind_1^H Z̃)`. The `H`-equivariant covering
+  `Ind_1^H Z̃ = H × Z̃ → Z`, `(g, e) ↦ g • p e`, is isomorphic to `(Z̃ × Π)/π₁`; it is coded in
+  `Z × ℕ` by `CoveringCode.ofCovering` (any covering with countable fibres).
+  `universalObj`: the instance for the universal covering `universalCovering` of N1.
+* `deck : Pi Lv p →* Aut (obj Lv hp hc)`: deck transformations `(g, e) ↦ (g π₁⁻¹, π₂ e)`.
+* `existsUnique_deck` (**Galois**, scheme case `[Subsingleton A]`): if `H⁰` acts simply
+  transitively on `F_L`, then `Π` acts simply transitively on `Φ(U_Lv)` through `deck`.
+* `hom_ext` (**rigidity**, relative): two morphisms `U_Lv ⟶ X` with equal level and model parts
+  that agree at one point of the covering space are equal.
+* `fibreMap_eq_of_eq` (**rigidity on fibres**): if `j` is scheme-theoretically dominant and maps
+  into `B` are determined by one geometric point, two morphisms `U_Lv ⟶ X` that agree on one
+  point of `Φ(U_Lv)` induce the same map `Φ(U_Lv) → Φ(X)`.
+* `conjHom`, `fibreMap_conjHom`, `conjHom_ne_id`: the action of `k ∈ H⁰` is an endomorphism of
+  every object inducing the identity on `Φ`; so automorphism groups never act freely on fibres
+  when `H⁰ ≠ 1`, and Galois/rigidity statements must be formulated after applying `Φ`.
+* `exists_hom_fibreMap` (**pointwise domination** over a fixed equivariant `ℓ : Lv ⟶ X.Lv`):
+  every point of `Φ X` over the image of a geometric point of `Lv` is hit by a morphism
+  `liftHom : U_Lv ⟶ X` over `ℓ`.
 -/
 
 universe u
@@ -675,7 +698,153 @@ theorem fibreMap_eq_of_eq [Subsingleton A] [IsSchemeTheoreticallyDominant Lv.j]
     rw [hq]
     exact (congrFun hsheet e).symm
 
+
+/-- The `H`-equivariant extension `(g, e) ↦ ℓ(g) • s(e)` of a lift `s : Z̃ → P_X` of
+`ψ_s ∘ p`. -/
+def liftInd {X : TempObj O R A} (ℓ : LevelHom O R A Lv X.Lv) (s : E → X.P.carrier)
+    (x : IndSpace Lv E) : X.P.carrier :=
+  X.P.act (ℓ.φ.r x.1) (s x.2)
+
+omit [Finite Lv.L.H] in
+lemma continuous_liftInd {X : TempObj O R A} (ℓ : LevelHom O R A Lv X.Lv) {s : E → X.P.carrier}
+    (hs : Continuous s) : Continuous (liftInd ℓ s) :=
+  continuous_sigma fun g => by exact (X.P.act (ℓ.φ.r g)).continuous.comp hs
+
+omit [Finite Lv.L.H] [TopologicalSpace E] in
+lemma liftInd_fst {X : TempObj O R A} (ℓ : LevelHom O R A Lv X.Lv) (hℓ : ℓ.IsEquivariant)
+    {s : E → X.P.carrier} (hps : ∀ e, (s e).1.1 = ℓ.ψs (p e)) (x : IndSpace Lv E) :
+    (liftInd ℓ s x).1.1 = ℓ.ψs (indProj p x) := by
+  obtain ⟨g, e⟩ := x
+  change (X.P.act (ℓ.φ.r g) (s e)).1.1 = ℓ.ψs (Lv.ρs g (p e))
+  rw [X.P.act_fst, hℓ.ψs_ρs, hps]
+
+variable (hp hc) in
+/-- **The morphism `U_Lv ⟶ X` over `ℓ`** determined by a lift `s : Z̃ → P_X` of `ψ_s ∘ p`. -/
+def liftHom {X : TempObj O R A} (ℓ : LevelHom O R A Lv X.Lv) (hℓ : ℓ.IsEquivariant)
+    {s : E → X.P.carrier} (hs : Continuous s) (hps : ∀ e, (s e).1.1 = ℓ.ψs (p e)) :
+    obj Lv hp hc ⟶ X where
+  φ := ℓ.φ
+  ψ := ℓ.ψ
+  ψ_toSpec := ℓ.ψ_toSpec
+  j_ψ := ℓ.j_ψ
+  h y := liftInd ℓ s ((Θ Lv hp hc).symm y)
+  continuous_h := (continuous_liftInd ℓ hs).comp (Θ Lv hp hc).symm.continuous
+  fst_h y := by
+    obtain ⟨x, rfl⟩ := (Θ Lv hp hc).surjective y
+    change ((liftInd ℓ s ((Θ Lv hp hc).symm (Θ Lv hp hc x))).1.1 : X.Lv.c.scheme) =
+      ℓ.ψ ((Θ Lv hp hc x).1.1 : Lv.c.scheme)
+    rw [Homeomorph.symm_apply_apply, liftInd_fst ℓ hℓ hps, LevelHom.coe_ψs, Θ_fst]
+  h_act g y := by
+    obtain ⟨⟨g', e⟩, rfl⟩ := (Θ Lv hp hc).surjective y
+    change liftInd ℓ s ((Θ Lv hp hc).symm ((code Lv hp hc).act g (Θ Lv hp hc ⟨g', e⟩))) =
+      X.P.act (ℓ.φ.r g) (liftInd ℓ s ((Θ Lv hp hc).symm (Θ Lv hp hc ⟨g', e⟩)))
+    rw [act_Θ, Homeomorph.symm_apply_apply, Homeomorph.symm_apply_apply]
+    change X.P.act (ℓ.φ.r ((show Lv.L.H from g) * g')) (s e) =
+      X.P.act (ℓ.φ.r g) (X.P.act (ℓ.φ.r g') (s e))
+    rw [map_mul, map_mul, Homeomorph.mul_apply]
+
+lemma ofTempHom_liftHom {X : TempObj O R A} (ℓ : LevelHom O R A Lv X.Lv) (hℓ : ℓ.IsEquivariant)
+    {s : E → X.P.carrier} (hs : Continuous s) (hps : ∀ e, (s e).1.1 = ℓ.ψs (p e)) :
+    LevelHom.ofTempHom (liftHom hp hc ℓ hℓ hs hps) = ℓ := rfl
+
+lemma liftHom_h_one {X : TempObj O R A} (ℓ : LevelHom O R A Lv X.Lv) (hℓ : ℓ.IsEquivariant)
+    {s : E → X.P.carrier} (hs : Continuous s) (hps : ∀ e, (s e).1.1 = ℓ.ψs (p e)) (e : E) :
+    (liftHom hp hc ℓ hℓ hs hps).h (Θ Lv hp hc ⟨1, e⟩) = s e := by
+  change liftInd ℓ s ((Θ Lv hp hc).symm (Θ Lv hp hc ⟨1, e⟩)) = s e
+  rw [Homeomorph.symm_apply_apply]
+  change X.P.act (ℓ.φ.r 1) (s e) = s e
+  rw [map_one, map_one, Homeomorph.one_apply]
+
+/-- **Pointwise domination** (relative to a fixed equivariant morphism of levels with models
+`ℓ : Lv ⟶ X.Lv`): every point `(t ∘ ℓ, x)` of the fibre of `X` over the image of a geometric
+point `t` of `Lv` is hit by a morphism `U_Lv ⟶ X` lying over `ℓ`. The covering part is the
+lift `Z̃ → P_X` of `ψ_s ∘ p` through `x`, extended `H`-equivariantly to `Ind_1^H Z̃`. -/
+theorem exists_hom_fibreMap [ConnectedSpace Lv.Z] {X : TempObj O R A}
+    (ℓ : LevelHom O R A Lv X.Lv) (hℓ : ℓ.IsEquivariant) (t : Lv.L.B →ₐ[R] Ω)
+    (q : PreFibre Ω V hV X) (ht : t.comp ℓ.φ.f = q.1.1) :
+    ∃ (f : obj Lv hp hc ⟶ X) (u : Fibre Ω V hV (obj Lv hp hc)),
+      LevelHom.ofTempHom f = ℓ ∧ fibreMap V hV f u = Quotient.mk _ q := by
+  have := hp.connectedSpace
+  obtain ⟨e₀, he₀⟩ := hp.isCoveringMap.surjective_of_connectedSpace (Lv.sp V hV t)
+  have hy : q.1.2.1.1 = (ℓ.ψs ∘ p) e₀ := by
+    apply Subtype.ext
+    rw [q.2, Function.comp_apply, LevelHom.coe_ψs, he₀, LevelHom.ψ_sp V hV ℓ t, ht]
+  obtain ⟨s, hs, hps, hse⟩ := hp.exists_lift X.Lv.Z X.P.carrier (fun x => x.1.1)
+    X.P.isCoveringMap (ℓ.ψs ∘ p) (ℓ.continuous_ψs.comp hp.isCoveringMap.continuous) e₀ q.1.2 hy
+  have hps' : ∀ e, (s e).1.1 = ℓ.ψs (p e) := congrFun hps
+  refine ⟨liftHom hp hc ℓ hℓ hs hps', Quotient.mk _ (prePt V hV t e₀ he₀),
+    ofTempHom_liftHom ℓ hℓ hs hps', congrArg (Quotient.mk _) ?_⟩
+  refine Subtype.ext (Prod.ext ht ?_)
+  change (liftHom hp hc ℓ hℓ hs hps').h (Θ Lv hp hc ⟨1, e₀⟩) = q.1.2
+  rw [liftHom_h_one ℓ hℓ hs hps', hse]
+
+omit [Finite Lv.L.H] in
+/-- **`Aut` does not act freely on fibres**: for `k ∈ H⁰` of the level of `X`, the action of `k`
+(conjugation by `k` on the level, `ρ(k)` on the model, `k` on the covering space) is an
+endomorphism of `X` inducing the identity on the fibre `Φ X`. It differs from `𝟙 X` as soon as
+`σ_k ≠ 1` (`conjHom_ne_id`). So "Galois" and "rigidity" in `TempObj` can only hold after applying
+`Φ` (`existsUnique_deck`, `fibreMap_eq_of_eq`). -/
+def conjHom (X : TempObj O R A) (k : X.Lv.L.H0) : X ⟶ X where
+  φ :=
+    { f := twist k
+      r := (MulAut.conj (k : X.Lv.L.H)).toMonoidHom
+      r_a := fun g => by
+        have h₁ := FiniteLevel.mem_H0.1 k.2
+        change (k : SemilinearAut R A X.Lv.L.B).a * (g : SemilinearAut R A X.Lv.L.B).a *
+          (k : SemilinearAut R A X.Lv.L.B).a⁻¹ = (g : SemilinearAut R A X.Lv.L.B).a
+        rw [h₁]
+        simp
+      f_σ := fun g y => by
+        change (k : SemilinearAut R A X.Lv.L.B).σ.symm ((k : SemilinearAut R A X.Lv.L.B).σ
+          ((g : SemilinearAut R A X.Lv.L.B).σ ((k : SemilinearAut R A X.Lv.L.B).σ.symm y))) = _
+        rw [RingEquiv.symm_apply_apply]
+        rfl }
+  ψ := (X.Lv.ρ k).hom
+  ψ_toSpec := X.Lv.ρ_toSpec k
+  j_ψ := (X.Lv.ρ_j k).symm
+  h := X.P.act k
+  continuous_h := (X.P.act k).continuous
+  fst_h x := by rw [X.P.act_fst, Level.ρs_apply]
+  h_act g x := by
+    change X.P.act k (X.P.act g x) = X.P.act ((k : X.Lv.L.H) * g * (k : X.Lv.L.H)⁻¹) (X.P.act k x)
+    rw [map_mul, map_mul, map_inv, Homeomorph.mul_apply, Homeomorph.mul_apply,
+      Homeomorph.inv_apply, Homeomorph.symm_apply_apply]
+
+omit [Finite Lv.L.H] in
+lemma fibreMap_conjHom (X : TempObj O R A) (k : X.Lv.L.H0) :
+    fibreMap V hV (conjHom X k) = id := by
+  funext w
+  obtain ⟨q, rfl⟩ := Quotient.mk_surjective w
+  exact Quotient.sound ⟨k, rfl⟩
+
+omit [Finite Lv.L.H] [IsScalarTower K R Ω] in
+lemma conjHom_ne_id (X : TempObj O R A) (k : X.Lv.L.H0)
+    (hk : ∃ y, (k : SemilinearAut R A X.Lv.L.B).σ y ≠ y) : conjHom X k ≠ 𝟙 X := by
+  intro h
+  obtain ⟨y, hy⟩ := hk
+  have h₂ := DFunLike.congr_fun (congrArg (fun m : X ⟶ X => m.φ.f) h)
+    ((k : SemilinearAut R A X.Lv.L.B).σ y)
+  change (k : SemilinearAut R A X.Lv.L.B).σ.symm ((k : SemilinearAut R A X.Lv.L.B).σ y) =
+    (k : SemilinearAut R A X.Lv.L.B).σ y at h₂
+  rw [RingEquiv.symm_apply_apply] at h₂
+  exact hy h₂.symm
+
 end Fibre
+
+
+section N1
+
+variable (Lv : Level O R A) [Finite Lv.L.H] [TopologicalSpace.NoetherianSpace Lv.Z] [T0Space Lv.Z]
+  [QuasiSober Lv.Z]
+  (hdim : topologicalKrullDim Lv.Z ≤ 1) (z₀ : Lv.Z)
+
+/-- **The Galois object `U_Lv` built from the universal covering of N1**
+(`universalCovering`, based at `z₀`) of the special fibre. -/
+def universalObj : TempObj O R A :=
+  obj Lv (universalCovering.isUniversalCovering.{u, u, u} hdim z₀)
+    (universalCovering.isUniversalCovering.{u, u, u} hdim z₀).countable_fibre
+
+end N1
 
 end
 
