@@ -3,6 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
+import TemperedFundamentalGroups.SemistableReduction.AnnulusModel
 import TemperedFundamentalGroups.SemistableReduction.AnnulusUnit
 import TemperedFundamentalGroups.SemistableReduction.GaussNorm
 import TemperedFundamentalGroups.SemistableReduction.TubeCount
@@ -50,10 +51,9 @@ variable {C : Type*} [NontriviallyNormedField C] [IsUltrametricDist C]
 
 local notation "w" => gaussRat (NormedField.valuation (K := C)) 0
 
-/-- The node chart `O_C[x, c/x] ⊆ C(x)`. -/
+/-- The node chart `O_C[x, c/x] ⊆ C(x)` (`AnnulusModel.nodeChart`). -/
 noncomputable def nodeRing (c : C) : Subring (RatFunc C) :=
-  Subring.closure ({RatFunc.X, algebraMap C (RatFunc C) c / RatFunc.X} ∪
-    algebraMap C (RatFunc C) '' {b | ‖b‖ ≤ 1})
+  nodeChart (NormedField.valuation (K := C)) RatFunc.X c
 
 /-- The open segment `|c| < s < 1` of radii. -/
 def segment (c : C) : Set ℝ≥0ˣ := {s | ‖c‖₊ < (s : ℝ≥0) ∧ (s : ℝ≥0) < 1}
@@ -69,12 +69,15 @@ theorem exists_const {c : C} {a : RatFunc C} (ha : a ∈ nodeRing c) :
     ∃ κ : C, ‖κ‖ ≤ 1 ∧ ∀ s ∈ segment c, w s (a - algebraMap C (RatFunc C) κ) < 1 := by
   induction ha using Subring.closure_induction with
   | mem x hx =>
-    rcases hx with (rfl | rfl) | ⟨b, hb, rfl⟩
+    rcases hx with ⟨b, hb, rfl⟩ | rfl | rfl
+    · refine ⟨b, ?_, fun s _ ↦ by simp⟩
+      have : NormedField.valuation b ≤ 1 := hb
+      rw [NormedField.valuation_apply] at this
+      exact_mod_cast this
     · exact ⟨0, by simp, fun s hs ↦ by simp [hs.2]⟩
     · refine ⟨0, by simp, fun s hs ↦ ?_⟩
       rw [map_zero, sub_zero, map_div₀, gaussRat_C, gaussRat_X]
       exact (div_lt_one (by simp)).2 hs.1
-    · exact ⟨b, hb, fun s _ ↦ by simp⟩
   | zero => exact ⟨0, by simp, fun s _ ↦ by simp⟩
   | one => exact ⟨1, by simp, fun s _ ↦ by simp⟩
   | add x y _ _ hx hy =>
