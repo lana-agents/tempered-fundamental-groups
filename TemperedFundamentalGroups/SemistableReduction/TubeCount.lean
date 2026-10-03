@@ -21,8 +21,9 @@ degrees of the extensions `w'` of the norm with `w'(y) < 1`) is computed algebra
   (both sides agree at every `t ∈ F` by the norm formula `algebraMap_norm_eq_prod`);
 * `IsResOrder P i`: `P` has coefficients in the unit ball and its reduction has trailing
   degree `i` (Gauss lemma: additive under products, `IsResOrder.mul`);
-* `isResOrder_minpoly`, `isResOrder_normPoly`: `normPoly K z` has residue order `deg g` if `‖z‖ < 1`, and `0` if
-  `‖z‖ = 1` (the spectral norm is the spectral value of the minimal polynomial);
+* `isResOrder_minpoly`, `isResOrder_normPoly`: `normPoly K z` has residue order `deg g` if
+  `‖z‖ < 1`, and `0` if `‖z‖ = 1` (the spectral norm is the spectral value of the minimal
+  polynomial);
 * **`sum_natDegree_eq_natTrailingDegree`**: if `ι : A → F` is a ring map,
   `𝔭 = {a ∈ A : ‖ι a‖ < 1}`, and `P ∈ A[X]` maps to `normPoly F y`, then
   `Σ_{g : ‖toLocal g y‖ < 1} deg g = natTrailingDegree (P mod 𝔭)`.
