@@ -529,6 +529,132 @@ lemma res_red_mu_chi {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.ch
 end Residues
 
 
+section Branches
+
+/-- An element of `O_Q` times an element of `O_Q` with nonzero residue... -/
+lemma mem_of_mul_mem {k κ : Type*} [Field k] [Field κ] [Algebra k κ] [IsAlgClosed k]
+    [IsCurveFunctionField k κ] (Q : CurvePlace k κ) {a u : κ} (hu : u ∈ Q.V) (hu0 : Q.res u ≠ 0)
+    (hau : a * u ∈ Q.V) : a ∈ Q.V := by
+  have hu1 : Q.valuation u = 1 := by
+    refine le_antisymm (Q.valuation_le_one_iff.2 hu) (not_lt.1 fun h ↦ hu0 ?_)
+    exact Q.res_eq_zero_of_lt_one h
+  refine Q.valuation_le_one_iff.1 ?_
+  have := Q.valuation_le_one_iff.2 hau
+  rwa [map_mul, hu1, mul_one] at this
+
+lemma res_prod_ne_zero {k κ ι : Type*} [Field k] [Field κ] [Algebra k κ] [IsAlgClosed k]
+    [IsCurveFunctionField k κ] (Q : CurvePlace k κ) (s : Finset ι) (u : ι → κ)
+    (hu : ∀ i ∈ s, u i ∈ Q.V ∧ Q.res (u i) ≠ 0) :
+    (∏ i ∈ s, u i) ∈ Q.V ∧ Q.res (∏ i ∈ s, u i) ≠ 0 := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp [CurvePlace.res_one]
+  | insert a s ha ih =>
+    obtain ⟨h1, h2⟩ := ih fun i hi ↦ hu i (Finset.mem_insert_of_mem hi)
+    obtain ⟨h3, h4⟩ := hu a (Finset.mem_insert_self a s)
+    rw [Finset.prod_insert ha]
+    exact ⟨mul_mem h3 h1, by rw [Q.res_mul h3 h1]; exact mul_ne_zero h4 h2⟩
+
+lemma res_pow_ne_zero {k κ : Type*} [Field k] [Field κ] [Algebra k κ] [IsAlgClosed k]
+    [IsCurveFunctionField k κ] (Q : CurvePlace k κ) {u : κ} (hu : u ∈ Q.V) (hu0 : Q.res u ≠ 0)
+    (n : ℕ) : u ^ n ∈ Q.V ∧ Q.res (u ^ n) ≠ 0 := by
+  have := res_prod_ne_zero Q (Finset.range n) (fun _ ↦ u) fun _ _ ↦ ⟨hu, hu0⟩
+  simpa using this
+
+include hp hp1 in
+/-- **Reductions at the outer branches of an edge are regular.** -/
+theorem red_mem_V_par {m : ℕ} {f : F} (hf : f ∈ rrSpace (T.D x₀ m))
+    (hn : ∀ (i : T.ι) (W : TypeTwo C F), IsOver (T.hvc hx₀ i) W → W.val f ≤ 1) {e : T.E}
+    {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.par e)) W)
+    (Q : CurvePlace 𝓀 (ResidueField W.val.valuationSubring))
+    (hQ : Q.valuation (W.red (T.ec x₀ e)) < 1) : W.red f ∈ Q.V := by
+  have hW' : IsOver (T.hec hx₀ e) W := (T.isOver_ec_iff hx₀ e W).1 hW
+  set h := ∏ j, T.mu x₀ e j ^ m
+  have hh : W.val h = 1 := by
+    simp only [h, map_prod, map_pow, valuation_mu_par T hx₀ hW, one_pow, Finset.prod_const_one]
+  have hred : W.red (f * h) ∈ Q.V := by
+    letI : Algebra (RatFunc C) F := (coordAlgHom (T.hec hx₀ e)).toRingHom.toAlgebra
+    haveI : IsScalarTower C (RatFunc C) F :=
+      IsScalarTower.of_algebraMap_eq fun c ↦ ((coordAlgHom (T.hec hx₀ e)).commutes c).symm
+    have hxF : xF C F = T.ec x₀ e := xF_coord (T.hec hx₀ e)
+    haveI := finiteDimensional_of_transcendental (C := C) (F := F) (hxF ▸ T.hec hx₀ e)
+    set v : Ext C F := ⟨W.val, hW'⟩
+    have hQ' : Q ∈ PlaceNorm.zeros 𝓀 (GaussFibre.red C (xF C F) v) := by
+      rw [PlaceNorm.mem_zeros, hxF]
+      change (W.red (T.ec x₀ e))⁻¹ ∉ Q.V
+      intro hinv
+      have h1 := Q.valuation_le_one_iff.2 hinv
+      rw [map_inv₀] at h1
+      have h0 : W.red (T.ec x₀ e) ≠ 0 := TypeTwo.red_ne_zero hW'.valuation_self
+      have := mul_lt_one_of_nonneg_of_lt_one_left zero_le hQ h1
+      rw [mul_inv_cancel₀ ((Valuation.ne_zero_iff _).2 h0)] at this
+      exact lt_irrefl _ this
+    exact GaussTube.red_mem_V (T.norm_ce_lt_one e) v
+      ⟨f * h, isIntegral_twist T hx₀ hp hp1 hf hn e⟩ hQ'
+  have hf1 : W.val f ≤ 1 := hn _ W hW
+  rw [TypeTwo.red_mul hf1 hh.le] at hred
+  have hu := res_prod_ne_zero Q Finset.univ (fun j ↦ W.red (T.mu x₀ e j ^ m)) fun j _ ↦ by
+    rw [TypeTwo.red_pow (valuation_mu_par T hx₀ hW j).le]
+    obtain ⟨h1, h2⟩ := res_red_mu_par T hx₀ hW Q hQ j
+    exact res_pow_ne_zero Q h1 h2 m
+  rw [TypeTwo.red_prod _ _ fun j _ ↦ by rw [map_pow, valuation_mu_par T hx₀ hW j, one_pow]]
+    at hred
+  exact mem_of_mul_mem Q hu.1 hu.2 hred
+
+include hp hp1 in
+/-- **Reductions at the inner branches of an edge are regular.** -/
+theorem red_mem_V_chi {m : ℕ} {f : F} (hf : f ∈ rrSpace (T.D x₀ m))
+    (hn : ∀ (i : T.ι) (W : TypeTwo C F), IsOver (T.hvc hx₀ i) W → W.val f ≤ 1) {e : T.E}
+    {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.chi e)) W)
+    (Q : CurvePlace 𝓀 (ResidueField W.val.valuationSubring))
+    (hQ : Q.valuation (W.red (algebraMap C F (T.ce e) / T.ec x₀ e)) < 1) : W.red f ∈ Q.V := by
+  have hW' : IsOver (T.hinner hx₀ e) W := (T.isOver_inner_iff hx₀ e W).1 hW
+  set h := ∏ j, T.mu x₀ e j ^ m
+  have hh : W.val h = 1 := by
+    simp only [h, map_prod, map_pow, valuation_mu_chi T hx₀ hW, one_pow, Finset.prod_const_one]
+  have hred : W.red (f * h) ∈ Q.V := by
+    letI : Algebra (RatFunc C) F := (coordAlgHom (T.hec hx₀ e)).toRingHom.toAlgebra
+    haveI : IsScalarTower C (RatFunc C) F :=
+      IsScalarTower.of_algebraMap_eq fun c ↦ ((coordAlgHom (T.hec hx₀ e)).commutes c).symm
+    have hxF : xF C F = T.ec x₀ e := xF_coord (T.hec hx₀ e)
+    haveI := finiteDimensional_of_transcendental (C := C) (F := F) (hxF ▸ T.hec hx₀ e)
+    have hc0 := T.ce_ne_zero e
+    have halg : (algebraMap (RatFunc C) (Inv (T.ce e) hc0 F) : RatFunc C →+* Inv (T.ce e) hc0 F) =
+        (coordAlgHom (T.hinner hx₀ e)).toRingHom := by
+      rw [← coordAlgHom_comp_inv (T.hec hx₀ e) hc0 (T.hinner hx₀ e)]
+      rfl
+    set w₂ : Ext C (Inv (T.ce e) hc0 F) := ⟨W.val, by rw [halg]; exact hW'⟩
+    haveI := GaussFibre.isCurveFunctionField w₂
+    have hxI : xF C (Inv (T.ce e) hc0 F) = algebraMap C F (T.ce e) / T.ec x₀ e := by
+      change algebraMap (RatFunc C) (Inv (T.ce e) hc0 F) RatFunc.X = _
+      rw [halg]
+      exact coordAlgHom_X (T.hinner hx₀ e)
+    have hnot : (W.red (algebraMap C F (T.ce e) / T.ec x₀ e))⁻¹ ∉ Q.V := by
+      intro hinv
+      have h1 := Q.valuation_le_one_iff.2 hinv
+      rw [map_inv₀] at h1
+      have h0 : W.red (algebraMap C F (T.ce e) / T.ec x₀ e) ≠ 0 :=
+        TypeTwo.red_ne_zero hW'.valuation_self
+      have := mul_lt_one_of_nonneg_of_lt_one_left zero_le hQ h1
+      rw [mul_inv_cancel₀ ((Valuation.ne_zero_iff _).2 h0)] at this
+      exact lt_irrefl _ this
+    have hQ' : Q ∈ PlaceNorm.zeros 𝓀 (GaussFibre.red C (xF C (Inv (T.ce e) hc0 F)) w₂) :=
+      PlaceNorm.mem_zeros.2 (by rw [hxI]; exact hnot)
+    exact GaussTube.red_mem_V (T.norm_ce_lt_one e) w₂
+      (rintEquiv hc0 ⟨f * h, isIntegral_twist T hx₀ hp hp1 hf hn e⟩) hQ'
+  have hf1 : W.val f ≤ 1 := hn _ W hW
+  rw [TypeTwo.red_mul hf1 hh.le] at hred
+  have hu := res_prod_ne_zero Q Finset.univ (fun j ↦ W.red (T.mu x₀ e j ^ m)) fun j _ ↦ by
+    rw [TypeTwo.red_pow (valuation_mu_chi T hx₀ hW j).le]
+    obtain ⟨h1, h2⟩ := res_red_mu_chi T hx₀ hW Q hQ j
+    exact res_pow_ne_zero Q h1 h2 m
+  rw [TypeTwo.red_prod _ _ fun j _ ↦ by rw [map_pow, valuation_mu_chi T hx₀ hW j, one_pow]]
+    at hred
+  exact mem_of_mul_mem Q hu.1 hu.2 hred
+
+end Branches
+
+
 end Twist
 
 
