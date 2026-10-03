@@ -102,6 +102,40 @@ theorem exists_deckCharacter_eq_of_length (hgal : IsGaloisClass Φ 𝒢) (hdom :
   exists_deckCharacter_eq_of_length' hgal hdom hrig c δ x₀ h d len ℓ₀
     (fun p => (hzero p).le.trans (Nat.zero_le _)) (fun p => hfin p ℓ₀) hmono hloop
 
+/-- **The Tate loop from lifting** (formal part): if fibre elements lift along pointed
+morphisms without increasing length (`hlift`, path lifting) and lengths do not increase along
+pointed morphisms, then one pointed member `p₀` over `(c, x₀)` with an element `γ₀` over
+`δ(d) x₀` gives, in every pointed member over `(c, x₀)`, an element over `δ(d) x₀` of length
+at most that of `γ₀` (domination by a common pointed member, lifting, pushing down; the
+morphisms to `c` agree by rigidity). -/
+theorem exists_loop_of_lift {α : Type*} [Preorder α] (hdom : IsDominating Φ 𝒢)
+    (hrig : IsRigid Φ 𝒢) (c : C) (δ : D →* Aut c) (x₀ : Φ.obj c) (d : D)
+    (len : ∀ p : PtGal Φ 𝒢, Φ.obj p.G → α)
+    (hmono : ∀ {p q : PtGal Φ 𝒢} (f : p ⟶ q) (γ : Φ.obj p.G), len q (f.1 γ) ≤ len p γ)
+    (hlift : ∀ {p q : PtGal Φ 𝒢} (f : p ⟶ q) (γ' : Φ.obj q.G),
+      ∃ γ, f.1 γ = γ' ∧ len p γ ≤ len q γ')
+    (p₀ : PtGal Φ 𝒢) (f₀ : p₀.G ⟶ c) (hf₀ : Φ.map f₀ p₀.g = x₀) (γ₀ : Φ.obj p₀.G)
+    (hγ₀ : Φ.map f₀ γ₀ = FibreAut.deckAct c δ d x₀) :
+    ∀ p : PtGal Φ 𝒢, ∀ f : p.G ⟶ c, Φ.map f p.g = x₀ →
+      ∃ γ, len p γ ≤ len p₀ γ₀ ∧ Φ.map f γ = FibreAut.deckAct c δ d x₀ := by
+  intro p f hf
+  obtain ⟨G, hG, g, m, hm⟩ := hdom 2 ![⟨p.G, p.g⟩, ⟨p₀.G, p₀.g⟩]
+  let r : PtGal Φ 𝒢 := ⟨G, hG, g⟩
+  let a : r ⟶ p := ptHom (m 0) (hm 0)
+  let b : r ⟶ p₀ := ptHom (m 1) (hm 1)
+  obtain ⟨γr, hγr, hlen⟩ := hlift b γ₀
+  refine ⟨a.1 γr, (hmono a γr).trans hlen, ?_⟩
+  have h₁ : Φ.map (m 0 ≫ f) g = Φ.map (m 1 ≫ f₀) g := by
+    rw [Functor.map_comp_apply, Functor.map_comp_apply, hm 0, hm 1]
+    exact hf.trans hf₀.symm
+  have hab := hrig G hG _ _ g h₁
+  have h₂ : Φ.map (m 0 ≫ f) γr = Φ.map (m 1 ≫ f₀) γr := by rw [hab]
+  rw [Functor.map_comp_apply, Functor.map_comp_apply] at h₂
+  refine h₂.trans ?_
+  have h₃ : Φ.map (m 1) γr = γ₀ := hγr
+  rw [h₃]
+  exact hγ₀
+
 end GaloisLimit
 
 end TemperedFundamentalGroups

@@ -68,6 +68,35 @@ theorem exists_character_eq_of_lenW
     (fun f γ => lenW_map_le V hV hX hN ϖ hϖ f γ) hloop
   exact ⟨α, hα⟩
 
+/-- **Theorem B from x-lengths, with the Tate loop reduced to lifting**: instead of the loop
+in every pointed member, it suffices that fibre elements lift along pointed morphisms of members
+without increasing `lenW` (`hlift`, path lifting from (X1) of `HarmonicX`), and that one pointed
+member over `(X₀, x₀)` has an element over `δ(d) x₀` (`hbase`). -/
+theorem exists_character_eq_of_lenW_lift
+    (hW : SemistableReduction.Statement.StrongComponent.{u})
+    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u})
+    (hR : ringKrullDim R = 1) (ϖ : O) (hϖ : Irreducible ϖ) (d : Multiplicative ℤ)
+    (hlift : ∀ {p q : PtGal (tempFibre O R A V hV)
+        (galClassW O R A Ω (Level.IsW (exists_finite_aeval (K := K) hR).choose))} (f : p ⟶ q)
+      (γ' : (tempFibre O R A V hV).obj q.G), ∃ γ, f.1 γ = γ' ∧
+        lenW V hV (exists_finite_aeval (K := K) hR).choose ϖ p γ ≤
+          lenW V hV (exists_finite_aeval (K := K) hR).choose ϖ q γ')
+    (hbase : ∃ (p₀ : PtGal (tempFibre O R A V hV)
+        (galClassW O R A Ω (Level.IsW (exists_finite_aeval (K := K) hR).choose)))
+      (f₀ : p₀.G ⟶ X₀ (A := A) D) (γ₀ : (tempFibre O R A V hV).obj p₀.G),
+      (tempFibre O R A V hV).map f₀ p₀.g = basePoint D V hV ∧
+      (tempFibre O R A V hV).map f₀ γ₀ = FibreAut.deckAct (X₀ D) (deck D) d (basePoint D V hV)) :
+    ∃ τ : temperedPi1 O R A V hV, character D V hV τ = d := by
+  obtain ⟨-, hdom, hrig⟩ := galoisLimitDataW (A := A) V hV hW hR
+  obtain ⟨p₀, f₀, γ₀, hf₀, hγ₀⟩ := hbase
+  have hfin : lenW V hV (exists_finite_aeval (K := K) hR).choose ϖ p₀ γ₀ ≠ ⊤ :=
+    CurveConfig.tlen_ne_top (fun _ => by
+      unfold WData.weight; split_ifs <;> simp) _ _
+  exact exists_character_eq_of_lenW D V hV hW hX hN hR ϖ hϖ d _ hfin
+    (exists_loop_of_lift hdom hrig (X₀ D) (deck D) (basePoint D V hV) d _
+      (fun f γ => lenW_map_le V hV hX hN ϖ hϖ f γ) hlift p₀ f₀ hf₀ γ₀ hγ₀)
+
 end TateObject
 
 namespace TateOrbicurve

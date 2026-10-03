@@ -323,6 +323,69 @@ theorem finite_tlen_le [Finite ι] {w : Z → ℝ≥0∞} {μ : ℝ≥0∞} (hμ
   exact absurd (hN.trans_le (h₁.trans ((length_mul_le_cost hμ ha.isComp hLw).trans hlt'.le)))
     (lt_irrefl _)
 
+/-- Every component vertex has walks to and from the root. -/
+lemma exists_pWalk_root : ∀ (n : ℕ) (t : K.Tree r), t.1.length ≤ n → IsComp t →
+    (∃ L, PWalk t L ∧ pend t L = root K r ∧ ∀ p ∈ L, IsSpecial p.1) ∧
+    (∃ L, PWalk (root K r) L ∧ pend (root K r) L = t ∧ ∀ p ∈ L, IsSpecial p.1)
+  | 0, t, hn, _ => absurd (List.length_eq_zero_iff.1 (Nat.le_zero.1 hn)) t.2.ne_nil
+  | n + 1, t, hn, ⟨i, hi⟩ => by
+    obtain ⟨v, m, hvm⟩ := List.exists_cons_of_ne_nil t.2.ne_nil
+    obtain rfl : v = .inl i := by rw [hvm] at hi; simpa using hi
+    rcases m with _ | ⟨u, m⟩
+    · have ht : t = root K r := by
+        apply Tree.ext
+        have hr : K.Red r [.inl i] := hvm ▸ t.2
+        rw [hvm, show (Sum.inl i : ι ⊕ Z) = .inl r from hr]
+        rfl
+      subst ht
+      exact ⟨⟨[], trivial, rfl, by simp⟩, ⟨[], trivial, rfl, by simp⟩⟩
+    · have hl : K.Red r (.inl i :: u :: m) := hvm ▸ t.2
+      obtain ⟨s, hs, hS, hsi⟩ := head_inr_of_adj hl (hl.tail (by simp)) (.inr rfl) rfl
+      obtain rfl : u = .inr s := by simpa using hs
+      have hl' : K.Red r (.inr s :: m) := hl.tail (by simp)
+      let σ : K.Tree r := ⟨.inr s :: m, hl'⟩
+      let t' : K.Tree r := ⟨m, hl'.tail hl'.ne_nil_of_inr⟩
+      obtain ⟨j, hj, -⟩ := hl'.inr_cons
+      have hlen : t'.1.length ≤ n := by
+        have := congrArg List.length hvm
+        simp only [List.length_cons] at this
+        change m.length ≤ n
+        omega
+      obtain ⟨⟨L₁, h₁, e₁, s₁⟩, ⟨L₂, h₂, e₂, s₂⟩⟩ := exists_pWalk_root n t' hlen ⟨j, hj⟩
+      have hσ : IsSpecial σ := ⟨s, rfl⟩
+      have htσ : t.Adj σ := .inr (by rw [hvm]; rfl)
+      have hσt' : σ.Adj t' := .inr rfl
+      refine ⟨⟨(σ, t') :: L₁, ⟨htσ, hσt', h₁⟩, e₁, ?_⟩, ⟨L₂ ++ [(σ, t)], ?_, ?_, ?_⟩⟩
+      · rintro p (_ | ⟨_, hp⟩)
+        · exact hσ
+        · exact s₁ p hp
+      · rw [pWalk_append, e₂]
+        exact ⟨h₂, Tree.adj_comm.1 hσt', Tree.adj_comm.1 htσ, trivial⟩
+      · rw [pend_append, e₂]
+        rfl
+      · intro p hp
+        rcases List.mem_append.1 hp with hp | hp
+        · exact s₂ p hp
+        · rw [List.mem_singleton.1 hp]
+          exact hσ
+
+/-- **Lengths are finite** for finite weights (the tree is connected). -/
+theorem tlen_ne_top {w : Z → ℝ≥0∞} (hw : ∀ s, w s ≠ ⊤) (a b : K.Tree r) : tlen w a b ≠ ⊤ := by
+  obtain ⟨a', ha⟩ := exists_near a
+  obtain ⟨b', hb⟩ := exists_near b
+  obtain ⟨⟨L₁, h₁, e₁, -⟩, -⟩ := exists_pWalk_root _ a' le_rfl ha.isComp
+  obtain ⟨-, ⟨L₂, h₂, e₂, -⟩⟩ := exists_pWalk_root _ b' le_rfl hb.isComp
+  refine ne_top_of_le_ne_top ?_ (tlen_le w ha hb (L := L₁ ++ L₂)
+    (pWalk_append.2 ⟨h₁, e₁ ▸ h₂⟩) (by rw [pend_append, e₁, e₂]))
+  have htw : ∀ t : K.Tree r, tw w t ≠ ⊤ := fun t => by
+    rcases isComp_or_isSpecial t with ⟨i, hi⟩ | ⟨s, hs⟩
+    · rw [tw_of_inl w hi]; exact ENNReal.zero_ne_top
+    · rw [tw_of_inr w hs]; exact hw s
+  generalize L₁ ++ L₂ = L
+  induction L with
+  | nil => exact ENNReal.zero_ne_top
+  | cons p L ih => rw [cost_cons]; exact ENNReal.add_ne_top.2 ⟨htw _, ih⟩
+
 end Walks
 
 section Points
