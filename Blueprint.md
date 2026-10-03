@@ -522,7 +522,9 @@ only needed for `char C = p`.
 **Targeted W10 statement: `Statement.StrongA`** (`SemistableReduction/StrongA.lean`). This is the
 exact form that Theorem A (`andreEquiv`, branch `wp-andre`) consumes.
 
-* **Inputs:** `K` complete discretely valued of characteristic `0`; `R` smooth of dimension `1`;
+* **Inputs:** `K` complete discretely valued of characteristic `0` and **mixed characteristic**
+  (`(p : O) ∈ 𝔪_O` for a prime `p`); `R` a smooth **domain** of dimension `1` (without
+  equidimensionality the statement is false: `R = K[t] × K`);
   `B` finite étale over `R`; a finite group `G` acting `K`-linearly on `B`; finitely many
   `O`-models `c₀ i` with maps `j₀ i` over `O`.
 * **Outputs:**
@@ -730,10 +732,9 @@ Inputs of StrongA: `K`, `O`, `R`, `B`, `G` acting on `R` and `B`, the models `c�
      fibre of that chart; it is scheme-theoretically dominant (W10Scheme).
 
 Open points (decision by the lead):
-* (A) StrongA as stated is false for non-equidimensional `R` (e.g. `R = K[t] × K`). Fix: add
-  `[IsDomain R]`.
-* (B) W7 needs mixed characteristic (`‖p‖ < 1`). Either restrict StrongA to mixed characteristic
-  or add an equal-characteristic W7.
+* (A) **Resolved:** `[IsDomain R]` added to StrongA (and to `andreEquiv`).
+* (B) **Resolved:** StrongA requires mixed characteristic. Equal characteristic `0` is an
+  untargeted extension (§9.12, E1).
 * (C) The normed structures on `K` and `K̄` from the complete DVR `O`.
 
 ### 9.6 W5: models and vertex sets
@@ -1503,4 +1504,5 @@ norm of `G`). No `CompleteSpace C` remains in `SemistableReduction`.
 | O10 | **EdgeRepair**: for a bad edge `(j, m)` of a convex Gauss tree, subdividing at the canonical finite set of radii `s` where `w_{a_j,s}` has a preimage of positive genus or with `≥ 3` branches makes all sub-edges good (`IsNodeODP`). Needed because the monotone form of W7 is false (S8.A agent: `u² = x`, `V' = {w_{0,1}, w_{b,r}}`, `r < |b| < 1`: the preimage of the edge annulus contains the disc `|u| < |b|^{1/2}`) and W10 needs `∀ V₀ ∃ V ⊇ V₀` | R4 agent after R4 | open |
 | O11 | **Gluing** of exhaustion: `D ⊂ D(0,ε₀) ⊂ U' ⊂ U`, `D(0,ε₀)` exhausting in `U` ⇒ (`D` exhausting in `U` ⇔ in `U'`) (S8.5 K6 option (a), O10) | R4 agent after R4 | open |
 | O7 | W10 assembly: `W7.Statement` + W9 descent ⇒ **`Statement.StrongA`** (the targeted W10; D3e, S9 over `O_{K'}`, M9, actions, domination) | André agent (`wp-tempered-w10`) | open |
+| E1 | (untargeted extension) equal characteristic `0`: a tame W7 (all covers tame, Kummer) to extend `StrongA` and Theorem A to residue characteristic `0` | — | not planned |
 
