@@ -23,8 +23,8 @@ degrees of the extensions `w'` of the norm with `w'(y) < 1`) is computed algebra
   degree `i` (Gauss lemma: additive under products, `IsResOrder.mul`);
 * `isResOrder_minpoly`, `isResOrder_normPoly`: `normPoly K z` has residue order `deg g` if `‖z‖ < 1`, and `0` if
   `‖z‖ = 1` (the spectral norm is the spectral value of the minimal polynomial);
-* **`sum_natDegree_eq_natTrailingDegree`**: if `A ⊆ F` is a subring, `𝔭 = {a ∈ A : ‖a‖ < 1}`,
-  and `P ∈ A[X]` maps to `normPoly F y`, then
+* **`sum_natDegree_eq_natTrailingDegree`**: if `ι : A → F` is a ring map,
+  `𝔭 = {a ∈ A : ‖ι a‖ < 1}`, and `P ∈ A[X]` maps to `normPoly F y`, then
   `Σ_{g : ‖toLocal g y‖ < 1} deg g = natTrailingDegree (P mod 𝔭)`.
 
 The right side does not depend on the norm. Applied to the node ring `A = O_C[x, c/x]` and the
@@ -248,13 +248,13 @@ theorem normPoly_map_eq_prod [Infinite F] (y : F') :
   exact mul_left_cancel₀ hu hglob
 
 omit [IsUltrametricDist F] in
-/-- **The tube count.** Let `A ⊆ F` be a subring, `𝔭 = {a ∈ A : ‖a‖ < 1}`
-and `P ∈ A[X]` a lift of the characteristic polynomial of `y ∈ F'`, where `‖toLocal g y‖ ≤ 1`
-for all `g`. Then the sum of the local degrees of the extensions `w'` with `w'(y) < 1` is the
-trailing degree of `P mod 𝔭`. -/
-theorem sum_natDegree_eq_natTrailingDegree [Infinite F] (A : Subring F) (𝔭 : Ideal A)
-    (h𝔭 : ∀ a : A, a ∈ 𝔭 ↔ ‖(a : F)‖ < 1) (P : A[X])
-    (hP : P.map A.subtype = normPoly F y) (hy : ∀ g : Factor F K F', ‖toLocal g y‖ ≤ 1) :
+/-- **The tube count.** Let `ι : A → F` be a ring map (e.g. the inclusion of a subring),
+`𝔭 = {a ∈ A : ‖ι a‖ < 1}`, and `P ∈ A[X]` a lift of the characteristic polynomial of `y ∈ F'`,
+where `‖toLocal g y‖ ≤ 1` for all `g`. Then the sum of the local degrees of the extensions `w'`
+with `w'(y) < 1` is the trailing degree of `P mod 𝔭`. -/
+theorem sum_natDegree_eq_natTrailingDegree [Infinite F] {A : Type*} [CommRing A] (ι : A →+* F)
+    (𝔭 : Ideal A) (h𝔭 : ∀ a : A, a ∈ 𝔭 ↔ ‖ι a‖ < 1) (P : A[X])
+    (hP : P.map ι = normPoly F y) (hy : ∀ g : Factor F K F', ‖toLocal g y‖ ≤ 1) :
     ∑ g ∈ Finset.univ.filter (fun g : Factor F K F' ↦ ‖toLocal g y‖ < 1), g.1.natDegree =
       (P.map (Ideal.Quotient.mk 𝔭)).natTrailingDegree := by
   classical
@@ -262,10 +262,9 @@ theorem sum_natDegree_eq_natTrailingDegree [Infinite F] (A : Subring F) (𝔭 : 
   have hres : IsResOrder ((normPoly F y).map (algebraMap F K)) N := by
     rw [normPoly_map_eq_prod, show N = _ from Finset.sum_filter _ _]
     exact IsResOrder.prod _ _ _ fun g _ ↦ isResOrder_normPoly g.1 _ (hy g)
-  have hcoeff : ∀ j, ‖((normPoly F y).map (algebraMap F K)).coeff j‖ = ‖((P.coeff j : A) : F)‖ := by
+  have hcoeff : ∀ j, ‖((normPoly F y).map (algebraMap F K)).coeff j‖ = ‖ι (P.coeff j)‖ := by
     intro j
     rw [coeff_map, ← hP, coeff_map, norm_algebraMap']
-    rfl
   have hzero : ∀ j, (P.map (Ideal.Quotient.mk 𝔭)).coeff j = 0 ↔
       ‖((normPoly F y).map (algebraMap F K)).coeff j‖ < 1 := by
     intro j
