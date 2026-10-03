@@ -289,7 +289,8 @@ def SemilinearAut.toAlgEquivK (g : SemilinearAut R A B) : B ≃ₐ[K] B :=
     (SemilinearAut.toAlgEquivK K g).symm b = g.σ.symm b := rfl
 
 /-- The action of a group on `B` through semilinear automorphisms. -/
-@[reducible] def actionOf {G : Type u} [Group G] (ν : G →* SemilinearAut R A B) : MulSemiringAction G B where
+@[reducible] def actionOf {G : Type u} [Group G] (ν : G →* SemilinearAut R A B) :
+    MulSemiringAction G B where
   smul g b := (ν g).σ b
   one_smul b := by
     change (ν 1).σ b = b
@@ -315,7 +316,8 @@ variable (L : Type u) [CommRing L] [Algebra K L]
 /-- `(g, τ) ↦ σ_g ⊗ τ` on `B ⊗_K L`. -/
 def tensorAut :
     SemilinearAut R A B × (L ≃ₐ[K] L) →* SemilinearAut R A (TensorProduct K B L) where
-  toFun x := ⟨x.1.a, (Algebra.TensorProduct.congr (SemilinearAut.toAlgEquivK K x.1) x.2).toRingEquiv,
+  toFun x := ⟨x.1.a,
+    (Algebra.TensorProduct.congr (SemilinearAut.toAlgEquivK K x.1) x.2).toRingEquiv,
     fun r => by
       rw [Algebra.TensorProduct.algebraMap_apply, Algebra.TensorProduct.algebraMap_apply]
       simp [x.1.map_algebraMap]⟩
@@ -520,7 +522,8 @@ lemma LevelHom.IsBaseChange.isRefinement {Lv' Lv : Level O R A} {ℓ : LevelHom 
 
 lemma transport_rid_tensorAut (Lv : Level O R A) (h : SemilinearAut R A Lv.L.B)
     (τ : K ≃ₐ[K] K) :
-    SemilinearAut.transport (Algebra.TensorProduct.rid K R Lv.L.B).symm (tensorAut K (h, τ)) = h := by
+    SemilinearAut.transport (Algebra.TensorProduct.rid K R Lv.L.B).symm (tensorAut K (h, τ)) =
+      h := by
   refine SemilinearAut.ext rfl (RingEquiv.ext fun y => ?_)
   rw [SemilinearAut.transport_σ]
   simp [Subsingleton.elim τ 1]
@@ -555,6 +558,8 @@ variable {K : Type u} [Field K] {O : ValuationSubring K}
   (hΦ : ∀ x, D.Φ x = tensorAut L ((x.1 : SemilinearAut R A Lv.L.B), θ x.2))
 
 include hΦ in
+omit [Algebra.Etale R (TensorProduct K Lv.L.B L)]
+  [Module.Finite R (TensorProduct K Lv.L.B L)] in
 lemma bc_ker (x : Lv.L.H × Δ) (hx : D.Φ x = 1) : MonoidHom.fst Lv.L.H Δ x = 1 :=
   Subtype.ext (tensorAut_eq_one_fst ((hΦ x).symm.trans hx))
 
@@ -607,6 +612,7 @@ variable (Ω : Type u) [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K
 
 omit [Algebra R Ω] [IsScalarTower K R Ω] in
 include hΦ in
+omit [Nontrivial L] in
 lemma isBaseChange_of [Algebra.Etale K L] [Module.Finite K L] [Finite Δ]
     (hne : Nonempty (L →ₐ[K] Ω)) (htr : ∀ s₁ s₂ : L →ₐ[K] Ω, ∃ γ, s₂ = s₁.comp (θ γ).toAlgHom)
     [IsSchemeTheoreticallyDominant D.level.j] (ℓ : LevelHom O R A D.level Lv)
@@ -622,6 +628,7 @@ lemma isBaseChange_of [Algebra.Etale K L] [Module.Finite K L] [Finite Δ]
       rfl
     exact (congrArg ℓ.φ.r this).trans (hr _)
 
+omit [Algebra R Ω] [IsScalarTower K R Ω] in
 lemma isBaseChange_bcHom [Algebra.Etale K L] [Module.Finite K L] [Finite Δ]
     (hne : Nonempty (L →ₐ[K] Ω)) (htr : ∀ s₁ s₂ : L →ₐ[K] Ω, ∃ γ, s₂ = s₁.comp (θ γ).toAlgHom)
     [IsSchemeTheoreticallyDominant D.level.j]
@@ -701,6 +708,8 @@ lemma coe_commonF₁ (x : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) :
   rfl
 
 include hΦ in
+omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 lemma commonΦ_eq_one [Nontrivial L₁] [Nontrivial L₂] {x} (hx : D.Φ x = 1) :
     x.1 = 1 ∧ (Nontrivial Lv.L.B → θ₁ x.2.1.1 = 1 ∧ θ₂ x.2.1.2 = 1) := by
   rw [hΦ] at hx
@@ -711,6 +720,8 @@ lemma commonΦ_eq_one [Nontrivial L₁] [Nontrivial L₂] {x} (hx : D.Φ x = 1) 
     commonθ_eq_one θ₁ θ₂ K' (tensorAut_eq_one_snd hx)⟩
 
 include hΦ in
+omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 lemma commonF₁_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
     commonF₁ hH₁ x = 1 := by
   obtain ⟨h1, h2⟩ := commonΦ_eq_one D hΦ hx
@@ -742,7 +753,10 @@ def commonM₂ : TensorProduct K Lv'.L.B L₂ →ₐ[R] TensorProduct K Lv.L.B (
     (Algebra.TensorProduct.includeRight : L₂ →ₐ[K] TensorProduct K L₁ L₂)
 
 set_option synthInstance.maxHeartbeats 200000 in
+-- instance search through iterated tensor products is slow
 include hΦ in
+omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 lemma commonσ₁ (γ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (z : TensorProduct K Lv.L.B L₁) :
     commonML L₁ L₂ K' Lv (commonM₁ L₁ L₂ Lv
       ((tensorAut L₁ ((γ.1 : SemilinearAut R A Lv.L.B), θ₁ γ.2.1.1)).σ z)) =
@@ -799,12 +813,14 @@ variable (Lv Γ₁ K' θ₂) in
 @[irreducible] noncomputable def commonκ₂ : (Γ₁ × Γ₂) × (K' ≃ₐ[K] K') →* (L₂ ≃ₐ[K] L₂) :=
   if Nontrivial Lv.L.B then θ₂.comp ((MonoidHom.snd _ _).comp (MonoidHom.fst _ _)) else 1
 
+omit [SMulCommClass A K R] in
 lemma commonκ₂_mem (δ : (Γ₁ × Γ₂) × (K' ≃ₐ[K] K')) : ∃ γ, commonκ₂ Γ₁ θ₂ K' Lv δ = θ₂ γ := by
   unfold commonκ₂
   split_ifs
   · exact ⟨δ.1.2, rfl⟩
   · exact ⟨1, (map_one θ₂).symm⟩
 
+omit [SMulCommClass A K R] in
 lemma commonκ₂_of_nontrivial [Nontrivial Lv.L.B] (δ : (Γ₁ × Γ₂) × (K' ≃ₐ[K] K')) :
     commonκ₂ Γ₁ θ₂ K' Lv δ = θ₂ δ.1.2 := by
   unfold commonκ₂
@@ -812,6 +828,8 @@ lemma commonκ₂_of_nontrivial [Nontrivial Lv.L.B] (δ : (Γ₁ × Γ₂) × (K
   rfl
 
 include hΦ in
+omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 lemma commonκ₂_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
     commonκ₂ Γ₁ θ₂ K' Lv x.2 = 1 := by
   rcases subsingleton_or_nontrivial Lv.L.B with hB | hB
@@ -845,6 +863,8 @@ lemma commonF₂_σ (x : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (y :
   rfl
 
 include hΦ in
+omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 lemma commonF₂_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
     commonF₂ u hH₂ x = 1 := by
   apply Subtype.ext
@@ -852,7 +872,10 @@ lemma commonF₂_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
   exact (congrArg _ (map_one (tensorAut (A := A) (B := Lv'.L.B) L₂))).trans (map_one _)
 
 set_option synthInstance.maxHeartbeats 200000 in
+-- instance search through iterated tensor products is slow
 include hΦ in
+omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
 lemma commonσ₂ (γ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (z : TensorProduct K Lv'.L.B L₂) :
     commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u
       ((tensorAut L₂ (((u.φ.r γ.1 : Lv'.L.H) : SemilinearAut R A Lv'.L.B), θ₂ γ.2.1.2)).σ z)) =
@@ -925,6 +948,7 @@ lemma commonφ₂_r [Nontrivial L₁] [Nontrivial L₂] (γ) :
 
 omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
   [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
+omit [SMulCommClass A K R] in
 lemma commonML_M₁_tmul_one (y : Lv.L.B) :
     commonML L₁ L₂ K' Lv (commonM₁ L₁ L₂ Lv (y ⊗ₜ[K] 1)) = y ⊗ₜ[K] 1 := by
   change y ⊗ₜ[K] (Algebra.TensorProduct.includeLeft (R := K) (S := K)
@@ -934,6 +958,7 @@ lemma commonML_M₁_tmul_one (y : Lv.L.B) :
 
 omit [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
   [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))] in
+omit [SMulCommClass A K R] in
 lemma commonML_M₂_tmul_one (y : Lv'.L.B) :
     commonML L₁ L₂ K' Lv (commonM₂ L₁ L₂ u (y ⊗ₜ[K] 1)) = u.φ.f y ⊗ₜ[K] 1 := by
   change u.φ.f y ⊗ₜ[K] (Algebra.TensorProduct.includeLeft (R := K) (S := K)
@@ -941,6 +966,7 @@ lemma commonML_M₂_tmul_one (y : Lv'.L.B) :
       (A := L₁) (B := L₂) 1)) = _
   rw [map_one, map_one]
 
+omit [SMulCommClass A K R] in
 lemma commonJψ (Lv₀ : Level O R A)
     (f : Lv₀.L.B →ₐ[R] TensorProduct K Lv.L.B (TensorProduct K L₁ L₂))
     (ψ : D.c.scheme ⟶ Lv₀.c.scheme)
@@ -964,10 +990,12 @@ end CommonLevel
 section Core
 
 variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
-  [HenselianLocalRing O] {R : Type u} [CommRing R] [Algebra K R] [Algebra.Smooth K R]
+  [IsAdicComplete (IsLocalRing.maximalIdeal O) O] {R : Type u} [CommRing R] [Algebra K R]
+  [Algebra.Smooth K R]
   {A : Type u} [Group A] [MulSemiringAction A R] [SMulCommClass A K R]
 
 set_option maxHeartbeats 1000000 in
+-- the W10 output has many components whose elaboration is slow
 /-- **The core construction from W10**: for a finite étale `R`-algebra `B₀` with a group `G₀` of
 semilinear automorphisms, a finite étale `K`-algebra `M` with a group `Δ` of automorphisms and
 finitely many models of `Spec (B₀ ⊗_K M)`, W10 gives a finite Galois extension `K'/K` and a level
@@ -1036,7 +1064,11 @@ theorem exists_core (hW : SemistableReduction.Statement.Strong.{u}) (hR : ringKr
       | zero => simp only [TensorProduct.tmul_zero, map_zero]
       | add y z hy hz => simp only [TensorProduct.tmul_add, map_add, hy, hz]
       | tmul b m =>
-        simp [κ, Φ, ξ, B, L, C, MulSemiringAction.toAlgAut]
+        simp only [MulSemiringAction.toAlgAut_apply, RingEquiv.toRingHom_eq_coe,
+          AlgEquiv.toRingEquiv_toRingHom, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
+          Algebra.TensorProduct.congr_apply, Algebra.TensorProduct.map_tmul,
+          AlgEquiv.coe_toAlgHom, AlgEquiv.coe_inv, MulSemiringAction.toAlgEquiv_apply, κ, Φ, ξ, B,
+          L, C]
         change (Algebra.TensorProduct.assoc K K K B₀ M K')
           (((ν' (γ.1⁻¹, γ.2.1⁻¹)).σ (b ⊗ₜ[K] m)) ⊗ₜ[K] γ.2.2.symm k) = _
         simp only [ν', MonoidHom.coe_comp, Function.comp_apply, MonoidHom.coe_prodMap, Prod.map,
@@ -1134,29 +1166,34 @@ end Input
 section Main
 
 variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
-  [HenselianLocalRing O] {R : Type u} [CommRing R] [Algebra K R] [Algebra.Smooth K R]
+  [IsAdicComplete (IsLocalRing.maximalIdeal O) O] {R : Type u} [CommRing R] [Algebra K R]
+  [Algebra.Smooth K R]
   {A : Type u} [Group A] [MulSemiringAction A R] [SMulCommClass A K R] [Finite A]
   {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω] [IsAlgClosed Ω]
 
-omit [CharZero K] [IsDiscreteValuationRing O] [HenselianLocalRing O] [Algebra.Smooth K R]
+omit [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+  [Algebra.Smooth K R]
   [SMulCommClass A K R] [Finite A] [Algebra R Ω] [IsScalarTower K R Ω] in
 lemma nonempty_algHom_tensor_of_finiteDimensional (M K' : Type u) [CommRing M] [Algebra K M]
     [Field K'] [Algebra K K'] [FiniteDimensional K K'] (h : Nonempty (M →ₐ[K] Ω)) :
     Nonempty (TensorProduct K M K' →ₐ[K] Ω) :=
   ⟨Algebra.TensorProduct.lift h.some (IsAlgClosed.lift : K' →ₐ[K] Ω) fun _ _ => .all _ _⟩
 
-omit [CharZero K] [IsDiscreteValuationRing O] [HenselianLocalRing O] [Algebra.Smooth K R]
+omit [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+  [Algebra.Smooth K R]
   [SMulCommClass A K R] [Finite A] [Algebra R Ω] [IsScalarTower K R Ω] [IsAlgClosed Ω] in
 lemma transitive_trivial (s₁ s₂ : K →ₐ[K] Ω) :
     ∃ γ : PUnit.{u + 1}, s₂ = s₁.comp ((1 : PUnit.{u + 1} →* (K ≃ₐ[K] K)) γ).toAlgHom :=
   ⟨1, Subsingleton.elim _ _⟩
 
+omit [Algebra R Ω] [IsScalarTower K R Ω] in
 variable (Ω) in
 /-- **Every level has a semistable base change** (from W10): `AndreInput.refinement` for
 `bc := IsBaseChange`. -/
 theorem refinement_input (hW : SemistableReduction.Statement.Strong.{u})
     (hR : ringKrullDim R = 1) (Lv : Level O R A) :
-    ∃ (Lv₃ : Level O R A) (ℓ : LevelHom O R A Lv₃ Lv), IsSemistableLevel Lv₃ ∧ ℓ.IsBaseChange Ω := by
+    ∃ (Lv₃ : Level O R A) (ℓ : LevelHom O R A Lv₃ Lv),
+      IsSemistableLevel Lv₃ ∧ ℓ.IsBaseChange Ω := by
   haveI : IsNoetherianRing R := Algebra.FiniteType.isNoetherianRing K R
   haveI := Lv.L.etale
   haveI := Lv.L.finite
@@ -1186,6 +1223,8 @@ theorem refinement_input (hW : SemistableReduction.Statement.Strong.{u})
     (fun s₁ s₂ => exists_algEquiv_comp_eq s₁ s₂) s₁ s₂
 
 set_option maxHeartbeats 1000000 in
+-- the construction of the two morphisms of levels is slow to elaborate
+omit [Algebra R Ω] [IsScalarTower K R Ω] in
 variable (Ω) in
 /-- **Two base changes over a morphism of levels have a common semistable base change** (from
 W10): `AndreInput.common` for `bc := IsBaseChange`. -/
