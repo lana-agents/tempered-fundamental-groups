@@ -9,31 +9,29 @@ import TemperedFundamentalGroups.SemistableReduction.GaussTreeNormal
 /-!
 # Counting extensions over a residue disc
 
-Blueprint §9.10, layer L2 (B1, B2). Let `discRing = O_C[x] ⊆ C(x)` be the chart of the Gauss point
-`w_{0,1}` (`polyChart`), and `discIdeal` its maximal ideal `(𝔪_C, x)` of the residue point
-`x̄ = 0`, i.e. of the open disc `U = {|x| < 1}`. A *disc valuation* is a real valuation `ν` of
-`C(x)` extending the norm of `C` with `ν(x) < 1` (a point of `U` of any type 1–4 that is a
-valuation, in particular the Gauss points `w_{0,s}`, `s < 1`, and the type-4 points in `U`).
+Blueprint §9.10, layer L2 (B1, B2). Let `t = (x - a) / c` (`c ≠ 0`), `discRing a c = O_C[t]`
+the chart of the Gauss point `w_{a,|c|}` (`polyChart`), and `discIdeal a c = (𝔪_C, t)` the
+maximal ideal of the residue point `t̄ = 0`, i.e. of the open disc `U = {|x - a| < |c|}`. A *disc
+valuation* (`IsDiscVal a c ν`, bundled `DiscVal a c`) is a real valuation `ν` of `C(x)`
+extending the norm of `C` with `ν(t) < 1`: a point of `U` of any type 2–4 that is a valuation
+(Gauss points inside `U`, type-4 points of `U`).
 
-* `valuation_le_one`: disc valuations are `≤ 1` on `discRing`;
-* **`mem_discIdeal_iff`**: for every disc valuation `ν`, `a ∈ discIdeal ↔ ν a < 1`; i.e. all
-  points of `U` have the same centre on the chart (write `a = Q(0) + x · (Q div x)(x)`);
-* **`sum_natDegree_eq_natTrailingDegree` (B1, the disc count)**: for `y ∈ F'` integral over
-  `discRing` and a lift `P ∈ discRing[X]` of its characteristic polynomial, the sum of the local
-  degrees `[\hat F'_{ν'} : \hat C(x)_ν]` over the extensions `ν'` of a disc valuation `ν` with
-  `ν'(y) < 1` is `natTrailingDegree (P mod discIdeal)`: it does not depend on `ν`. This is S5's
-  tube count (`TubeCount.sum_natDegree_eq_natTrailingDegree`) for the disc chart; the local
-  degrees are the degrees of the factors of the minimal polynomial over the completion
-  (`LocalGlobal`), which is how they enter at type-4 points (where they are defects).
-* `isIntegrallyClosed_discRing`, `exists_lift_normPoly`: lifts of characteristic polynomials of
-  integral elements exist; `discIdeal_isMaximal`;
+* `valuation_le_one`: disc valuations are `≤ 1` on the chart;
+* **`mem_discIdeal_iff`**: for every disc valuation `ν`, `f ∈ discIdeal a c ↔ ν f < 1`: all points
+  of `U` have the same centre on the chart (write `f = Q(0) + t · (Q div X)(t)`);
+* `isIntegrallyClosed_discRing`, `exists_lift_normPoly`: characteristic polynomials of integral
+  elements lift to the chart; `discIdeal_isMaximal`;
+* **`sum_natDegree_eq_natTrailingDegree` (B1, the disc count)**: for `y ∈ F'` integral over the
+  chart and a lift `P` of its characteristic polynomial, the sum of the local degrees
+  `[\hat F'_{ν'} : \hat C(x)_ν]` (degrees of the factors of the minimal polynomial over the
+  completion, `LocalGlobal`) over the extensions `ν'` of `ν` with `ν'(y) < 1` is
+  `natTrailingDegree (P mod (𝔪_C, t))`, independent of `ν` (S5's tube count for the disc chart);
 * `DRint`, `center`: the integral closure `R'` of the chart in `F'` and the centre
   `{y : w'(y) < 1}` of a valuation over a disc valuation, a maximal ideal over `discIdeal`
   (`center_isMaximal`, `comap_center`);
 * **`discDegree_eq` (B2)**: the *disc degree* of a maximal ideal `P'` of `R'` (the sum of the
   local degrees of the extensions of `ν` centred at `P'`) is the same for all disc valuations
-  `ν`. In particular, at a type-4 point `ξ` of the disc it equals the disc degree at any Gauss
-  point `w_{0,s}`, `s < 1` (`isDiscVal_gaussRat`).
+  `ν`; at a type-4 point of `U` it is a sum of defects, at a Gauss point a sum of `e · f`.
 -/
 
 open Polynomial NNReal IntermediateField
@@ -50,47 +48,49 @@ variable {C : Type u} [NontriviallyNormedField C] [IsUltrametricDist C]
 
 /-! ### The disc chart -/
 
-variable (C) in
-/-- The chart `O_C[x]` of the Gauss point `w_{0,1}`. -/
+variable (a c : C)
+
+/-- The chart `O_C[t]`, `t = (x - a) / c`, of the Gauss point `w_{a,|c|}`. -/
 noncomputable abbrev discRing : Subring (RatFunc C) :=
-  polyChart (NormedField.valuation (K := C)) RatFunc.X
+  polyChart (NormedField.valuation (K := C)) (gaussCoord a c)
 
 /-- The coefficients of a polynomial with Gauss norm `≤ 1` have norm `≤ 1`. -/
 lemma nnnorm_coeff_le_one {Q : C[X]} (hQ : Gauss.sup (NormedField.valuation (K := C)) 1 Q ≤ 1)
     (i : ℕ) : ‖Q.coeff i‖₊ ≤ 1 :=
   coeff_le_one_of_sup_le_one hQ i
 
-/-- A real valuation of `C(x)` extending the norm of `C` with `ν(x) < 1`: a point of the open
-disc `|x| < 1`. -/
+/-- A real valuation of `C(x)` extending the norm of `C` with `ν((x - a) / c) < 1`: a point of
+the open disc `|x - a| < |c|`. -/
 structure IsDiscVal (ν : Valuation (RatFunc C) ℝ≥0) : Prop where
   map_C : ∀ c : C, ν (algebraMap C (RatFunc C) c) = ‖c‖₊
-  X_lt_one : ν RatFunc.X < 1
+  X_lt_one : ν (gaussCoord a c) < 1
 
-variable {ν : Valuation (RatFunc C) ℝ≥0}
+variable {a c} {ν : Valuation (RatFunc C) ℝ≥0}
 
 omit [IsUltrametricDist C] in
 /-- A polynomial in `x` with integral coefficients has value `≤ 1` at a disc valuation. -/
-lemma valuation_aeval_le_one (hν : IsDiscVal ν) {Q : C[X]} (hQ : ∀ i, ‖Q.coeff i‖₊ ≤ 1) :
-    ν (aeval RatFunc.X Q) ≤ 1 := by
+lemma valuation_aeval_le_one (hν : IsDiscVal a c ν) {Q : C[X]} (hQ : ∀ i, ‖Q.coeff i‖₊ ≤ 1) :
+    ν (aeval (gaussCoord a c) Q) ≤ 1 := by
   rw [aeval_eq_sum_range]
   refine Valuation.map_sum_le _ fun i _ ↦ ?_
   rw [Algebra.smul_def, map_mul, map_pow, hν.map_C]
   exact mul_le_one' (hQ i) (pow_le_one₀ zero_le hν.X_lt_one.le)
 
 /-- Disc valuations are `≤ 1` on the disc chart. -/
-lemma valuation_le_one (hν : IsDiscVal ν) {a : RatFunc C} (ha : a ∈ discRing C) : ν a ≤ 1 := by
-  obtain ⟨Q, hQ, rfl⟩ := mem_polyChart_iff.1 ha
+lemma valuation_le_one (hν : IsDiscVal a c ν) {f : RatFunc C} (hf : f ∈ discRing a c) :
+    ν f ≤ 1 := by
+  obtain ⟨Q, hQ, rfl⟩ := mem_polyChart_iff.1 hf
   exact valuation_aeval_le_one hν (nnnorm_coeff_le_one hQ)
 
 omit [IsUltrametricDist C] in
 /-- **The value at a disc valuation is `< 1` iff the constant coefficient is in `𝔪_C`.** -/
-lemma valuation_aeval_lt_one_iff (hν : IsDiscVal ν) {Q : C[X]} (hQ : ∀ i, ‖Q.coeff i‖₊ ≤ 1) :
-    ν (aeval RatFunc.X Q) < 1 ↔ ‖Q.coeff 0‖₊ < 1 := by
-  have hdecomp : aeval RatFunc.X Q =
-      algebraMap C (RatFunc C) (Q.coeff 0) + RatFunc.X * aeval RatFunc.X Q.divX := by
+lemma valuation_aeval_lt_one_iff (hν : IsDiscVal a c ν) {Q : C[X]} (hQ : ∀ i, ‖Q.coeff i‖₊ ≤ 1) :
+    ν (aeval (gaussCoord a c) Q) < 1 ↔ ‖Q.coeff 0‖₊ < 1 := by
+  have hdecomp : aeval (gaussCoord a c) Q =
+      algebraMap C (RatFunc C) (Q.coeff 0) + gaussCoord a c * aeval (gaussCoord a c) Q.divX := by
     conv_lhs => rw [← X_mul_divX_add Q]
     rw [map_add, map_mul, aeval_X, aeval_C, add_comm]
-  have hrest : ν (RatFunc.X * aeval RatFunc.X Q.divX) < 1 := by
+  have hrest : ν (gaussCoord a c * aeval (gaussCoord a c) Q.divX) < 1 := by
     rw [map_mul]
     refine (mul_le_of_le_one_right' ?_).trans_lt hν.X_lt_one
     exact valuation_aeval_le_one hν fun i ↦ by rw [coeff_divX]; exact hQ _
@@ -107,10 +107,11 @@ lemma valuation_aeval_lt_one_iff (hν : IsDiscVal ν) {Q : C[X]} (hQ : ∀ i, �
     refine lt_of_le_of_lt (Valuation.map_add _ _ _) (max_lt ?_ hrest)
     rwa [hν.map_C]
 
-variable (C) in
-/-- The ideal `(𝔪_C, x)` of the disc chart: the centre of every point of the disc `|x| < 1`. -/
-def discIdeal : Ideal (discRing C) where
-  carrier := {a | ∃ Q : C[X], (∀ i, ‖Q.coeff i‖₊ ≤ 1) ∧ aeval RatFunc.X Q = (a : RatFunc C) ∧
+variable (a c) in
+/-- The ideal `(𝔪_C, t)` of the disc chart: the centre of every point of the disc
+`|x - a| < |c|`. -/
+def discIdeal : Ideal (discRing a c) where
+  carrier := {f | ∃ Q : C[X], (∀ i, ‖Q.coeff i‖₊ ≤ 1) ∧ aeval (gaussCoord a c) Q = (f : RatFunc C) ∧
     ‖Q.coeff 0‖₊ < 1}
   add_mem' := by
     rintro _ _ ⟨P, hP, hPa, hP0⟩ ⟨Q, hQ, hQa, hQ0⟩
@@ -133,14 +134,14 @@ def discIdeal : Ideal (discRing C) where
       exact (mul_le_of_le_one_left' (hR' 0)).trans_lt hQ0
 
 /-- **All points of the disc have the same centre on the chart.** -/
-theorem mem_discIdeal_iff (hν : IsDiscVal ν) (a : discRing C) :
-    a ∈ discIdeal C ↔ ν a < 1 := by
+theorem mem_discIdeal_iff (hν : IsDiscVal a c ν) (f : discRing a c) :
+    f ∈ discIdeal a c ↔ ν f < 1 := by
   constructor
   · rintro ⟨Q, hQ, hQa, hQ0⟩
     rw [← hQa]
     exact (valuation_aeval_lt_one_iff hν hQ).2 hQ0
   · intro h
-    obtain ⟨Q, hQ, hQa⟩ := mem_polyChart_iff.1 a.2
+    obtain ⟨Q, hQ, hQa⟩ := mem_polyChart_iff.1 f.2
     have hQ' := nnnorm_coeff_le_one hQ
     refine ⟨Q, hQ', hQa, ?_⟩
     rw [← hQa] at h
@@ -148,13 +149,21 @@ theorem mem_discIdeal_iff (hν : IsDiscVal ν) (a : discRing C) :
 
 /-! ### The chart is integrally closed -/
 
-theorem isFractionRing_discRing : IsFractionRing (discRing C) (RatFunc C) :=
-  isGaussCoord_X.isFractionRing_polyChart
+/-- `(x - a) / c` is a Gauss coordinate of `w_{a,|c|}`. -/
+lemma isGaussCoord_disc (hc : c ≠ 0) :
+    IsGaussCoord (NormedField.valuation (K := C))
+      (gaussRat (NormedField.valuation (K := C)) a (Units.mk0 ‖c‖₊ (nnnorm_ne_zero_iff.2 hc)))
+      (gaussCoord a c) :=
+  isGaussCoord_gaussCoord (by rw [NormedField.valuation_apply, Units.val_mk0])
 
-theorem isIntegrallyClosed_discRing : IsIntegrallyClosed (discRing C) := by
-  haveI := isFractionRing_discRing (C := C)
-  let e : (NormedField.valuation (K := C)).valuationSubring[X] ≃+* discRing C :=
-    (AlgEquiv.ofInjective _ (ZariskiModel.aeval_injective' isGaussCoord_X)).toRingEquiv.trans
+theorem isFractionRing_discRing (hc : c ≠ 0) : IsFractionRing (discRing a c) (RatFunc C) :=
+  (isGaussCoord_disc (a := a) hc).isFractionRing_polyChart
+
+theorem isIntegrallyClosed_discRing (hc : c ≠ 0) : IsIntegrallyClosed (discRing a c) := by
+  haveI := isFractionRing_discRing (a := a) hc
+  let e : (NormedField.valuation (K := C)).valuationSubring[X] ≃+* discRing a c :=
+    (AlgEquiv.ofInjective _ (ZariskiModel.aeval_injective'
+      (isGaussCoord_disc (a := a) hc))).toRingEquiv.trans
       (RingEquiv.subringCongr (ZariskiModel.range_aeval _))
   exact IsIntegrallyClosed.of_equiv e
 
@@ -162,20 +171,20 @@ variable {F' : Type*} [Field F'] [Algebra (RatFunc C) F']
 
 /-- The characteristic polynomial of an element integral over the disc chart has coefficients in
 the disc chart. -/
-theorem exists_lift_normPoly {y : F'} (hy : IsIntegral (discRing C) y) :
-    ∃ P : (discRing C)[X], P.map (discRing C).subtype = normPoly (RatFunc C) y := by
-  haveI := isIntegrallyClosed_discRing (C := C)
-  haveI := isFractionRing_discRing (C := C)
-  refine ⟨minpoly (discRing C) y ^ Module.finrank (RatFunc C)⟮y⟯ F', ?_⟩
+theorem exists_lift_normPoly (hc : c ≠ 0) {y : F'} (hy : IsIntegral (discRing a c) y) :
+    ∃ P : (discRing a c)[X], P.map (discRing a c).subtype = normPoly (RatFunc C) y := by
+  haveI := isIntegrallyClosed_discRing (a := a) hc
+  haveI := isFractionRing_discRing (a := a) hc
+  refine ⟨minpoly (discRing a c) y ^ Module.finrank (RatFunc C)⟮y⟯ F', ?_⟩
   rw [Polynomial.map_pow, normPoly, minpoly.isIntegrallyClosed_eq_field_fractions' (RatFunc C) hy]
   rfl
 
 /-- An element integral over the disc chart has value `≤ 1` at every valuation of `F'` whose
 restriction to `C(x)` is a disc valuation. -/
 theorem valuation_le_one_of_isIntegral {w' : Valuation F' ℝ≥0}
-    (hw' : IsDiscVal (w'.comap (algebraMap (RatFunc C) F'))) {y : F'}
-    (hy : IsIntegral (discRing C) y) : w' y ≤ 1 := by
-  let φ : discRing C →+* w'.integer :=
+    (hw' : IsDiscVal a c (w'.comap (algebraMap (RatFunc C) F'))) {y : F'}
+    (hy : IsIntegral (discRing a c) y) : w' y ≤ 1 := by
+  let φ : discRing a c →+* w'.integer :=
     { toFun := fun a ↦ ⟨algebraMap (RatFunc C) F' a, by
         change w' _ ≤ 1
         rw [← Valuation.comap_apply]
@@ -190,20 +199,26 @@ theorem valuation_le_one_of_isIntegral {w' : Valuation F' ℝ≥0}
 
 /-! ### B1: the disc count -/
 
-variable (ν) in
+variable (a c) in
+/-- A disc valuation, bundled. -/
+structure DiscVal where
+  /-- The valuation. -/
+  val : Valuation (RatFunc C) ℝ≥0
+  isDiscVal : IsDiscVal a c val
+
 /-- `C(x)` with the absolute value of a disc valuation `ν`. -/
-abbrev DiscField : Type u := WithAbs ν.toAbsoluteValue
+abbrev DiscField (ν : DiscVal a c) : Type u := WithAbs ν.val.toAbsoluteValue
 
 omit [IsUltrametricDist C] in
-lemma norm_algebraMap_discField [hν : Fact (IsDiscVal ν)] (c : C) :
-    ‖algebraMap C (DiscField ν) c‖ = ‖c‖ := by
+lemma norm_algebraMap_discField (ν : DiscVal a c) (b : C) :
+    ‖algebraMap C (DiscField ν) b‖ = ‖b‖ := by
   rw [WithAbs.norm_eq_apply_ofAbs, WithAbs.algebraMap_right_apply, WithAbs.ofAbs_toAbs,
-    Valuation.toAbsoluteValue_apply, hν.out.map_C, coe_nnnorm]
+    Valuation.toAbsoluteValue_apply, ν.isDiscVal.map_C, coe_nnnorm]
 
-noncomputable instance [Fact (IsDiscVal ν)] : NormedAlgebra C (DiscField ν) where
-  norm_smul_le c x := le_of_eq (by rw [Algebra.smul_def, norm_mul, norm_algebraMap_discField])
+noncomputable instance (ν : DiscVal a c) : NormedAlgebra C (DiscField ν) where
+  norm_smul_le b x := le_of_eq (by rw [Algebra.smul_def, norm_mul, norm_algebraMap_discField])
 
-noncomputable instance [Fact (IsDiscVal ν)] : NontriviallyNormedField (DiscField ν) where
+noncomputable instance (ν : DiscVal a c) : NontriviallyNormedField (DiscField ν) where
   __ : NormedField (DiscField ν) := inferInstance
   non_trivial :=
     let ⟨x, hx⟩ := NontriviallyNormedField.non_trivial (α := C)
@@ -211,31 +226,24 @@ noncomputable instance [Fact (IsDiscVal ν)] : NontriviallyNormedField (DiscFiel
 
 /-! ### B2: points over the residue point and their disc degrees -/
 
-/-- The Gauss points `w_{0,s}`, `s < 1`, are disc valuations. -/
-lemma isDiscVal_gaussRat {s : ℝ≥0ˣ} (hs : (s : ℝ≥0) < 1) :
-    IsDiscVal (gaussRat (NormedField.valuation (K := C)) 0 s) :=
-  ⟨gaussRat_C s, by rw [gaussRat_X]; exact hs⟩
-
-/-- Disc valuations exist (`w_{0,1/2}`). -/
-lemma exists_isDiscVal : ∃ ν : Valuation (RatFunc C) ℝ≥0, IsDiscVal ν :=
-  ⟨_, isDiscVal_gaussRat (s := Units.mk0 (1 / 2) (by norm_num)) (by
-    change (1 / 2 : ℝ≥0) < 1
-    rw [one_div]
-    exact inv_lt_one_of_one_lt₀ (by norm_num))⟩
-
-lemma algebraMap_mem_discRing {c : C} (hc : ‖c‖₊ ≤ 1) :
-    algebraMap C (RatFunc C) c ∈ discRing C :=
-  mem_polyChart_iff.2 ⟨Polynomial.C c, by rw [Gauss.sup_C, NormedField.valuation_apply]; exact hc,
+lemma algebraMap_mem_discRing {b : C} (hb : ‖b‖₊ ≤ 1) :
+    algebraMap C (RatFunc C) b ∈ discRing a c :=
+  mem_polyChart_iff.2 ⟨Polynomial.C b, by rw [Gauss.sup_C, NormedField.valuation_apply]; exact hb,
     aeval_C _ _⟩
 
 /-- **The disc ideal is maximal**: modulo `(𝔪_C, x)`, an element `Q(x)` with `|Q(0)| = 1` is
 congruent to the unit `Q(0)`. -/
-theorem discIdeal_isMaximal : (discIdeal C).IsMaximal := by
-  obtain ⟨ν₀, hν₀⟩ := exists_isDiscVal (C := C)
+theorem discIdeal_isMaximal (hc : c ≠ 0) : (discIdeal a c).IsMaximal := by
   rw [Ideal.isMaximal_iff]
   refine ⟨fun h ↦ ?_, fun J x hJ hx hxJ ↦ ?_⟩
-  · rw [mem_discIdeal_iff hν₀] at h
-    simp at h
+  · -- `Q((x - a) / c) = 1` forces `Q = 1` (a Gauss coordinate is transcendental)
+    obtain ⟨Q, -, hQa, hQ0⟩ := h
+    have h0 : aeval (gaussCoord a c) (Q - 1) = 0 := by
+      rw [map_sub, hQa, map_one]
+      exact sub_self _
+    rw [(isGaussCoord_disc (a := a) hc).aeval_eq_zero_iff, sub_eq_zero] at h0
+    rw [h0, coeff_one_zero, nnnorm_one] at hQ0
+    exact lt_irrefl 1 hQ0
   obtain ⟨Q, hQ, hQa⟩ := mem_polyChart_iff.1 x.2
   have hQ' := nnnorm_coeff_le_one hQ
   have hQ0 : ‖Q.coeff 0‖₊ = 1 :=
@@ -244,13 +252,13 @@ theorem discIdeal_isMaximal : (discIdeal C).IsMaximal := by
     rintro h
     rw [h, nnnorm_zero] at hQ0
     exact zero_ne_one hQ0
-  set c : discRing C := ⟨_, algebraMap_mem_discRing hQ0.le⟩
-  set d : discRing C := ⟨algebraMap C (RatFunc C) (Q.coeff 0)⁻¹,
+  set u : discRing a c := ⟨_, algebraMap_mem_discRing hQ0.le⟩
+  set d : discRing a c := ⟨algebraMap C (RatFunc C) (Q.coeff 0)⁻¹,
     algebraMap_mem_discRing (by rw [nnnorm_inv, hQ0, inv_one])⟩
-  have hcd : d * c = 1 := Subtype.ext (by
+  have hcd : d * u = 1 := Subtype.ext (by
     change algebraMap C (RatFunc C) _ * algebraMap C (RatFunc C) _ = 1
     rw [← map_mul, inv_mul_cancel₀ hc0, map_one])
-  have hxc : x - c ∈ discIdeal C := by
+  have hxc : x - u ∈ discIdeal a c := by
     refine ⟨Q - Polynomial.C (Q.coeff 0), fun i ↦ ?_, ?_, ?_⟩
     · rw [coeff_sub, coeff_C]
       split_ifs
@@ -261,23 +269,23 @@ theorem discIdeal_isMaximal : (discIdeal C).IsMaximal := by
     · rw [map_sub, hQa, aeval_C]
       rfl
     · simp
-  have hcJ : c ∈ J := by
+  have hcJ : u ∈ J := by
     have := J.sub_mem hxJ (hJ hxc)
     rwa [sub_sub_cancel] at this
   rw [← hcd]
   exact J.mul_mem_left d hcJ
 
-variable (C F') in
+variable (a c F') in
 /-- The integral closure `R'` of the disc chart in `F'`. -/
-noncomputable abbrev DRint : Subalgebra (discRing C) F' := integralClosure (discRing C) F'
+noncomputable abbrev DRint : Subalgebra (discRing a c) F' := integralClosure (discRing a c) F'
 
 /-- The centre `{y ∈ R' : w'(y) < 1}` of a valuation of `F'` over a disc valuation. -/
 noncomputable def center {w' : Valuation F' ℝ≥0}
-    (hw' : IsDiscVal (w'.comap (algebraMap (RatFunc C) F'))) : Ideal (DRint C F') where
+    (hw' : IsDiscVal a c (w'.comap (algebraMap (RatFunc C) F'))) : Ideal (DRint a c F') where
   carrier := {y | w' (y : F') < 1}
-  add_mem' {a b} ha hb := by
-    simp only [Set.mem_setOf_eq, Subalgebra.coe_add] at ha hb ⊢
-    exact (Valuation.map_add _ _ _).trans_lt (max_lt ha hb)
+  add_mem' {f g} hf hg := by
+    simp only [Set.mem_setOf_eq, Subalgebra.coe_add] at hf hg ⊢
+    exact (Valuation.map_add _ _ _).trans_lt (max_lt hf hg)
   zero_mem' := by simp
   smul_mem' r y hy := by
     simp only [smul_eq_mul, Set.mem_setOf_eq, Subalgebra.coe_mul, map_mul]
@@ -285,21 +293,21 @@ noncomputable def center {w' : Valuation F' ℝ≥0}
       zero_le hy
 
 lemma mem_center_iff {w' : Valuation F' ℝ≥0}
-    (hw' : IsDiscVal (w'.comap (algebraMap (RatFunc C) F'))) (y : DRint C F') :
+    (hw' : IsDiscVal a c (w'.comap (algebraMap (RatFunc C) F'))) (y : DRint a c F') :
     y ∈ center hw' ↔ w' (y : F') < 1 := Iff.rfl
 
 lemma comap_center {w' : Valuation F' ℝ≥0}
-    (hw' : IsDiscVal (w'.comap (algebraMap (RatFunc C) F'))) :
-    (center hw').comap (algebraMap (discRing C) (DRint C F')) = discIdeal C := by
-  ext a
-  rw [Ideal.mem_comap, mem_center_iff, mem_discIdeal_iff hw' a]
+    (hw' : IsDiscVal a c (w'.comap (algebraMap (RatFunc C) F'))) :
+    (center hw').comap (algebraMap (discRing a c) (DRint a c F')) = discIdeal a c := by
+  ext f
+  rw [Ideal.mem_comap, mem_center_iff, mem_discIdeal_iff hw' f]
   rfl
 
-theorem center_isMaximal {w' : Valuation F' ℝ≥0}
-    (hw' : IsDiscVal (w'.comap (algebraMap (RatFunc C) F'))) : (center hw').IsMaximal := by
+theorem center_isMaximal (hc : c ≠ 0) {w' : Valuation F' ℝ≥0}
+    (hw' : IsDiscVal a c (w'.comap (algebraMap (RatFunc C) F'))) : (center hw').IsMaximal := by
   have hprime : (center hw').IsPrime := by
     refine ⟨fun h ↦ ?_, fun {x y} hxy ↦ ?_⟩
-    · have : (1 : DRint C F') ∈ center hw' := h ▸ Submodule.mem_top
+    · have : (1 : DRint a c F') ∈ center hw' := h ▸ Submodule.mem_top
       simp [mem_center_iff] at this
     · rw [mem_center_iff, Subalgebra.coe_mul, map_mul] at hxy
       by_contra! H
@@ -308,51 +316,51 @@ theorem center_isMaximal {w' : Valuation F' ℝ≥0}
       have h2 := le_antisymm (valuation_le_one_of_isIntegral hw' y.2) H.2
       rw [h1, h2, mul_one] at hxy
       exact lt_irrefl 1 hxy
-  refine Ideal.isMaximal_of_isIntegral_of_isMaximal_comap (R := discRing C) _ ?_
+  refine Ideal.isMaximal_of_isIntegral_of_isMaximal_comap (R := discRing a c) _ ?_
   rw [comap_center]
-  exact discIdeal_isMaximal
+  exact discIdeal_isMaximal hc
 
 variable [FiniteDimensional (RatFunc C) F'] [Algebra.IsSeparable (RatFunc C) F']
 
 omit [IsUltrametricDist C] in
 /-- The extension of `ν` attached to a factor restricts to `ν`, a disc valuation. -/
-lemma isDiscVal_comap_extValuation [hν : Fact (IsDiscVal ν)]
+lemma isDiscVal_comap_extValuation {ν : DiscVal a c}
     (g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) F') :
-    IsDiscVal ((extValuation g).comap (algebraMap (RatFunc C) F')) := by
+    IsDiscVal a c ((extValuation g).comap (algebraMap (RatFunc C) F')) := by
   have h := extValuation_comap g
   have key : ∀ a : RatFunc C,
-      (extValuation g).comap (algebraMap (RatFunc C) F') a = ν a := by
+      (extValuation g).comap (algebraMap (RatFunc C) F') a = ν.val a := by
     intro a
     have := congrArg (fun v : Valuation (DiscField ν) ℝ≥0 ↦ v (WithAbs.toAbs _ a)) h
     simp only [Valuation.comap_apply, valuation_withAbs] at this
     rw [Valuation.comap_apply]
     exact this
-  exact ⟨fun c ↦ by rw [key, hν.out.map_C], by rw [key]; exact hν.out.X_lt_one⟩
+  exact ⟨fun b ↦ by rw [key, ν.isDiscVal.map_C], by rw [key]; exact ν.isDiscVal.X_lt_one⟩
 
 /-- **B1 (the disc count).** For a disc valuation `ν`, `y ∈ F'` integral over the disc chart and
 a lift `P` of its characteristic polynomial to the chart, the sum of the local degrees of the
 extensions of `ν` (factors of the minimal polynomial over the completion) at which `y` has value
 `< 1` is the trailing degree of `P` modulo `(𝔪_C, x)`; in particular it is the same for all
 points of the disc `|x| < 1`. -/
-theorem sum_natDegree_eq_natTrailingDegree [hν : Fact (IsDiscVal ν)] {y : F'}
-    (hy : IsIntegral (discRing C) y) (P : (discRing C)[X])
-    (hP : P.map (discRing C).subtype = normPoly (RatFunc C) y) :
+theorem sum_natDegree_eq_natTrailingDegree (ν : DiscVal a c) {y : F'}
+    (hy : IsIntegral (discRing a c) y) (P : (discRing a c)[X])
+    (hP : P.map (discRing a c).subtype = normPoly (RatFunc C) y) :
     ∑ g ∈ Finset.univ.filter (fun g : Factor (DiscField ν)
         (UniformSpace.Completion (DiscField ν)) F' ↦ ‖toLocal g y‖ < 1), g.1.natDegree =
-      (P.map (Ideal.Quotient.mk (discIdeal C))).natTrailingDegree := by
+      (P.map (Ideal.Quotient.mk (discIdeal a c))).natTrailingDegree := by
   classical
   haveI : Infinite (RatFunc C) :=
     Infinite.of_injective _ (algebraMap C (RatFunc C)).injective
   haveI : Infinite (DiscField ν) :=
     Infinite.of_injective _ (algebraMap C (DiscField ν)).injective
   set e : RatFunc C ≃+* DiscField ν := (WithAbs.equiv _).symm
-  set ι : discRing C →+* DiscField ν := e.toRingHom.comp (discRing C).subtype
+  set ι : discRing a c →+* DiscField ν := e.toRingHom.comp (discRing a c).subtype
   have hPι : P.map ι = normPoly (DiscField ν) y := by
     rw [← Polynomial.map_map, hP]
     exact normPoly_map_ringEquiv e (by ext; rfl) y
-  have h𝔭 : ∀ a : discRing C, a ∈ discIdeal C ↔ ‖ι a‖ < 1 := by
-    intro a
-    rw [mem_discIdeal_iff hν.out a, WithAbs.norm_eq_apply_ofAbs]
+  have h𝔭 : ∀ f : discRing a c, f ∈ discIdeal a c ↔ ‖ι f‖ < 1 := by
+    intro f
+    rw [mem_discIdeal_iff ν.isDiscVal f, WithAbs.norm_eq_apply_ofAbs]
     exact NNReal.coe_lt_one.symm
   have hy' : ∀ g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) F',
       ‖toLocal g y‖ ≤ 1 := fun g ↦ by
@@ -362,10 +370,9 @@ theorem sum_natDegree_eq_natTrailingDegree [hν : Fact (IsDiscVal ν)] {y : F'}
   exact TubeCount.sum_natDegree_eq_natTrailingDegree ι _ h𝔭 P hPι hy'
 
 open Classical in
-variable (ν) in
 /-- The **disc degree** of a point `P'` of `Spec R'` over the residue point, seen from a disc
 valuation `ν`: the sum of the local degrees of the extensions of `ν` centred at `P'`. -/
-noncomputable def discDegree [Fact (IsDiscVal ν)] (P' : Ideal (DRint C F')) : ℕ :=
+noncomputable def discDegree (ν : DiscVal a c) (P' : Ideal (DRint a c F')) : ℕ :=
   ∑ g ∈ Finset.univ.filter (fun g : Factor (DiscField ν)
       (UniformSpace.Completion (DiscField ν)) F' ↦
       center (isDiscVal_comap_extValuation g) = P'), g.1.natDegree
@@ -374,11 +381,11 @@ noncomputable def discDegree [Fact (IsDiscVal ν)] (P' : Ideal (DRint C F')) : �
 `ν, ν'` (any types: Gauss points, type-4 points, …) and a maximal ideal `P'` of `R'`,
 `discDegree ν P' = discDegree ν' P'`. Proof as for S5: a separating `e ∈ R'` (`e ≡ 1` at `P'`,
 `e` in the other centres) and B1 for `e − 1`. -/
-theorem discDegree_eq (ν' : Valuation (RatFunc C) ℝ≥0) [Fact (IsDiscVal ν)]
-    [Fact (IsDiscVal ν')] (P' : Ideal (DRint C F')) [P'.IsMaximal] :
+theorem discDegree_eq (hc : c ≠ 0) (ν ν' : DiscVal a c) (P' : Ideal (DRint a c F'))
+    [P'.IsMaximal] :
     discDegree ν P' = discDegree ν' P' := by
   classical
-  set T : Finset (Ideal (DRint C F')) :=
+  set T : Finset (Ideal (DRint a c F')) :=
     (Finset.univ.image (fun g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) F' ↦
         center (isDiscVal_comap_extValuation g)) ∪
       Finset.univ.image (fun g : Factor (DiscField ν') (UniformSpace.Completion (DiscField ν'))
@@ -387,10 +394,11 @@ theorem discDegree_eq (ν' : Valuation (RatFunc C) ℝ≥0) [Fact (IsDiscVal ν)
     obtain ⟨hne, hQ⟩ := Finset.mem_erase.1 hQ
     refine ⟨?_, hne⟩
     rcases Finset.mem_union.1 hQ with hQ | hQ <;> obtain ⟨g, -, rfl⟩ := Finset.mem_image.1 hQ
-    exacts [center_isMaximal _, center_isMaximal _]
-  set y : DRint C F' := e - 1
-  obtain ⟨P, hP⟩ := exists_lift_normPoly y.2
-  have key : ∀ {w' : Valuation F' ℝ≥0} (hw' : IsDiscVal (w'.comap (algebraMap (RatFunc C) F'))),
+    exacts [center_isMaximal hc _, center_isMaximal hc _]
+  set y : DRint a c F' := e - 1
+  obtain ⟨P, hP⟩ := exists_lift_normPoly hc y.2
+  have key : ∀ {w' : Valuation F' ℝ≥0}
+      (hw' : IsDiscVal a c (w'.comap (algebraMap (RatFunc C) F'))),
       center hw' ∈ insert P' T → (w' (y : F') < 1 ↔ center hw' = P') := by
     intro w' hw' hmem
     constructor
@@ -409,15 +417,15 @@ theorem discDegree_eq (ν' : Valuation (RatFunc C) ℝ≥0) [Fact (IsDiscVal ν)
     · intro h
       rw [← mem_center_iff hw', h]
       exact he1
-  have hcount : ∀ (μ : Valuation (RatFunc C) ℝ≥0) [Fact (IsDiscVal μ)],
+  have hcount : ∀ μ : DiscVal a c,
       (∀ g : Factor (DiscField μ) (UniformSpace.Completion (DiscField μ)) F',
         center (isDiscVal_comap_extValuation g) ∈ insert P' T) →
-      discDegree μ P' = (P.map (Ideal.Quotient.mk (discIdeal C))).natTrailingDegree := by
-    intro μ _ hall
-    rw [← sum_natDegree_eq_natTrailingDegree (ν := μ) y.2 P hP, discDegree]
+      discDegree μ P' = (P.map (Ideal.Quotient.mk (discIdeal a c))).natTrailingDegree := by
+    intro μ hall
+    rw [← sum_natDegree_eq_natTrailingDegree μ y.2 P hP, discDegree]
     refine Finset.sum_congr (Finset.filter_congr fun g _ ↦ ?_) fun _ _ ↦ rfl
     rw [← key _ (hall g), extValuation_apply, ← NNReal.coe_lt_one, coe_nnnorm]
-  have hmemT : ∀ Q : Ideal (DRint C F'), Q ∈ (Finset.univ.image (fun g : Factor (DiscField ν)
+  have hmemT : ∀ Q : Ideal (DRint a c F'), Q ∈ (Finset.univ.image (fun g : Factor (DiscField ν)
         (UniformSpace.Completion (DiscField ν)) F' ↦ center (isDiscVal_comap_extValuation g)) ∪
       Finset.univ.image (fun g : Factor (DiscField ν') (UniformSpace.Completion (DiscField ν'))
         F' ↦ center (isDiscVal_comap_extValuation g))) → Q ∈ insert P' T := by
