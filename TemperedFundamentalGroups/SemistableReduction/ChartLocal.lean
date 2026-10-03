@@ -661,6 +661,153 @@ theorem finiteDimensional_regAt_quot [Finite J] (hz : ∀ j, Transcendental k (z
 
 end Jets
 
+section TwistedJet
+
+omit hΛ
+
+variable {k' κ' : Type*} [Field k'] [Field κ'] [Algebra k' κ'] [IsAlgClosed k']
+  [IsCurveFunctionField k' κ']
+
+lemma valuation_sub_algebraMap_eq_one (Q : CurvePlace k' κ') {y : κ'} (hy : y ∈ Q.V) {a : k'}
+    (ha : Q.res y ≠ a) : Q.valuation (y - algebraMap k' κ' a) = 1 := by
+  have h1 := Q.valuation_sub_res_lt_one hy
+  have hne : Q.res y - a ≠ 0 := sub_ne_zero.2 ha
+  have h2 : Q.valuation (algebraMap k' κ' (Q.res y - a)) = 1 :=
+    valuation_algebraMap_eq_one Q.valuation_algebraMap_le_one hne
+  have : y - algebraMap k' κ' a = algebraMap k' κ' (Q.res y - a) +
+      (y - algebraMap k' κ' (Q.res y)) := by rw [map_sub]; ring
+  rw [this, Valuation.map_add_eq_of_lt_left (v := Q.valuation) (by rw [h2]; exact h1), h2]
+
+lemma valuation_sub_algebraMap_eq (Q : CurvePlace k' κ') {y : κ'} (hy : y ∉ Q.V) (a : k') :
+    Q.valuation (y - algebraMap k' κ' a) = Q.valuation y := by
+  have h1 : 1 < Q.valuation y := by
+    by_contra h
+    exact hy (Q.valuation_le_one_iff.1 (not_lt.1 h))
+  rw [sub_eq_add_neg, Valuation.map_add_eq_of_lt_left (v := Q.valuation)]
+  rw [Valuation.map_neg]
+  exact (Q.valuation_algebraMap_le_one a).trans_lt h1
+
+/-- **Twisted jet interpolation**: for `m ≫ 0`, jets at finitely many places containing `y` (and
+avoiding `y = a`) and twisted jets `y⁻ᵐ f` at finitely many poles of `y` are realized by some
+`f ∈ L(m (y)_∞)`. -/
+theorem exists_jet_twist {y : κ'} (hy : Transcendental k' y) (a : k')
+    (T₀ Ti : Finset (CurvePlace k' κ')) (h₀ : ∀ Q ∈ T₀, y ∈ Q.V ∧ Q.res y ≠ a)
+    (hi : ∀ Q ∈ Ti, y ∉ Q.V) (M : ℕ) :
+    ∃ m₁ : ℕ, ∀ m : ℕ, m₁ ≤ m → ∀ τ₀ τi : CurvePlace k' κ' → κ',
+      (∀ Q ∈ T₀, τ₀ Q ∈ Q.V) → (∀ Q ∈ Ti, τi Q ∈ Q.V) →
+      ∃ f ∈ rrSpace (m • poleDivisor k' y),
+        (∀ Q ∈ T₀, Q.valuation (f - τ₀ Q) ≤ exp (-(M : ℤ))) ∧
+        ∀ Q ∈ Ti, Q.valuation (y⁻¹ ^ m * f - τi Q) ≤ exp (-(M : ℤ)) := by
+  classical
+  set t := y - algebraMap k' κ' a
+  have ht : Transcendental k' t := by
+    intro h
+    apply hy
+    have : y = t + algebraMap k' κ' a := by ring
+    rw [this]
+    exact h.add (isAlgebraic_algebraMap a)
+  have ht0 : t ≠ 0 := fun h ↦ ht (h ▸ isAlgebraic_zero)
+  have hti : t⁻¹ ∉ (algebraMap k' κ').range := fun ⟨c, hc⟩ ↦ ht (by
+    have : t = algebraMap k' κ' c⁻¹ := by rw [map_inv₀, hc, inv_inv]
+    rw [this]; exact isAlgebraic_algebraMap _)
+  have hy0 : y ≠ 0 := fun h ↦ hy (h ▸ isAlgebraic_zero)
+  obtain ⟨c, hc⟩ := CurvePlace.exists_jet (k := k') (κ := κ')
+  set T := T₀ ∪ Ti
+  refine ⟨(c + M * T.card).toNat, fun m hm τ₀ τi hτ₀ hτi ↦ ?_⟩
+  -- the divisor `m (t⁻¹)_∞` and its degree
+  set E : CurveDivisor k' κ' := m • poleDivisor k' t⁻¹
+  have hdeg : c + M * T.card ≤ E.degree := by
+    rw [map_nsmul, degree_poleDivisor hti, nsmul_eq_mul]
+    have h1 : (1 : ℤ) ≤ (Module.finrank (IntermediateField.adjoin k' {t⁻¹}) κ' : ℤ) := by
+      have hti' : Transcendental k' t⁻¹ := fun h ↦ ht (by simpa using h.inv)
+      haveI := IsCurveFunctionField.finiteDimensional_adjoin (k := k') hti'
+      exact_mod_cast Module.finrank_pos
+    have h2 := Int.self_le_toNat (c + M * T.card)
+    have h3 : ((c + M * T.card).toNat : ℤ) ≤ m := by exact_mod_cast hm
+    nlinarith [Int.natCast_nonneg m]
+  have hv₀ (Q : CurvePlace k' κ') (hQ : Q ∈ T₀) : Q.valuation t = 1 :=
+    valuation_sub_algebraMap_eq_one Q (h₀ Q hQ).1 (h₀ Q hQ).2
+  have hvi (Q : CurvePlace k' κ') (hQ : Q ∈ Ti) : Q.valuation t = Q.valuation y :=
+    valuation_sub_algebraMap_eq Q (hi Q hQ) a
+  have hyv (Q : CurvePlace k' κ') (hQ : Q ∈ Ti) : Q.valuation y ≠ 0 :=
+    (Valuation.ne_zero_iff _).2 hy0
+  have hE0 (Q : CurvePlace k' κ') (hQ : Q ∈ T) : E Q = 0 := by
+    simp only [E, Finsupp.smul_apply, poleDivisor_apply, smul_eq_zero]
+    right
+    rw [Nat.cast_eq_zero, Q.poleOrder_eq_zero_iff, ← Q.valuation_le_one_iff, map_inv₀]
+    rcases Finset.mem_union.1 hQ with hQ | hQ
+    · rw [hv₀ Q hQ, inv_one]
+    · rw [hvi Q hQ]
+      refine inv_le_one_of_one_le₀ ?_
+      by_contra h
+      exact hi Q hQ (Q.valuation_le_one_iff.1 (not_le.1 h).le)
+  -- the twisted targets
+  set τ : CurvePlace k' κ' → κ' := fun Q ↦
+    if Q ∈ T₀ then t⁻¹ ^ m * τ₀ Q else (y * t⁻¹) ^ m * τi Q
+  have hτ (Q : CurvePlace k' κ') (hQ : Q ∈ T) : τ Q ∈ Q.V := by
+    rw [← Q.valuation_le_one_iff]
+    simp only [τ]
+    split_ifs with h
+    · rw [map_mul, map_pow, map_inv₀, hv₀ Q h, inv_one, one_pow, one_mul]
+      exact Q.valuation_le_one_iff.2 (hτ₀ Q h)
+    · have hQ' : Q ∈ Ti := (Finset.mem_union.1 hQ).resolve_left h
+      rw [map_mul, map_pow, map_mul, map_inv₀, hvi Q hQ', mul_inv_cancel₀ (hyv Q hQ'), one_pow,
+        one_mul]
+      exact Q.valuation_le_one_iff.2 (hτi Q hQ')
+  obtain ⟨g, hg, hgT⟩ := hc E T M hdeg hE0 τ hτ
+  refine ⟨t ^ m * g, fun Q ↦ ?_, fun Q hQ ↦ ?_, fun Q hQ ↦ ?_⟩
+  · -- `t^m g ∈ L(m (y)_∞)`
+    have hgQ := hg Q
+    simp only [E, Finsupp.smul_apply, poleDivisor_apply, nsmul_eq_mul] at hgQ ⊢
+    rw [map_mul, map_pow]
+    by_cases hyQ : y ∈ Q.V
+    · rw [Q.poleOrder_eq_zero_iff.2 hyQ, Nat.cast_zero, mul_zero, exp_zero]
+      by_cases htQ : t⁻¹ ∈ Q.V
+      · rw [Q.poleOrder_eq_zero_iff.2 htQ, Nat.cast_zero, mul_zero, exp_zero] at hgQ
+        have htV : t ∈ Q.V := sub_mem hyQ (Q.algebraMap_mem a)
+        exact mul_le_one' (pow_le_one₀ zero_le (Q.valuation_le_one_iff.2 htV)) hgQ
+      · have hvt := Q.valuation_eq_exp_poleOrder htQ
+        rw [map_inv₀] at hvt
+        have : Q.valuation t = (exp (Q.poleOrder t⁻¹ : ℤ))⁻¹ := by
+          rw [← hvt, inv_inv]
+        rw [this]
+        calc (exp (Q.poleOrder t⁻¹ : ℤ))⁻¹ ^ m * Q.valuation g ≤
+            (exp (Q.poleOrder t⁻¹ : ℤ))⁻¹ ^ m * exp ((m : ℤ) * Q.poleOrder t⁻¹) := by gcongr
+          _ = 1 := by
+            rw [← exp_neg, ← exp_nsmul, ← exp_add, nsmul_eq_mul]
+            ring_nf
+            exact exp_zero
+    · have htV : t⁻¹ ∈ Q.V := by
+        rw [← Q.valuation_le_one_iff, map_inv₀, valuation_sub_algebraMap_eq Q hyQ a]
+        refine inv_le_one_of_one_le₀ ?_
+        by_contra h
+        exact hyQ (Q.valuation_le_one_iff.1 (not_le.1 h).le)
+      rw [Q.poleOrder_eq_zero_iff.2 htV, Nat.cast_zero, mul_zero, exp_zero] at hgQ
+      rw [valuation_sub_algebraMap_eq Q hyQ a, Q.valuation_eq_exp_poleOrder hyQ]
+      calc exp (Q.poleOrder y : ℤ) ^ m * Q.valuation g ≤ exp (Q.poleOrder y : ℤ) ^ m * 1 := by
+            gcongr
+        _ = _ := by rw [mul_one, ← exp_nsmul, nsmul_eq_mul]
+  · -- jets at `T₀`
+    have h := hgT Q (Finset.mem_union_left _ hQ)
+    simp only [τ, if_pos hQ] at h
+    have : t ^ m * g - τ₀ Q = t ^ m * (g - t⁻¹ ^ m * τ₀ Q) := by
+      rw [mul_sub, ← mul_assoc, ← mul_pow, mul_inv_cancel₀ ht0, one_pow, one_mul]
+    rw [this, map_mul, map_pow, hv₀ Q hQ, one_pow, one_mul]
+    exact h
+  · -- twisted jets at `Ti`
+    have hQ0 : Q ∉ T₀ := fun h ↦ hi Q hQ (h₀ Q h).1
+    have h := hgT Q (Finset.mem_union_right _ hQ)
+    simp only [τ, if_neg hQ0] at h
+    have : y⁻¹ ^ m * (t ^ m * g) - τi Q = (y⁻¹ * t) ^ m * (g - (y * t⁻¹) ^ m * τi Q) := by
+      have h1 : y⁻¹ * t * (y * t⁻¹) = 1 := by field_simp
+      rw [mul_sub, ← mul_assoc ((y⁻¹ * t) ^ m), ← mul_pow, h1, one_pow, one_mul, mul_pow,
+        mul_assoc]
+    rw [this, map_mul, map_pow, map_mul, map_inv₀, hvi Q hQ, inv_mul_cancel₀ (hyv Q hQ),
+      one_pow, one_mul]
+    exact h
+
+end TwistedJet
+
 end ChartLocal
 
 end SemistableReduction
