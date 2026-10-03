@@ -1414,8 +1414,11 @@ for fields `F`, `L` over algebraically closed `C`; points of `C[Xᵢ]/ker` by Ma
 Nullstellensatz `IsPrime.vanishingIdeal_zeroLocus`), `exists_tendsto_of_approx_idempotent`
 (Cauchy coordinates of approximate idempotents in a fixed finite family converge to those of `0` or
 `1`; limit in `Ĉ ⊗[C] F`); `GaussFibre.no_split` truncates the traces at degree `D'`, takes a common
-denominator `h` of the structure constants and applies it. Remaining: `DiscGerm` (germs in
-`PowerSeries Ĉ`).
+denominator `h` of the structure constants and applies it. **`DiscGerm` done**: `exists_germ`,
+`exists_germ_gaussNorm` no longer assume `CompleteSpace C` (nor `IsAlgClosed C`); they return the
+approximants `Qₙ ∈ O_C[t]` (converging to `y` at every disc valuation) and the germ
+`G : PowerSeries Ĉ` (`Qₙ → G` uniformly on `|t| ≤ |l| < 1`, value of `y` at `w_{a,|lc|}` = Gauss
+norm of `G`). No `CompleteSpace C` remains in `SemistableReduction`.
 
 ### 9.12 Open obligations (must be discharged before anything downstream is called proved)
 
@@ -1426,6 +1429,6 @@ denominator `h` of the structure constants and applies it. Remaining: `DiscGerm`
 | O5 | S7⁺.8: identification of the normalized `P¹_t`-model with the Gauss-tree model `𝒳'_V` when `t⁻¹(η) = V` (and existence of such `t`), unless R5 is restated on `t`-models | S7⁺ (after S7⁺.7); needed by S8.A (global induction: `h(V) > 0 ⇒ δ > 0` somewhere on `𝒳'_V`), **not** by R5 (R5 runs on the two local `t`-models `P¹_s`, `P¹_{s + c'/s}`) | open |
 | O3 | `IsUnfolded` output of `Statement.StrongComponent` | — | **dropped**: the targeted W10 statement is now `Statement.StrongA`, which has no component/W-model clause |
 | O6 | S8.A (AW global improvement induction on Gauss trees) | S7 agent after S7.5 | open |
-| O4 | §9.11: C0, `no_split` over algebraically closed `C`, `DiscGerm` over `Ĉ`; `CompleteSpace C` removed from the targeted chain | `cbridge` | C0 and `no_split` (W6 over `K̄`) done; `DiscGerm` open |
+| O4 | §9.11: C0, `no_split` over algebraically closed `C`, `DiscGerm` over `Ĉ`; `CompleteSpace C` removed from the targeted chain | `cbridge` | **done** (C0, `no_split`/W6 over `K̄`, `DiscGerm` with `G : PowerSeries Ĉ`) |
 | O7 | W10 assembly: `W7.Statement` + W9 descent ⇒ **`Statement.StrongA`** (the targeted W10; D3e, S9 over `O_{K'}`, M9, actions, domination) | André agent (`wp-tempered-w10`) | open |
 
