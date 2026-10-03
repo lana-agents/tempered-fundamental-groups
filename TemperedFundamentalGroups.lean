@@ -121,6 +121,7 @@ import TemperedFundamentalGroups.SemistableReduction.WeakApproximation
 import TemperedFundamentalGroups.SemistableReduction.ZariskiHarmonic
 import TemperedFundamentalGroups.SemistableReduction.ZariskiModel
 import TemperedFundamentalGroups.SemistableReduction.ZariskiNormalization
+import TemperedFundamentalGroups.Setup.NoetherLine
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Schmidt
 import TemperedFundamentalGroups.Setup.Valuation
