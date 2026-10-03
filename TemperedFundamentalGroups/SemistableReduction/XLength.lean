@@ -122,18 +122,20 @@ theorem IsXGauss.rho_unique {ϖ x : F} {a b : K} {ρ σ : ℚ} {U : ValuationSub
   exact IsLogValue.unique hϖ0 hϖ ha.1 hσ
 
 /-- **Interpolating monomial point** of the node with coordinate `u` (`u v = ϖ' ^ n`) at the
-parameter `s`: `U ⊇ P`, `U(u) = U(ϖ') ^ s`, and the monomial `u ^ den s / ϖ' ^ num s` has
-transcendental residue over the residue field of `O'`. The branches are the monomial points at
-`s = 0` (`u` itself has transcendental residue) and `s = n` (`1 / v = u / ϖ' ^ n`). -/
+parameter `s`: `U ⊇ P`, `U(ϖ') < 1` (non-trivial on the constants), `U(u) = U(ϖ') ^ s`, and the
+monomial `u ^ den s / ϖ' ^ num s` has transcendental residue over the residue field of `O'`.
+The branches are the monomial points at `s = 0` (`u` itself has transcendental residue) and
+`s = n` (`1 / v = u / ϖ' ^ n`). -/
 def IsMonomialPt (O' : ValuationSubring K) (P : Set F) (ϖ' u : F) (s : ℚ)
     (U : ValuationSubring F) : Prop :=
-  P ⊆ U ∧ IsLogValue U ϖ' u s ∧ IsResidueTranscendental O' U (u ^ s.den / ϖ' ^ s.num)
+  P ⊆ U ∧ U.valuation ϖ' < 1 ∧ IsLogValue U ϖ' u s ∧
+    IsResidueTranscendental O' U (u ^ s.den / ϖ' ^ s.num)
 
 /-- Monomial points at different parameters are different (XL4: the path is injective). -/
 theorem IsMonomialPt.param_unique {O' : ValuationSubring K} {P : Set F} {ϖ' u : F} {s t : ℚ}
     {U : ValuationSubring F} (hϖ0 : U.valuation ϖ' ≠ 0) (hϖ : U.valuation ϖ' < 1)
     (hs : IsMonomialPt O' P ϖ' u s U) (ht : IsMonomialPt O' P ϖ' u t U) : s = t :=
-  IsLogValue.unique hϖ0 hϖ hs.2.1 ht.2.1
+  IsLogValue.unique hϖ0 hϖ hs.2.2.1 ht.2.2.1
 
 /-- The algebraic closure of `F`, over which the centres of Gauss points live. -/
 abbrev Fbar (F : Type*) [Field F] : Type _ := AlgebraicClosure F
