@@ -190,4 +190,42 @@ def HasLocalDegree (ϖ : O) {c c' : TemperedFundamentalGroups.ModelCode O}
 def NoLoops (c : TemperedFundamentalGroups.ModelCode O) : Prop :=
   ∀ x : c.scheme, IsNodePt c x → ∃ v ∈ components c, ∃ w ∈ components c, v ≠ w ∧ x ∈ v ∧ x ∈ w
 
+/-- A component `v` of `c` is **contracted** by `ψ : c ⟶ c'` if it maps to a point. -/
+def IsContracted' {c c' : TemperedFundamentalGroups.ModelCode O}
+    (ψ : c.scheme ⟶ c'.scheme) (v : Set c.scheme) : Prop :=
+  ∃ y, ψ '' v = {y}
+
+/-- A walk in the dual graph of `c` **crosses** the point `x'` of `c'` along `ψ : c ⟶ c'`: it
+starts and ends on non-contracted components, its inner components are contracted to `x'`, its
+nodes lie over `x'`, and it uses each node at most once. -/
+def Walk.Crosses {c c' : TemperedFundamentalGroups.ModelCode O} (ψ : c.scheme ⟶ c'.scheme)
+    (x' : c'.scheme) (w : Walk c) : Prop :=
+  1 ≤ w.k ∧ Function.Injective w.x ∧ ¬ IsContracted' ψ (w.v 0) ∧
+    ¬ IsContracted' ψ (w.v (Fin.last w.k)) ∧
+    (∀ i : Fin (w.k + 1), i ≠ 0 → i ≠ Fin.last w.k → ψ '' w.v i = {x'}) ∧
+    (∀ i, ψ (w.x i) = x')
+
+/-- **Harmonicity of a map of models** (W8′, general form; `ψ` finite on generic fibres): for
+every node `x'` of `c'` of thickness `n'` on the components `w₁' ≠ w₂'`:
+* (H1) every component of `c` over `w₁'` starts a walk crossing `x'` to a component over `w₂'`
+  with `∑ dᵢ nᵢ = n'` (thicknesses `nᵢ`, local degrees `dᵢ`);
+* (H2) every walk crossing `x'` from a component over `w₁'` to one over `w₂'` has
+  `n' ≤ ∑ dᵢ nᵢ`;
+* (H3) a node of `c` not over a node maps to a point lying on exactly one component. -/
+def IsHarmonicGeneral (ϖ : O) {c c' : TemperedFundamentalGroups.ModelCode O}
+    (ψ : c.scheme ⟶ c'.scheme) : Prop :=
+  (∀ (x' : c'.scheme) (n' : ℕ), IsNodeOfThickness ϖ c' x' n' →
+    ∀ w₁' ∈ components c', ∀ w₂' ∈ components c', w₁' ≠ w₂' → x' ∈ w₁' → x' ∈ w₂' →
+    ∀ v ∈ components c, ψ '' v = w₁' →
+      ∃ w : Walk c, w.v 0 = v ∧ w.Crosses ψ x' ∧ ψ '' w.v (Fin.last w.k) = w₂' ∧
+        ∃ t dd : Fin w.k → ℕ, (∀ i, IsNodeOfThickness ϖ c (w.x i) (t i)) ∧
+          (∀ i, HasLocalDegree ϖ ψ (w.x i) (dd i)) ∧ ∑ i, dd i * t i = n') ∧
+  (∀ (x' : c'.scheme) (n' : ℕ), IsNodeOfThickness ϖ c' x' n' →
+    ∀ w₁' ∈ components c', ∀ w₂' ∈ components c', w₁' ≠ w₂' → x' ∈ w₁' → x' ∈ w₂' →
+    ∀ w : Walk c, w.Crosses ψ x' → ψ '' w.v 0 = w₁' → ψ '' w.v (Fin.last w.k) = w₂' →
+      ∀ t dd : Fin w.k → ℕ, (∀ i, IsNodeOfThickness ϖ c (w.x i) (t i)) →
+        (∀ i, HasLocalDegree ϖ ψ (w.x i) (dd i)) → n' ≤ ∑ i, dd i * t i) ∧
+  (∀ x : c.scheme, IsNodePt c x → ¬ IsNodePt c' (ψ x) →
+    ∃! w', w' ∈ components c' ∧ ψ x ∈ w')
+
 end TemperedFundamentalGroups.SemistableReduction.ModelCode

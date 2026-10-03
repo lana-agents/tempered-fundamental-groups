@@ -256,29 +256,14 @@ of `c'` (a finite map composed with a modification). For every node `x'` of `c'`
 * (H2) every walk crossing `x'` from a component over `w₁'` to a component over `w₂'` has
   `∑ dᵢ nᵢ ≥ n'` (lengths do not decrease);
 * (H3) a node of `c` which does not map to a node maps to a point lying on exactly one component.
-Supersedes `Statement.Harmonic` (finite `ψ`) and `Statement.Modification` (birational `ψ`). -/
+Supersedes `Statement.Harmonic` (finite `ψ`) and `Statement.Modification` (birational `ψ`). Not
+targeted: the targeted form is `Statement.HarmonicW` (W-models, `WModel.lean`). -/
 def Statement.HarmonicGeneral : Prop :=
   ∀ (O : Type u) [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] (ϖ : O)
     (_ : Irreducible ϖ) (c c' : TemperedFundamentalGroups.ModelCode O) (ψ : c.scheme ⟶ c'.scheme),
     ψ ≫ c'.toSpec = c.toSpec → IsFinite (ψ ∣_ ModelCode.genericOpen c') →
     ModelCode.IsSemistable ϖ c → ModelCode.IsSemistable ϖ c' →
     ModelCode.IsSplit ϖ c → ModelCode.IsSplit ϖ c' → ModelCode.NoLoops c → ModelCode.NoLoops c' →
-      (∀ (x' : c'.scheme) (n' : ℕ), ModelCode.IsNodeOfThickness ϖ c' x' n' →
-        ∀ w₁' ∈ ModelCode.components c', ∀ w₂' ∈ ModelCode.components c', w₁' ≠ w₂' →
-        x' ∈ w₁' → x' ∈ w₂' →
-        ∀ v ∈ ModelCode.components c, ψ '' v = w₁' →
-          ∃ w : ModelCode.Walk c, w.v 0 = v ∧ w.IsCrossing ψ x' ∧
-            ψ '' w.v (Fin.last w.k) = w₂' ∧
-            ∃ t dd : Fin w.k → ℕ, (∀ i, ModelCode.IsNodeOfThickness ϖ c (w.x i) (t i)) ∧
-              (∀ i, ModelCode.HasLocalDegree ϖ ψ (w.x i) (dd i)) ∧ ∑ i, dd i * t i = n') ∧
-      (∀ (x' : c'.scheme) (n' : ℕ), ModelCode.IsNodeOfThickness ϖ c' x' n' →
-        ∀ w₁' ∈ ModelCode.components c', ∀ w₂' ∈ ModelCode.components c', w₁' ≠ w₂' →
-        x' ∈ w₁' → x' ∈ w₂' →
-        ∀ w : ModelCode.Walk c, w.IsCrossing ψ x' → ψ '' w.v 0 = w₁' →
-          ψ '' w.v (Fin.last w.k) = w₂' → ∀ t dd : Fin w.k → ℕ,
-          (∀ i, ModelCode.IsNodeOfThickness ϖ c (w.x i) (t i)) →
-          (∀ i, ModelCode.HasLocalDegree ϖ ψ (w.x i) (dd i)) → n' ≤ ∑ i, dd i * t i) ∧
-      (∀ x : c.scheme, ModelCode.IsNodePt c x → ¬ ModelCode.IsNodePt c' (ψ x) →
-        ∃! w', w' ∈ ModelCode.components c' ∧ ψ x ∈ w')
+      ModelCode.IsHarmonicGeneral ϖ ψ
 
 end TemperedFundamentalGroups.SemistableReduction
