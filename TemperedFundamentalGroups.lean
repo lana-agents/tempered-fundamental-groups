@@ -18,6 +18,7 @@ import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.Andre.TheoremB
 import TemperedFundamentalGroups.Andre.Transfer
 import TemperedFundamentalGroups.Andre.TransferTate
+import TemperedFundamentalGroups.Andre.WData
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.GaloisLimit
 import TemperedFundamentalGroups.FibreFunctor.LengthLimit
@@ -114,6 +115,7 @@ import TemperedFundamentalGroups.SemistableReduction.StrongComponent
 import TemperedFundamentalGroups.SemistableReduction.TameLocal
 import TemperedFundamentalGroups.SemistableReduction.TubeCount
 import TemperedFundamentalGroups.SemistableReduction.TubePoints
+import TemperedFundamentalGroups.SemistableReduction.TwoComponents
 import TemperedFundamentalGroups.SemistableReduction.TwoDirections
 import TemperedFundamentalGroups.SemistableReduction.TypeTwo
 import TemperedFundamentalGroups.SemistableReduction.UniqueExtension
