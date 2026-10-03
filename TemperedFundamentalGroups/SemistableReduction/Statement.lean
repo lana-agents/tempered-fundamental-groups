@@ -91,7 +91,8 @@ in addition to `Statement`, for a finite group `G` acting on `B` by `K`-algebra 
 and finitely many given projective `O`-models `c₀ i` of `Spec B` (with `j₀ i` over `O`):
 * `K'/K` is Galois;
 * the semistable model is also a projective `O`-model `c` (isomorphic, over `O`, to the
-  semistable `O'`-model `c'`);
+  semistable `O'`-model `c'`), and `c'` is split (`ModelCode.IsSplit`: split nodes, geometrically
+  irreducible components);
 * `j : Spec (K' ⊗_K B) ⟶ c` is an open immersion over `O` which is scheme-theoretically dominant;
 * `G × Gal(K'/K)` acts on `c` over `O` with `j` equivariant (`g` acts on `K' ⊗ B` by `id ⊗ g`,
   `σ` by `σ ⊗ id`);
@@ -117,7 +118,7 @@ def Statement.Strong : Prop :=
       (j : Spec (CommRingCat.of (TensorProduct K K' B)) ⟶ c.scheme)
       (act : G × (K' ≃ₐ[K] K') →* Aut c.scheme)
       (dom : ∀ i, c.scheme ⟶ (c₀ i).scheme),
-      ModelCode.IsSemistable ϖ' c' ∧
+      ModelCode.IsSemistable ϖ' c' ∧ ModelCode.IsSplit ϖ' c' ∧
       e.hom ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom
         ((algebraMap K K').restrict O O' (fun x hx => by
           rw [← ‹O'.comap (algebraMap K K') = O›] at hx; exact hx))) = c.toSpec ∧
@@ -140,7 +141,7 @@ namespace TemperedFundamentalGroups.SemistableReduction
 /-- **Simultaneous semistable reduction** (requested for W8′ / Theorem B of the André
 identification): for a tower of finite étale covers `Spec B' → Spec B → Spec R` of a smooth
 affine `K`-curve, after a finite extension `K'/K` there are semistable projective `O'`-models
-`c` of `Spec (K' ⊗ B)` and `c'` of `Spec (K' ⊗ B')` with open immersions `j, j'` over `O'` and a
+`c` of `Spec (K' ⊗ B)` and `c'` of `Spec (K' ⊗ B')`, both split (`ModelCode.IsSplit`), with open immersions `j, j'` over `O'` and a
 **finite** morphism `ψ : c' ⟶ c` over `O'` compatible with `j, j'` (e.g. `c'` the normalization of
 `c` in `K' ⊗ B'`). -/
 def Statement.Simultaneous : Prop :=
@@ -159,6 +160,7 @@ def Statement.Simultaneous : Prop :=
       (j' : Spec (CommRingCat.of (TensorProduct K K' B')) ⟶ c'.scheme)
       (ψ : c'.scheme ⟶ c.scheme),
       ModelCode.IsSemistable ϖ' c ∧ ModelCode.IsSemistable ϖ' c' ∧
+      ModelCode.IsSplit ϖ' c ∧ ModelCode.IsSplit ϖ' c' ∧
       IsOpenImmersion j ∧ IsOpenImmersion j' ∧ IsFinite ψ ∧
       ψ ≫ c.toSpec = c'.toSpec ∧
       j ≫ c.toSpec = Spec.map (CommRingCat.ofHom
@@ -210,23 +212,24 @@ def ModelCode.Walk.IsCrossing {O : Type u} [CommRing O] [IsLocalRing O]
     (∀ i, ψ (w.x i) = x)
 
 /-- **W8′(b′): modifications of semistable models** (Blueprint §9.7, §10.3; consumed by
-Theorem B). Let `O` be a discrete valuation ring with separably closed residue field and
-uniformizer `ϖ`, `c`, `c'` semistable projective `O`-models and `ψ : c' ⟶ c` a morphism over
-`O` which is an isomorphism over the generic fibre. Then:
+Theorem B). Let `O` be a discrete valuation ring with uniformizer `ϖ`, `c`, `c'` split
+(`ModelCode.IsSplit`) semistable projective `O`-models and `ψ : c' ⟶ c` a morphism over `O` which
+is an isomorphism over the generic fibre. Then:
 * (forest) the components of `c'` contracted to a point `x` contain no cycle of the dual graph;
 * (node chains) over a node `x` of thickness `n`, `ψ⁻¹(x)` is connected, some walk crosses `x`,
   and the thicknesses of the nodes of every walk crossing `x` sum to `n`;
 * every non-contracted component maps onto a component, and a node all of whose components are
   non-contracted maps to a node of the same thickness.
 
-(Over a non-separably-closed residue field the dual graph read off on the special fibre is not the
-geometric one: a non-split node is a self-loop, and the chain clause fails.) -/
+(Without splitness the dual graph read off on the special fibre is not the geometric one: a
+non-split node is a self-loop, and the chain clause fails.) -/
 def Statement.Modification : Prop :=
   ∀ (O : Type u) [CommRing O] [IsDomain O] [IsDiscreteValuationRing O]
-    [IsSepClosed (IsLocalRing.ResidueField O)] (ϖ : O) (_ : Irreducible ϖ)
+    (ϖ : O) (_ : Irreducible ϖ)
     (c c' : TemperedFundamentalGroups.ModelCode O) (ψ : c'.scheme ⟶ c.scheme),
     ψ ≫ c.toSpec = c'.toSpec → IsIso (ψ ∣_ ModelCode.genericOpen c) →
     ModelCode.IsSemistable ϖ c → ModelCode.IsSemistable ϖ c' →
+    ModelCode.IsSplit ϖ c → ModelCode.IsSplit ϖ c' →
       (∀ (x : c.scheme) (w : ModelCode.Walk c'), w.IsCycle →
         ¬ ∀ i, ψ '' w.v i = {x}) ∧
       (∀ (x : c.scheme) (n : ℕ), ModelCode.IsNodeOfThickness ϖ c x n →

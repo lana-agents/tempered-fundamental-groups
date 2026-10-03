@@ -103,4 +103,38 @@ structure Walk (c : TemperedFundamentalGroups.ModelCode O) where
 def Walk.IsCycle {c : TemperedFundamentalGroups.ModelCode O} (w : Walk c) : Prop :=
   1 ≤ w.k ∧ w.v 0 = w.v (Fin.last w.k) ∧ Function.Injective w.x
 
+/-- `c` has **split nodes**: every node point `x` has an étale neighbourhood `Spec C → U` which is
+also étale over a node `O[u, v] ⧸ (u v - ϖ ^ n)`, at a point `𝔮` of `C` over `x` with residue
+field the residue field of `O` (`O → C ⧸ 𝔮` surjective). Then `κ(x) = κ(O)` and the two branches
+of `Z c` at `x` are defined over `κ(O)` (the henselizations of `c` at `x` and of the node at its
+singular point agree). -/
+def HasSplitNodes (ϖ : O) (c : TemperedFundamentalGroups.ModelCode O) : Prop :=
+  ∀ x : c.scheme, IsNodePt c x → ∃ (U : c.scheme.Opens) (hU : IsAffineOpen U) (hx : x ∈ U),
+    letI := sectionsAlgebra c U
+    ∃ (n : ℕ) (C : Type u) (_ : CommRing C) (g : Γ(c.scheme, U) →+* C)
+      (f : _root_.SemistableReduction.Node O (ϖ ^ n) →+* C) (𝔮 : Ideal C),
+      g.Etale ∧ f.Etale ∧ 𝔮.IsPrime ∧ 𝔮.comap g = (hU.primeIdealOf ⟨x, hx⟩).asIdeal ∧
+      f.comp (algebraMap O _) = g.comp (algebraMap O Γ(c.scheme, U)) ∧
+      Function.Surjective ((Ideal.Quotient.mk 𝔮).comp (g.comp (algebraMap O Γ(c.scheme, U))))
+
+/-- The ring map from `O` to the residue field of a point of a model. -/
+noncomputable def residueMap (c : TemperedFundamentalGroups.ModelCode O) (x : c.scheme) :
+    O →+* c.scheme.residueField x :=
+  ((Scheme.ΓSpecIso (CommRingCat.of O)).inv ≫ c.toSpec.appTop ≫
+    c.scheme.presheaf.germ ⊤ x trivial ≫ c.scheme.residue x).hom
+
+/-- The components of `Z c` are **geometrically irreducible**: at the generic point `η` of a
+component, the residue field `κ(O)` is separably closed in `κ(η)` (every element of `κ(η)` which
+is a simple root of a monic polynomial over `O` comes from `O`). -/
+def HasGeomIrreducibleComponents (c : TemperedFundamentalGroups.ModelCode O) : Prop :=
+  ∀ v ∈ components c, ∀ η ∈ v, closure {η} = v → ∀ a : c.scheme.residueField η,
+    (∃ P : Polynomial O, P.Monic ∧ P.eval₂ (residueMap c η) a = 0 ∧
+      (Polynomial.derivative P).eval₂ (residueMap c η) a ≠ 0) →
+    ∃ o : O, residueMap c η o = a
+
+/-- `c` is **split**: its nodes are split and its components geometrically irreducible, so that
+the dual graph read off on `Z c` is the geometric one. -/
+def IsSplit (ϖ : O) (c : TemperedFundamentalGroups.ModelCode O) : Prop :=
+  HasSplitNodes ϖ c ∧ HasGeomIrreducibleComponents c
+
 end TemperedFundamentalGroups.SemistableReduction.ModelCode
