@@ -184,6 +184,17 @@ lemma sup_X : Gauss.sup vC 1 (X : C[X]) = 1 := by
   have := gauss1_algebraMap (C := C) X
   rwa [RatFunc.algebraMap_X, gauss1_X, eq_comm] at this
 
+lemma sup_X_sub_C {α : C} (hα : ‖α‖ ≤ 1) : Gauss.sup vC 1 (X - Polynomial.C α) = 1 := by
+  refine le_antisymm (Gauss.sup_le_iff.2 fun i ↦ ?_) ?_
+  · simp only [Gauss.term, Units.val_one, one_pow, mul_one, coeff_sub, coeff_X, coeff_C]
+    refine (Valuation.map_sub _ _ _).trans (max_le ?_ ?_)
+    · split_ifs <;> simp
+    · split_ifs
+      · simpa [NormedField.valuation_apply, ← NNReal.coe_le_coe] using hα
+      · simp
+  · have := Gauss.term_le_sup (v := vC) (r := 1) (X - Polynomial.C α) 1
+    simpa [Gauss.term, coeff_sub, coeff_X, coeff_C] using this
+
 end RedPoly
 
 section Lattice
@@ -417,6 +428,7 @@ lemma exists_integral_orth {ι : Type*} [Fintype ι] (b : Module.Basis ι (RatFu
 
 variable [CharZero C] [FiniteDimensional (RatFunc C) F]
 
+omit [IsScalarTower C (RatFunc C) F] in
 /-- **The trace bound** (S7⁺.1): there is `Δ ∈ C[X]` of Gauss norm `1` such that for every
 element `a` of the chart ring, `Δ(ζ) · dᵢ*(a)` is a polynomial in `ζ` of Gauss norm `≤ 1`. -/
 theorem exists_trace_bound {ι : Type*} [Fintype ι] [DecidableEq ι]
@@ -486,10 +498,7 @@ theorem exists_trace_bound {ι : Type*} [Fintype ι] [DecidableEq ι]
     rw [hPr, ← hδ, map_mul, map_mul, gauss1_algebraMap_C, hζ.gauss, hc, ← mul_assoc,
       nnnorm_inv, inv_mul_cancel₀ (nnnorm_ne_zero_iff.2 hc0), one_mul]
     exact hφ
-  · change aeval ζ (Polynomial.C c⁻¹ * δ) * φ i = aeval ζ (Polynomial.C c⁻¹ * Pr)
-    rw [map_mul, map_mul, aeval_C, mul_assoc, hδ]
-    change _ = _ * aeval ζ Pr
-    rw [hPr]
+  · rw [map_mul, map_mul, aeval_C, mul_assoc, hδ, hPr]
 
 omit [IsUltrametricDist C] [Fintype (Ext C F)] hζ [CharZero C]
   [FiniteDimensional (RatFunc C) F] in
@@ -625,6 +634,126 @@ theorem exists_chartBasis {ι : Type*} [Fintype ι] [DecidableEq ι]
   set s := basisOfLinearIndependentOfCardEqFinrank hli hcard
   have hs : ⇑s = s' := coe_basisOfLinearIndependentOfCardEqFinrank hli hcard
   exact ⟨n, s, hs ▸ horth, hs ▸ hs', hs ▸ hspan⟩
+
+section Fibre
+
+variable {n : ℕ} {s : Module.Basis (Fin n) (RatFunc C) F} (hs : Orth C s)
+  (hsi : ∀ j, s j ∈ intRing C F (algebraMap (RatFunc C) F ζ))
+  (hspan : ∀ a ∈ intRing C F (algebraMap (RatFunc C) F ζ),
+    ∃ ψ : Fin n → (ResidueField (HenselComplete.integers C))[X], ∀ w : Ext C F,
+    red C a w = ∑ j, aeval (red C (algebraMap (RatFunc C) F ζ) w) (ψ j) * red C (s j) w)
+include hs hsi hspan
+
+omit [CharZero C] [FiniteDimensional (RatFunc C) F] in
+/-- **The fibre argument** (S7⁺.3): if `q(z) a = Σ pⱼ(z) sⱼ` with `a` in the chart ring and
+`q(α) = 0` for some `|α| ≤ 1`, then all `pⱼ(α) = 0`. -/
+lemma eval_eq_zero_of_isRoot {a : F} (ha : a ∈ intRing C F (algebraMap (RatFunc C) F ζ))
+    {q : C[X]} {p : Fin n → C[X]}
+    (hqp : aeval (algebraMap (RatFunc C) F ζ) q * a =
+      ∑ j, aeval (algebraMap (RatFunc C) F ζ) (p j) * s j)
+    {α : C} (hα : ‖α‖ ≤ 1) (hroot : q.IsRoot α) (j : Fin n) : (p j).eval α = 0 := by
+  classical
+  set z := algebraMap (RatFunc C) F ζ
+  by_contra hne
+  set c : Fin n → C := fun j ↦ (p j).eval α
+  have hne' : (Finset.univ : Finset (Fin n)).Nonempty := ⟨j, Finset.mem_univ j⟩
+  obtain ⟨j₀, -, hj₀⟩ := Finset.exists_max_image Finset.univ (fun j ↦ ‖c j‖₊) hne'
+  set γ := c j₀
+  have hγ0 : γ ≠ 0 := by
+    intro h
+    have := hj₀ j (Finset.mem_univ j)
+    rw [show ‖c j₀‖₊ = 0 by simp [γ] at h; simp [h], nonpos_iff_eq_zero, nnnorm_eq_zero] at this
+    exact hne this
+  set c' : Fin n → C := fun j ↦ γ⁻¹ * c j
+  have hc'1 (j : Fin n) : ‖c' j‖₊ ≤ 1 := by
+    rw [nnnorm_mul, nnnorm_inv, inv_mul_le_one₀ (nnnorm_pos.2 hγ0)]
+    exact hj₀ j (Finset.mem_univ j)
+  have hc'0 : ‖c' j₀‖₊ = 1 := by
+    rw [nnnorm_mul, nnnorm_inv, inv_mul_cancel₀ (nnnorm_ne_zero_iff.2 hγ0)]
+  -- division by `X - α`
+  set q₁ := q /ₘ (X - Polynomial.C α)
+  have hq₁ : (X - Polynomial.C α) * q₁ = q := mul_divByMonic_eq_iff_isRoot.2 hroot
+  set r : Fin n → C[X] := fun j ↦ (p j - Polynomial.C (c j)) /ₘ (X - Polynomial.C α)
+  have hr (j : Fin n) : (X - Polynomial.C α) * r j = p j - Polynomial.C (c j) :=
+    mul_divByMonic_eq_iff_isRoot.2 (by simp [c])
+  set v : F := algebraMap C F γ⁻¹ * (aeval z q₁ * a - ∑ j, aeval z (r j) * s j)
+  have hv : aeval z (X - Polynomial.C α) * v = ∑ j, algebraMap C F (c' j) * s j := by
+    have h1 : aeval z (X - Polynomial.C α) * (aeval z q₁ * a - ∑ j, aeval z (r j) * s j) =
+        ∑ j, algebraMap C F (c j) * s j := by
+      rw [mul_sub, ← mul_assoc, ← map_mul, hq₁, hqp, Finset.mul_sum, ← Finset.sum_sub_distrib]
+      refine Finset.sum_congr rfl fun j _ ↦ ?_
+      rw [← mul_assoc, ← map_mul, hr, _root_.map_sub, aeval_C, sub_mul]
+      ring
+    simp only [v, c', map_mul, mul_assoc]
+    rw [mul_left_comm, h1, Finset.mul_sum]
+  -- `v` lies in the chart ring
+  have hγi : IsIntegral (Algebra.adjoin C {z}) (algebraMap C F γ⁻¹) := by
+    rw [IsScalarTower.algebraMap_apply C (Algebra.adjoin C {z}) F]
+    exact isIntegral_algebraMap
+  have hvint : IsIntegral (Algebra.adjoin C {z}) v :=
+    hγi.mul (((isIntegral_aeval_coord (F := F) (ζ := ζ) q₁).mul ha.1).sub
+      (IsIntegral.sum _ fun j _ ↦ (isIntegral_aeval_coord (F := F) (ζ := ζ) (r j)).mul (hsi j).1))
+  have hnorm : gnorm C (∑ j, algebraMap C F (c' j) * s j) = 1 := by
+    have h := hs fun j ↦ algebraMap C (RatFunc C) (c' j)
+    simp only [Algebra.smul_def, ← IsScalarTower.algebraMap_apply, gauss1_algebraMap_C] at h
+    rw [h]
+    refine le_antisymm (Finset.sup_le fun j _ ↦ hc'1 j) ?_
+    rw [← hc'0]
+    exact Finset.le_sup (f := fun j ↦ ‖c' j‖₊) (Finset.mem_univ j₀)
+  have hvn : gnorm C v = 1 := by
+    have := congrArg (gnorm C) hv
+    rwa [aeval_coord, gnorm_algebraMap_mul, hζ.gauss, sup_X_sub_C hα, one_mul, hnorm] at this
+  have hvR : v ∈ intRing C F z := ⟨hvint, hvn.le⟩
+  -- reduce
+  obtain ⟨ψ, hψ⟩ := hspan v hvR
+  have hα' : α ∈ HenselComplete.integers C := by
+    rw [HenselComplete.mem_integers_iff]; exact_mod_cast hα
+  set αb := residue (HenselComplete.integers C) ⟨α, hα'⟩
+  set cb : Fin n → 𝓀 := fun j ↦ residue (HenselComplete.integers C)
+    ⟨c' j, (HenselComplete.mem_integers_iff _).2 (by exact_mod_cast hc'1 j)⟩
+  have hkey : (fun j ↦ (X - Polynomial.C αb) * ψ j - Polynomial.C (cb j)) = 0 := by
+    refine eq_zero_of_sum_red hζ hs (fun j ↦ (hsi j).2) _ fun w ↦ ?_
+    have hzw : w.1 z ≤ 1 := (valuation_coord hζ w).le
+    have hαw : w.1 (algebraMap C F α) ≤ 1 := by
+      rw [valuation_algebraMap_C']; exact hα
+    have hXα : aeval z (X - Polynomial.C α) = z - algebraMap C F α := by simp
+    have hL : red C (aeval z (X - Polynomial.C α) * v) w =
+        (red C z w - algebraMap 𝓀 _ αb) *
+          ∑ j, aeval (red C z w) (ψ j) * red C (s j) w := by
+      rw [hXα, red_mul ((Valuation.map_sub _ _ _).trans (max_le hzw hαw))
+        ((le_gnorm w v).trans hvn.le), red_sub hzw hαw, red_algebraMap_C α hα, hψ w]
+    have hR : red C (∑ j, algebraMap C F (c' j) * s j) w =
+        ∑ j, algebraMap 𝓀 _ (cb j) * red C (s j) w := by
+      rw [red_sum _ _ fun j _ ↦ by
+        rw [map_mul, valuation_algebraMap_C']
+        exact mul_le_one' (hc'1 j) ((le_gnorm w _).trans (hsi j).2)]
+      exact Finset.sum_congr rfl fun i _ ↦ by
+        rw [red_mul (by rw [valuation_algebraMap_C']; exact hc'1 i)
+          ((le_gnorm w _).trans (hsi i).2), red_algebraMap_C _ (hc'1 i)]
+    calc ∑ j, aeval (red C z w) ((X - Polynomial.C αb) * ψ j - Polynomial.C (cb j)) *
+          red C (s j) w =
+        (red C z w - algebraMap 𝓀 _ αb) * ∑ j, aeval (red C z w) (ψ j) * red C (s j) w -
+          ∑ j, algebraMap 𝓀 _ (cb j) * red C (s j) w := by
+          simp only [_root_.map_sub, map_mul, aeval_X, aeval_C, sub_mul, Finset.mul_sum,
+            Finset.sum_sub_distrib, mul_assoc]
+      _ = 0 := by rw [← hL, ← hR, hv, sub_self]
+  have hj₀' := congrFun hkey j₀
+  simp only [Pi.zero_apply] at hj₀'
+  have hcb : cb j₀ = 0 := by
+    by_cases hψ0 : ψ j₀ = 0
+    · simpa [hψ0] using hj₀'
+    · exfalso
+      have hdeg := congrArg natDegree (sub_eq_zero.1 hj₀')
+      rw [natDegree_C, natDegree_mul (X_sub_C_ne_zero _) hψ0, natDegree_X_sub_C] at hdeg
+      omega
+  have : ‖c' j₀‖₊ < 1 := by
+    have h := (HenselComplete.mem_maximalIdeal_iff_norm_lt_one _).1
+      ((residue_eq_zero_iff _).1 hcb)
+    exact_mod_cast h
+  rw [hc'0] at this
+  exact lt_irrefl _ this
+
+end Fibre
 
 end Lattice
 
