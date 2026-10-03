@@ -673,3 +673,33 @@ large as needed (they are `ℓ`-th power cusps), so `v(q) ≥ 2` holds as is.
   points is an open normal subgroup with infinite quotient.
 * T2/T3 are open and are not needed for non-degeneracy: a general induction functor would need a
   `ModelCode` for `∐_{a ∈ A} 𝒯` inside a single `ℙ^N`.
+
+#### 10.3.3 Theorem B in Lean: the formal reduction (K1–K3)
+
+Because of the transfer (§10.3.2) it suffices to treat `A` trivial (`[Subsingleton A]`). Write
+`C = TempObj O R A` and `Φ = tempFibre`.
+
+* **K1 (formal; Galois objects).** Let `𝒢` be a class of objects with three properties:
+  - Galois: `Aut G` acts simply transitively on `Φ G`;
+  - pointwise domination: for finitely many `(X_k, x_k)` there are `G ∈ 𝒢`, `g ∈ Φ G` and morphisms
+    `f_k : G ⟶ X_k` with `Φ f_k g = x_k`;
+  - rigidity: two morphisms `G ⟶ X` that agree on one fibre element are equal.
+
+  Then automorphisms of `Φ` correspond to compatible families `(γ_{(G,g)})` with
+  `γ_{(G,g)} ∈ Φ G`, indexed by the cofiltered category of pointed objects of `𝒢`. Concretely:
+  every compatible family defines `α ∈ Aut Φ` with `α_G(g) = γ_{(G,g)}`.
+  File: `FibreFunctor/GaloisLimit.lean`.
+* **K2 (formal; König).** If `S_{(G,g)} ⊆ Φ G` are finite and nonempty and are mapped into each
+  other by pointed morphisms, a compatible family through them exists. This is Mathlib's
+  `nonempty_sections_of_finite_cofiltered_system`, applied after `Small`/`ULift`
+  bookkeeping.
+* **K3 (geometry; the Galois objects).**
+  - For a pointed semistable level `(Lv, t₀)` with Galois level (`H⁰` simply transitive on
+    `F_L`) and connected special fibre, `U_Lv = (Z̃ × Π)/π₁(Z)` is a Galois object. Here `Z̃` is
+    the universal covering from N1 and `Π` is the group of lifts of `H` to `Z̃`.
+  - The objects `U_Lv` dominate pointwise. This uses the Galois closure of levels, semistable
+    base change from W10, and lifting through `Z̃`.
+  - File: `Andre/GaloisObject.lean`.
+* **B5** combines K2 with `S_{(G,g)} := {γ : Φ f(γ) = δ(1)·x₀ and Y-length(γ) ≤ ℓ(Tate loop)}`.
+  Finiteness, the maps `S → S` and nonemptiness come from W8′. Then
+  `deckCharacter(α) = 1`.
