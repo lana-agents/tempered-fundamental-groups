@@ -2,6 +2,7 @@ import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.GaloisObject
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
+import TemperedFundamentalGroups.Andre.Refinement
 import TemperedFundamentalGroups.Andre.TateCovering
 import TemperedFundamentalGroups.Andre.TateModel
 import TemperedFundamentalGroups.Andre.TateObject
