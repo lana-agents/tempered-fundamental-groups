@@ -293,6 +293,121 @@ theorem valuation_red_le_affine {m : ℕ} {f : F'} (hf : f ∈ rrSpace (T.D F' m
       1 * exp (m • zeroDiv 𝓀 z Q) := by gcongr
     _ = exp (m • zeroDiv 𝓀 z Q) := one_mul _
 
+include hp hp1 in
+/-- **Reductions at the poles of the coordinate of a parentless vertex**: `f̄` is regular. -/
+theorem valuation_red_le_root {m : ℕ} {f : F'} (hf : f ∈ rrSpace (T.D F' m))
+    {i : T.ι} (hroot : ∀ e, T.chi e ≠ i)
+    (hn : ∀ W : TypeTwo C F', IsOver (T.hvc (F' := F') i) W → W.val f ≤ 1)
+    {W : TypeTwo C F'} (hW : IsOver (T.hvc (F' := F') i) W)
+    (Q : CurvePlace 𝓀 (ResidueField W.val.valuationSubring)) (hQ : W.red (T.vc F' i) ∉ Q.V) :
+    Q.valuation (W.red f) ≤ 1 := by
+  classical
+  have hc : algebraMap C F' (T.c i) ≠ 0 := by simpa using T.hc i
+  have hxa : xF C F' - algebraMap C F' (T.a i) ≠ 0 := xF_sub_ne_zero _
+  have hvc0 : T.vc F' i ≠ 0 := by
+    simp only [TreeData.vc, vcoord]
+    exact div_ne_zero hxa hc
+  set β : T.ι → C := fun j ↦ (T.b j - T.a i) / T.c i
+  have hβ (j : T.ι) : ‖β j‖ ≤ 1 := by
+    simp only [β, norm_div]
+    rw [div_le_one (norm_pos_iff.2 (T.hc i))]
+    exact T.hroot i hroot j
+  set fac : T.ι → F' := fun j ↦ 1 - algebraMap C F' (β j) * (T.vc F' i)⁻¹
+  have hfac_eq (j : T.ι) : fac j = (xF C F' - algebraMap C F' (T.b j)) *
+      (xF C F' - algebraMap C F' (T.a i))⁻¹ := by
+    simp only [fac, β, TreeData.vc, vcoord, map_div₀, _root_.map_sub, inv_div]
+    field_simp
+    ring
+  set g := f * ∏ j, fac j ^ m
+  -- integrality over `C[x̃⁻¹]`
+  have hint : IsIntegral (Algebra.adjoin C {(T.vc F' i)⁻¹}) g := by
+    refine CurveGenerators.isIntegral_of_forall_mem fun P hP ↦ ?_
+    have hinv : (xF C F' - algebraMap C F' (T.a i))⁻¹ ∈ P.V := by
+      have : (xF C F' - algebraMap C F' (T.a i))⁻¹ = algebraMap C F' (T.c i)⁻¹ *
+          (T.vc F' i)⁻¹ := by
+        simp only [TreeData.vc, vcoord, map_inv₀, inv_div]
+        field_simp
+      rw [this]
+      exact mul_mem (P.algebraMap_mem _) hP
+    by_cases hx : xF C F' ∈ P.V
+    · have hg : g = (f * ∏ j, (xF C F' - algebraMap C F' (T.b j)) ^ m) *
+          ((xF C F' - algebraMap C F' (T.a i))⁻¹) ^ (m * Fintype.card T.ι) := by
+        simp only [g, hfac_eq, mul_pow, Finset.prod_mul_distrib, Finset.prod_const,
+          Finset.card_univ, ← pow_mul]
+        ring
+      rw [hg]
+      exact mul_mem (P.valuation_le_one_iff.1 (valuation_mul_prod_le Finset.univ _
+        (fun j ↦ xF_sub_ne_zero (T.b j)) m hf P fun j _ ↦ sub_mem hx (P.algebraMap_mem _)))
+        (pow_mem hinv _)
+    · -- a pole of `x`: `f` is regular there
+      have hfP : f ∈ P.V := by
+        refine P.valuation_le_one_iff.1 ((hf P).trans ?_)
+        rw [TreeData.D, Finsupp.smul_apply, Finsupp.finsetSum_apply,
+          Finset.sum_eq_zero fun j _ ↦ ?_, smul_zero, exp_zero]
+        rw [zeroDiv, poleDivisor_apply, Nat.cast_eq_zero, P.poleOrder_eq_zero_iff]
+        refine (P.V.mem_or_inv_mem _).resolve_left fun h ↦ hx ?_
+        have : xF C F' = (xF C F' - algebraMap C F' (T.b j)) + algebraMap C F' (T.b j) := by
+          ring
+        rw [this]
+        exact add_mem h (P.algebraMap_mem _)
+      refine mul_mem hfP (prod_mem fun j _ ↦ pow_mem ?_ _)
+      rw [hfac_eq]
+      have : (xF C F' - algebraMap C F' (T.b j)) * (xF C F' - algebraMap C F' (T.a i))⁻¹ =
+          1 + algebraMap C F' (T.a i - T.b j) * (xF C F' - algebraMap C F' (T.a i))⁻¹ := by
+        rw [_root_.map_sub]
+        field_simp
+        ring
+      rw [this]
+      exact add_mem (one_mem _) (mul_mem (P.algebraMap_mem _) hinv)
+  -- bounds
+  have hfac1 (W' : TypeTwo C F') (hW' : IsOver (T.hvc (F' := F') i) W') (j : T.ι) :
+      W'.val (fac j) = 1 := by
+    rw [hfac_eq, map_mul, map_inv₀, valuation_xF_sub T hW', valuation_xF_sub T hW', sub_self,
+      nnnorm_zero, max_eq_left zero_le, max_eq_left (by exact_mod_cast T.hroot i hroot j),
+      mul_inv_cancel₀ (nnnorm_ne_zero_iff.2 (T.hc i))]
+  have hg (W' : TypeTwo C F') (hW' : IsOver (T.hvc (F' := F') i) W') : W'.val g ≤ 1 := by
+    simp only [g, map_mul, map_prod, map_pow, hfac1 W' hW', one_pow, Finset.prod_const_one,
+      mul_one]
+    exact hn W' hW'
+  have hvc1 : W.val (T.vc F' i) = 1 := hW.valuation_self
+  have hQinv : W.red (T.vc F' i)⁻¹ ∈ Q.V := by
+    rw [TypeTwo.red_inv hvc1]
+    exact (Q.V.mem_or_inv_mem _).resolve_left hQ
+  have hred := TypeTwo.red_mem_of_isIntegral_inv hp hp1 (T.hvc i) hW hg hint Q hQinv
+  have hpow (j : T.ι) : W.val (fac j ^ m) ≤ 1 := by rw [map_pow, hfac1 W hW j, one_pow]
+  have hprod1 : W.val (∏ j, fac j ^ m) ≤ 1 := by
+    rw [map_prod]
+    exact Finset.prod_le_one' fun j _ ↦ hpow j
+  rw [TypeTwo.red_mul (hn W hW) hprod1, TypeTwo.red_prod _ _ fun j _ ↦ hpow j] at hred
+  -- the factors are units at `Q`
+  have hsmall : Q.valuation (W.red (T.vc F' i)⁻¹) < 1 := by
+    rw [TypeTwo.red_inv hvc1, map_inv₀]
+    have h := (Q.valuation_le_one_iff.2 ((Q.V.mem_or_inv_mem _).resolve_left hQ))
+    rw [map_inv₀] at h
+    refine lt_of_le_of_ne h fun h1 ↦ hQ ?_
+    rw [← Q.valuation_le_one_iff, ← inv_inv (Q.valuation _), h1, inv_one]
+  have hunit (j : T.ι) : Q.valuation (W.red (fac j)) = 1 := by
+    have hinv1 : W.val (T.vc F' i)⁻¹ = 1 := by rw [map_inv₀, hvc1, inv_one]
+    have hβ1 : W.val (algebraMap C F' (β j)) ≤ 1 := by
+      rw [TypeTwo.valuation_algebraMap]; exact_mod_cast hβ j
+    have hprod2 : W.val (algebraMap C F' (β j) * (T.vc F' i)⁻¹) ≤ 1 := by
+      rw [map_mul]; exact mul_le_one' hβ1 hinv1.le
+    have : W.red (fac j) = 1 - W.red (algebraMap C F' (β j)) * W.red (T.vc F' i)⁻¹ := by
+      simp only [fac]
+      rw [TypeTwo.red_sub (by simp) hprod2, TypeTwo.red_one, TypeTwo.red_mul hβ1 hinv1.le]
+    rw [this]
+    have hs : Q.valuation (W.red (algebraMap C F' (β j)) * W.red (T.vc F' i)⁻¹) < 1 := by
+      rw [map_mul]
+      have h1 : Q.valuation (W.red (algebraMap C F' (β j))) ≤ 1 := by
+        rw [TypeTwo.red_algebraMap _ (hβ j)]
+        exact Q.valuation_algebraMap_le_one _
+      exact mul_lt_one_of_nonneg_of_lt_one_right h1 zero_le hsmall
+    rw [Valuation.map_one_sub_of_lt _ hs]
+  have h1 := Q.valuation_le_one_iff.2 hred
+  rw [map_mul, map_prod, Finset.prod_eq_one fun j _ ↦ by
+    rw [TypeTwo.red_pow (hfac1 W hW j).le, map_pow, hunit j, one_pow], mul_one] at h1
+  exact h1
+
 end Affine
 
 end TreeCount
