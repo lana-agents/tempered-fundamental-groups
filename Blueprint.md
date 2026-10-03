@@ -370,7 +370,7 @@ over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
 | W2 | Every type-2 valuation of `C(x)` is a Gauss valuation `w_{a,r}` | uses: `C` algebraically closed (factor into linear factors) |
 | W3 | (**Abhyankar inequality**) for any valuation `w` of `F` extending `v_C`: `trdeg_k κ(w) + rank_ℚ(Γ_w/Γ_C) ≤ 1` | Mathlib-level valuation theory; residue transcendence bounded by the transcendence degree |
 | W4 | (**Stability / defectlessness**, Grauert–Remmert) for a finite extension `F'/F` and a type-2 valuation `w` of `F`: `Σ_{w'|w} [κ(w'):κ(w)]·e(w'|w) = [F':F]` | the key analytic input; proof via the `C`-Banach space `F' ⊗ \hat F_w` having an orthogonal basis — Temkin gives an algebraic proof using W2 + Hensel |
-| W5 | Model/valuation dictionary: a normal proper `O_C`-model `𝒞` of `T̄` ↔ the finite set of type-2 valuations given by the generic points of `𝒞_s` ("vertex set"); every finite set of type-2 valuations containing a nonempty set is the vertex set of a unique normal model | Bosch–Lütkebohmert; algebraic: normalize a model in which the valuations are divisorial (blow-ups of `ℙ^m_{O_C}`-codes) |
+| W5 | Model/valuation dictionary: a normal proper `O_C`-model `𝒞` of `T̄` ↔ the finite set of type-2 valuations given by the generic points of `𝒞_s` ("vertex set"); every finite set of type-2 valuations containing a nonempty set is the vertex set of a unique normal model | Bosch–Lütkebohmert; algebraic: normalize a model in which the valuations are divisorial. **Formalized** as Zariski models (§9.6): joins of Gauss lines and their normalizations (M1–M6 proved) |
 | W6 | Genus formula: for a finite vertex set `V`, `g(T̄) = Σ_{w ∈ V} g(C_w) + b₁(Γ_V) + (contributions of the complement)`, and `Σ_{w type 2} g(C_w) ≤ g(T̄)`; hence only finitely many `w` have `g(C_w) > 0` | Riemann–Hurwitz for the residue curves + W4 (for `F/C(x)` of degree `d`, `Σ_{w'|w_{a,r}}` of residue degrees `= d`) |
 | W7 | (**Semistable vertex set**) there is a finite `V` containing all `w` with `g(C_w) > 0` such that every "connected component of the complement" is an open disc or annulus; in valuation language: every type-2 `w ∉ V` has residue curve `ℙ¹` and at most two "directions" towards `V` | W2 + W6 + a local analysis of residue curves of `F` over `w_{a,r}` via W4 |
 | W8 | The model with vertex set `V` (W5) is semistable | local computation at nodes: the complement annuli give local rings `O_C[u,v]/(uv − c)` |
@@ -379,7 +379,8 @@ over `k` (a function field of a curve over `k`, the **residue curve** `C_w`).
 
 Realistic size: W1–W3 small/medium (weeks of agent time), W4 large (the heart; Temkin's
 algebraic proof ~20 pages), W5 large (needs blow-ups or the `ModelCode`+normalization
-dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`).
+dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`); **W5: the valuative dictionary (M1–M6) and the semistable tree of `ℙ¹`s (M7) proved** (§9.6); normality and finite type of normalizations over a DVR (M8) proved; the scheme realization (M9) open.
+dictionary), W6–W8 large, W9–W10 medium. Status: **W1–W3 proved; W4 proved in mixed characteristic** (`char C = 0`, residue characteristic `p`; §9.4, `SemistableReduction/GaussStability`). W6: Riemann–Roch spaces, Riemann's inequality and the genus of the residue curves proved (§9.5 Part R); the genus reduction inequality is planned in §9.5 Part G (the hard step is G6.8, connectedness of the special fibre, with an elementary trace/Liouville proof).
 * W1 (`SemistableReduction/Gauss.lean`): `gauss v a r : Valuation K[X] Γ₀` (multiplicative
   convention, `w(Σ cᵢ(X−a)ⁱ) = max v(cᵢ)·rⁱ`, Gauss lemma `Gauss.sup_mul`), `gaussRat v a r` on
   `RatFunc K` extending `v`; for `v c = r` the residue of `(X − a)/c` is transcendental over
@@ -538,6 +539,159 @@ over `O` to the semistable `O'`-model); `j` scheme-theoretically dominant; an ac
 semistable models `𝒯 → 𝒯'`, node thicknesses `n_x/e(K''/K)`, the induced map of dual graphs is
 harmonic (nodes to nodes or to points of components), `Y`-lengths `d_x·n_x` are preserved, and
 every node of `𝒯'_s` on the image of a component `v` is hit by a node on `v`.
+### 9.6 W5: models and vertex sets
+
+**Formulation (decision).** Models are formalized *birationally*, as Zariski's abstract varieties
+(Zariski–Samuel II, Ch. VI §17): a **Zariski model** of a field `F` over a subring `R ⊆ F` is a
+finite set of *charts*, subrings `A ⊆ F` containing `R` (`ZariskiModel R`). Its points are the
+local rings `localAt A W = A_{𝔪_W ∩ A}` of the charts at the centers of valuation subrings
+`W ⊇ A` of `F` (every prime of `A` is such a center, Chevalley); two charts are glued along their
+common local rings. This fits the existing infrastructure: `ValuationSubring` (W1–W4), ring-level
+local models (`LocalModel.lean`: `IsSemistableAt` is a property of a chart at a prime), Mathlib's
+`LocalSubring.ofPrime`, integral closures, and it needs neither gluing of schemes nor blow-ups.
+Scheme-theoretic properties are replaced by their valuative criteria:
+
+* *separated* (`IsSeparated`): a valuation subring dominates at most one point, i.e. for charts
+  `A, B ⊆ W`, `B ⊆ localAt A W` (Zariski's irredundance = valuative criterion of separatedness);
+* *proper* (`IsProper`): every valuation subring `W ⊇ R` of `F` contains a chart (existence part
+  of the valuative criterion; with finite type and separatedness this is properness);
+* *normal* (`IsNormal`): charts integrally closed in `F`; *finite type* (`IsFiniteType`);
+  flatness over `O` is automatic (charts are torsion free subrings of `F ⊇ K`).
+
+The **specialization** of a valuation subring `W ⊇ R` (in particular of a `K̄`-point composed
+with an extension of `v`) is its center `ZariskiModel.center W = localAt A W` (any chart
+`A ⊆ W`). Over a valuation subring `O ⊆ K ⊆ F` (base ring `baseRing F O`), the **vertex set** is
+the set of *type-2* valuation subrings `W` of `F` over `O` (`W ∩ K = O`, residue field
+transcendental over `κ(O)`) which are points of the model; for normal models of finite type over a
+DVR the type-2 condition is automatic (dimension theory; not formalized, and not needed: all
+vertices produced are type 2).
+
+**Case needed.** M1–M6, M7a and M9a hold for an *arbitrary* valuation ring `O` (any rank,
+discrete or not) and arbitrary `K`; no completeness, algebraic closedness or discreteness is used.
+M7b, M7c and M8a (the explicit tree) assume `O` of rank at most one (both `O_C`,
+`C = \widehat{\bar K}`, and discrete `O_{K'}` qualify); the semistability statement M7c uses
+thicknesses `ϖⁿ` as in `LocalModel.lean` (so a DVR, or a fixed `ϖ` over `O_C`); M8b (finite type
+of normalizations) assumes `O` noetherian, i.e. a DVR `O_{K'}` (after the descent W9).
+
+| # | Statement | Status / API | Size |
+|---|---|---|---|
+| M1 | `localAt A W`; `localAt_le`, `localAt_mono`, `inv_mem_localAt`; **gluing lemma** `localAt_eq_of_le` (`A ≤ B ≤ localAt A W ⇒ localAt B W = localAt A W`); `localAt_eq_localSubringOfPrime` (= Mathlib's `LocalSubring.ofPrime A (𝔪_W ∩ A)`, `centerIdeal`); `ZariskiModel`, `points`, `IsSeparated`, `IsProper`, `IsNormal`, `IsFiniteType`, `center` (`center_eq`, `center_le`, `mem_points_iff`), `specialFibre`, `vertexSet` (`mem_vertexSet_iff`: type 2, `W ∩ K = O`, `center W = W`) | **proved** (`SemistableReduction/ZariskiModel`) | 0.35k |
+| M2 | Gauss coordinates `IsGaussCoord v w y` (`F = K(y)`, `w(Q(y)) = max v(Qᵢ)`), stable under `y ↦ y⁻¹`; chart `O[y] = {Q(y) : max v(Qᵢ) ≤ 1}` (`mem_polyChart_iff`); `localAt O[y] O_w = O_w` (generic point); for nontrivial `v`, `O_w` is the *only* valuation subring over `O` that is a local ring of `O[y]` (`eq_of_localAt_eq`: at a closed point `q(y)` and `ϖ` are incomparable — Gauss lemma + irreducible factor); `line v y` = `ℙ¹_O` (charts `O[y], O[y⁻¹]`): proper, separated, finite type, `line_vertexSet = {O_w}`; `gaussModel v a c` for `w_{a,r}` on `K(X)` (`isGaussCoord_gaussCoord`) | **proved** (`SemistableReduction/GaussModel`) | 0.4k |
+| M3 | compatibility with `Models/Specialization.lean`: for `X → Spec O` universally closed + separated and a chart `ι : Spec A ⟶ X` over `Spec O`, an `Ω`-point factoring through `ι` via `φ : A → V` specializes to `ι(φ⁻¹ 𝔪_V)` (`sp_eq_of_chart`); for `A ⊆ F`, `j : F → Ω`, `φ⁻¹ 𝔪_V = 𝔪_W ∩ A` with `W = j⁻¹ V` (`asIdeal_comap_closedPoint`), whose local ring is `localAt A W`. So on any scheme glued from the charts (M9), scheme specialization = `center` | **proved** (`SemistableReduction/ChartSpecialization`) | 0.1k |
+| M3b | reduction of geometric points: a place `D ⊇ K` of `F` with `ρ : D → Ω` (residue embedding) and `V ⊆ Ω` over `O` give the composite valuation subring `ρ⁻¹(V)` of `F` over `O` (`compositeValuationSubring`, `comap_compositeValuationSubring`); its specialization is the reduction of the point; specializations of valuations over `O` lie in the special fibre (`center_mem_specialFibre`) | **proved** (`SemistableReduction/PointReduction`) | 0.1k |
+| M4 | type 2: `IsResidueTranscendental O W z` (`P(z)` a `W`-unit for all `P ∈ O[X]` with `P̄ ≠ 0`) ⇔ `Transcendental κ(O) z̄` (`isResidueTranscendental_iff`, residue algebra via the local map `toVal : O → W`); **residue generation** `exists_isResidueTranscendental_of_localAt_eq(_of_isIntegral)`: if a type-2 `W` is the local ring of a chart `C` integral over the ring generated by `O` and `S`, some `s ∈ S` has transcendental residue (residues of `C` are algebraic over `κ(O)(S̄)`); `eq_of_isResidueTranscendental`: `W ∩ K = O` and `ȳ` transcendental ⇒ `W = O_w` (cf. W2, no algebraic closedness) | **proved** (`ZariskiModel`, `GaussModel`) | 0.25k |
+| M5 | **joins** `iJoin M` (charts `R ⊔ ⨆ Aᵢ`; the closure of the diagonal in the product): proper, separated, finite type preserved; `lines v y` (join of `ℙ¹_O` in Gauss coordinates `y i`): **vertex set exactly `{O_{w i}}`** (`lines_vertexSet`); `gaussJoinModel v a c`: every finite family of Gauss valuations `w_{a i, r i}` of `K(X)` is the vertex set of a proper separated finite-type model (`gaussJoinModel_vertexSet`) — W5 (ii)+(iii) on `ℙ¹` | **proved** (`ZariskiModel`, `GaussModel`) | 0.2k |
+| M6 | **normalization** in an algebraic `F'/F` (`normalization F'`, charts = integral closures `normChart F' A`): proper, separated, normal (`integralClosure_le_localAt` via `scaleRoots`; `map_localAt_le`); **Kaplansky's lemma** `mem_or_inv_mem_localAt`; **Prüfer** `localAt_normChart_eq` (the integral closure of a valuation ring `W` localized at the center of `W' ⊇ W` is `W'`); **vertex set of the normalization of a join of Gauss lines = the valuation subrings of `F'` over the given Gauss valuations** (`lines_normalization_vertexSet`, `gaussJoinModel_normalization_vertexSet`) — W5 (ii) in the form used by W7–W10 (a vertex set of `F'` is the preimage of a vertex set of `K(x)`) | **proved** (`SemistableReduction/ZariskiNormalization`) | 0.5k |
+| M7a | **annulus model** (two concentric discs, the local model at an edge of the tree): charts `O[y⁻¹]`, the node `O[y, c/y]`, `O[y/c]`; proper, separated, finite type, vertex set `{O_{w₁}, O_{w₂}}` (`annulus_vertexSet`); `O[y, c/y] ≅ Node O c` (`range_nodeLift`, `nodeLift_injective` via `Node.laurent` and Laurent evaluation at the transcendental `y`), hence normal (`isIntegrallyClosed_nodeChart`); `O[z] ≅ O[X]`; for `c = ϖⁿ` every chart is semistable in the sense of `LocalModel.IsSemistable` (`annulus_isSemistable`); on `K(X)`: `gaussAnnulusModel` (`_vertexSet`, `_isSemistable`) | **proved** (`SemistableReduction/AnnulusModel`) | 0.5k |
+| M7b | **general convex trees**: `DiscLE`, `IsConvex` (closed under joins `D(a,r) ∨ D(b,s) = D(a, max(r,s,|a−b|))`), `IsReduced`, root; for `O` of rank ≤ 1 every point of the join model of a convex family is the point of a **standard chart** — a line chart `O[t i]`, `O[(t ρ)⁻¹]` or a node chart `O[u, (c j/c m)/u]`, `u = (x − a j)/c m`, for `D j ⊊ D m` (`GaussTree.exists_standard_localAt_eq`, `center_lines_eq`, `gaussJoinModel_center_eq`). Proof: the discs containing `W` form a chain (`discLE_or_discLE_of_mem`), `m` = the smallest; the center is a node iff `W` lies in the residue disc of a child (the child of maximal radius contains all discs below `m` in that residue disc, by convexity: `discLE_of_residue`); the other coordinates are units or inverses of units of the local ring (affine relations L1–L4) | **proved** (`SemistableReduction/GaussTree`) | 0.7k |
+| M7c | **the tree of `ℙ¹`s is semistable**: `A[1/e]` is a localization away (`awayChart`, `isLocalization_awayChart`, étale); charts of finite type with the same local ring at `W` have a common basic open `B[1/u] = C[1/u']` (`exists_awayChart_eq`), so `IsEtaleLocallyAt`/`IsSemistableAt` transfer (`isSemistableAt_of_localAt_eq`); primes of charts are centers (`exists_centerIdeal_eq`, Chevalley); standard charts are `≅ O[X]` / `≅ Node O ϖⁿ` (`polyChart_isSemistable`, `nodeChart_isSemistable`). **`gaussJoinModel_isSemistable`**: for a convex reduced family over `O` of rank ≤ 1 with thicknesses `c j / c m = ϖⁿ`, every chart of `gaussJoinModel` is semistable (`LocalModel.IsSemistable`) | **proved** (`SemistableReduction/ChartLocalization`, `GaussTreeSemistable`) | 0.45k |
+| M8 | **normality and finite type**: conductor argument `mem_of_forall_mem_localAt` (normality is local, `isIntegral_mem_of_forall`); `O[z]` (Gauss coordinate) has fraction field `F` and is integrally closed (`≅ O[X]`, Mathlib's `IsIntegrallyClosed R[X]`), node charts too; **`gaussJoinModel_isNormal`** (convex, rank ≤ 1); for `O` noetherian (a DVR) and `F'/K(X)` finite separable, **`gaussJoinModel_normalization_isFiniteType`** (charts noetherian via `isNoetherianRing_of_fg`, integral closures finite by `IsIntegralClosure.finite`) | **proved** (`SemistableReduction/GaussTreeNormal`, `GaussTreeFinite`) | 0.35k |
+| M9a | the **projective model** of a finite family of nonzero functions `f : ι → F` (`projModel`, charts `R[f j / f i : j]`, the standard opens of the closure of `Spec F → ℙ^ι_R`): proper, separated, finite type. Lines are `f = (1, y)`, joins of lines are Segre families | **proved** (`SemistableReduction/ProjModel`) | 0.1k |
+| M9b | scheme realization of `projModel f` as a `ModelCode`: the scheme-theoretic image (`Scheme.Hom.ker` of `Spec F ⟶ ℙ^ι_O`, an `IdealSheafData`) of the rational map given by `f`; its standard affine opens are `Spec R[f j / f i]` (kernel of `O[x_j/x_i] → F`), so its points and specializations are those of the Zariski model (M3) | planned | 0.8k |
+| M9c | projectivity of the normalization (a finite cover of a projective model): either Mathlib's (absent) "finite over projective is projective", or directly: the normalization of `projModel f` in `F'` is `projModel` of an explicit family (products of `f` with integral generators of the charts — Rees/Veronese argument) | planned | 1.2k+ |
+| M10 | the paper's full W5 for arbitrary `F`: every finite nonempty set of type-2 valuations is the vertex set of a unique normal model (needs contraction of the extra components of M6 over `V'`; uniqueness: a normal model is determined by its local rings) | not needed downstream (W7 chooses vertex sets as preimages of `ℙ¹` vertex sets, M6); planned only if required | 1k+ |
+
+**Downstream API.** W6 (genus formula) sums over `vertexSet` of `normalization` of `gaussJoinModel`
+(= the extensions of the Gauss valuations, M6; W4 counts them). W7 produces a finite set of Gauss
+valuations of `K(x)`; M5/M6 give the model, M7 + the local analysis of W8 its semistability; W9
+descends it; W10 turns it into a `ModelCode` (M9). The reduction map for points is `center`
+(valuation-theoretic) and `sp` (scheme-theoretic), equal by M3.
+
+**Estimate.** Done: M1–M8 ≈ 4k lines (the valuative dictionary, normalization, the semistable
+normal tree of `ℙ¹`s, finite type of its normalizations over a DVR). So over a DVR `O_{K'}`: for a
+convex family `V'` of Gauss points of `K(x)` and `F'/K(x)` finite separable, the normalization of
+`gaussJoinModel` in `F'` is a normal proper separated Zariski model of finite type with vertex set
+the valuations over `V'` (W5 (ii) in the form used downstream). Remaining for W5 proper: M9b+M9c ≈ 2k+
+(the scheme/projectivity bridge to `ModelCode`, shared with W10). The W8 local analysis can now reuse
+M6 (local rings of the normalization = localizations of integral closures of the standard local
+rings) and M7c (transfer from local rings to `IsSemistableAt`).
+
+`Statement.Simultaneous` (same file): for a tower `B' / B / R` of finite étale algebras, semistable
+`O'`-models `c` of `K' ⊗ B` and `c'` of `K' ⊗ B'` with a finite morphism `c' ⟶ c` compatible with
+the open immersions (simultaneous semistable reduction; produced by W7 via preimages of vertex
+sets and normalization, M6). Requested by W8′ (finite maps only: with contracted components the
+length clause fails).
+### 9.5 W6: genus
+
+Notation: `k` algebraically closed, `κ / k` a function field of one variable
+(`IsCurveFunctionField k κ`), `CurvePlace k κ` its places (E1). `C`, `O_C`, `k` as in §9.3,
+`F / C` a function field of one variable; a **type-2 valuation** of `F` is a real valuation `w`
+extending `v_C` whose residue field `κ(w)` is transcendental over `k` (then `Γ_w = Γ_C` by W3 and
+`κ(w)` is finite over `k(x̄)` for any `x` with `x̄` transcendental, so `κ(w)` is a function field
+of one variable over `k`).
+
+**Part R: Riemann–Roch spaces and genus over an algebraically closed field** (Stichtenoth,
+*Algebraic Function Fields and Codes*, §§1.3–1.4, specialised to `k` algebraically closed, where
+every place has degree `1`). All proved.
+
+| # | Statement | Status / API |
+|---|---|---|
+| R1 | **Weak approximation** for finitely many pairwise incomparable valuations (any `Γ`): `u` with `v_i(u) < 1 < v_j(u)` (induction, `y ↦ y + z^r` with `r` avoiding finitely many exponents), then `(1 + u^s)⁻¹` | **proved** (`SemistableReduction/WeakApproximation`: `Incomparable`, `exists_lt_one_and_one_lt`, `valuation_inv_one_add_pow`); for places: `CurvePlace.incomparable` (DVRs of Krull dimension 1), `exists_valuation_sub_one_lt_one`, `exists_valuation_eq_and_le` (prescribed order at `P`, high order at finitely many `Q`) |
+| R2 | `κ` is finite over `k(f)` for every `f ∉ k`; the residue field of every place is `k` | **proved** (`SemistableReduction/CurveDivisor`: `IsCurveFunctionField.isAlgebraic_adjoin` (exchange lemma of G2), `IsCurveFunctionField.finiteDimensional_adjoin` (`EssFiniteType` + algebraic), `transcendental_of_notMem_range`, `CurvePlace.exists_valuation_sub_lt_one` (otherwise `k(f) ⊆ O_P`, hence `κ ⊆ O_P`)) |
+| R3 | for `f ∉ k`: `∑_{P ∈ S} ord_P(1/f)^+ ≤ [κ : k(f)]` for every finite set `S` of places, so `f` has finitely many poles; divisors, pole divisor, principal divisor | **proved** (`CurvePlace.sum_poleOrder_le`: the `w_{P,j}` of R1 with `ord_P = j < e_P` and high order at the other poles are `k(f)`-independent, the coefficients having a common order at all zeros of `1/f` (`exists_zpow_of_mem_adjoin`); `finite_setOf_notMem`; `CurveDivisor k κ := CurvePlace k κ →₀ ℤ`, `deg = Finsupp.degree`, `poleDivisor k f`, `divisor k f = (1/f)_∞ − (f)_∞`, `valuation_eq_exp_neg_divisor`, `divisor_mul`, `divisor_inv`) |
+| R4 | `L(D) = {f | v_P(f) ≤ exp (D P)}`, `ℓ(D) = dim_k L(D) < ∞`, `ℓ(D') ≤ ℓ(D) + deg(D' − D)` for `D ≤ D'`, `ℓ(0) = 1`, `ℓ(D + (z)) = ℓ(D)` | **proved** (`SemistableReduction/RiemannRoch`: `rrSpace`, `ell`, `exists_rrSpace_add_single_le` (step `D → D + P`, uses R2), `finiteDimensional_rrSpace`, `ell_le_ell_add_degree`, `ell_zero`, `rrSpace_zero`, `mem_rrSpace_iff_le`, `ell_add_divisor`) |
+| R5 | `deg (x)_∞ = [κ : k(x)]` for `x ∉ k`; principal divisors have degree `0` | **proved** (`degree_poleDivisor`: `≤` is R3, `≥` from `(m+1)[κ:k(x)] ≤ ℓ(m(x)_∞ + ∑ (uᵢ)_∞) ≤ 1 + m·deg (x)_∞ + deg ∑(uᵢ)_∞` for a basis `u` (`card_mul_le_ell`); `degree_divisor`). No integrality or fundamental equality needed |
+| R6 | genus `g = sup_D (deg D + 1 − ℓ(D))` is finite; **Riemann's inequality** `ℓ(D) ≥ deg D + 1 − g`; `g(k(x)) = 0` | **proved** (`riemannDefect`, `riemannDefect_mono`, `riemannDefect_add_divisor`, `riemannDefect_nsmul_poleDivisor_le` (bounded on multiples of `(x)_∞`), `exists_add_divisor_le` (every `D` is equivalent to a divisor `≤ m(x)_∞`, Stichtenoth 1.4.15), `bddAbove_riemannDefect`, `genus`, `riemannDefect_le_genus`, `riemann_inequality`, `exists_riemannDefect_eq_genus`, `genus_eq_zero_of_adjoin_eq_top`, `isCurveFunctionField_ratFunc`, `genus_ratFunc`) |
+| R7 | `ℓ(D) = deg D + 1 − g` for `deg D ≥ c` (no canonical divisor needed: `g` is attained at some `D₀`, and `D ~ D' ≥ D₀` once `ℓ(D − D₀) > 0`) | **proved** (`ell_eq_of_le_degree`) |
+
+**Part G: the genus reduction inequality** `Σᵢ g(κ(wᵢ)) ≤ g(F)` for distinct type-2 `w₁, …, w_n`.
+
+*Choice of proof.* The inequality is `p_a(𝒳_s) = g(F)` plus `p_a(𝒳_s) ≥ Σ g(components)` for the
+normalization `𝒳` of `ℙ¹_{O_C}` in `F` (for a coordinate `x` in which all `wᵢ` lie over the Gauss
+point). We transport this to valuations and Riemann–Roch spaces of `F` and of the residue curves,
+comparing `L(m(x)_∞)` with its reductions (Matignon, *Genre et genre résiduel des corps de
+fonctions valués*, Manuscripta Math. 58 (1987); Green–Matignon–Pop, *On valued function fields
+I*, §3). The analytic proofs (Baker–Payne–Rabinoff genus formula) presuppose semistable
+reduction and are circular here.
+
+| # | Statement | Proof / inputs | Status |
+|---|---|---|---|
+| G6.1 | (common coordinate) there is `x ∈ F` with `wᵢ(x) = 1` and `x̄` transcendental in every `κ(wᵢ)`; then `wᵢ|_{C(x)} = w_{0,1}` for all `i`, so the `wᵢ` are among the extensions `w'₁, …, w'_s` of the Gauss valuation, and it suffices to prove `Σ_{j ≤ s} g(κ_j) ≤ g(F)` | distinct type-2 valuations are incomparable (rank one), R1 for real valuations; A1 for `Σ cⱼ xʲ` | open (small) |
+| G6.2 | `e(w'_j) = 1`, `Σ_j f_j = N := [F : C(x)]`, `κ_j / k(x̄)` finite, `κ_j` a curve function field | W4 (`GaussStability`), A3, A4' | **proved** (`GaussFibre`: `ramificationIdx_eq_one`, `finite_ext`, `sum_inertiaDeg_eq`; `ResidueCurve.isCurveFunctionField`, `finrank_adjoin_red_x`, `transcendental_red_x`) |
+| G6.3 | (orthonormal basis) `b₁, …, b_N ∈ F` with `‖Σ φᵢ bᵢ‖ = maxᵢ |φᵢ|_{Gauss}` for `‖·‖ = max_j w'_j` | lift `k(x̄)`-bases of the `κ_j`, separate the `w'_j` by R1; residues independent ⇒ norm is the max (A1 for several valuations) | **proved** (`GaussFibre.exists_orthonormal_basis`) |
+| G6.4 | (reduction dimension) for every finite-dimensional `C`-subspace `V ⊆ F`, the image `ρ(V°) ⊆ ⊕_j κ_j` of `V° = {‖f‖ ≤ 1}` has `k`-dimension `dim_C V` | clear denominators (Gauss is multiplicative): `qV ⊆ ⊕ᵢ C[x]_{≤M} bᵢ ≅ (C^{N(M+1)}, max)`, reduced row echelon form with maximal-entry pivots gives an orthonormal basis. No completeness or spherical completeness of `C` needed | **proved** (`LatticeReduction.exists_orthonormal_pi`, `exists_orthonormal_submodule`; `GaussReduction.finrank_le_of_red_mem`) |
+| G6.5 | (integrality) `f` integral over `C[x]` with `‖f‖ ≤ 1` ⇒ `f` integral over `O_C[x]` ⇒ `f̄_j` integral over `k[x̄]`; the same at `∞`; hence `ρ(L(m(x)_∞)°) ⊆ W_m := ⊕_j L_{κ_j}(m(x̄)_∞)` | conjugates of `f` in a normal closure: `W(σf) = (W∘σ)(f) ≤ 1` since `W∘σ|_F` is some `w'_j` | **proved** (`ResidueCurve.red_mem_of_isIntegral` via the characteristic polynomial in the orthonormal basis instead of normal closures; `InfinityChart.red_mem_of_isIntegral_inv`; `GenusCount.red_mem_rrSpace`) |
+| G6.6 | (counting) for `m ≫ 0`: `dim ρ(L(m(x)_∞)°) = mN + 1 − g`, `dim W_m = mN + s − Σ g_j`; hence `Σ g_j ≤ g + (s − 1) − codim_{W_m} ρ(L(m(x)_∞)°)`, in particular the **weak inequality** `Σ_j (g_j − 1) ≤ g − 1` | G6.4, G6.5, R5 (`deg (x)_∞ = N`, `deg (x̄)_∞ = f_j`), R7 on `F` and on each `κ_j` | **proved** (`GenusCount.ell_le_sum_ell`, weak inequality `sum_genus_le_add_card`) |
+| G6.7 | (gluing conditions) for places `Q ∈ κ_j`, `Q' ∈ κ_{j'}` centred on the same maximal ideal of `𝓡 = ` integral closure of `O_C[x]` (resp. of `O_C[1/x]`, evaluating `f/xᵐ`), `f̄_j(Q) = f̄_{j'}(Q')` on `ρ(L(m(x)_∞)°)`; the conditions along a spanning forest of the incidence graph `Γ` (components, closed points of `𝒳_s`) are independent on `W_m` for `m ≫ 0` (R7 on `κ_j`: evaluation at finitely many places is surjective): `codim ≥ s − c(Γ)` | G6.5 | infrastructure (`SpecialFibre`: `redRing`, `Edge`, `res_eq_of_edge`, `exists_place_of_isMaximal`); counting open |
+| G6.8 | **(connectedness)** `Γ` is connected, i.e. `𝒳_s` is connected (Zariski) | G8.1–G8.5 below | analytic core **proved** (`Connectedness.no_split`: Newton traces, Laurent comparison, trace duality); the CRT step G8.1 (`cut`) open |
+| G6.9 | consequences: `Σ g(κ(wᵢ)) ≤ g(F)`; at most `g(F)` type-2 valuations have positive genus residue curve (W7 input) | G6.1 + G6.6–G6.8 | — |
+
+*G6.8 (connectedness).* Equivalently: `H^0(𝒳_s, O) = k`, i.e. the reductions of `𝓡` and of
+`𝓡_∞ = ` integral closure of `O_C[1/x]` meet in `k` inside `⊕_j κ_j`; equivalently the Čech
+module `𝓡_{01}/(𝓡 + 𝓡_∞)` (`⊗ C = H^1(X, O)`, of dimension `g`) is torsion free. This is
+Zariski's connectedness theorem for `𝒳 → Spec O_C`; the counts G6.4–G6.7 alone do not exclude a
+disconnected `𝒳_s`. **Chosen proof** (elementary "GAGA for `ℙ¹`" by traces; `C` complete):
+suppose `Γ` splits as `J₀ ⊔ J₁` (both nonempty, no common closed point in either chart).
+
+| # | Step | Inputs |
+|---|---|---|
+| G8.1 | the kernels of `𝓡̄ → ⊕_{J₀} κ_j` and `𝓡̄ → ⊕_{J₁} κ_j` are comaximal (a maximal ideal containing both lies on a `J₀`- and a `J₁`-component: prime avoidance, and every maximal ideal of `𝓡̄/𝔭_j` is centred by a place of `κ_j`, Chevalley); CRT gives `e ∈ 𝓡` with `ē = (1_{J₀}, 0_{J₁})`, similarly `e' ∈ 𝓡_∞` | G6.5, `ValuationSubring` extension |
+| G8.2 | the characteristic polynomial `χ_e ∈ O_C[x][T]` reduces to `(T − 1)^{N₀} T^{N₁}` (`N_i = Σ_{J_i} f_j ≥ 1`; reduce the matrix of `e` in the orthonormal basis of G6.3); for every `C`-point `P` of `F` over `α ∈ O_C`, `e(P) ≡ 1` or `≡ 0`; this partitions the fibres over `|α| ≤ 1` into `U₀ ⊔ U₁` with `N₀`, `N₁` points (with multiplicity); likewise over `|α| ≥ 1` with `e'`, and both agree over `|α| = 1` (maximum principle: `‖e − e'‖ < 1` and integrality over `O_C[x, 1/x]` bound values at points) | Part R for `F / C` (places = `C`-points), charpoly specialization `χ_h(α, T) = Π_{P|α} (T − h(P))^{e_P}` |
+| G8.3 | for `y ∈ L(d(x)_∞)°`: `p_n := Tr_{F/C(x)}(N^n(e)·y) ∈ O_C[x]` (`N(t) = 3t² − 2t³`, `‖N^{n+1}(e) − N^n(e)‖ ≤ ‖e² − e‖^{2^n}`) is Cauchy for the Gauss norm, with pointwise limit `τ_y(α) = Σ_{P ∈ U₀, P|α} e_P y(P)` (trace specialization); at `∞`, `q_n := Tr(N^n(e')·y/x^d) ∈ O_C[1/x]` with limit `τ_y(α)/α^d` | G6.5, trace specialization |
+| G8.4 | (Liouville) a restricted power series `Σ aᵢ xⁱ` and `x^d Σ bᵢ x^{-i}` agreeing on `|α| = 1` coincide with a polynomial of degree `≤ d` (a restricted Laurent series vanishing on the unit circle is `0`: reduce a maximal-norm part, `k` infinite); hence `τ_y ∈ C[x]`, and `y ↦ τ_y` is `C[x]`-linear | completeness of `C` (limits of coefficients) |
+| G8.5 | trace duality: `τ_y = Tr(z y)` for some `z ∈ F`; at an étale fibre, interpolation (R7) gives `z(P) = 1_{U₀}(P)`, so `z² = z`, `z ∈ {0, 1}`, contradicting `N₀, N₁ ≥ 1` | nondegenerate trace form (char 0), R7 |
+
+**Target (coordinator decision): the sharp form.** For any finite set of distinct type-2
+valuations `w₁, …, w_n` of `F`: `Σ g(κ(wᵢ)) ≤ g(F)` (ideally `Σ g(κ(wᵢ)) + b₁(Γ) ≤ g(F)` for the
+dual graph `Γ` of the vertex set). The weak form `Σ_w g(κ(w)) ≤ g(F) + #{w} − 1` over one Gauss
+point (proved, `GenusCount.sum_genus_le_add_card`) does **not** give finiteness. Remaining plan:
+G6.7 (`codim ≥ s − c(Γ)` from `res_eq_of_edge` along a spanning forest; independence of the
+evaluation functionals on `L_{κ_j}(m(x̄)_∞)` for `m ≫ 0` by R7), G8.1 (`cut`: if `Γ` splits,
+CRT in `redRing x`, `redRing x⁻¹` produces `e, e'` contradicting `no_split`, so `c(Γ) = 1`),
+then G6.1 (common coordinate by weak approximation for real valuations) and G6.9. The sharper
+`b₁(Γ)` term needs, in addition, the count of edges rather than a spanning forest (independence
+of all edge functionals modulo cycles).
+
+**Status.** Part R complete (`SemistableReduction/WeakApproximation`,
+`SemistableReduction/CurveDivisor`, `SemistableReduction/RiemannRoch`). Part G: G6.2–G6.6
+proved, G6.8's analytic core proved (`GaussFibre`, `LatticeReduction`, `GaussReduction`,
+`ResidueCurve`, `InfinityChart`, `GenusCount`, `Connectedness`, `SpecialFibre`). Original
+estimate: estimate G6.1–G6.7 ≈ 1.5–2k lines, G6.8 ≈ 2–2.5k lines (C-points and
+charpoly/trace specialization for `F / C`, Newton traces, Laurent comparison, trace duality),
+G6.9 small. Fallback if G6.8 stalls: restructure W7 along Temkin's valuative proof (*Stable
+modification of relative curves*, §§3–5: finiteness of the vertex set from quasi-compactness of
+the Riemann–Zariski space and local uniformization, genus only for contracting to the stable
+model).
 ## 10. André's group and the `ℤ`-witness (branch `wp-andre`)
 
 This section turns steps 1–2 of §4 and item G1 of §5 into theorems. The only geometric inputs
@@ -617,3 +771,89 @@ D, H and W8′ below, there is a continuous surjective homomorphism `temperedPi1
 | B4 | **Lepage's formula.** `andreGroup ≃ₜ* lim_{pointed semistable Galois} Π_Lv`. |
 | B5 | **König.** Given the finite nonempty sets `S_Lv ⊆ Π_Lv` of §10.3 (they need W8′), `lim S_Lv ≠ ∅` (Mathlib `nonempty_sections_of_finite_cofiltered_system`). Any element of the limit translates `X₀` by `1`. |
 | B6 | **X₀.** An explicit flat projective `O`-model of `E : y² + xy = x³ + a₄x + a₆` with `a₄, a₆ ∈ 𝔪²` (split multiplicative reduction of type `I_n`, `n ≥ 2`): the blow-up of the Weierstrass model at the node. Its special fibre is the strict transform together with the exceptional curve, meeting in two points, so it contains a cycle and carries a `ℤ`-covering. `X₀` need not be semistable; Theorem A transports `α` to it. |
+
+#### 10.3.2 What is required of `j`, and transfer to the IUT orbicurves
+
+**`j`.** A level with a model (`Level`, §3.2) requires only three things of `j : Spec B ⟶ 𝒯`: it
+is a morphism, it lies over `Spec O` (`j_toSpec`), and it is `H`-equivariant (`ρ_j`). It does not
+need to be an open immersion or schematically dense. This is intended (§3.2): each such datum
+defines a genuine tempered covering, and Theorem A shows that the extra models do not change
+`Aut Φ`. So `TateObject.X₀` is a legitimate object, and its character
+`temperedPi1 →* ℤ` is well defined and continuous as it stands. Open immersion or density is used
+only in two places: for the semistable models of Theorem A (supplied by W10.Strong), and to get
+equivariance of model maps automatically
+(`LevelHom.isEquivariant_of_isSchemeTheoreticallyDominant`). For the Tate model it is not needed.
+Its generic fibre is still identified with `E` via `[x:y:z] ↦ [x:y:πz]`.
+
+**Transfer to `[Y/A]`**, where `Y = E_q ∖ (E[ℓ]+M)` and `A = M` or `M ⋊ {±1}`.
+`TateOrbicurve.character` is the character for `A = 1`, i.e. on `temperedPi1(Y)`. For the
+orbifold `[Y/A]`:
+
+* (T1) **Restriction to the scheme cover.** The functor `Res : TempObj(R, A) ⥤ TempObj(R, 1)`
+  forgets the `A`-part. A level `(B, H)` goes to `(B, H⁰)`, with the same model and `ρ|_{H⁰}`,
+  and covering spaces are restricted to `H⁰`. The fibre functor is unchanged, since
+  `Φ = (F × P)/H⁰` in both categories. Restriction along `Res` (A2) gives a continuous
+  homomorphism `temperedPi1(Y) → temperedPi1([Y/A])`.
+* (T2) **Induction.** The functor `Ind : TempObj(R, 1) ⥤ TempObj(R, A)` sends
+  `(B, H⁰, 𝒯, P)` to the induced level `(∏_{a∈A} B^{(a)}, H⁰ ≀ A)`, with model `∐_a 𝒯` and
+  covering `∐_a P`. For finite `A` the model is again projective (a disjoint union of `|A|`
+  copies, embedded in one `ℙ^N` by Segre plus a coordinate shift). There are natural bijections
+  `Φ(Ind X) ≅ A × Φ(X)`.
+* (T3) **Open finite-index image.** Using T1 and T2, `temperedPi1(Y) → temperedPi1([Y/A])` is
+  injective with open image of index `|A|`: the image is the stabiliser of the base component
+  of `Φ(Ind 1)`. This is the tempered analogue of `π₁(Y) ⊴ π₁([Y/A])` with quotient `A`.
+* (T4) **Non-degeneracy for `[Y/A]`.** Theorem B for `A = 1` gives a continuous surjection
+  `χ : temperedPi1(Y) ↠ ℤ`. The group `U = temperedPi1(Y)` is an open subgroup of finite index in
+  `Γ = temperedPi1([Y/A])`. Its normal core `N` is again open of finite index, so
+  `χ(N) = kℤ` with `k ≥ 1`. Hence `Γ` has the infinite discrete quotient `Γ ↠ Γ/ker(χ|_N)`, and
+  it is not profinite. This is the non-degeneracy that IUT uses. A surjection `Γ ↠ ℤ` itself is
+  not needed; if wanted, it would come from the transfer map.
+
+**The Tate curve over `K_v`.** A Tate curve `E_q` with `v(q) ≥ 1` over a complete DVR has a
+Weierstrass equation `y² + xy = x³ + a₄(q)x + a₆(q)` with `a₄, a₆ ∈ q·O`. `TateModel` needs
+`a₄, a₆ ∈ π²O`, which holds when `v(q) ≥ 2`. For `v(q) = 1`, pass first to the ramified
+quadratic extension. This is a finite étale cover of `Y ⊗ K_v`, so it is covered by T3 or T4 in
+the form "finite étale covers induce open finite-index maps". IUT's Tate curves have `v(q)` as
+large as needed (they are `ℓ`-th power cusps), so `v(q) ≥ 2` holds as is.
+
+**Status of T1–T4.**
+* T1 is **[L]** (`Andre/Transfer.lean`: `resFunctor`, `resFibreIso`, `restrictHom`,
+  `continuous_restrictHom`).
+* The general T4 group lemma is **[L]** (`exists_open_normal_infinite_quotient`).
+* Non-degeneracy for `[Y/A]` is **[L]**, conditional only on surjectivity of the `A = 1` character
+  (Theorem B). It is `TateOrbicurve.nondegenerate_of_character` in `Andre/TransferTate.lean`, and
+  bypasses T2/T3. The induced object `indObj` is taken over the `A`-torsor level `(R^A, A)`,
+  reusing the Tate model and covering of `X₀`. The stabiliser of finitely many of its fibre
+  points is an open normal subgroup with infinite quotient.
+* T2/T3 are open and are not needed for non-degeneracy: a general induction functor would need a
+  `ModelCode` for `∐_{a ∈ A} 𝒯` inside a single `ℙ^N`.
+
+#### 10.3.3 Theorem B in Lean: the formal reduction (K1–K3)
+
+Because of the transfer (§10.3.2) it suffices to treat `A` trivial (`[Subsingleton A]`). Write
+`C = TempObj O R A` and `Φ = tempFibre`.
+
+* **K1 (formal; Galois objects).** Let `𝒢` be a class of objects with three properties:
+  - Galois: `Aut G` acts simply transitively on `Φ G`;
+  - pointwise domination: for finitely many `(X_k, x_k)` there are `G ∈ 𝒢`, `g ∈ Φ G` and morphisms
+    `f_k : G ⟶ X_k` with `Φ f_k g = x_k`;
+  - rigidity: two morphisms `G ⟶ X` that agree on one fibre element are equal.
+
+  Then automorphisms of `Φ` correspond to compatible families `(γ_{(G,g)})` with
+  `γ_{(G,g)} ∈ Φ G`, indexed by the cofiltered category of pointed objects of `𝒢`. Concretely:
+  every compatible family defines `α ∈ Aut Φ` with `α_G(g) = γ_{(G,g)}`.
+  File: `FibreFunctor/GaloisLimit.lean`.
+* **K2 (formal; König).** If `S_{(G,g)} ⊆ Φ G` are finite and nonempty and are mapped into each
+  other by pointed morphisms, a compatible family through them exists. This is Mathlib's
+  `nonempty_sections_of_finite_cofiltered_system`, applied after `Small`/`ULift`
+  bookkeeping.
+* **K3 (geometry; the Galois objects).**
+  - For a pointed semistable level `(Lv, t₀)` with Galois level (`H⁰` simply transitive on
+    `F_L`) and connected special fibre, `U_Lv = (Z̃ × Π)/π₁(Z)` is a Galois object. Here `Z̃` is
+    the universal covering from N1 and `Π` is the group of lifts of `H` to `Z̃`.
+  - The objects `U_Lv` dominate pointwise. This uses the Galois closure of levels, semistable
+    base change from W10, and lifting through `Z̃`.
+  - File: `Andre/GaloisObject.lean`.
+* **B5** combines K2 with `S_{(G,g)} := {γ : Φ f(γ) = δ(1)·x₀ and Y-length(γ) ≤ ℓ(Tate loop)}`.
+  Finiteness, the maps `S → S` and nonemptiness come from W8′. Then
+  `deckCharacter(α) = 1`.
