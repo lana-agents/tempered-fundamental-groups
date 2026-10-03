@@ -695,6 +695,47 @@ conjunct apply `.isWModel`.
 Estimate: ≈ 3.7k lines on top of W7 S5/S6 and H6. Split: XL1, XL5, XL6, XL10 and the H6 glue on the
 W8′ branch (`NodeDeformation.exists_node`, `eq_or_eq_of_isDiscreteValuationRing`, `NodeLemma`);
 XL2–XL4, XL7–XL9 on `wp-tempered-hx`.
+### 9.7a W10 assembly: `W7.Statement → Statement.StrongA` (owner: W10 assembler, O7)
+
+Inputs of StrongA: `K`, `O`, `R`, `B`, `G` acting on `R` and `B`, the models `c₀ i`, `j₀ i`.
+
+1. **x-line.** `exists_finite_aeval_invariant` gives a `G`-invariant `x` with `R` finite over `K[x]`.
+   Then `B` is finite over `K[x]`, and `B ⊗_{K[x]} K(x) = Π F_k` with `F_k / K(x)` finite. This
+   needs `R` equidimensional (open point A below).
+2. **Fields.** `C = K̄` with the spectral norm (`UniqueExtension`). The components `F'_l` of the
+   `F_k ⊗_{K(x)} C(x)` are permuted by `Gal(C/K)`.
+3. **W7.** Apply it to the family `(F'_l)` with `V₀` the union of:
+   * the discs from O9: the restrictions to `C(x)` of the residue-transcendental centres of the
+     models `projModel f_i` attached to the `c₀ i` (`f_i` are the coordinates of `j₀ i`);
+   * their `Gal(C/K)`-orbits.
+
+   Equivariance makes the resulting `V` `Gal`-stable.
+4. **Descent.** Take `E / K` finite Galois containing the tree data, with D3c, D3d and S7.9
+   holding. Over `O_E`:
+   * the node charts are semistable by O1 (`IsNodeODP ⇒ IsOrdinaryDoublePoint ⇒` S9);
+   * smooth, generic-fibre and component-generic points by the W10 descent helper.
+
+   The normalization `𝒳'_{V,E}` of the `E`-tree model in each component of `Π F_k ⊗_K E` is
+   semistable, of finite type (M8b) and projective (M9c, `projModelCode`).
+5. **Scheme.**
+   * `c' := ModelCode.sigma` of the component codes over `O_E`; semistable by
+     `isSemistable_sigma`.
+   * `c` over `O` with `e : c ≅ c'` (`baseChangeIso`, componentwise).
+   * `act` from `actOfDominates`/`actOfGenericPt`: `G` fixes `x`, so it preserves the charts;
+     `Gal(E/K)` preserves `V`.
+   * `dom i` from M10 (`dominates_of_vertexSet_subset`, with `hV` by step 3), `homOfDominates`,
+     and the closed immersion `projModelCode f_i ↪ c₀ i`.
+   * `j`: `B_E` is the integral closure of `E[x]` in `Π F_k ⊗ E`, i.e. the root chart of
+     `𝒳'_{V,E}` with `ϖ` inverted. So `j : Spec(E ⊗ B) → c` is the open immersion of the generic
+     fibre of that chart; it is scheme-theoretically dominant (W10Scheme).
+
+Open points (decision by the lead):
+* (A) StrongA as stated is false for non-equidimensional `R` (e.g. `R = K[t] × K`). Fix: add
+  `[IsDomain R]`.
+* (B) W7 needs mixed characteristic (`‖p‖ < 1`). Either restrict StrongA to mixed characteristic
+  or add an equal-characteristic W7.
+* (C) The normed structures on `K` and `K̄` from the complete DVR `O`.
+
 ### 9.6 W5: models and vertex sets
 
 **Formulation (decision).** Models are formalized *birationally*, as Zariski's abstract varieties
