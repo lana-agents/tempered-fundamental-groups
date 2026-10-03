@@ -78,6 +78,11 @@ def Statement.StrongComponent : Prop :=
       (∀ i, j ≫ dom i = Spec.map (CommRingCat.ofHom
         (Algebra.TensorProduct.includeRight.toRingHom : B →+* TensorProduct K K' B)) ≫ j₀ i) ∧
       (∀ i, dom i ≫ (c₀ i).toSpec = c.toSpec) ∧
+      (∀ i, (∀ x : (c₀ i).scheme, IsDomain ((c₀ i).scheme.presheaf.stalk x) ∧
+          IsIntegrallyClosed ((c₀ i).scheme.presheaf.stalk x)) → Flat (c₀ i).toSpec →
+        (∀ z ∈ specialFibre (c₀ i).toSpec, ∃ y ∈ specialFibre c.toSpec, dom i y = z) ∧
+        ∀ z ∈ specialFibre (c₀ i).toSpec,
+          Finite (_root_.ConnectedComponents {y : specialFibre c.toSpec // dom i y.1 = z})) ∧
       topologicalKrullDim (specialFibre c.toSpec) ≤ 1 ∧
       (∀ ε : TensorProduct K K' B, IsIdempotentElem ε → ε ≠ 0 →
         (∀ f : TensorProduct K K' B, IsIdempotentElem f → f * ε = 0 ∨ f * ε = ε) →
