@@ -901,3 +901,58 @@ stabiliser of `ε`). The targeted W10 Props are now `Statement`, `Statement.Stro
 (to be extended by `ModelCode.NoLoops` when it lands), `Statement.Simultaneous` (with
 `IsHarmonic`) and `Statement.HarmonicGeneral` (with `NoLoops` hypothesis, (H2) as `≥`).
 `Statement.Strong` is kept for reference, untargeted.
+
+**S8 analysis (2026-10): the different-function route is circular; revised plan.**
+
+*Finding.* Cohen–Temkin–Trushin (arXiv 1408.2949) work throughout with skeletons, i.e. they
+*assume* the semistable reduction theorem (§3.5 "Global structure": "the semistable reduction
+theorem asserts that any nice compact curve possesses a skeleton"). Every global statement about
+the different function that S8 was to use depends on it: the restrictions on slopes (§4.2,
+`restrictth`, proof via simultaneous semistable reduction along an interval), the triviality of
+`δ_f` off a skeleton and `R_y = 0` at type-4 points (`deltatrivth`), and the genus formulas
+(`genusth`, `genusth2`, `coverdisclem`). Only the *local* Riemann–Hurwitz formula at a single type-2
+point (`prop:local_RH`) is skeleton-free, and it says nothing about genus hidden away from the type-2
+points one looks at. CTT state the logical status themselves (remark after `unramparam`, §2.1): the
+semistable reduction theorem is equivalent to Temkin's *uniformization of one-dimensional valued
+fields* (every one-dimensional analytic `C`-field has an unramified parameter; Temkin, *Stable
+modification of relative curves*, Thm `fieldunif1` of §2, proved in §6; "direct though involved"). Hence:
+
+* the S8 row as planned (RH for `F'/C(x)` + RH for the residue curves + the different along the
+  edges) cannot give `g(F') ≤ Σ g + b₁`: all three are compatible with genus hidden at non-type-2
+  limit points (types 4 and 5), and the different is piecewise monomial with *finitely many*
+  breakpoints only once a skeleton exists. The pointwise hypotheses of the S8 row (two directions
+  over edges, one direction in discs, at every type-2 point) do not help for the same reason;
+* the S10 claim "outside the convex hull of the branch points every disc is mapped by discs" is
+  **false** in the wild case. Example (Matignon type): `p ∤ m ≥ 2`, `λ^{p−1} = −p`,
+  `F' = C(x, y)`, `y^p = 1 + λ^p x^m`. The branch points are `∞` and the zeros of `1 + λ^p x^m`, on
+  `|x| = R = |p|^{−p/(m(p−1))} > 1`, so `w_{0,1}` lies in the residue disc of `w_{0,R}` towards
+  `0`, off the hull. With `y = 1 + λz` the equation becomes `z^p − z + (terms of norm < 1) = x^m`,
+  so the residue curve over `w_{0,1}` is the Artin–Schreier curve `z̄^p − z̄ = x̄^m` of genus
+  `(p−1)(m−1)/2 > 0`: the preimage of a branch-point-free disc carries genus.
+
+*What is (and is not) needed.* With S7.6 (`g(F') ≥ Σ_{V'} g + b₁ + Σ_{P'} δ'_{P'}`) the hidden genus
+`h(V) = g(F') − Σ_{V'} g − b₁(Γ_{V'})` is `≥ 0`, non-increasing under refinement of `V`, and local.
+S8 must show `inf_V h(V) = 0`; this is the analytic genus formula, i.e. the content of the
+semistable reduction theorem, and has to be proved, not quoted. Neither a Riemann–Hurwitz formula
+nor the different function is needed for it. (A characteristic-free Riemann–Hurwitz formula in
+Euler-characteristic form, `Σ_j (g(κ_j) − 1) + n = −Σ_u [O'_u : ⟨b⟩_{O_u}]` for a basis `b` of a
+product of function fields `κ_j` over `k(t)`, proved from `ell_eq_of_le_degree` by comparing
+`B ∩ tᵐ N` for `O_∞`-lattices `N`, localizes `h(V)` into lattice defects of the discs and annuli of
+`V` without S7; it is a reformulation, not a proof, and is not pursued.)
+
+*Revised lemma-level plan for S8 (existence form, merges S8 and S10).*
+
+| # | Statement | Inputs / remarks | Size |
+|---|---|---|---|
+| S8.0 | **limit valuations of `C(x)`**: every valuation `w` of `C(x)` extending `v_C` is approximated by Gauss points: for every polynomial `f` there is `a` with `w(f) = w_{a', w(x − a')}(f)` for all `a'` with `w(x − a') ≤ w(x − a)`; if `inf_a w(x − a)` is attained, `w = w_{a, w(x−a)}` (types 2, 3), otherwise `w` is the limit of a nested sequence of Gauss points (type 4) | factor into linear factors (as W2) | 0.2k, **proved** (`GaussLimit`) |
+| S8.1 | **compactness (König)**: if `h(V) > 0` for every finite `V ⊇ V₀`, there is a limit point `ξ` (type 1, 3, 4, or a type-5 direction at a type-2 point) every neighbourhood of which (disc or annulus of some refinement) carries hidden genus | `h` is additive over the discs/annuli of `V` (S7 localization) and integer-valued; refinements split it | 0.8k |
+| S8.2 | **type 1** (char 0): around `a ∈ P¹(C)` there is `s₀` such that the preimage of the disc `|x − a| < s₀` is a disjoint union of discs `y_P^{e_P} = (x − a)·ε_P` | Puiseux/algebraic power series converge (Eisenstein bounds); tube count S5 in the small disc | 1k |
+| S8.3 | **type 5** (directions at a type-2 point `z`): for `z'` close to `z` in direction `u` the annulus `(z', z)` carries no hidden genus | W4 at `z`, separating residue parameter (Temkin `fieldunif1`(iii)), S5/S6 | 0.8k |
+| S8.4 | **type 3** (Gauss points of irrational radius) | W4 for `r ∉ |C^×|` (cartesian, `e > 1` possible) | 0.6k |
+| S8.5 | **type 4** (the core): a one-dimensional field of type 4 over `C` has an unramified parameter; hence a small disc around the type-4 point carries no hidden genus | Temkin 2010 §6.1–6.3 (immediate degree-`p` extensions, critical cosets `b + S_{a,s}`, uniformization of fields topologically generated by one element); alternative: Arzdorf–Wewers (arXiv 1211.4624: Galois closure, inertia at a type-4 point is a `p`-group, reduction to `p`-cyclic Kummer covers analysed with Matignon's `p`-Taylor expansions; needs Bosch–Lütkebohmert Lemma 2.4) | 4–6k |
+| S8.6 | **assembly**: finitely many neighbourhoods of S8.2–S8.5 cover the limit points (S8.1), so some finite `V` has `h(V) = 0`; with S7, `δ' = 0` at every node point | S8.1–S8.5, S7 | 0.4k |
+
+Revised estimate for S8 (with S10): **8–10k lines**, dominated by S8.5, which needs the theory of
+type-4 valuations (completions of `C(x)` at non-Gauss valuations, immediate extensions) that the
+project does not have yet. The tame case (all residue extensions over the relevant points of
+degree prime to `p`, e.g. Galois group of order prime to `p`) needs none of this (Kummer, §9.2 (i)).
