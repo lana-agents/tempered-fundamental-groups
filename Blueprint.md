@@ -692,3 +692,12 @@ G6.9 small. Fallback if G6.8 stalls: restructure W7 along Temkin's valuative pro
 modification of relative curves*, §§3–5: finiteness of the vertex set from quasi-compactness of
 the Riemann–Zariski space and local uniformization, genus only for contracting to the stable
 model).
+
+**W7→W8 interface (agreed).** W8 (node analysis, branch `wp-w8prime`) proves semistability and
+harmonicity at a node of the normalization under the ring-level hypothesis `IsKummerAt` (file
+`SemistableReduction/KummerNode.lean`): étale-locally at the node, `F'` is a product of twisted
+pure Kummer extensions `T^{d_i} = ε_i·u` in the node coordinate. W7 must produce `IsKummerAt` at
+every node of the chosen vertex set. Tame case: Abhyankar's lemma. Wild case (`p ∣ d`): this is
+the **annulus theorem** (Bosch–Lütkebohmert: for a suitable vertex set, the preimage of an open
+annulus of the base is a disjoint union of annuli mapping by `u' ↦ ε u'^d`) — the analytic heart
+of W7, planned in §9.9.
