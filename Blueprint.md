@@ -633,6 +633,13 @@ distance of `K'`-rational Gauss points, X1 is monotone edge lifting. **Untargete
 folded case (nodes over smooth points of the Gauss tree): piecewise linearity and continuity of the
 restricted path over `K̄` (turning into directions not defined over `K'`), ≈ 2–3k lines.
 
+**W10 clause (done in the statement).** `Statement.StrongComponent`'s component clause now outputs
+`ModelCode.IsUnfolded O' x₁ c₁' j₁'` (x₁ the image of the input `x ∈ R` in `L₁`) in place of
+`IsWModel` (recovered by `IsUnfolded.isWModel`). Obligation on the W7 side (targeted): `IsWModelOf`
+from W9/M9c (`L₁ / K'(x)` algebraic from `R` finite over `K[x]`) and the node condition from W7 (c)
+(smoothness over smooth points of the base Gauss tree). Consumers destructuring the old `IsWModel`
+conjunct apply `.isWModel`.
+
 Estimate: ≈ 3.7k lines on top of W7 S5/S6 and H6. Split: XL1, XL5, XL6, XL10 and the H6 glue on the
 W8′ branch (`NodeDeformation.exists_node`, `eq_or_eq_of_isDiscreteValuationRing`, `NodeLemma`);
 XL2–XL4, XL7–XL9 on `wp-tempered-hx`.
