@@ -211,15 +211,15 @@ lemma sup_eq_sup_coeff {Q : C[X]} {M : ℕ} (hQ : Q.natDegree ≤ M) :
   · have := Gauss.term_le_sup (v := NormedField.valuation (K := C)) (r := 1) Q m
     simpa [Gauss.term] using this
 
-/-- **G6.4** (orthonormal bases of finite-dimensional subspaces). If `F` has an orthonormal
-`C(X)`-basis for `gnorm` (G6.3), every finite-dimensional `C`-subspace `V ⊆ F` has an
-orthonormal `C`-basis: clearing denominators, `V` embeds into `⊕ᵢ C[X]_{≤ M} bᵢ ≅ C^J` with
-`‖T f‖ = ‖γ‖ gnorm f`. -/
-theorem exists_orthonormal_submodule [Nonempty (Ext C F)] {ι : Type*} [Fintype ι]
+/-- **G6.4** (isometric coordinates). If `F` has an orthonormal `C(X)`-basis for `gnorm` (G6.3),
+every finite-dimensional `C`-subspace `V ⊆ F` embeds linearly into some `C^J` with
+`‖T f‖ = ‖γ‖ gnorm f` (clearing denominators: `V ⊆ ⊕ᵢ C[X]_{≤ M} bᵢ / D`). -/
+theorem exists_isometry {ι : Type*} [Fintype ι]
     (b : Module.Basis ι (RatFunc C) F)
     (hb : ∀ φ : ι → RatFunc C, gnorm C (∑ i, φ i • b i) = Finset.univ.sup fun i ↦ gauss1 C (φ i))
     (V : Submodule C F) [FiniteDimensional C V] :
-    ∃ g : Fin (Module.finrank C V) → F, (∀ l, g l ∈ V) ∧ IsOrthonormal C g := by
+    ∃ (M : ℕ) (T : V →ₗ[C] (ι × Fin (M + 1) → C)) (γ : C), γ ≠ 0 ∧
+      ∀ f : V, supNorm (T f) = ‖γ‖₊ * gnorm C (f : F) := by
   classical
   set r := Module.finrank C V
   set v := Module.finBasis C V
@@ -254,7 +254,7 @@ theorem exists_orthonormal_submodule [Nonempty (Ext C F)] {ι : Type*} [Fintype 
     rintro rfl
     rw [nnnorm_zero, Gauss.sup_eq_zero_iff] at hγ
     exact hDne hγ
-  refine exists_orthonormal_of_linearMap V T hγ0 fun f ↦ ?_
+  refine ⟨M, T, γ, hγ0, fun f ↦ ?_⟩
   -- coordinates of `f`
   set Q : ι → C[X] := fun i ↦ ∑ k : Fin r, v.repr f k • P (i, k)
   have hQ (i : ι) : algebraMap C[X] (RatFunc C) (Q i) =
@@ -286,6 +286,17 @@ theorem exists_orthonormal_submodule [Nonempty (Ext C F)] {ι : Type*} [Fintype 
   simp only [hQn]
   rw [supNorm, ← Finset.univ_product_univ, Finset.sup_product_left]
   simp [hT, Q]
+
+/-- **G6.4** (orthonormal bases of finite-dimensional subspaces). If `F` has an orthonormal
+`C(X)`-basis for `gnorm` (G6.3), every finite-dimensional `C`-subspace `V ⊆ F` has an
+orthonormal `C`-basis (`exists_isometry`, `exists_orthonormal_of_linearMap`). -/
+theorem exists_orthonormal_submodule [Nonempty (Ext C F)] {ι : Type*} [Fintype ι]
+    (b : Module.Basis ι (RatFunc C) F)
+    (hb : ∀ φ : ι → RatFunc C, gnorm C (∑ i, φ i • b i) = Finset.univ.sup fun i ↦ gauss1 C (φ i))
+    (V : Submodule C F) [FiniteDimensional C V] :
+    ∃ g : Fin (Module.finrank C V) → F, (∀ l, g l ∈ V) ∧ IsOrthonormal C g := by
+  obtain ⟨M, T, γ, hγ, hT⟩ := exists_isometry b hb V
+  exact exists_orthonormal_of_linearMap V T hγ hT
 
 end Field
 

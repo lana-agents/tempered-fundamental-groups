@@ -36,27 +36,36 @@ noncomputable abbrev xLineAlgebra (L : Type u) [Field L] [Algebra K' L] {x : L}
     exact fun h ↦ hp ((injective_iff_map_eq_zero _).mp
       (transcendental_iff_injective.mp hx) p h))).toRingHom.toAlgebra
 
-/-- **`c` is a W-model of `L` on the x-line `x`** (over `O'`): `L` is algebraic over `K'(x)`
-(a function field of a curve on the x-line), and there are Gauss data `(a i, b i)`
-on `K'(x)` and homogeneous coordinates `g` on `L` such that the projective model of `g` has the
-points of the normalization in `L` of `gaussJoinModel` (M9c), and `c` is isomorphic over `O'` to
+/-- **`c` is the W-model of `L` on the x-line `x` with Gauss data `(a, b)`** (over `O'`): `L` is
+algebraic over `K'(x)` (a function field of a curve on the x-line), the `b i` are nonzero, and
+there are homogeneous coordinates `g` on `L` such that the projective model of `g` has the points
+of the normalization in `L` of `gaussJoinModel O' a b` (M9c), and `c` is isomorphic over `O'` to
 `ProjScheme.projModelCode O' g`, with `j : Spec L ⟶ c` corresponding to the generic point
 (`ProjScheme.toProj`). -/
-def ModelCode.IsWModel (O' : ValuationSubring K') (L : Type u) [Field L] [Algebra K' L]
-    [Algebra O' L] [IsScalarTower O' K' L] (x : L) (c : TemperedFundamentalGroups.ModelCode O')
+def ModelCode.IsWModelOf (O' : ValuationSubring K') (L : Type u) [Field L] [Algebra K' L]
+    [Algebra O' L] [IsScalarTower O' K' L] (x : L) (hx : Transcendental K' x) {ι : Type}
+    [Fintype ι] (a b : ι → K') (c : TemperedFundamentalGroups.ModelCode O')
     (j : Spec (CommRingCat.of L) ⟶ c.scheme) : Prop :=
-  ∃ (hx : Transcendental K' x) (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a b : ι → K')
-    (n : ℕ) (g : Fin (n + 1) → L) (hg : ∀ l, g l ≠ 0),
-    letI := xLineAlgebra L hx
-    haveI : IsScalarTower K' (RatFunc K') L := IsScalarTower.of_algebraMap_eq fun k ↦ by
-      change algebraMap K' L k = RatFunc.liftAlgHom _ _ (algebraMap K' (RatFunc K') k)
-      rw [AlgHom.commutes]
-    Algebra.IsAlgebraic (RatFunc K') L ∧ (∀ i, b i ≠ 0) ∧
+  letI := xLineAlgebra L hx
+  haveI : IsScalarTower K' (RatFunc K') L := IsScalarTower.of_algebraMap_eq fun k ↦ by
+    change algebraMap K' L k = RatFunc.liftAlgHom _ _ (algebraMap K' (RatFunc K') k)
+    rw [AlgHom.commutes]
+  Algebra.IsAlgebraic (RatFunc K') L ∧ (∀ i, b i ≠ 0) ∧
+  ∃ (n : ℕ) (g : Fin (n + 1) → L) (hg : ∀ l, g l ≠ 0),
     (ZariskiModel.projModel (baseRing L O'.valuation.valuationSubring) g).points =
       ((gaussJoinModel O'.valuation a b).normalization L).points ∧
     ∃ e : c.scheme ≅ (ProjScheme.projModelCode O' hg).scheme,
       e.hom ≫ (ProjScheme.projModelCode O' hg).toSpec = c.toSpec ∧
       j ≫ e.hom = (ProjScheme.toProj O' hg).toImage
+
+/-- **`c` is a W-model of `L` on the x-line `x`** (over `O'`): it is the W-model of some Gauss
+data (`ModelCode.IsWModelOf`), i.e. the projective model of the normalization in `L` of a
+Gauss-tree model `gaussJoinModel` of `K'(x)` (M5, M6, M9c), with `L` algebraic over `K'(x)`. -/
+def ModelCode.IsWModel (O' : ValuationSubring K') (L : Type u) [Field L] [Algebra K' L]
+    [Algebra O' L] [IsScalarTower O' K' L] (x : L) (c : TemperedFundamentalGroups.ModelCode O')
+    (j : Spec (CommRingCat.of L) ⟶ c.scheme) : Prop :=
+  ∃ (hx : Transcendental K' x) (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a b : ι → K'),
+    ModelCode.IsWModelOf O' L x hx a b c j
 
 /-- **W8′, targeted form: maps of W-models are harmonic.** Let `O' ⊆ O''` be discrete valuation
 rings with fraction fields `K' ⊆ K''`, uniformizers `ϖ'`, `ϖ''` and ramification index `e`
