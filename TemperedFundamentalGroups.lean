@@ -6,6 +6,7 @@ import TemperedFundamentalGroups.Andre.GaloisClass2
 import TemperedFundamentalGroups.Andre.GaloisDom2
 import TemperedFundamentalGroups.Andre.GaloisDomW
 import TemperedFundamentalGroups.Andre.GaloisObject
+import TemperedFundamentalGroups.Andre.LengthW
 import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
@@ -16,6 +17,7 @@ import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.Andre.TheoremB
+import TemperedFundamentalGroups.Andre.TheoremBW
 import TemperedFundamentalGroups.Andre.Transfer
 import TemperedFundamentalGroups.Andre.TransferTate
 import TemperedFundamentalGroups.Andre.WData

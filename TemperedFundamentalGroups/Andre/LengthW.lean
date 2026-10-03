@@ -266,6 +266,35 @@ theorem finite_lenW_le (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hℓ₀ : ℓ₀ ≠ ⊤) : {γ | lenW V hV x ϖ p γ ≤ ℓ₀}.Finite :=
   (Classical.choice (Pres.nonempty p.mem)).finite_len_le V hV hX hN ϖ hϖ p.g hℓ₀
 
+/-- **Monotonicity**: lengths do not increase along morphisms of members. -/
+theorem Pres.len_map_le (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    {X Y : TempObj O R A} (P : Pres x X) (Q : Pres x Y) (a : X ⟶ Y)
+    (g γ : (tempFibre O R A V hV).obj X) :
+    Q.len V hV ϖ ((tempFibre O R A V hV).map a g) ((tempFibre O R A V hV).map a γ) ≤
+      P.len V hV ϖ g γ := by
+  let m : P.U ⟶ Q.U := P.iso.inv ≫ a ≫ Q.iso.hom
+  have key : ∀ γ, (tempFibre O R A V hV).map Q.iso.hom ((tempFibre O R A V hV).map a γ) =
+      (tempFibre O R A V hV).map m ((tempFibre O R A V hV).map P.iso.hom γ) := fun γ => by
+    simp only [m, Functor.map_comp_apply, Functor.map_hom_inv'_apply]
+  rw [Pres.len, Pres.len, key, key, vtx_map, vtx_map]
+  exact CurveConfig.tlen_map_le (continuous_covMap P Q m) (covMap_fst P Q m)
+    (fun i hi => curveConfig_contr_or P.hdim Q.hdim (continuous_specialFibreMap _ _)
+      (isClosedMap_specialFibreMap m) i hi)
+    (curveConfig_injective_C Q.hdim)
+    (WData.isHarmonicWeight hX hN ϖ hϖ m P.D Q.D P.hdim Q.hdim) _ _
+
+/-- **Monotonicity** for `lenW` along pointed morphisms. -/
+theorem lenW_map_le (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    {p q : PtGal (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x))} (f : p ⟶ q)
+    (γ : (tempFibre O R A V hV).obj p.G) : lenW V hV x ϖ q (f.1 γ) ≤ lenW V hV x ϖ p γ := by
+  obtain ⟨⟨a, ha⟩, hpt⟩ := f.2
+  have h := (Classical.choice (Pres.nonempty p.mem)).len_map_le V hV hX hN ϖ hϖ
+    (Classical.choice (Pres.nonempty q.mem)) a p.g γ
+  rw [ha, hpt] at h
+  exact h
+
 end Length
 
 
