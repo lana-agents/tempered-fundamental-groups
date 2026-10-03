@@ -404,6 +404,51 @@ theorem res_div_aeval (hu : Q.valuation u < 1) (hu0 : u ≠ 0) {r s : k[X]} (hr 
 
 end Curve
 
+local notation "κ₁" => ResidueField (Valuation.valuationSubring (gauss1 C))
+
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F'] in
+lemma red_xF_ne_zero' (v : Ext C F') : red C (xF C F') v ≠ 0 := by
+  intro h
+  have := transcendental_red_x (F := F') v
+  rw [h] at this
+  exact this (isAlgebraic_zero)
+
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F'] in
+lemma algebraMap_aeval_residue_X (v : Ext C F') (r : 𝓀[X]) :
+    algebraMap κ₁ (ResidueField v.1.valuationSubring)
+        (aeval (residue (gauss1 C).valuationSubring ⟨RatFunc.X, gauss1_mem_X⟩) r) =
+      aeval (red C (xF C F') v) r := by
+  rw [← algebraMap_residue_X v, ← IsScalarTower.coe_toAlgHom' 𝓀 κ₁,
+    ← Polynomial.aeval_algHom_apply]
+
+/-- **Values at `x̄ = 0` do not depend on the residue curve.** An element `a` of the residue
+field `κ(w_{0,1}) = k(x̄)`, regular at a zero `Q` of `x̄` on one residue curve `κ(v)`, is regular
+at every zero `Q'` of `x̄` on every residue curve `κ(v')`, with the same value. -/
+theorem res_algebraMap_eq (a : κ₁) (v v' : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)} (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v))
+    {Q' : CurvePlace 𝓀 (ResidueField v'.1.valuationSubring)}
+    (hQ' : Q' ∈ zeros 𝓀 (red C (xF C F') v'))
+    (ha : algebraMap κ₁ (ResidueField v.1.valuationSubring) a ∈ Q.V) :
+    algebraMap κ₁ (ResidueField v'.1.valuationSubring) a ∈ Q'.V ∧
+      Q'.res (algebraMap κ₁ (ResidueField v'.1.valuationSubring) a) =
+        Q.res (algebraMap κ₁ (ResidueField v.1.valuationSubring) a) := by
+  have hmem : a ∈ IntermediateField.adjoin 𝓀
+      {residue (gauss1 C).valuationSubring ⟨RatFunc.X, gauss1_mem_X⟩} := by
+    rw [adjoin_residue_X_eq_top]; trivial
+  obtain ⟨r, s', rfl⟩ := (IntermediateField.mem_adjoin_simple_iff 𝓀 a).1 hmem
+  simp only [map_div₀, algebraMap_aeval_residue_X] at ha ⊢
+  by_cases hr : r = 0
+  · simp [hr, Q'.res_zero, Q.res_zero]
+  by_cases hs : s' = 0
+  · simp [hs, Q'.res_zero, Q.res_zero]
+  have h := res_div_aeval Q (valuation_x_lt_one hQ) (red_xF_ne_zero' v) hr hs
+  have h' := res_div_aeval Q' (valuation_x_lt_one hQ') (red_xF_ne_zero' v') hr hs
+  have hle := h.1.1 ha
+  refine ⟨h'.1.2 hle, ?_⟩
+  rcases eq_or_lt_of_le hle with heq | hlt
+  · rw [h'.2.1 heq.symm, h.2.1 heq.symm]
+  · rw [h'.2.2 hlt, h.2.2 hlt]
+
 end GaussTube
 
 end SemistableReduction
