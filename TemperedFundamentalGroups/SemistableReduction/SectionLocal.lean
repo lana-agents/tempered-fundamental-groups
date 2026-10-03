@@ -278,14 +278,15 @@ set_option maxHeartbeats 1000000 in
 -- the dimension count over the closed points of both charts elaborates slowly
 open Classical in
 include hsum in
-/-- **The genus formula, upper bound by local `δ`-invariants** (S7⁺.7): there are conductor
-elements `σ₀`, `σ_∞` of the two reduced charts such that for `M ≫ 0`,
-`g(F) + #{w} - 1 ≤ Σ_w g(κ(w)) + Σ_y δ_y^{(M)}`, where `y` runs over the closed points of the
+/-- **The genus formula with local `δ`-invariants** (S7⁺.7): there are conductor elements `σ₀`,
+`σ_∞` of the two reduced charts such that for `M ≫ 0`,
+`g(F) + #{w} - 1 = Σ_w g(κ(w)) + Σ_y δ_y^{(M)}`, where `y` runs over the closed points of the
 chart at `0` containing `σ₀` and the closed points of the chart at `∞` over `x̄ = ∞` containing
-`σ_∞` (every closed point with `δ_y ≠ 0` is among them). -/
-theorem exists_genus_le_sum_delta [CharZero C] :
+`σ_∞` (every closed point with `δ_y ≠ 0` is among them). Equivalently
+`g(F) = 1 + Σ_w (g(κ(w)) - 1) + Σ_y δ_y`. -/
+theorem exists_genus_eq_sum_delta [CharZero C] :
     ∃ σ₀ ∈ redRing C F (xF C F), ∃ σi ∈ redRing C F (xF C F)⁻¹, ∃ M₀ : ℕ, ∀ M : ℕ, M₀ ≤ M →
-      (genus C F : ℤ) + Fintype.card (Ext C F) - 1 ≤
+      (genus C F : ℤ) + Fintype.card (Ext C F) - 1 =
         (∑ w : Ext C F, (genus 𝓀 (ResidueField w.1.valuationSubring) : ℤ)) +
         (∑ y ∈ points (isChart_x hb) σ₀,
           (delta 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) (isChart_x hb) σ₀ y M
@@ -301,14 +302,52 @@ theorem exists_genus_le_sum_delta [CharZero C] :
   obtain ⟨σi, hσi, hσi0, hσic⟩ := exists_conductor_x_inv hb hsum
   obtain ⟨M₁, hM₁⟩ := mem_of_forall_mem_sup hΛ₀ hσ₀ hσ₀0 hσ₀c
   obtain ⟨M₂, hM₂⟩ := mem_of_forall_mem_sup hΛi hσi hσi0 hσic
-  obtain ⟨m, hm⟩ := genus_add_card_sub_one_eq hb hsum
-  obtain ⟨hHW, hgen⟩ := hm m le_rfl
+  obtain ⟨m₀, hm₀⟩ := genus_add_card_sub_one_eq hb hsum
   refine ⟨σ₀, hσ₀, σi, hσi, max M₁ M₂, fun M hM ↦ ?_⟩
-  set W := piRR C F m
-  set H := secSpace C F m
   set Y₀ := points hΛ₀ σ₀
   set Yi := (points hΛi σi).filter
     (fun y ↦ (⟨_, hΛi.mem⟩ : redRing C F (xF C F)⁻¹) ∈ y)
+  -- the branches, and a residue `ā` avoided by the branches at `0`
+  set S₀ := Y₀.biUnion fun y ↦ branches hΛ₀ σ₀ y
+  set Si := Yi.biUnion fun y ↦ branches hΛi σi y
+  obtain ⟨ab, hab⟩ := Infinite.exists_notMem_finset
+    (S₀.image fun b ↦ b.2.res (red C (xF C F) b.1))
+  set T₀ : (w : Ext C F) → Finset (CurvePlace 𝓀 (ResidueField w.1.valuationSubring)) :=
+    fun w ↦ S₀.preimage (fun Q ↦ (⟨w, Q⟩ : Branch 𝓀 _)) fun _ _ _ _ h ↦
+      eq_of_heq (Sigma.mk.inj_iff.1 h).2
+  set Ti : (w : Ext C F) → Finset (CurvePlace 𝓀 (ResidueField w.1.valuationSubring)) :=
+    fun w ↦ Si.preimage (fun Q ↦ (⟨w, Q⟩ : Branch 𝓀 _)) fun _ _ _ _ h ↦
+      eq_of_heq (Sigma.mk.inj_iff.1 h).2
+  have hT₀ (w : Ext C F) : ∀ Q ∈ T₀ w, red C (xF C F) w ∈ Q.V ∧ Q.res (red C (xF C F) w) ≠ ab :=
+    fun Q hQ ↦ by
+      have hb' : (⟨w, Q⟩ : Branch 𝓀 _) ∈ S₀ := Finset.mem_preimage.1 hQ
+      obtain ⟨y, hy, hyb⟩ := Finset.mem_biUnion.1 hb'
+      refine ⟨mem_V_of_mem_branches hΛ₀ (isMaximal_of_mem_points hΛ₀ hy).ne_top hyb,
+        fun h ↦ hab (Finset.mem_image.2 ⟨_, hb', h⟩)⟩
+  have hTi (w : Ext C F) : ∀ Q ∈ Ti w, red C (xF C F) w ∉ Q.V := fun Q hQ hxQ ↦ by
+    have hb' : (⟨w, Q⟩ : Branch 𝓀 _) ∈ Si := Finset.mem_preimage.1 hQ
+    obtain ⟨y, hy, hyb⟩ := Finset.mem_biUnion.1 hb'
+    obtain ⟨hy1, hz⟩ := Finset.mem_filter.1 hy
+    have hne := (isMaximal_of_mem_points hΛi hy1).ne_top
+    have hcen : centerOf hΛi ⟨w, Q⟩ = y := (Finset.mem_filter.1 hyb).2
+    have hzQ := mem_V_of_mem_branches hΛi hne hyb
+    unfold centerOf at hcen
+    rw [dif_pos hzQ] at hcen
+    rw [← hcen, mem_center] at hz
+    change Q.valuation (red C (xF C F)⁻¹ w) < 1 at hz
+    rw [red_inv_xF, map_inv₀] at hz
+    have h1 := Q.valuation_le_one_iff.2 hxQ
+    have hx0 : red C (xF C F) w ≠ 0 := fun h ↦ transcendental_red_x w (h ▸ isAlgebraic_zero)
+    have hpos : 0 < Q.valuation (red C (xF C F) w) := (Valuation.pos_iff _).2 hx0
+    exact absurd ((inv_lt_one₀ hpos).1 hz) (not_lt.2 h1)
+  choose m₁ hm₁ using fun w : Ext C F ↦
+    exists_jet_twist (transcendental_red_x w) ab (T₀ w) (Ti w) (hT₀ w) (hTi w) M
+  set m := max m₀ (Finset.univ.sup m₁)
+  obtain ⟨hHW, hgen⟩ := hm₀ m (le_max_left _ _)
+  have hmw (w : Ext C F) : m₁ w ≤ m :=
+    (Finset.le_sup (f := m₁) (Finset.mem_univ w)).trans (le_max_right _ _)
+  set W := piRR C F m
+  set H := secSpace C F m
   -- the local quotients
   let A₀ (y : Y₀) := regAt 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring)
     (branches hΛ₀ σ₀ y.1)
@@ -381,17 +420,78 @@ theorem exists_genus_le_sum_delta [CharZero C] :
     simp only [u, hmi, red_inv_xF]
     rw [← mul_assoc, ← mul_pow, mul_inv_cancel₀ hx0, one_pow, one_mul]
   have hcount := finrank_le_finrank_add_sum_quot W H hHW A₀ B₀ hfin₀ Ai Bi hfini φ₀ φi hker
+  -- the reverse inequality: `H` lies in the kernel, and the local maps are jointly onto
+  have hH (v : W) (hvH : (v : Π w : Ext C F, ResidueField w.1.valuationSubring) ∈ H) :
+      (∀ y, φ₀ y v ∈ B₀ y) ∧ ∀ y, φi y v ∈ Bi y := by
+    obtain ⟨hv₀, u, hu, huv⟩ := hvH
+    refine ⟨fun y ↦ Submodule.mem_sup_left (subset_locSpace (k := 𝓀) y.1
+      ⟨1, fun h ↦ hne₀ y ((Ideal.eq_top_iff_one _).2 h), ?_⟩), fun y ↦ ?_⟩
+    · change (1 : redRing C F (xF C F)).1 * (v : Π w : Ext C F, ResidueField w.1.valuationSubring)
+        ∈ _
+      simpa using hv₀
+    have hmu : mi v = u := by
+      funext w
+      change red C (xF C F)⁻¹ w ^ m * (v : Π w : Ext C F, ResidueField w.1.valuationSubring) w
+        = u w
+      have hx0 : red C (xF C F) w ≠ 0 := fun h ↦ transcendental_red_x w (h ▸ isAlgebraic_zero)
+      rw [huv w, red_inv_xF, ← mul_assoc, ← mul_pow, inv_mul_cancel₀ hx0, one_pow, one_mul]
+    refine Submodule.mem_sup_left (subset_locSpace (k := 𝓀) y.1
+      ⟨1, fun h ↦ hnei y ((Ideal.eq_top_iff_one _).2 h), ?_⟩)
+    change (1 : redRing C F (xF C F)⁻¹).1 * mi v ∈ _
+    rw [hmu]
+    simpa using hu
+  have hsurj (a₀ : ∀ y, A₀ y) (ai : ∀ y, Ai y) : ∃ v : W,
+      (∀ y, φ₀ y v - a₀ y ∈ B₀ y) ∧ ∀ y, φi y v - ai y ∈ Bi y := by
+    set τ₀ : (w : Ext C F) → CurvePlace 𝓀 (ResidueField w.1.valuationSubring) →
+        ResidueField w.1.valuationSubring := fun w Q ↦
+      ∑ y : Y₀, if (⟨w, Q⟩ : Branch 𝓀 _) ∈ branches hΛ₀ σ₀ y.1 then (a₀ y).1 w else 0
+    set τi : (w : Ext C F) → CurvePlace 𝓀 (ResidueField w.1.valuationSubring) →
+        ResidueField w.1.valuationSubring := fun w Q ↦
+      ∑ y : Yi, if (⟨w, Q⟩ : Branch 𝓀 _) ∈ branches hΛi σi y.1 then (ai y).1 w else 0
+    -- the sums collapse
+    have hcol₀ (y : Y₀) (b : Branch 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring))
+        (hb : b ∈ branches hΛ₀ σ₀ y.1) : τ₀ b.1 b.2 = (a₀ y).1 b.1 := by
+      refine (Finset.sum_eq_single y (fun y' _ hy' ↦ if_neg fun h ↦ hy' (Subtype.ext ?_))
+        (by simp)).trans (if_pos hb)
+      exact ((Finset.mem_filter.1 h).2).symm.trans (Finset.mem_filter.1 hb).2
+    have hcoli (y : Yi) (b : Branch 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring))
+        (hb : b ∈ branches hΛi σi y.1) : τi b.1 b.2 = (ai y).1 b.1 := by
+      refine (Finset.sum_eq_single y (fun y' _ hy' ↦ if_neg fun h ↦ hy' (Subtype.ext ?_))
+        (by simp)).trans (if_pos hb)
+      exact ((Finset.mem_filter.1 h).2).symm.trans (Finset.mem_filter.1 hb).2
+    have hreg₀ (w : Ext C F) : ∀ Q ∈ T₀ w, τ₀ w Q ∈ Q.V := fun Q _ ↦
+      sum_mem fun y _ ↦ by
+        split_ifs with h
+        · exact (a₀ y).2 _ h
+        · exact zero_mem _
+    have hregi (w : Ext C F) : ∀ Q ∈ Ti w, τi w Q ∈ Q.V := fun Q _ ↦
+      sum_mem fun y _ ↦ by
+        split_ifs with h
+        · exact (ai y).2 _ h
+        · exact zero_mem _
+    choose f hf hf₀ hfi using fun w ↦ hm₁ w m (hmw w) (τ₀ w) (τi w) (hreg₀ w) (hregi w)
+    refine ⟨⟨f, fun w _ ↦ hf w⟩, fun y ↦ ?_, fun y ↦ ?_⟩
+    · refine Submodule.mem_sup_right fun b hb ↦ ?_
+      change b.2.valuation (f b.1 - (a₀ y).1 b.1) ≤ _
+      rw [← hcol₀ y b hb]
+      exact hf₀ b.1 b.2 (Finset.mem_preimage.2 (Finset.mem_biUnion.2 ⟨y.1, y.2, hb⟩))
+    · refine Submodule.mem_sup_right fun b hb ↦ ?_
+      change b.2.valuation (red C (xF C F)⁻¹ b.1 ^ m * f b.1 - (ai y).1 b.1) ≤ _
+      rw [← hcoli y b hb, red_inv_xF]
+      exact hfi b.1 b.2 (Finset.mem_preimage.2 (Finset.mem_biUnion.2 ⟨y.1, y.2, hb⟩))
+  have hcount2 := finrank_add_sum_le_of_surj W H hHW A₀ B₀ hfin₀ Ai Bi hfini φ₀ φi hH hsurj
   rw [hgen]
-  clear hker hgen hHW
+  clear hker hgen hHW hH hsurj
   have e₀ : ∑ y : Y₀, Module.finrank 𝓀 (A₀ y ⧸ B₀ y) =
       ∑ y ∈ Y₀, delta 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) hΛ₀ σ₀ y M :=
     Finset.sum_coe_sort Y₀ (fun y ↦ delta 𝓀 _ hΛ₀ σ₀ y M)
   have ei : ∑ y : Yi, Module.finrank 𝓀 (Ai y ⧸ Bi y) =
       ∑ y ∈ Yi, delta 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) hΛi σi y M :=
     Finset.sum_coe_sort Yi (fun y ↦ delta 𝓀 _ hΛi σi y M)
-  rw [e₀, ei] at hcount
+  rw [e₀, ei] at hcount hcount2
   have key := (Nat.cast_le (α := ℤ)).2 hcount
-  push_cast at key
+  have key2 := (Nat.cast_le (α := ℤ)).2 hcount2
+  push_cast at key key2
   linarith
 
 end Main
