@@ -600,15 +600,13 @@ def bcHom (ψ : D.c.scheme ⟶ Lv.c.scheme) (hψ : ψ ≫ Lv.c.toSpec = D.c.toSp
 variable (Ω : Type u) [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
 
 omit [Algebra R Ω] [IsScalarTower K R Ω] in
-lemma isBaseChange_bcHom [Algebra.Etale K L] [Module.Finite K L] [Finite Δ]
+include hΦ in
+lemma isBaseChange_of [Algebra.Etale K L] [Module.Finite K L] [Finite Δ]
     (hne : Nonempty (L →ₐ[K] Ω)) (htr : ∀ s₁ s₂ : L →ₐ[K] Ω, ∃ γ, s₂ = s₁.comp (θ γ).toAlgHom)
-    [IsSchemeTheoreticallyDominant D.level.j]
-    (ψ : D.c.scheme ⟶ Lv.c.scheme) (hψ : ψ ≫ Lv.c.toSpec = D.c.toSpec)
-    (hjψ : D.j ≫ ψ = Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.includeLeft :
-      Lv.L.B →ₐ[R] TensorProduct K Lv.L.B L).toRingHom) ≫ Lv.j) :
-    (bcHom θ D hΦ ψ hψ hjψ).IsBaseChange Ω := by
+    [IsSchemeTheoreticallyDominant D.level.j] (ℓ : LevelHom O R A D.level Lv)
+    (hf : ℓ.φ.f = bcIncl D) (hr : ∀ γ, ℓ.φ.r (D.proj γ) = γ.1) : ℓ.IsBaseChange Ω := by
   refine ⟨L, _, _, inferInstance, inferInstance, Δ, inferInstance, inferInstance, θ,
-    LevelData.codeEquiv R _, hne, htr, rfl, fun x => ?_, fun h γ hx => ?_,
+    LevelData.codeEquiv R _, hne, htr, hf, fun x => ?_, fun h γ hx => ?_,
     LevelHom.isEquivariant_of_isSchemeTheoreticallyDominant _⟩
   · refine (D.mem_H x).trans ⟨fun ⟨γ, e⟩ => ⟨γ.1, γ.2, e.trans (by rw [hΦ]; rfl)⟩,
       fun ⟨h, γ, e⟩ => ⟨(h, γ), e.trans (by rw [hΦ]; rfl)⟩⟩
@@ -616,10 +614,180 @@ lemma isBaseChange_bcHom [Algebra.Etale K L] [Module.Finite K L] [Finite Δ]
       apply Subtype.ext
       rw [LevelData.coe_proj, hΦ]
       rfl
-    exact (congrArg (D.lift (MonoidHom.fst Lv.L.H Δ) (bc_ker θ D hΦ)) this).trans
-      (D.lift_proj _ _ _)
+    exact (congrArg ℓ.φ.r this).trans (hr _)
+
+lemma isBaseChange_bcHom [Algebra.Etale K L] [Module.Finite K L] [Finite Δ]
+    (hne : Nonempty (L →ₐ[K] Ω)) (htr : ∀ s₁ s₂ : L →ₐ[K] Ω, ∃ γ, s₂ = s₁.comp (θ γ).toAlgHom)
+    [IsSchemeTheoreticallyDominant D.level.j]
+    (ψ : D.c.scheme ⟶ Lv.c.scheme) (hψ : ψ ≫ Lv.c.toSpec = D.c.toSpec)
+    (hjψ : D.j ≫ ψ = Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.includeLeft :
+      Lv.L.B →ₐ[R] TensorProduct K Lv.L.B L).toRingHom) ≫ Lv.j) :
+    (bcHom θ D hΦ ψ hψ hjψ).IsBaseChange Ω :=
+  isBaseChange_of θ D hΦ Ω hne htr _ rfl fun γ => D.lift_proj _ (bc_ker θ D hΦ) γ
 
 end BCHom
+
+section Common
+
+variable {K : Type u} [Field K] {O : ValuationSubring K}
+  {R : Type u} [CommRing R] [Algebra K R] {A : Type u} [Group A] [MulSemiringAction A R]
+  [SMulCommClass A K R]
+  {L₁ L₂ : Type u} [CommRing L₁] [Algebra K L₁] [CommRing L₂] [Algebra K L₂]
+  {Γ₁ Γ₂ : Type u} [Group Γ₁] [Group Γ₂] (θ₁ : Γ₁ →* (L₁ ≃ₐ[K] L₁)) (θ₂ : Γ₂ →* (L₂ ≃ₐ[K] L₂))
+  (K' : Type u) [Field K'] [Algebra K K']
+
+/-- The action of `(Γ₁ × Γ₂) × Gal(K'/K)` on `(L₁ ⊗ L₂) ⊗ K'`. -/
+def commonθ : (Γ₁ × Γ₂) × (K' ≃ₐ[K] K') →*
+    (TensorProduct K (TensorProduct K L₁ L₂) K' ≃ₐ[K] TensorProduct K (TensorProduct K L₁ L₂) K') :=
+  (tensorAlgEquivHom (TensorProduct K L₁ L₂) K').comp
+    (((tensorAlgEquivHom L₁ L₂).comp (θ₁.prodMap θ₂)).prodMap (MonoidHom.id _))
+
+lemma commonθ_tmul (x : (Γ₁ × Γ₂) × (K' ≃ₐ[K] K')) (l₁ : L₁) (l₂ : L₂) (k : K') :
+    commonθ θ₁ θ₂ K' x ((l₁ ⊗ₜ[K] l₂) ⊗ₜ[K] k) = (θ₁ x.1.1 l₁ ⊗ₜ[K] θ₂ x.1.2 l₂) ⊗ₜ[K] x.2 k :=
+  rfl
+
+lemma commonθ_eq_one [Nontrivial L₁] [Nontrivial L₂] {x : (Γ₁ × Γ₂) × (K' ≃ₐ[K] K')}
+    (hx : commonθ θ₁ θ₂ K' x = 1) : θ₁ x.1.1 = 1 ∧ θ₂ x.1.2 = 1 := by
+  constructor
+  · refine AlgEquiv.ext fun l => ?_
+    have := congr(($hx) ((l ⊗ₜ[K] (1 : L₂)) ⊗ₜ[K] (1 : K')))
+    rw [commonθ_tmul, map_one, map_one] at this
+    exact Algebra.TensorProduct.includeLeft_injective (S := K) (algebraMap K L₂).injective
+      (Algebra.TensorProduct.includeLeft_injective (S := K) (algebraMap K K').injective this)
+  · refine AlgEquiv.ext fun l => ?_
+    have := congr(($hx) (((1 : L₁) ⊗ₜ[K] l) ⊗ₜ[K] (1 : K')))
+    rw [commonθ_tmul, map_one, map_one] at this
+    exact Algebra.TensorProduct.includeRight_injective (algebraMap K L₁).injective
+      (Algebra.TensorProduct.includeLeft_injective (S := K) (algebraMap K K').injective this)
+
+end Common
+
+section CommonLevel
+
+variable {K : Type u} [Field K] {O : ValuationSubring K}
+  {R : Type u} [CommRing R] [Algebra K R] {A : Type u} [Group A] [MulSemiringAction A R]
+  [SMulCommClass A K R]
+  {L₁ L₂ : Type u} [CommRing L₁] [Algebra K L₁] [CommRing L₂] [Algebra K L₂]
+  {Γ₁ Γ₂ : Type u} [Group Γ₁] [Group Γ₂] {θ₁ : Γ₁ →* (L₁ ≃ₐ[K] L₁)} {θ₂ : Γ₂ →* (L₂ ≃ₐ[K] L₂)}
+  {K' : Type u} [Field K'] [Algebra K K']
+  {Lv₁ Lv Lv₂ Lv' : Level O R A} (u : LevelHom O R A Lv Lv')
+  {e₁ : Lv₁.L.B ≃ₐ[R] TensorProduct K Lv.L.B L₁} {e₂ : Lv₂.L.B ≃ₐ[R] TensorProduct K Lv'.L.B L₂}
+  (hH₁ : ∀ x, x ∈ Lv₁.L.H ↔ ∃ (h : Lv.L.H) (γ : Γ₁),
+    x = SemilinearAut.transport e₁ (tensorAut L₁ ((h : SemilinearAut R A Lv.L.B), θ₁ γ)))
+  (hH₂ : ∀ x, x ∈ Lv₂.L.H ↔ ∃ (h : Lv'.L.H) (γ : Γ₂),
+    x = SemilinearAut.transport e₂ (tensorAut L₂ ((h : SemilinearAut R A Lv'.L.B), θ₂ γ)))
+  [Algebra.Etale R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  [Module.Finite R (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))]
+  (D : LevelData R A O (TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K'))
+    (Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))))
+  (hΦ : ∀ x, D.Φ x = tensorAut (TensorProduct K (TensorProduct K L₁ L₂) K')
+    ((x.1 : SemilinearAut R A Lv.L.B), commonθ θ₁ θ₂ K' x.2))
+
+/-- The map of groups to `H₁`. -/
+def commonF₁ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K')) →* Lv₁.L.H :=
+  ((SemilinearAut.transport e₁).comp ((tensorAut L₁).comp (Lv.L.H.subtype.prodMap
+    (θ₁.comp ((MonoidHom.fst _ _).comp (MonoidHom.fst _ _)))))).codRestrict Lv₁.L.H
+    fun x => (hH₁ _).2 ⟨x.1, x.2.1.1, rfl⟩
+
+lemma coe_commonF₁ (x : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) :
+    (commonF₁ hH₁ x : SemilinearAut R A Lv₁.L.B) =
+      SemilinearAut.transport e₁ (tensorAut L₁ ((x.1 : SemilinearAut R A Lv.L.B), θ₁ x.2.1.1)) :=
+  rfl
+
+include hΦ in
+lemma commonΦ_eq_one [Nontrivial L₁] [Nontrivial L₂] {x} (hx : D.Φ x = 1) :
+    x.1 = 1 ∧ (Nontrivial Lv.L.B → θ₁ x.2.1.1 = 1 ∧ θ₂ x.2.1.2 = 1) := by
+  rw [hΦ] at hx
+  haveI : Nontrivial (TensorProduct K (TensorProduct K L₁ L₂) K') :=
+    Algebra.TensorProduct.includeLeft_injective (S := K) (algebraMap K K').injective
+      |>.nontrivial
+  exact ⟨Subtype.ext (tensorAut_eq_one_fst hx), fun _ =>
+    commonθ_eq_one θ₁ θ₂ K' (tensorAut_eq_one_snd hx)⟩
+
+include hΦ in
+lemma commonF₁_ker [Nontrivial L₁] [Nontrivial L₂] (x) (hx : D.Φ x = 1) :
+    commonF₁ hH₁ x = 1 := by
+  obtain ⟨h1, h2⟩ := commonΦ_eq_one D hΦ hx
+  apply Subtype.ext
+  rw [coe_commonF₁]
+  rcases subsingleton_or_nontrivial Lv.L.B with hB | hB
+  · rw [tensorAut_eq_one_of_subsingleton _ (by rw [h1]; rfl), map_one]
+    rfl
+  · rw [h1, (h2 hB).1]
+    exact (congrArg _ (map_one (tensorAut (A := A) (B := Lv.L.B) L₁))).trans (map_one _)
+
+variable (Lv L₁ L₂ K') in
+/-- `B ⊗ (L₁ ⊗ L₂) → B ⊗ ((L₁ ⊗ L₂) ⊗ K')`. -/
+def commonML : TensorProduct K Lv.L.B (TensorProduct K L₁ L₂) →ₐ[R]
+    TensorProduct K Lv.L.B (TensorProduct K (TensorProduct K L₁ L₂) K') :=
+  Algebra.TensorProduct.map (AlgHom.id R Lv.L.B)
+    (Algebra.TensorProduct.includeLeft : TensorProduct K L₁ L₂ →ₐ[K] _)
+
+variable (Lv L₁ L₂) in
+/-- `B ⊗ L₁ → B ⊗ (L₁ ⊗ L₂)`. -/
+def commonM₁ : TensorProduct K Lv.L.B L₁ →ₐ[R] TensorProduct K Lv.L.B (TensorProduct K L₁ L₂) :=
+  Algebra.TensorProduct.map (AlgHom.id R Lv.L.B)
+    (Algebra.TensorProduct.includeLeft : L₁ →ₐ[K] TensorProduct K L₁ L₂)
+
+variable (L₁ L₂) in
+/-- `B' ⊗ L₂ → B ⊗ (L₁ ⊗ L₂)` along `u`. -/
+def commonM₂ : TensorProduct K Lv'.L.B L₂ →ₐ[R] TensorProduct K Lv.L.B (TensorProduct K L₁ L₂) :=
+  Algebra.TensorProduct.map u.φ.f
+    (Algebra.TensorProduct.includeRight : L₂ →ₐ[K] TensorProduct K L₁ L₂)
+
+set_option synthInstance.maxHeartbeats 200000 in
+include hΦ in
+lemma commonσ₁ (γ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (z : TensorProduct K Lv.L.B L₁) :
+    commonML L₁ L₂ K' Lv (commonM₁ L₁ L₂ Lv
+      ((tensorAut L₁ ((γ.1 : SemilinearAut R A Lv.L.B), θ₁ γ.2.1.1)).σ z)) =
+      (D.Φ γ).σ (commonML L₁ L₂ K' Lv (commonM₁ L₁ L₂ Lv z)) := by
+  rw [hΦ]
+  induction z using TensorProduct.induction_on with
+  | zero => simp only [map_zero]
+  | add y z hy hz => simp only [map_add, hy, hz]
+  | tmul b l =>
+    rw [tensorAut_σ_tmul]
+    change (γ.1 : SemilinearAut R A Lv.L.B).σ b ⊗ₜ[K] ((θ₁ γ.2.1.1 l ⊗ₜ[K] (1 : L₂)) ⊗ₜ[K]
+      (1 : K')) = (tensorAut _ ((γ.1 : SemilinearAut R A Lv.L.B), commonθ θ₁ θ₂ K' γ.2)).σ
+        (b ⊗ₜ[K] ((l ⊗ₜ[K] (1 : L₂)) ⊗ₜ[K] (1 : K')))
+    rw [tensorAut_σ_tmul, commonθ_tmul, map_one, map_one]
+
+variable (e₁) in
+/-- The ring map `B₁ → B₃`. -/
+def commonF₁f : Lv₁.L.B →ₐ[R] D.finiteLevel.B :=
+  (LevelData.codeEquiv R _).symm.toAlgHom.comp
+    ((commonML L₁ L₂ K' Lv).comp ((commonM₁ L₁ L₂ Lv).comp e₁.toAlgHom))
+
+include hΦ in
+lemma commonF₁f_σ (γ : Lv.L.H × ((Γ₁ × Γ₂) × (K' ≃ₐ[K] K'))) (y : Lv₁.L.B) :
+    commonF₁f e₁ D ((commonF₁ hH₁ γ : SemilinearAut R A Lv₁.L.B).σ y) =
+      ((D.proj γ : D.finiteLevel.H) : SemilinearAut R A D.finiteLevel.B).σ (commonF₁f e₁ D y) := by
+  rw [LevelData.proj_σ, coe_commonF₁]
+  change (LevelData.codeEquiv R _).symm (commonML L₁ L₂ K' Lv (commonM₁ L₁ L₂ Lv
+    (e₁ (e₁.symm ((tensorAut L₁ ((γ.1 : SemilinearAut R A Lv.L.B), θ₁ γ.2.1.1)).σ
+      (e₁ y)))))) = (LevelData.codeEquiv R _).symm ((D.Φ γ).σ ((LevelData.codeEquiv R _)
+      ((LevelData.codeEquiv R _).symm (commonML L₁ L₂ K' Lv (commonM₁ L₁ L₂ Lv (e₁ y))))))
+  rw [AlgEquiv.apply_symm_apply, AlgEquiv.apply_symm_apply, commonσ₁ D hΦ]
+
+/-- The morphism of levels `B₃ ⟶ B₁`. -/
+def commonφ₁ [Nontrivial L₁] [Nontrivial L₂] : D.finiteLevel ⟶ Lv₁.L where
+  f := commonF₁f e₁ D
+  r := D.lift (commonF₁ hH₁) (commonF₁_ker hH₁ D hΦ)
+  r_a := D.proj_surjective.forall.2 fun γ => by
+    have h1 := D.lift_proj (commonF₁ hH₁) (commonF₁_ker hH₁ D hΦ) γ
+    simp only [h1]
+    rw [coe_commonF₁, LevelData.proj_a, hΦ]
+    rfl
+  f_σ := D.proj_surjective.forall.2 fun γ y => by
+    have h1 := D.lift_proj (commonF₁ hH₁) (commonF₁_ker hH₁ D hΦ) γ
+    simp only [h1]
+    exact commonF₁f_σ hH₁ D hΦ γ y
+
+lemma commonφ₁_r [Nontrivial L₁] [Nontrivial L₂] (γ) :
+    (commonφ₁ hH₁ D hΦ).r (D.proj γ) = commonF₁ hH₁ γ :=
+  D.lift_proj _ (commonF₁_ker hH₁ D hΦ) γ
+
+end CommonLevel
 
 section Core
 
@@ -657,8 +825,8 @@ theorem exists_core (hW : SemistableReduction.Statement.Strong.{u}) (hR : ringKr
         (ν x.1, tensorAlgEquivHom M K' (θ x.2.1, x.2.2))) ∧
       (∀ i, dom i ≫ (c₀ i).toSpec = D.c.toSpec) ∧
       (∀ i, D.j ≫ dom i = Spec.map (CommRingCat.ofHom ((Algebra.TensorProduct.map
-        (AlgHom.id K B₀) (Algebra.TensorProduct.includeLeft : M →ₐ[K] TensorProduct K M K') :
-          TensorProduct K B₀ M →ₐ[K] TensorProduct K B₀ (TensorProduct K M K')).toRingHom)) ≫
+        (AlgHom.id R B₀) (Algebra.TensorProduct.includeLeft : M →ₐ[K] TensorProduct K M K') :
+          TensorProduct K B₀ M →ₐ[R] TensorProduct K B₀ (TensorProduct K M K')).toRingHom)) ≫
         j₀ i) := by
   let B := TensorProduct K B₀ M
   haveI : Algebra.Etale R B := Algebra.Etale.comp R B₀ B
