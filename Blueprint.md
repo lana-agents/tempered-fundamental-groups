@@ -1595,3 +1595,31 @@ harmonic, `WData.isHarmonicWeight`), `Andre/LengthW.lean` (`lenW`, `lenW_self`,
 (X1) by path lifting in the trees, plus surjectivity of level maps on geometric points) and the
 base loop `hbase` (one pointed member over `(X₀, x₀)` has a fibre element over `δ(n) x₀`); the
 reduction of the loop to these is `exists_loop_of_lift`.
+
+#### 10.3.7 B5 status after the length construction: the Tate loop is blocked as designed
+
+`lenW` measures tree distance from the base point's vertex `vtx(g)` (`Andre/LengthW.lean`). It
+is monotone and has finite sublevel sets, but the loop hypotheses fail:
+
+* **`hlift` is false.** Blow up a member at `sp(t₀)`. The base point then specialises onto a
+  contracted component, and every lift of a length-0 element has length at least `μ > 0`.
+* **`hloop` (a uniform bound `ℓ₀`) fails.** Refine with Gauss points centred at `x(t₀)` with
+  radii tending to 0. Elements over `δ(n)·x₀` then need length about `2·log(r₀/r_k)`, which is
+  unbounded.
+
+The base point is a type-I point, and its retraction to the skeleton moves under refinement.
+
+* **`hbase`.** A surjective map with finitely many components per fibre does not force a
+  nonzero stabiliser. Example: a chain of two `P¹`'s mapping onto a 2-gon. What is needed is
+  harmonicity of positive degree of the map onto the Tate `n`-gon, so that `H₁` maps with finite
+  index.
+
+**Options.**
+1. **Core-anchored length.** Use `len_p(πg) = d(a_p, π a_p)` with `a_p = proj_{Core_p} vtx(g)`.
+   It has finite sublevel sets. Monotonicity can fail where hanging trees of `p` map into
+   `Core_q`; the error is `2·d(a_q, proj b)`. This needs an extra argument (e.g. `p` refined so
+   that hanging trees are contracted over `q`) or a different anchor.
+2. **Translation length on the axis.** Use `S_p = {πg : π ↦ δ(1), τ(π) ≤ ℓ₀, axis(π) passes
+   within D of a_p}`. Finiteness and maps need the same anchor compatibility.
+3. **Make the Tate level a W-level** on the chosen x-line, together with harmonicity of
+   positive degree onto it. This gives `hbase`, and `X₀` becomes a member.
