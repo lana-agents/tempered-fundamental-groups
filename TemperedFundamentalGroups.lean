@@ -143,3 +143,4 @@ import TemperedFundamentalGroups.Topology.CurveCovering
 import TemperedFundamentalGroups.Topology.GenericLift
 import TemperedFundamentalGroups.Topology.TreeLength
 import TemperedFundamentalGroups.Topology.UniversalCovering
+import TemperedFundamentalGroups.Topology.UniversalLength
