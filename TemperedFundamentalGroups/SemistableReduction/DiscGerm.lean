@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.Splitting
 import TemperedFundamentalGroups.SemistableReduction.SplitDisc
+import TemperedFundamentalGroups.SemistableReduction.CompletionAlgClosed
 
 /-!
 # Analytic germs at degree-one disc points
@@ -29,10 +30,11 @@ to `1` there and to `0` at the other factors); their coefficients converge in `C
   polynomial in `t` at `w_{a,|c'|}` is `max_i |qᵢ| (|c'|/|c|)^i`; `isDiscVal_gaussRat`,
   `gaussDiscVal`; `exists_norm_mem`: norms of `C` are dense below `1`;
 * `norm_trace_sub_le`: the approximation step at a degree-one factor;
-* **`exists_germ`**, **`exists_germ_gaussNorm`** (`C` complete and algebraically closed): the germ
-  `G` exists, its truncations converge to `y` at the extension centred at `P'` of every disc
-  valuation, and at every Gauss point `w_{a,|l c|}` the value of `y` there is the Gauss norm
-  `sup_i |aᵢ| |l|^i` of `G`.
+* **`exists_germ`**, **`exists_germ_gaussNorm`** (`C` need not be complete or algebraically
+  closed, §9.11): the polynomials `Qₙ = Tr(Nⁿ(e) y)` converge to `y` at the extension centred at
+  `P'` of every disc valuation; their coefficients converge in the completion `Ĉ` to the germ
+  `G ∈ Ĉ[[X]]`, uniformly on every disc `|t| ≤ |l| < 1`; at every Gauss point `w_{a,|l c|}` the
+  value of `y` there is the Gauss norm `sup_i |aᵢ| |l|^i` of `G`.
 -/
 
 open Polynomial NNReal IntermediateField
@@ -417,6 +419,8 @@ section Main
 
 open LocalGlobal TubeCount DenseCompletion Filter Topology
 
+local notation "Ĉ" => UniformSpace.Completion C
+
 variable {F' : Type*} [Field F'] [Algebra (RatFunc C) F'] [FiniteDimensional (RatFunc C) F']
   [Algebra.IsSeparable (RatFunc C) F']
 
@@ -444,20 +448,22 @@ lemma eq_of_center {hc : c ≠ 0} {ν₀ : DiscVal a c} {P' : Ideal (DRint a c F
   rw [huniq g ⟨hg, natDegree_eq_one_of_center (hc := hc) h1 ν hg⟩,
     huniq g' ⟨hg', natDegree_eq_one_of_center (hc := hc) h1 ν hg'⟩]
 
-variable [CompleteSpace C] [IsAlgClosed C]
-
 /-- **The analytic germ at a degree-one disc point.** Let `P'` be a point of the integral closure
 `R'` of `O_C[t]`, `t = (x - a)/c`, of disc degree one (at one, hence every, disc valuation), and
-`y ∈ R'`. There is a power series `G = Σ aᵢ Xⁱ` with `|aᵢ| ≤ 1` such that for every disc valuation
-`ν` (any type) and the factor `g` of `ν` centred at `P'`, the polynomials `Σ_{i<N} aᵢ tⁱ`
-converge to `y` in the completion `K[X]/(g) = K` of `F'` at the extension of `ν` centred at `P'`. -/
+`y ∈ R'`. There are polynomials `Qₙ ∈ O_C[t]` converging to `y` in the completion of `F'` at the
+extension centred at `P'` of every disc valuation `ν` (any type), and a power series
+`G = Σ aᵢ Xⁱ` over the completion `Ĉ` of `C` (`C` need not be complete), `|aᵢ| ≤ 1`, to which the
+`Qₙ` converge uniformly on every disc `|t| ≤ |l| < 1`: `|aᵢ - qₙᵢ| |l|^i ≤ q^(2ⁿ)`, `q < 1`. -/
 theorem exists_germ (hc : c ≠ 0) (ν₀ : DiscVal a c) (P' : Ideal (DRint a c F')) [P'.IsMaximal]
     (h1 : discDegree ν₀ P' = 1) (y : DRint a c F') :
-    ∃ G : PowerSeries C, (∀ i, ‖PowerSeries.coeff i G‖₊ ≤ 1) ∧
+    ∃ (G : PowerSeries Ĉ) (Q : ℕ → C[X]), (∀ i, ‖PowerSeries.coeff i G‖₊ ≤ 1) ∧
+      (∀ n i, ‖(Q n).coeff i‖₊ ≤ 1) ∧
+      (∀ l : C, l ≠ 0 → ‖l‖ < 1 → ∃ q : ℝ, 0 ≤ q ∧ q < 1 ∧
+        ∀ n i, ‖PowerSeries.coeff i G - ((Q n).coeff i : Ĉ)‖ * ‖l‖ ^ i ≤ q ^ (2 ^ n)) ∧
       ∀ (ν : DiscVal a c) (g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) F'),
         center (isDiscVal_comap_extValuation g) = P' →
-        Tendsto (fun N ↦ toLocal g (algebraMap (RatFunc C) F'
-          (aeval (gaussCoord a c) (PowerSeries.trunc N G)))) atTop (𝓝 (toLocal g (y : F'))) := by
+        Tendsto (fun n ↦ toLocal g (algebraMap (RatFunc C) F' (aeval (gaussCoord a c) (Q n))))
+          atTop (𝓝 (toLocal g (y : F'))) := by
   classical
   -- Step 1: a separating element
   set T : Finset (Ideal (DRint a c F')) :=
@@ -582,95 +588,46 @@ theorem exists_germ (hc : c ≠ 0) (ν₀ : DiscVal a c) (P' : Ideal (DRint a c 
           rw [← sub_sub_sub_cancel_right _ _ (toLocal gl (y : F'))]
           exact Idem.norm_sub_le_max' _ _
       _ ≤ _ := max_le_max (hest νl gl hgl' n) (hest νl gl hgl' m)
-  -- Step 5: the coefficients converge
+  -- Step 5: the coefficients converge in `Ĉ`
   obtain ⟨l₀, hl₀0, hl₀1⟩ : ∃ l : C, 0 < ‖l‖ ∧ ‖l‖ < 1 := NormedField.exists_norm_lt_one C
   obtain ⟨q₀, hq₀0, hq₀1, hc₀⟩ := hgauss l₀ (norm_pos_iff.1 hl₀0) hl₀1
-  have hcauchy : ∀ i, CauchySeq fun n ↦ (Q n).coeff i := by
+  have hcauchy : ∀ i, CauchySeq fun n ↦ ((Q n).coeff i : Ĉ) := by
     intro i
+    refine (UniformSpace.Completion.uniformContinuous_coe C).comp_cauchySeq ?_
     refine cauchySeq_of_le_tendsto_0 (fun N ↦ q₀ ^ (2 ^ N) / ‖l₀‖ ^ i) (fun n m N hn hm ↦ ?_)
       (by simpa using (tendsto_pow_two_pow hq₀0 hq₀1).div_const (‖l₀‖ ^ i))
     rw [dist_eq_norm, le_div_iff₀ (pow_pos hl₀0 i)]
     exact (hc₀ n m i).trans (max_le (pow_two_pow_anti hq₀0 hq₀1.le hn)
       (pow_two_pow_anti hq₀0 hq₀1.le hm))
   choose A hA using fun i ↦ cauchySeq_tendsto_of_complete (hcauchy i)
-  refine ⟨PowerSeries.mk A, fun i ↦ ?_, fun ν g hg ↦ ?_⟩
+  refine ⟨PowerSeries.mk A, Q, fun i ↦ ?_, hQ1, fun l hl0 hl1 ↦ ?_, fun ν g hg ↦ ?_⟩
   · rw [PowerSeries.coeff_mk]
-    have : ‖A i‖ ≤ 1 := le_of_tendsto' ((hA i).norm) fun n ↦ by exact_mod_cast hQ1 n i
+    have : ‖A i‖ ≤ 1 := le_of_tendsto' ((hA i).norm) fun n ↦ by
+      rw [UniformSpace.Completion.norm_coe]
+      exact_mod_cast hQ1 n i
     exact_mod_cast this
-  -- the limit bound at an arbitrary radius `l`
-  have hAbound : ∀ l : C, l ≠ 0 → ∀ q : ℝ, 0 ≤ q → q < 1 → (∀ n m i,
-      ‖(Q n).coeff i - (Q m).coeff i‖ * ‖l‖ ^ i ≤ max (q ^ (2 ^ n)) (q ^ (2 ^ m))) →
-      ∀ n i, ‖A i - (Q n).coeff i‖ * ‖l‖ ^ i ≤ q ^ (2 ^ n) := by
-    intro l _ q hq0 hq1 hcl n i
+  · -- uniform convergence on `|t| ≤ |l|`
+    obtain ⟨q, hq0, hq1, hcl⟩ := hgauss l hl0 hl1
+    refine ⟨q, hq0, hq1, fun n i ↦ ?_⟩
+    rw [PowerSeries.coeff_mk]
     have hlim : Tendsto (fun m ↦ ‖(Q m).coeff i - (Q n).coeff i‖ * ‖l‖ ^ i) atTop
-        (𝓝 (‖A i - (Q n).coeff i‖ * ‖l‖ ^ i)) :=
-      (((hA i).sub_const _).norm).mul_const _
+        (𝓝 (‖A i - ((Q n).coeff i : Ĉ)‖ * ‖l‖ ^ i)) := by
+      have := (((hA i).sub_const ((Q n).coeff i : Ĉ)).norm).mul_const (‖l‖ ^ i)
+      refine this.congr fun m ↦ ?_
+      rw [← UniformSpace.Completion.coe_sub, UniformSpace.Completion.norm_coe]
     refine le_of_tendsto hlim (eventually_atTop.2 ⟨n, fun m hm ↦ ?_⟩)
     exact (hcl m n i).trans (max_le (pow_two_pow_anti hq0 hq1.le hm) le_rfl)
-  -- Step 6: convergence at `ν`
-  set θ : ℝ := (ν.val (gaussCoord a c) : ℝ)
-  have hθ0 : 0 ≤ θ := (ν.val (gaussCoord a c)).2
-  have hθ1 : θ < 1 := by exact_mod_cast ν.isDiscVal.X_lt_one
-  obtain ⟨l, hl0, hθl, hl1⟩ := exists_norm_mem (C := C) hθ1
-  obtain ⟨ql, hql0, hql1, hcl⟩ := hgauss l hl0 hl1
-  have hAl := hAbound l hl0 ql hql0 hql1 hcl
-  have hqν0 : (0 : ℝ) ≤ qq ν := (qq ν).2
-  have hqν1 : (qq ν : ℝ) < 1 := by exact_mod_cast hqq1 ν
-  rw [Metric.tendsto_atTop]
-  intro ε hε
-  obtain ⟨n, hn⟩ :=
-    (((tendsto_pow_two_pow hql0 hql1).max (tendsto_pow_two_pow hqν0 hqν1)).eventually
-    (gt_mem_nhds (by rw [max_self]; exact hε))).exists
-  obtain ⟨N₀, hN₀⟩ := ((tendsto_pow_atTop_nhds_zero_of_lt_one hθ0 hθ1).eventually
-    (gt_mem_nhds hε)).exists
-  refine ⟨N₀, fun N hN ↦ ?_⟩
-  rw [dist_eq_norm]
-  set PA := aeval (gaussCoord a c) (PowerSeries.trunc N (PowerSeries.mk A))
-  set PB := aeval (gaussCoord a c) (PowerSeries.trunc N (Q n : PowerSeries C))
-  set PC := aeval (gaussCoord a c) (Q n)
-  have h1' : ‖toLocal g (algebraMap (RatFunc C) F' PA) - toLocal g (algebraMap (RatFunc C) F' PB)‖
-      ≤ ql ^ (2 ^ n) := by
-    rw [← map_sub, ← map_sub, norm_toLocal_algebraMap, ← map_sub]
-    refine valuation_aeval_le' ν.isDiscVal fun i ↦ ?_
-    rw [coeff_sub, PowerSeries.coeff_trunc, PowerSeries.coeff_trunc, PowerSeries.coeff_mk,
-      Polynomial.coeff_coe]
-    split_ifs
-    · exact (mul_le_mul_of_nonneg_left (pow_le_pow_left₀ hθ0 hθl i) (norm_nonneg _)).trans
-        (hAl n i)
-    · simp only [sub_self, norm_zero, zero_mul]
-      exact pow_nonneg hql0 _
-  have h2' : ‖toLocal g (algebraMap (RatFunc C) F' PB) - toLocal g (algebraMap (RatFunc C) F' PC)‖
-      ≤ θ ^ N := by
-    rw [← map_sub, ← map_sub, norm_toLocal_algebraMap, ← map_sub]
-    refine valuation_aeval_le' ν.isDiscVal fun i ↦ ?_
-    rw [coeff_sub, PowerSeries.coeff_trunc, Polynomial.coeff_coe]
-    split_ifs with hi
-    · simp only [sub_self, norm_zero, zero_mul]
-      exact pow_nonneg hθ0 _
-    · rw [zero_sub, norm_neg]
-      have hq : ‖(Q n).coeff i‖ ≤ 1 := by exact_mod_cast hQ1 n i
-      exact (mul_le_of_le_one_left (pow_nonneg hθ0 _) hq).trans
-        (pow_le_pow_of_le_one hθ0 hθ1.le (not_lt.1 hi))
-  have h3' := hest ν g hg n
-  have htot : ‖toLocal g (algebraMap (RatFunc C) F' PA) - toLocal g (y : F')‖ ≤
-      max (ql ^ (2 ^ n)) (max (θ ^ N) ((qq ν : ℝ) ^ (2 ^ n))) := by
-    rw [← sub_add_sub_cancel _ (toLocal g (algebraMap (RatFunc C) F' PB)),
-      ← sub_add_sub_cancel (toLocal g (algebraMap (RatFunc C) F' PB))
-        (toLocal g (algebraMap (RatFunc C) F' PC))]
-    refine (IsUltrametricDist.norm_add_le_max _ _).trans (max_le_max h1' ?_)
-    exact (IsUltrametricDist.norm_add_le_max _ _).trans (max_le_max h2' h3')
-  refine htot.trans_lt (max_lt ?_ (max_lt ?_ ?_))
-  · exact (le_max_left _ _).trans_lt hn
-  · exact (pow_le_pow_of_le_one hθ0 hθ1.le hN).trans_lt hN₀
-  · exact (le_max_right _ _).trans_lt hn
+  · -- convergence at `ν`
+    have hqν0 : (0 : ℝ) ≤ qq ν := (qq ν).2
+    have hqν1 : (qq ν : ℝ) < 1 := by exact_mod_cast hqq1 ν
+    rw [tendsto_iff_norm_sub_tendsto_zero]
+    exact squeeze_zero (fun _ ↦ norm_nonneg _) (hest ν g hg) (tendsto_pow_two_pow hqν0 hqν1)
 
-omit [CompleteSpace C] [IsAlgClosed C] in
 /-- The Gauss point `w_{a,|l c|}`, `0 < |l| < 1`, as a disc valuation. -/
 noncomputable def gaussDiscVal (hc : c ≠ 0) {l : C} (hl0 : l ≠ 0) (hl1 : ‖l‖ < 1) : DiscVal a c :=
   ⟨_, isDiscVal_gaussRat (a := a) hc (mul_ne_zero hl0 hc)
     (by rw [norm_mul]; exact mul_lt_of_lt_one_left (norm_pos_iff.2 hc) hl1)⟩
 
-omit [CompleteSpace C] [IsAlgClosed C] in
 /-- At the Gauss point `w_{a,|l c|}` the value of a polynomial `Q(t)` is bounded by any common
 bound of the terms `|qᵢ| |l|^i`. -/
 lemma gaussRat_aeval_le_of_terms (hc : c ≠ 0) {l : C} (hl : l ≠ 0) (Q : C[X]) {M : ℝ}
@@ -690,57 +647,90 @@ lemma gaussRat_aeval_le_of_terms (hc : c ≠ 0) {l : C} (hl : l ≠ 0) (Q : C[X]
 
 /-- **The germ in valuation terms.** In the situation of `exists_germ`, at every Gauss point
 `w_{a,|l c|}` (`0 < |l| < 1`) the value of `y` at the extension centred at `P'` is the Gauss norm
-`sup_i |aᵢ| |l|^i` of the germ. -/
+`sup_i |aᵢ| |l|^i` of the germ `G` (a power series over the completion `Ĉ`). -/
 theorem exists_germ_gaussNorm (hc : c ≠ 0) (ν₀ : DiscVal a c) (P' : Ideal (DRint a c F'))
     [P'.IsMaximal] (h1 : discDegree ν₀ P' = 1) (y : DRint a c F') :
-    ∃ G : PowerSeries C, (∀ i, ‖PowerSeries.coeff i G‖₊ ≤ 1) ∧
-      (∀ (ν : DiscVal a c)
-        (g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) F'),
+    ∃ (G : PowerSeries Ĉ) (Q : ℕ → C[X]), (∀ i, ‖PowerSeries.coeff i G‖₊ ≤ 1) ∧
+      (∀ n i, ‖(Q n).coeff i‖₊ ≤ 1) ∧
+      (∀ l : C, l ≠ 0 → ‖l‖ < 1 → ∃ q : ℝ, 0 ≤ q ∧ q < 1 ∧
+        ∀ n i, ‖PowerSeries.coeff i G - ((Q n).coeff i : Ĉ)‖ * ‖l‖ ^ i ≤ q ^ (2 ^ n)) ∧
+      (∀ (ν : DiscVal a c) (g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) F'),
         center (isDiscVal_comap_extValuation g) = P' →
-        Tendsto (fun N ↦ toLocal g (algebraMap (RatFunc C) F'
-          (aeval (gaussCoord a c) (PowerSeries.trunc N G)))) atTop (𝓝 (toLocal g (y : F')))) ∧
+        Tendsto (fun n ↦ toLocal g (algebraMap (RatFunc C) F' (aeval (gaussCoord a c) (Q n))))
+          atTop (𝓝 (toLocal g (y : F')))) ∧
       ∀ (l : C) (hl0 : l ≠ 0) (hl1 : ‖l‖ < 1)
         (g : Factor (DiscField (gaussDiscVal hc hl0 hl1))
           (UniformSpace.Completion (DiscField (gaussDiscVal hc hl0 hl1))) F'),
         center (isDiscVal_comap_extValuation g) = P' →
-        (extValuation g (y : F') : ℝ) = PowerSeries.gaussNorm (fun x : C ↦ ‖x‖) ‖l‖ G := by
-  obtain ⟨G, hG1, hG⟩ := exists_germ hc ν₀ P' h1 y
-  refine ⟨G, hG1, hG, fun l hl0 hl1 g hg ↦ ?_⟩
-  have hlim := (hG (gaussDiscVal hc hl0 hl1) g hg).norm
+        (extValuation g (y : F') : ℝ) = PowerSeries.gaussNorm (fun x : Ĉ ↦ ‖x‖) ‖l‖ G := by
+  obtain ⟨G, Q, hG1, hQ1, hunif, hconv⟩ := exists_germ hc ν₀ P' h1 y
+  refine ⟨G, Q, hG1, hQ1, hunif, hconv, fun l hl0 hl1 g hg ↦ ?_⟩
+  obtain ⟨q, hq0, hq1, hql⟩ := hunif l hl0 hl1
+  have hlim := (hconv (gaussDiscVal hc hl0 hl1) g hg).norm
   rw [extValuation_apply, coe_nnnorm, PowerSeries.gaussNorm_eq]
+  have hl0' : 0 ≤ ‖l‖ ^ 0 := pow_nonneg (norm_nonneg _) 0
   have hterm1 : ∀ i, ‖PowerSeries.coeff i G‖ * ‖l‖ ^ i ≤ 1 := fun i ↦
     mul_le_one₀ (by exact_mod_cast hG1 i) (pow_nonneg (norm_nonneg _) _)
       (pow_le_one₀ (norm_nonneg _) hl1.le)
   have hbdd : BddAbove (Set.range fun i ↦ ‖PowerSeries.coeff i G‖ * ‖l‖ ^ i) :=
     ⟨1, by rintro _ ⟨i, rfl⟩; exact hterm1 i⟩
-  -- the values along the truncations
-  have hval : ∀ N, ‖toLocal g (algebraMap (RatFunc C) F'
-      (aeval (gaussCoord a c) (PowerSeries.trunc N G)))‖ =
+  set gN := ⨆ i, ‖PowerSeries.coeff i G‖ * ‖l‖ ^ i
+  have hgN0 : 0 ≤ gN := (mul_nonneg (norm_nonneg _) hl0').trans (le_ciSup hbdd 0)
+  -- the values of the approximants
+  have hval : ∀ n, ‖toLocal g (algebraMap (RatFunc C) F' (aeval (gaussCoord a c) (Q n)))‖ =
       (gaussRat (NormedField.valuation (K := C)) a
         (Units.mk0 ‖l * c‖₊ (nnnorm_ne_zero_iff.2 (mul_ne_zero hl0 hc)))
-          (aeval (gaussCoord a c) (PowerSeries.trunc N G)) : ℝ) := fun N ↦
+          (aeval (gaussCoord a c) (Q n)) : ℝ) := fun n ↦
     norm_toLocal_algebraMap (gaussDiscVal hc hl0 hl1) g _
+  have hcoe (n i : ℕ) : ‖(Q n).coeff i‖ = ‖((Q n).coeff i : Ĉ)‖ :=
+    (UniformSpace.Completion.norm_coe _).symm
+  have hq2 (n : ℕ) : 0 ≤ q ^ (2 ^ n) := pow_nonneg hq0 _
   refine le_antisymm ?_ (ciSup_le fun i ↦ ?_)
-  · -- `≤`: every truncation is bounded by the Gauss norm
-    refine le_of_tendsto' hlim fun N ↦ ?_
-    rw [hval]
-    refine gaussRat_aeval_le_of_terms hc hl0 _ fun i ↦ ?_
-    rw [PowerSeries.coeff_trunc]
-    split_ifs
-    · exact le_ciSup hbdd i
-    · rw [norm_zero, zero_mul]
-      exact (mul_nonneg (norm_nonneg _) (pow_nonneg (norm_nonneg _) 0)).trans (le_ciSup hbdd 0)
-  · -- `≥`: each term is attained by the truncations beyond it
-    refine ge_of_tendsto hlim (eventually_atTop.2 ⟨i + 1, fun N hN ↦ ?_⟩)
-    rw [hval]
-    have h := le_gaussRat_aeval (a := a) hc (mul_ne_zero hl0 hc) (PowerSeries.trunc N G) i
-    rw [PowerSeries.coeff_trunc, if_pos (Nat.lt_of_succ_le hN)] at h
-    have hrat : (‖l * c‖₊ / ‖c‖₊ : ℝ≥0) = ‖l‖₊ := by
-      rw [nnnorm_mul, mul_div_cancel_right₀ _ (nnnorm_ne_zero_iff.2 hc)]
-    rw [hrat] at h
-    have h' := NNReal.coe_le_coe.2 h
-    push_cast at h'
-    exact h'
+  · -- `≤`
+    have hle (n : ℕ) : ‖toLocal g (algebraMap (RatFunc C) F' (aeval (gaussCoord a c) (Q n)))‖ ≤
+        max gN (q ^ (2 ^ n)) := by
+      rw [hval]
+      refine gaussRat_aeval_le_of_terms hc hl0 _ fun i ↦ ?_
+      have h := Idem.norm_sub_le_max' (PowerSeries.coeff i G)
+        (PowerSeries.coeff i G - ((Q n).coeff i : Ĉ))
+      rw [sub_sub_cancel] at h
+      rw [hcoe]
+      calc ‖((Q n).coeff i : Ĉ)‖ * ‖l‖ ^ i ≤
+            max ‖PowerSeries.coeff i G‖ ‖PowerSeries.coeff i G - ((Q n).coeff i : Ĉ)‖ *
+              ‖l‖ ^ i := mul_le_mul_of_nonneg_right h (pow_nonneg (norm_nonneg _) _)
+        _ = max (‖PowerSeries.coeff i G‖ * ‖l‖ ^ i)
+              (‖PowerSeries.coeff i G - ((Q n).coeff i : Ĉ)‖ * ‖l‖ ^ i) :=
+            max_mul_of_nonneg _ _ (pow_nonneg (norm_nonneg _) _)
+        _ ≤ _ := max_le_max (le_ciSup hbdd i) (hql n i)
+    have h := le_of_tendsto_of_tendsto' hlim
+      (tendsto_const_nhds.max (tendsto_pow_two_pow hq0 hq1)) hle
+    rwa [max_eq_left hgN0] at h
+  · -- `≥`
+    have hge (n : ℕ) : ‖PowerSeries.coeff i G‖ * ‖l‖ ^ i ≤
+        max ‖toLocal g (algebraMap (RatFunc C) F' (aeval (gaussCoord a c) (Q n)))‖
+          (q ^ (2 ^ n)) := by
+      have h := Idem.norm_sub_le_max' (PowerSeries.coeff i G - ((Q n).coeff i : Ĉ))
+        (-((Q n).coeff i : Ĉ))
+      rw [sub_neg_eq_add, sub_add_cancel, norm_neg] at h
+      have hle := le_gaussRat_aeval (a := a) hc (mul_ne_zero hl0 hc) (Q n) i
+      have hrat : (‖l * c‖₊ / ‖c‖₊ : ℝ≥0) = ‖l‖₊ := by
+        rw [nnnorm_mul, mul_div_cancel_right₀ _ (nnnorm_ne_zero_iff.2 hc)]
+      rw [hrat] at hle
+      have hle' := NNReal.coe_le_coe.2 hle
+      push_cast at hle'
+      rw [hval]
+      calc ‖PowerSeries.coeff i G‖ * ‖l‖ ^ i ≤
+            max ‖PowerSeries.coeff i G - ((Q n).coeff i : Ĉ)‖ ‖((Q n).coeff i : Ĉ)‖ * ‖l‖ ^ i :=
+            mul_le_mul_of_nonneg_right h (pow_nonneg (norm_nonneg _) _)
+        _ = max (‖PowerSeries.coeff i G - ((Q n).coeff i : Ĉ)‖ * ‖l‖ ^ i)
+              (‖((Q n).coeff i : Ĉ)‖ * ‖l‖ ^ i) :=
+            max_mul_of_nonneg _ _ (pow_nonneg (norm_nonneg _) _)
+        _ ≤ _ := by
+            rw [max_comm]
+            exact max_le_max (by rw [← hcoe]; exact hle') (hql n i)
+    have h := le_of_tendsto_of_tendsto' tendsto_const_nhds
+      (hlim.max (tendsto_pow_two_pow hq0 hq1)) hge
+    rwa [max_eq_left (norm_nonneg _)] at h
 
 end Main
 
