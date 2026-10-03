@@ -247,7 +247,8 @@ lemma red_aeval_coord {P : C[X]} (hP : Gauss.sup vC 1 P ≤ 1) (w : Ext C F) :
 
 lemma aeval_coord_mem_intRing {P : C[X]} (hP : Gauss.sup vC 1 P ≤ 1) :
     aeval (algebraMap (RatFunc C) F ζ) P ∈ intRing C F (algebraMap (RatFunc C) F ζ) :=
-  ⟨isIntegral_algebraMap (x := (⟨_, aeval_mem_adjoin_singleton C (algebraMap (RatFunc C) F ζ) (p := P)⟩ :
+  ⟨isIntegral_algebraMap (x := (⟨_, aeval_mem_adjoin_singleton C
+    (algebraMap (RatFunc C) F ζ) (p := P)⟩ :
       Algebra.adjoin C {algebraMap (RatFunc C) F ζ})),
     gnorm_le_iff.2 fun w ↦ by rw [valuation_aeval_coord hζ]; exact hP⟩
 
@@ -264,7 +265,7 @@ lemma transcendental_red_coord (w : Ext C F) :
   have := (red_eq_zero_iff hw.le).1 (by rw [red_aeval_coord hζ hP]; exact h)
   exact this.ne hw
 
-lemma valuation_sum_aeval_le {ι : Type*} [Fintype ι] {s : ι → F}
+lemma valuation_sum_aeval_le {ι : Type*} {s : ι → F}
     (hs1 : ∀ i, gnorm C (s i) ≤ 1) {P : ι → C[X]} (hP : ∀ i, Gauss.sup vC 1 (P i) ≤ 1)
     (w : Ext C F) (i : ι) : w.1 (aeval (algebraMap (RatFunc C) F ζ) (P i) * s i) ≤ 1 := by
   rw [map_mul, valuation_aeval_coord hζ]
@@ -319,10 +320,11 @@ lemma eq_zero_of_sum_red {ι : Type*} [Fintype ι] {s : ι → F} (hs : Orth C s
 
 /-- **Orthonormality from independent reductions**: if the reductions of `sᵢ` (of norm `≤ 1`)
 are independent over `k[z̄]`, then `s` is orthonormal. -/
-lemma orth_of_indep {ι : Type*} [Fintype ι] [DecidableEq ι] {s : ι → F}
+lemma orth_of_indep {ι : Type*} [Fintype ι] {s : ι → F}
     (hs1 : ∀ i, gnorm C (s i) ≤ 1)
     (hind : ∀ ψ : ι → 𝓀[X], (∀ w, ∑ i, aeval (red C (algebraMap (RatFunc C) F ζ) w) (ψ i) *
       red C (s i) w = 0) → ψ = 0) : Orth C s := by
+  classical
   intro φ
   refine le_antisymm ((gnorm_sum_le _ _).trans (Finset.sup_mono_fun fun i _ ↦ ?_)) ?_
   · rw [gnorm_smul]
@@ -431,11 +433,12 @@ variable [CharZero C] [FiniteDimensional (RatFunc C) F]
 omit [IsScalarTower C (RatFunc C) F] in
 /-- **The trace bound** (S7⁺.1): there is `Δ ∈ C[X]` of Gauss norm `1` such that for every
 element `a` of the chart ring, `Δ(ζ) · dᵢ*(a)` is a polynomial in `ζ` of Gauss norm `≤ 1`. -/
-theorem exists_trace_bound {ι : Type*} [Fintype ι] [DecidableEq ι]
+theorem exists_trace_bound {ι : Type*} [Fintype ι]
     (d : Module.Basis ι (RatFunc C) F) (hd : Orth C d)
     (hdi : ∀ i, d i ∈ intRing C F (algebraMap (RatFunc C) F ζ)) :
     ∃ Δ : C[X], Gauss.sup vC 1 Δ = 1 ∧ ∀ a ∈ intRing C F (algebraMap (RatFunc C) F ζ), ∀ i,
       ∃ P : C[X], Gauss.sup vC 1 P ≤ 1 ∧ aeval ζ Δ * d.repr a i = aeval ζ P := by
+  classical
   set R : Subring (RatFunc C) := (aeval ζ : C[X] →ₐ[C] RatFunc C).range.toSubring
   have htr (f : F) (hf : f ∈ intRing C F (algebraMap (RatFunc C) F ζ)) :
       Algebra.trace (RatFunc C) F f ∈ R := by
@@ -514,7 +517,7 @@ lemma aeval_mul_eq_sum {ι : Type*} [Fintype ι] (d : Module.Basis ι (RatFunc C
 
 /-- **The chart basis** (S7⁺.2): there is an orthonormal `C(X)`-basis `s` of `F` in the chart
 ring whose reductions span the reduced chart ring `redRing z` over `k[z̄]`. -/
-theorem exists_chartBasis {ι : Type*} [Fintype ι] [DecidableEq ι]
+theorem exists_chartBasis {ι : Type*} [Fintype ι]
     (b : Module.Basis ι (RatFunc C) F) (hb : Orth C b) :
     ∃ (n : ℕ) (s : Module.Basis (Fin n) (RatFunc C) F), Orth C s ∧
       (∀ j, s j ∈ intRing C F (algebraMap (RatFunc C) F ζ)) ∧
@@ -764,8 +767,10 @@ lemma aeval_coord_ne_zero {P : C[X]} (hP : P ≠ 0) : aeval (algebraMap (RatFunc
 omit [CharZero C] [FiniteDimensional (RatFunc C) F] [Fintype (Ext C F)]
   [IsScalarTower C (RatFunc C) F] hs hsi hspan in
 /-- Common denominators in `C[ζ]`. -/
-lemma exists_common_denom {ι : Type*} [Fintype ι] [DecidableEq ι] (φ : ι → RatFunc C) :
+lemma exists_common_denom {ι : Type*} [Finite ι] (φ : ι → RatFunc C) :
     ∃ Q : C[X], Q ≠ 0 ∧ ∃ R : ι → C[X], ∀ i, aeval ζ Q * φ i = aeval ζ (R i) := by
+  classical
+  haveI := Fintype.ofFinite ι
   choose p q hq hpq using fun i ↦ hζ.frac (φ i)
   refine ⟨∏ i, q i, Finset.prod_ne_zero_iff.2 fun i _ ↦ hq i,
     fun i ↦ p i * ∏ j ∈ Finset.univ.erase i, q j, fun i ↦ ?_⟩

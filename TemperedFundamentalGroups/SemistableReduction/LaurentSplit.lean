@@ -361,7 +361,8 @@ theorem exists_laurent_split (P : C[X]) {Qo Qi : C[X]} (hQo : Qo ≠ 0) (hQi : Q
     · left
       refine (natDegree_C_mul_le _ _).trans_lt ((natDegree_C_mul_le _ _).trans_lt ?_)
       exact natDegree_lt_natDegree hr0 hr₂
-  have hsep := sup_le_of_sep (A := A) hB hMi1 (by rw [hMi2, IsAlgClosed.card_roots_eq_natDegree]) hNo1 hNo2
+  have hsep := sup_le_of_sep (A := A) hB hMi1
+    (by rw [hMi2, IsAlgClosed.card_roots_eq_natDegree]) hNo1 hNo2
   rw [hφp, hφm, hgsum, map_div₀, map_div₀, gauss1_algebraMap, gauss1_algebraMap,
     gauss1_algebraMap, gauss1_algebraMap, hNo1, hMi1, div_one, div_one]
   exact hsep

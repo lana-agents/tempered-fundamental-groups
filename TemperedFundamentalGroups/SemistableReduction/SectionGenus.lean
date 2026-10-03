@@ -73,7 +73,7 @@ lemma red_mem_secSpace {m : ℕ} {f : F} (hf : f ∈ rrSpace (m • poleDivisor 
   have hfw : w.1 f ≤ 1 := (le_gnorm w f).trans hn
   have hxw : w.1 ((xF C F)⁻¹ ^ m) ≤ 1 := by rw [map_pow, valuation_xF_inv, one_pow]
   have hx0 : red C (xF C F) w ≠ 0 := fun h ↦ transcendental_red_x w (h ▸ isAlgebraic_zero)
-  show red C f w = _
+  change red C f w = _
   rw [red_mul hfw hxw, red_pow (valuation_xF_inv w).le, red_inv_xF, mul_left_comm, ← mul_pow,
     mul_inv_cancel₀ hx0, one_pow, mul_one]
 
@@ -155,7 +155,7 @@ lemma linearIndependent_of_red {n : ℕ} {f : Fin n → F} (hf1 : ∀ i, gnorm C
 variable [CharZero C]
 
 /-- **Every section lifts** (S7⁺.5): for `m ≫ 0`, `dim H_m = ℓ(m (x)_∞)`. -/
-theorem exists_finrank_secSpace_eq [DecidableEq ι] : ∃ m₀ : ℕ, ∀ m : ℕ, m₀ ≤ m →
+theorem exists_finrank_secSpace_eq : ∃ m₀ : ℕ, ∀ m : ℕ, m₀ ≤ m →
     Module.finrank 𝓀 (secSpace C F m) = ell (m • poleDivisor C (xF C F)) := by
   obtain ⟨m₀, hm₀⟩ := exists_lift (b := b) hb
   refine ⟨m₀, fun m hm ↦ le_antisymm ?_ ?_⟩
@@ -172,7 +172,8 @@ theorem exists_finrank_secSpace_eq [DecidableEq ι] : ∃ m₀ : ℕ, ∀ m : �
         exact congrFun hav w
       exact ⟨f, hf, hfn, funext fun w ↦ (hfa w).trans (congrFun hav w)⟩
     choose f hf hfn hfB using hlift
-    have hli : LinearIndependent C fun i ↦ (⟨f i, hf i⟩ : rrSpace (m • poleDivisor C (xF C F))) := by
+    have hli : LinearIndependent C fun i ↦
+        (⟨f i, hf i⟩ : rrSpace (m • poleDivisor C (xF C F))) := by
       refine LinearIndependent.of_comp (rrSpace (m • poleDivisor C (xF C F))).subtype ?_
       refine linearIndependent_of_red (f := f) hfn ?_
       have hfun : (fun i ↦ (fun w ↦ red C (f i) w :
@@ -188,7 +189,7 @@ theorem exists_finrank_secSpace_eq [DecidableEq ι] : ∃ m₀ : ℕ, ∀ m : �
 
 /-- **The genus formula with total `δ`** (S7⁺.6): for `m ≫ 0`,
 `g(F) + #{w} - 1 = Σ_w g(κ(w)) + codim_{W_m} H_m`. -/
-theorem genus_add_card_sub_one_eq [DecidableEq ι]
+theorem genus_add_card_sub_one_eq
     (hsum : ∑ w : Ext C F, inertiaDeg (gauss1 C) w.1 = Module.finrank (RatFunc C) F) :
     ∃ m₀ : ℕ, ∀ m : ℕ, m₀ ≤ m → secSpace C F m ≤ piRR C F m ∧
       (genus C F : ℤ) + Fintype.card (Ext C F) - 1 =

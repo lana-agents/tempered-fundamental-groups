@@ -309,13 +309,15 @@ lemma xF_ne_zero : xF C F ≠ 0 := fun h ↦
 omit [CharZero C] [IsAlgClosed C] [FiniteDimensional (RatFunc C) F]
   [IsScalarTower C (RatFunc C) F] in
 lemma pow_mem_intRing_x (k : ℕ) : xF C F ^ k ∈ intRing C F (xF C F) :=
-  pow_mem (show xF C F ∈ intRing C F (xF C F) from ⟨isIntegral_algebraMap (x := (⟨_, Algebra.self_mem_adjoin_singleton C (xF C F)⟩ :
+  pow_mem (show xF C F ∈ intRing C F (xF C F) from ⟨isIntegral_algebraMap
+    (x := (⟨_, Algebra.self_mem_adjoin_singleton C (xF C F)⟩ :
     Algebra.adjoin C {xF C F})), gnorm_le_iff.2 fun w ↦ (valuation_xF w).le⟩) k
 
 omit [CharZero C] [IsAlgClosed C] [FiniteDimensional (RatFunc C) F]
   [IsScalarTower C (RatFunc C) F] in
 lemma pow_mem_intRing_x_inv (k : ℕ) : (xF C F)⁻¹ ^ k ∈ intRing C F (xF C F)⁻¹ :=
-  pow_mem (show (xF C F)⁻¹ ∈ intRing C F (xF C F)⁻¹ from ⟨isIntegral_algebraMap (x := (⟨_, Algebra.self_mem_adjoin_singleton C (xF C F)⁻¹⟩ :
+  pow_mem (show (xF C F)⁻¹ ∈ intRing C F (xF C F)⁻¹ from ⟨isIntegral_algebraMap
+    (x := (⟨_, Algebra.self_mem_adjoin_singleton C (xF C F)⁻¹⟩ :
     Algebra.adjoin C {(xF C F)⁻¹})), gnorm_le_iff.2 fun w ↦ (valuation_xF_inv w).le⟩) k
 
 omit [CharZero C] in
@@ -338,7 +340,7 @@ lemma exists_pow_mul_mem_intRing_x_inv {f : F} (hf : f ∈ intRing C F (xF C F))
 /-- **Lifting sections of the special fibre** (S7⁺.5, integral Serre vanishing): for `m ≫ 0`,
 if `a` lies in the chart ring at `0`, `b` in the chart ring at `∞` and `ā = x̄ᵐ b̄` on every
 residue curve, then some `f ∈ L(m (x)_∞)` of norm `≤ 1` has `f̄ = ā`. -/
-theorem exists_lift {ι : Type*} [Fintype ι] [DecidableEq ι] {b : Module.Basis ι (RatFunc C) F}
+theorem exists_lift {ι : Type*} [Fintype ι] {b : Module.Basis ι (RatFunc C) F}
     (hb : Orth C b) : ∃ m₀ : ℕ, ∀ m : ℕ, m₀ ≤ m → ∀ a ∈ intRing C F (xF C F),
       ∀ b' ∈ intRing C F (xF C F)⁻¹,
         (∀ w : Ext C F, red C a w = red C (xF C F) w ^ m * red C b' w) →
