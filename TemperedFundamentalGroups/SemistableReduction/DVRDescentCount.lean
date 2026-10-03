@@ -258,18 +258,13 @@ include hφ in
 lemma nnnorm_map (e : E) : ‖φ e‖₊ = ‖e‖₊ := NNReal.eq (hφ e)
 
 include hφ in
-lemma vE_eq : vE φ = NormedField.valuation (K := E) := by
-  ext e
-  simp only [vE, comap_apply, NormedField.valuation_apply, nnnorm_map hφ]
-
-include hφ in
 /-- `w_{0,1}` over `C` restricts to `w_{0,1}` over `E`. -/
 lemma gauss1_comap : (gauss1 C).comap (ratFuncMap φ) = gauss1 E := by
   have := gaussRat_comap φ (NormedField.valuation (K := C)) (0 : E) 1
   rw [map_zero] at this
   rw [gauss1, this]
   change gaussRat (vE φ) 0 1 = _
-  rw [vE_eq hφ]
+  rw [vE_eq φ hφ]
 
 include hφ in
 lemma gauss1_ratFuncMap (f : RatFunc E) : gauss1 C (ratFuncMap φ f) = gauss1 E f := by
@@ -389,13 +384,13 @@ noncomputable def tauMap :
   ((NormedField.valuation (K := E)).valuationSubring.subtype).codRestrict _ fun a ↦ by
     have := a.2
     rw [mem_valuationSubring_iff] at this ⊢
-    rwa [vE_eq hφ]
+    rwa [vE_eq φ hφ]
 
 instance : IsLocalHom (tauMap hφ) := by
   refine ⟨fun a ha ↦ ?_⟩
   rw [(Valuation.valuationSubring.integers _).isUnit_iff_valuation_eq_one] at ha ⊢
   change vE φ a = 1 at ha
-  rwa [vE_eq hφ] at ha
+  rwa [vE_eq φ hφ] at ha
 
 /-- `κ_E` for the norm valuation is `κ_E` for the restricted valuation. -/
 noncomputable abbrev τ : kv →+* kE φ := ResidueField.map (tauMap hφ)

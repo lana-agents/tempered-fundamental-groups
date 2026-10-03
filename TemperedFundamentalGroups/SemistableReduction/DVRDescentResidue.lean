@@ -29,7 +29,7 @@ open GaussTube FundamentalInequality GaussStability GaussFibre
 universe u
 
 variable {C : Type u} [NontriviallyNormedField C] [IsUltrametricDist C]
-  {E : Type*} [Field E] (φ : E →+* C)
+  {E : Type*} [NontriviallyNormedField E] [IsUltrametricDist E] (φ : E →+* C)
 
 local notation "𝓀" => ResidueField (HenselComplete.integers C)
 
