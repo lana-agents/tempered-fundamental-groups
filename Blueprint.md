@@ -935,6 +935,33 @@ them). **Branch data for W8′ H5**: the output coordinates satisfy `u ∉ 𝔔�
 uniqueness of the two branch vertices (the translation to `ZariskiHarmonic.IsBranchNode` on
 subrings of the function field is part of H5's assembly).
 
+**S7 plan (δ-count; lemma level).** The count runs over `C`, because Riemann–Roch (Part R) exists
+only over algebraically closed fields. The local structure is deduced over `C` and then transferred
+to the DVR `O_E` of W9, where S9 consumes it (agreed with S9: hypotheses (h2), (h3) below). Notation:
+`V` a convex Gauss tree with node charts, `V'` the extensions, `ρ` the reduction to the residue
+curves `κ(w')` (`ρ_{w'}(y)` is the residue at `w'`), `R'_e = Rint` the integral closure of the
+node chart of an edge `e` (normalized so that `e` joins `w_{0,1}` and `w_{0,|c|}`), and `P'` a
+maximal ideal of `R'_e` over the node. Its branches are the pairs `(w', Q)`, where `Q` is a place
+of `κ(w')` centred at `P'` (`placeIdeal`, S6). `Õ_{P'} = Π_{(w',Q)} O_Q`, `Ō_{P'} = ρ(R'_{e,P'})`,
+the jet kernel is `K_M = {ord_Q ≥ M at every branch}`, and
+`δ^{(M)}_{P'} = dim_k Õ/(Ō + K_M)`.
+
+| # | Statement | Proof / inputs |
+|---|---|---|
+| S7.1 | **jet interpolation**: for `D` of large degree with `D(Q) = 0` on a finite set `S` of places, every family of targets `τ_Q ∈ O_Q` is matched to order `M` by some `f ∈ L(D)` | `exists_interpolating` (R7) yields `f_{Q,n}` of exact order `n` at `Q` and order `≥ M` at `S ∖ {Q}`. Correct the error one order at a time with `c = res((τ_Q − f)/f_{Q,n})` |
+| S7.2 | **abstract δ-count**: `R ⊆ W = Π_j L(D_j)` (`deg D_j ≫ 0`). Points `p` have pairwise disjoint branch sets and condition spaces `Ō_p` with `R ⊆ Ō_p + K_{M,p}`. If `n_p` elements of `Õ_p` are independent modulo `Ō_p + K_{M,p}`, then `dim R + Σ_p n_p ≤ dim W` | S7.1 lifts the independent jets to elements of `W` that vanish to order `M` at the other points; linear algebra |
+| S7.3 | `δ^{(M)} ≥ r − 1` for `M ≥ 1` (all residues of elements of `Ō` agree: `ρ(y)(Q) = y mod P'`); `δ^{(M)}` is monotone in `M` | the indicators of `r − 1` branches |
+| S7.4 | **lattice reduction for several Gauss points**: for a finite set `V` of Gauss points and a finite-dimensional `U ⊆ F'`, `dim_k ρ(U°) = dim_C U` for `‖·‖ = max_{w ∈ V} gnorm_w` | for each `w`, G6.4 gives `T_w : U → C^{J_w}` with `‖T_w f‖ = |γ_w| gnorm_w f`. The map `(γ_w⁻¹ T_w)_w` is isometric into the sup norm; `exists_orthonormal_of_linearMap`. Needs the coordinate change `x ↦ (x − a)/c` (type synonym, as `Inv` in `InnerVertex`) |
+| S7.5 | **the divisor**: `D_m = m Σ_{w ∈ V} (x − a_w)_0`, where the direction `x̄_w = 0` at `w` points to no vertex. For `f ∈ L(D_m)` with `‖f‖_V ≤ 1`, `ρ_{w'}(f) ∈ L_{κ(w')}(m (x̄_w)_0)`; at a node point, `f·h ∈ R'_e` for some `h ∈ R'_e ∖ P'` | G6.5 in the coordinate `x_w` with the twist `Π_u ((x − a_u)/λ_u)^m`; `∞` at the root via `x_w⁻¹`. The node chart needs the **maximum principle**: `y` integral over `C[x, x⁻¹]` with `w'(y) ≤ 1` at the extensions of both end points lies in `R'_e` (charpoly coefficients are Laurent polynomials bounded at both radii) |
+| S7.6 | **δ-count over `C`**: for every finite set of node points and every `M`, `Σ_{V'} g(κ(w')) + Σ_{P'} δ^{(M)}_{P'} ≤ g(F') + #V' − 1`. With `b₁ = Σ_{P'} (r_{P'} − 1) − #V' + 1` this is `g(F') ≥ Σ g + b₁ + Σ δ'^{(M)}`; with S8 (`g(F') ≤ Σ g + b₁`, same `b₁`) every `δ'^{(M)}_{P'} = 0` | S7.2 with `R = ρ(L(D_m)°)`, S7.4 (`dim R = ℓ(D_m)`), R7 on `F'` and on the `κ(w')`, `deg D_m = m #V N` |
+| S7.7 | **finiteness and conductor over `C`**: `Λ = ρ(R'_e)` is finite over `k[X, Y]/(XY)` (a submodule of the finite product of the integral closures of `k[x̄]`, `k[ȳ]` in the `κ(w')`; `k` perfect, separating element + Frobenius); a nonzerodivisor `s ∈ Λ` lies in the conductor, so `K_M ⊆ Ō` for `M ≫ 0` and `δ = δ^{(M)}` | `ChangeOfGenerator.exists_transcendental_isSeparable`, `IsIntegralClosure.finite` |
+| S7.8 | **ordinary double point over `C`**: if `r = 2` and `δ' = 0`, then `Ō = {(a, b) : a(Q₁) = b(Q₂)}`, and for every `u', v' ∈ P'` with `w'₂(u') < 1`, `ord_{Q₁} ū' = 1`, `w'₁(v') < 1`, `ord_{Q₂} v̄' = 1`: `P' R'_{P'} = (u', v') + 𝔪_C R'_{P'}`. Also `x ≡ η u'^d` modulo `ker ρ`, `η ∉ P'`, by S6 | `ker ρ = 𝔪_C R'_{P'}` (the value group is `|C^×|` and the maximum principle of S7.5) |
+| S7.9 | **transfer to `O_E`** (S9's (h2), (h3)): `E` large enough that (i) the vertices biject (D3c); (ii) `e_E = 1` and `f_E = f_C` (D3d gives `f_C ≤ f_E`, and the fundamental inequality gives `Σ e_E f_E ≤ N = Σ f_C`); (iii) `Λ_C = k·ρ(B_E)` (the finitely many generators of S7.7 descend, D3e); (iv) the branches and `κ(𝔭)` are `κ_E`-rational. Then `B/ϖB ↪ Π κ_E(w')` (reduced, (ii)), and `Λ_E ⊗ k = Λ_C` with `Λ_C ∩ Π κ_E(w') = Λ_E` (linear disjointness from (ii)). So `Ō_E` is the fibre product, and (h2) `𝔭 B_𝔭 = (ϖ, u', v') B_𝔭` holds for every `u', v'` as in S7.8 (Nakayama is not even needed: `ker ρ = ϖ B_𝔭` by e = 1 and the maximum principle over `E`), and (h3)(B) `x ≡ η u'^d mod ϖ B_𝔭` | D3a–D3e, `FundamentalInequality` |
+
+Not delivered by S7: S9's (h1) `u' v' = ϖⁿ·unit` is not a special-fibre statement (δ' = 0 only gives
+`u' v' ∈ ϖ B_𝔭`). Estimate: S7.1–S7.3 ≈ 0.4k, S7.4–S7.6 ≈ 1.2k, S7.7–S7.8 ≈ 0.6k, S7.9 ≈ 0.8k.
+Files: `DeltaCount` (S7.1–S7.3).
+
 **Estimate and status.** Proved: S1, S2 (general and Gauss-point form), S3, S4, S5, S6 (outer
 vertex) (`AnnulusUnit`, `NormFormula`, `GaussNorm`, `TwoDirections`, `TubeCount`, `GaussTube`,
 `TubePoints`, `ResidueNorm`, `PlaceNorm`, `VertexMatch`; ≈ 3.3k lines) and the interface
