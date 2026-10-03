@@ -1286,3 +1286,23 @@ Berkovich's quasi-completeness) is not needed for type 4 (A4 is purely algebraic
 lines** for S8.5 (previous estimate 4–6k was based on Temkin §6 alone and did not count the
 disc/annulus infrastructure). With the structural remark above, S8.1, S8.2, S8.4 and S8.6 shrink
 to ≈ 1k together (AW §2.5, §4 cases (1)–(3)), so S8 as a whole: **≈ 13–15k**.
+
+### 9.11 The field `C`: algebraic closure vs. its completion (open, found 2026-10)
+
+*Finding.* Two settings for the coefficient field `C` coexist on the targeted chain:
+* W9 descent (`GaussDescent`, `ResidueDescent`, D3e) needs `C` **algebraic** over `K`
+  (`[Algebra.IsAlgebraic K C]`: Gauss data and the finitely many generators lie in a finite
+  subextension; the tree chart over `O_C` is the union of those over the `O_j`);
+* W6 sharp genus (`TypeTwo`, `SharpGenus`, `Connectedness`) and S8.5 (`DiscGerm`, the power-series
+  bridge of L4) assume `C` **complete** (`[CompleteSpace C] [IsAlgClosed C]`).
+No field satisfies both (for `K` discretely valued, `K̄` is not complete), and Mathlib does not
+prove that the completion `\widehat{K̄}` is algebraically closed (`PadicComplex` has no
+`IsAlgClosed` instance). The W10 assembly therefore needs a bridge:
+
+| # | Statement | Status |
+|---|---|---|
+| C0 | `IsAlgClosed (UniformSpace.Completion K̄)` for `K̄` algebraically closed nonarchimedean valued (continuity of roots + Krasner, Mathlib `Krasner`, `Normed/Field/Dense`) | open |
+| C1 | **Transfer `K̄ → Ĉ`**: for `F'/K̄(x)` finite, `F'_Ĉ = F' ⊗_{K̄(x)} Ĉ(x)` (a field); restriction is a bijection between type-2 points of `F'_Ĉ` with radius in `|K̄^×|` and type-2 points of `F'` (centres approximated by density, W2), with residue fields equal; consequently vertex sets, residue genera, `δ`, and the node/smooth-point data (`IsNodeODP`, exact node data) transfer, and the generators exposed for D3e can be chosen in `F'` | open |
+Alternatively C1 is avoided where a `Ĉ`-statement has a proof valid for algebraically closed `C`
+(as W4: "completeness of `C` is not needed"). Owner and size: to be assigned.
+
