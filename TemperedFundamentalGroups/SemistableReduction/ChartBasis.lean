@@ -753,6 +753,76 @@ lemma eval_eq_zero_of_isRoot {a : F} (ha : a ∈ intRing C F (algebraMap (RatFun
   rw [hc'0] at this
   exact lt_irrefl _ this
 
+omit [CharZero C] [FiniteDimensional (RatFunc C) F] [Fintype (Ext C F)] hs hsi hspan in
+lemma aeval_coord_ne_zero {P : C[X]} (hP : P ≠ 0) : aeval (algebraMap (RatFunc C) F ζ) P ≠ 0 := by
+  rw [aeval_coord, ne_eq, map_eq_zero_iff _ (algebraMap (RatFunc C) F).injective]
+  intro h
+  have := hζ.gauss P
+  rw [h, map_zero] at this
+  exact (sup_pos_of_ne_zero hP).ne this
+
+omit [CharZero C] [FiniteDimensional (RatFunc C) F] [Fintype (Ext C F)]
+  [IsScalarTower C (RatFunc C) F] hs hsi hspan in
+/-- Common denominators in `C[ζ]`. -/
+lemma exists_common_denom {ι : Type*} [Fintype ι] [DecidableEq ι] (φ : ι → RatFunc C) :
+    ∃ Q : C[X], Q ≠ 0 ∧ ∃ R : ι → C[X], ∀ i, aeval ζ Q * φ i = aeval ζ (R i) := by
+  choose p q hq hpq using fun i ↦ hζ.frac (φ i)
+  refine ⟨∏ i, q i, Finset.prod_ne_zero_iff.2 fun i _ ↦ hq i,
+    fun i ↦ p i * ∏ j ∈ Finset.univ.erase i, q j, fun i ↦ ?_⟩
+  simp only [map_mul, map_prod]
+  rw [← Finset.mul_prod_erase _ _ (Finset.mem_univ i), ← hpq i]
+  ring
+
+omit [CharZero C] [FiniteDimensional (RatFunc C) F] in
+/-- **No poles in the closed unit disc** (S7⁺.3): every element of the chart ring is
+`a = Σⱼ (pⱼ/q)(z) sⱼ` with `q` having no root in `|α| ≤ 1`. -/
+theorem exists_disc_coords {a : F} (ha : a ∈ intRing C F (algebraMap (RatFunc C) F ζ)) :
+    ∃ q : C[X], q ≠ 0 ∧ (∀ α ∈ q.roots, 1 < ‖α‖) ∧ ∃ p : Fin n → C[X],
+      aeval (algebraMap (RatFunc C) F ζ) q * a =
+        ∑ j, aeval (algebraMap (RatFunc C) F ζ) (p j) * s j := by
+  classical
+  set z := algebraMap (RatFunc C) F ζ
+  suffices h : ∀ (k : ℕ) (q : C[X]) (p : Fin n → C[X]), q ≠ 0 →
+      (q.roots.filter fun α ↦ ‖α‖ ≤ 1).card = k → aeval z q * a = ∑ j, aeval z (p j) * s j →
+      ∃ q : C[X], q ≠ 0 ∧ (∀ α ∈ q.roots, 1 < ‖α‖) ∧ ∃ p : Fin n → C[X],
+        aeval z q * a = ∑ j, aeval z (p j) * s j by
+    obtain ⟨Q, hQ, R, hR⟩ := exists_common_denom hζ (s.repr a)
+    exact h _ Q R hQ rfl (aeval_mul_eq_sum s hR)
+  intro k
+  induction k with
+  | zero =>
+    intro q p hq hk hqp
+    refine ⟨q, hq, fun α hα ↦ ?_, p, hqp⟩
+    rw [Multiset.card_eq_zero, Multiset.filter_eq_nil] at hk
+    exact not_le.1 (hk α hα)
+  | succ k ih =>
+    intro q p hq hk hqp
+    obtain ⟨α, hαmem⟩ := Multiset.card_pos_iff_exists_mem.1 (by rw [hk]; exact Nat.succ_pos k)
+    obtain ⟨hαr, hα⟩ := Multiset.mem_filter.1 hαmem
+    have hroot : q.IsRoot α := (mem_roots hq).1 hαr
+    have hp0 (j : Fin n) := eval_eq_zero_of_isRoot hζ hs hsi hspan ha hqp hα hroot j
+    set q₁ := q /ₘ (X - Polynomial.C α)
+    have hq₁ : (X - Polynomial.C α) * q₁ = q := mul_divByMonic_eq_iff_isRoot.2 hroot
+    set p₁ : Fin n → C[X] := fun j ↦ p j /ₘ (X - Polynomial.C α)
+    have hp₁ (j : Fin n) : (X - Polynomial.C α) * p₁ j = p j :=
+      mul_divByMonic_eq_iff_isRoot.2 (hp0 j)
+    have hq₁0 : q₁ ≠ 0 := by
+      rintro h
+      rw [h, mul_zero] at hq₁
+      exact hq hq₁.symm
+    have hne : aeval z (X - Polynomial.C α) ≠ 0 := aeval_coord_ne_zero hζ (X_sub_C_ne_zero α)
+    have hqp₁ : aeval z q₁ * a = ∑ j, aeval z (p₁ j) * s j := by
+      refine mul_left_cancel₀ hne ?_
+      rw [← mul_assoc, ← map_mul, hq₁, hqp, Finset.mul_sum]
+      refine Finset.sum_congr rfl fun j _ ↦ ?_
+      rw [← mul_assoc, ← map_mul, hp₁]
+    refine ih q₁ p₁ hq₁0 ?_ hqp₁
+    have hroots : q.roots = α ::ₘ q₁.roots := by
+      rw [← hq₁, roots_mul (by rw [hq₁]; exact hq), roots_X_sub_C, Multiset.singleton_add]
+    rw [hroots, Multiset.filter_cons_of_pos (p := fun α ↦ ‖α‖ ≤ 1) _ hα,
+      Multiset.card_cons] at hk
+    omega
+
 end Fibre
 
 end Lattice
