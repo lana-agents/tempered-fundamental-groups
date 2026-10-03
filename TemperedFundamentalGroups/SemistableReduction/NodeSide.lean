@@ -494,8 +494,9 @@ theorem exists_tau (hc : ‖c‖ < 1) (v : Ext C F')
       refine ⟨xR c - constR c κ₀, fun hmem ↦ ?_, ?_⟩
       · rw [mem_placeIdeal_iff] at hmem
         change Q.res (redHom hc v (xR c - constR c κ₀)) = 0 at hmem
-        rw [_root_.map_sub, redHom_xR, redHom_constR, hκ₀, Q.res_sub_algebraMap (Q.valuation_le_one_iff.1
-          (valuation_x_lt_one hQ).le), hQx, zero_sub, neg_eq_zero] at hmem
+        rw [_root_.map_sub, redHom_xR, redHom_constR, hκ₀,
+          Q.res_sub_algebraMap (Q.valuation_le_one_iff.1 (valuation_x_lt_one hQ).le), hQx,
+          zero_sub, neg_eq_zero] at hmem
         apply hz
         rw [mem_zeros]
         intro hinv
