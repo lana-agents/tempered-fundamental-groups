@@ -519,6 +519,25 @@ only needed for `char C = p`.
 
 ### 9.7 The W10 interface
 
+**Targeted W10 statement: `Statement.StrongA`** (`SemistableReduction/StrongA.lean`). This is the
+exact form that Theorem A (`andreEquiv`, branch `wp-andre`) consumes.
+
+* **Inputs:** `K` complete discretely valued of characteristic `0`; `R` smooth of dimension `1`;
+  `B` finite étale over `R`; a finite group `G` acting `K`-linearly on `B`; finitely many
+  `O`-models `c₀ i` with maps `j₀ i` over `O`.
+* **Outputs:**
+  * a finite Galois `K'/K`, with `O'` a DVR over `O` and a uniformizer `ϖ'`;
+  * a semistable `c' : ModelCode O'`, and `c : ModelCode O` isomorphic to `c'` over `O`;
+  * a scheme-theoretically dominant `j : Spec (K' ⊗ B) ⟶ c` over `O`;
+  * a `G × Gal(K'/K)`-action on `c` over `O`, with `j` equivariant;
+  * domination of the `c₀ i`, compatible with the `j₀ i`.
+* **No x-line input:** the W10 proof builds a finite x-line internally, by Noether
+  normalization (`exists_finite_aeval`, `Setup/NoetherLine.lean`).
+* **`StrongComponent → StrongA`** is proved (`Statement.strongA_of_strongComponent`).
+
+`Statement`, `Strong`, `Simultaneous`, `StrongComponent`, `HarmonicGeneral` and `HarmonicX` are
+**untargeted**: they are kept for Theorem B, which is parked (Blueprint §10.3.7).
+
 `SemistableReduction.Statement : Prop` (`SemistableReduction/Statement.lean`) is the exact form of
 W10 targeted by the W-chain and consumed by §4 (André identification) and §5.1 (non-degeneracy):
 for a henselian discretely valued `K` of characteristic `0`, a smooth affine curve `Spec R` over
@@ -1395,8 +1414,8 @@ points of a finitely generated subalgebra), after which W6 holds over `K̄`; `Di
 | O1 | R4's interim **exact node data** hypothesis (`u v = γ`, `σ x = e u^d`, `ord_{Q₁} ū = 1` at points over the node) | (a1): S7(b)/S7.9 descent to `IsOrdinaryDoublePoint` over `O_E` + `NodeDeformation.exists_node`, under `DefinedOverDVR F'` — owner: W8′ agent (`wp-tempered-o1`) | open |
 | O2 | `DefinedOverDVR` passes to intermediate fields of the Galois closure | R4 step 3 | open |
 | O5 | S7⁺.8: identification of the normalized `P¹_t`-model with the Gauss-tree model `𝒳'_V` when `t⁻¹(η) = V` (and existence of such `t`), unless R5 is restated on `t`-models | S7⁺ (after S7⁺.7); needed by S8.A (global induction: `h(V) > 0 ⇒ δ > 0` somewhere on `𝒳'_V`), **not** by R5 (R5 runs on the two local `t`-models `P¹_s`, `P¹_{s + c'/s}`) | open |
-| O3 | `IsUnfolded` output of `Statement.StrongComponent` | W9/M9c (`IsWModelOf`) + W7 (c) | open |
+| O3 | `IsUnfolded` output of `Statement.StrongComponent` | — | **dropped**: the targeted W10 statement is now `Statement.StrongA`, which has no component/W-model clause |
 | O6 | S8.A (AW global improvement induction on Gauss trees) | S7 agent after S7.5 | open |
-| O7 | W10 assembly `W7.Statement → Statement.StrongComponent` (minimized to Theorem A's consumption; D3e, S9 over `O_{K'}`, M9, actions, domination, component and Tate-loop clauses) | André agent (`wp-tempered-w10`) | open |
 | O4 | §9.11: C0, `no_split` over algebraically closed `C`, `DiscGerm` over `Ĉ`; `CompleteSpace C` removed from the targeted chain | `cbridge` | open |
+| O7 | W10 assembly: `W7.Statement` + W9 descent ⇒ **`Statement.StrongA`** (the targeted W10; D3e, S9 over `O_{K'}`, M9, actions, domination) | André agent (`wp-tempered-w10`) | open |
 
