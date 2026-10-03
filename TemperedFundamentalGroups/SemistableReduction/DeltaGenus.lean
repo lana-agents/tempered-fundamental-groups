@@ -53,7 +53,8 @@ theorem sum_genus_add_le {I : Type*} [Fintype I] [Nonempty I] (x : I → F)
     (hx : ∀ i, Transcendental C (x i)) (S : Finset (TypeTwo C F))
     (hS : ∀ W, W ∈ S ↔ ∃ i, IsOver (hx i) W)
     (D : ℕ → CurveDivisor C F) (Db : ℕ → ∀ W : S, CurveDivisor 𝓀 (Kappa S W))
-    (hdeg : ∀ m, ∑ W, (Db m W).degree = (D m).degree) (hlarge : ∀ (m : ℕ) W, (m : ℤ) ≤ (Db m W).degree)
+    (hdeg : ∀ m, ∑ W, (Db m W).degree = (D m).degree)
+    (hlarge : ∀ (m : ℕ) W, (m : ℤ) ≤ (Db m W).degree)
     (hred : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → redVec S f ∈ piRR 𝓀 (Kappa S) (Db m))
     {ι : Type*} [Fintype ι] [DecidableEq ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
     (hdisj : ∀ p q, p ≠ q → Disjoint (Sp p) (Sp q)) (hzero : ∀ m p, ∀ b ∈ Sp p, Db m b.1 b.2 = 0)
@@ -95,7 +96,8 @@ theorem sum_genus_add_le {I : Type*} [Fintype I] [Nonempty I] (x : I → F)
     have h7 : (0 : ℤ) ≤ (c W).toNat := Int.natCast_nonneg _
     have h8 : (0 : ℤ) ≤ M * ((∑ p, (Sp p).card : ℕ) : ℤ) :=
       mul_nonneg (Int.natCast_nonneg _) (Int.natCast_nonneg _)
-    exact ⟨by linarith only [h1, h2', h3, h5, h6, hm], by linarith only [h1, h2', h4, h5, h7, h8, hm]⟩
+    exact ⟨by linarith only [h1, h2', h3, h5, h6, hm],
+      by linarith only [h1, h2', h4, h5, h7, h8, hm]⟩
   have hmF : cF ≤ (D m).degree := by
     rw [← hdeg m]
     obtain ⟨W₀⟩ : Nonempty S := by
