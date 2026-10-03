@@ -264,6 +264,6 @@ def Statement.HarmonicGeneral : Prop :=
     ψ ≫ c'.toSpec = c.toSpec → IsFinite (ψ ∣_ ModelCode.genericOpen c') →
     ModelCode.IsSemistable ϖ c → ModelCode.IsSemistable ϖ c' →
     ModelCode.IsSplit ϖ c → ModelCode.IsSplit ϖ c' → ModelCode.NoLoops c → ModelCode.NoLoops c' →
-      ModelCode.IsHarmonicGeneral ϖ ψ
+      ModelCode.IsHarmonicGeneral ϖ ϖ 1 ψ
 
 end TemperedFundamentalGroups.SemistableReduction

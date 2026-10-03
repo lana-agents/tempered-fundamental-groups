@@ -57,24 +57,35 @@ def ModelCode.IsWModel (O' : ValuationSubring K') (L : Type u) [Field L] [Algebr
       e.hom ≫ (ProjScheme.projModelCode O' hg).toSpec = c.toSpec ∧
       j ≫ e.hom = (ProjScheme.toProj O' hg).toImage
 
-/-- **W8′, targeted form: maps of W-models are harmonic.** Let `O'` be a discrete valuation ring
-with uniformizer `ϖ` and fraction field `K'`, `L ⊆ L'` function fields of curves over `K'` with
-`L'/L` finite, `x ∈ L` (the x-line), `c` a W-model of `L'` on `x` and `c'` a W-model of `L` on `x`
+/-- **W8′, targeted form: maps of W-models are harmonic.** Let `O' ⊆ O''` be discrete valuation
+rings with fraction fields `K' ⊆ K''`, uniformizers `ϖ'`, `ϖ''` and ramification index `e`
+(`ϖ' = unit · ϖ'' ^ e`), `L ⊆ L'` function fields of curves over `K'` and `K''` with `L'/L` finite,
+`x ∈ L` (the x-line), `c` a W-model of `L'` over `O''` and `c'` a W-model of `L` over `O'` on `x`
 (with generic points `j`, `j'`), both split, semistable and without loops, and `ψ : c ⟶ c'` a
-morphism over `O'` inducing `L ⊆ L'` on generic points. Then `ψ` is harmonic on dual graphs
-(`ModelCode.IsHarmonicGeneral`: monotone walks over each node with `∑ dᵢ nᵢ = n'`, lengths do not
-decrease, nodes map to nodes or to points on a single component). -/
+morphism over `Spec O'' ⟶ Spec O'` inducing `L ⊆ L'` on generic points. Then `ψ` is harmonic on
+dual graphs (`ModelCode.IsHarmonicGeneral ϖ'' ϖ' e`: monotone walks over each node with
+`∑ dᵢ nᵢ = e n'`, lengths do not decrease, nodes map to nodes or to points on a single
+component). -/
 def Statement.HarmonicW : Prop :=
-  ∀ (K' : Type u) [Field K'] (O' : ValuationSubring K') [IsDiscreteValuationRing O'] (ϖ : O')
-    (_ : Irreducible ϖ) (L L' : Type u) [Field L] [Field L'] [Algebra K' L] [Algebra K' L']
-    [Algebra L L'] [IsScalarTower K' L L'] [FiniteDimensional L L'] [Algebra O' L]
-    [IsScalarTower O' K' L] [Algebra O' L'] [IsScalarTower O' K' L'] (x : L)
-    (c c' : TemperedFundamentalGroups.ModelCode O') (ψ : c.scheme ⟶ c'.scheme)
+  ∀ (K' K'' : Type u) [Field K'] [Field K''] [Algebra K' K''] (O' : ValuationSubring K')
+    (O'' : ValuationSubring K'') (_ : O''.comap (algebraMap K' K'') = O')
+    [IsDiscreteValuationRing O'] [IsDiscreteValuationRing O''] (ϖ' : O') (ϖ'' : O'')
+    (_ : Irreducible ϖ') (_ : Irreducible ϖ'') (e : ℕ)
+    (_ : Associated (algebraMap K' K'' ϖ' : K'') ((ϖ'' : K'') ^ e))
+    (L L' : Type u) [Field L] [Field L'] [Algebra K' L] [Algebra K'' L'] [Algebra L L']
+    [Algebra K' L'] [IsScalarTower K' L L'] [IsScalarTower K' K'' L'] [FiniteDimensional L L']
+    [Algebra O' L] [IsScalarTower O' K' L] [Algebra O'' L'] [IsScalarTower O'' K'' L'] (x : L)
+    (c : TemperedFundamentalGroups.ModelCode O'') (c' : TemperedFundamentalGroups.ModelCode O')
+    (ψ : c.scheme ⟶ c'.scheme)
     (j : Spec (CommRingCat.of L') ⟶ c.scheme) (j' : Spec (CommRingCat.of L) ⟶ c'.scheme),
-    ModelCode.IsWModel O' L' (algebraMap L L' x) c j → ModelCode.IsWModel O' L x c' j' →
-    j ≫ ψ = Spec.map (CommRingCat.ofHom (algebraMap L L')) ≫ j' → ψ ≫ c'.toSpec = c.toSpec →
-    ModelCode.IsSemistable ϖ c → ModelCode.IsSemistable ϖ c' →
-    ModelCode.IsSplit ϖ c → ModelCode.IsSplit ϖ c' → ModelCode.NoLoops c → ModelCode.NoLoops c' →
-      ModelCode.IsHarmonicGeneral ϖ ψ
+    ModelCode.IsWModel O'' L' (algebraMap L L' x) c j → ModelCode.IsWModel O' L x c' j' →
+    j ≫ ψ = Spec.map (CommRingCat.ofHom (algebraMap L L')) ≫ j' →
+    ψ ≫ c'.toSpec = c.toSpec ≫ Spec.map (CommRingCat.ofHom
+      ((algebraMap K' K'').restrict O' O'' (fun y hy ↦ by
+        rw [← ‹O''.comap (algebraMap K' K'') = O'›] at hy; exact hy))) →
+    ModelCode.IsSemistable ϖ'' c → ModelCode.IsSemistable ϖ' c' →
+    ModelCode.IsSplit ϖ'' c → ModelCode.IsSplit ϖ' c' →
+    ModelCode.NoLoops c → ModelCode.NoLoops c' →
+      ModelCode.IsHarmonicGeneral ϖ'' ϖ' e ψ
 
 end TemperedFundamentalGroups.SemistableReduction
