@@ -1324,8 +1324,8 @@ prove that the completion `\widehat{K̄}` is algebraically closed (`PadicComplex
 
 | # | Statement | Status |
 |---|---|---|
-| C0 | `IsAlgClosed (UniformSpace.Completion K̄)` for `K̄` algebraically closed nonarchimedean valued (continuity of roots + Krasner, Mathlib `Krasner`, `Normed/Field/Dense`) | open |
-| C1 | **Transfer `K̄ → Ĉ`**: for `F'/K̄(x)` finite, `F'_Ĉ = F' ⊗_{K̄(x)} Ĉ(x)` (a field); restriction is a bijection between type-2 points of `F'_Ĉ` with radius in `|K̄^×|` and type-2 points of `F'` (centres approximated by density, W2), with residue fields equal; consequently vertex sets, residue genera, `δ`, and the node/smooth-point data (`IsNodeODP`, exact node data) transfer, and the generators exposed for D3e can be chosen in `F'` | open |
+| C0 | `IsAlgClosed (UniformSpace.Completion K̄)` for `K̄` algebraically closed nonarchimedean valued of characteristic `0` (continuity of roots + Krasner) | **proved** (`SemistableReduction/CompletionAlgClosed`: `UniformSpace.Completion.isAlgClosed`, from Mathlib's `IsAlgClosed.of_denseRange`; instances `IsUltrametricDist`, `CharZero`, `NontriviallyNormedField` on the completion) |
+| C1 | (dropped by the revised decision below) **Transfer `K̄ → Ĉ`**: for `F'/K̄(x)` finite, `F'_Ĉ = F' ⊗_{K̄(x)} Ĉ(x)` (a field); restriction is a bijection between type-2 points of `F'_Ĉ` with radius in `|K̄^×|` and type-2 points of `F'` (centres approximated by density, W2), with residue fields equal; consequently vertex sets, residue genera, `δ`, and the node/smooth-point data (`IsNodeODP`, exact node data) transfer, and the generators exposed for D3e can be chosen in `F'` | open |
 **Decision (coordinator, 2026-10).** C0 first (generic, upstreamable; then W4/W6/DiscGerm apply to
 `Ĉ = \widehat{K̄}` while W9 works over `K̄`); C1 only as a thin transfer layer where the W10 assembly
 needs it; C2 (dropping completeness) only where it is trivially unused. Owner: agent `cbridge`
@@ -1340,6 +1340,20 @@ works over `K̄` and C1 is not needed. `Ĉ` (algebraically closed by C0) is used
 auxiliary coefficient field: `no_split` over algebraically closed `C` (limits in `F ⊗_C Ĉ`, plus
 "`F ⊗_C L` has no nontrivial idempotents"), `DiscGerm` with germs in `PowerSeries Ĉ`, K5 by
 Weierstrass over `Ĉ` and approximation of the centre in `C`.
+
+Alternatively C1 is avoided where a `Ĉ`-statement has a proof valid for algebraically closed `C`
+(as W4: "completeness of `C` is not needed").
+
+*Where completeness is used (audit, 2026-10).* In W6 only through `GaussFibre.no_split`
+(`Connectedness`: the coefficients of the traces `Tr(Nⁿ(e) d_k)` converge in `C`,
+`exists_tendsto_sup_sub`); `cut`/`sum_genus_le` (`SharpGenus`) and `TypeTwo.sum_genus_le`/
+`card_le_genus` inherit it, W4 and G6.3 (`finite_ext`, `sum_inertiaDeg_eq`,
+`exists_orthonormal_basis`) do not use it. In S8.5 only in `DiscGerm.exists_germ` (the germ's
+coefficients are limits; they need not lie in `K̄`). **Planned thin bridge (C2′)**: prove
+`no_split` for `C` algebraically closed by taking the coefficient limits in `Ĉ` (the limit idempotent
+lies in `F ⊗_C Ĉ`, which has no nontrivial idempotents for `C` algebraically closed: Nullstellensatz
+points of a finitely generated subalgebra), after which W6 holds over `K̄`; `DiscGerm` with germs in
+`PowerSeries Ĉ` when a consumer needs it over `K̄`.
 
 ### 9.12 Open obligations (must be discharged before anything downstream is called proved)
 
