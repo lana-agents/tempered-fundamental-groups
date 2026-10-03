@@ -82,6 +82,26 @@ theorem norm_sub_algebraMap [FiniteDimensional F L] (y : L) (t : F) :
     hfin, normPoly, eval_pow, mul_pow, ← pow_mul, ← finrank_mul_natDegree (F := F) y,
     mul_comm (Module.finrank F⟮y⟯ L)]
 
+/-- The characteristic polynomial is invariant under a ring isomorphism of base fields
+compatible with the algebra structures. -/
+theorem normPoly_map_ringEquiv {F₁ F₂ : Type*} [Field F₁] [Field F₂] [Algebra F₁ L]
+    [Algebra F₂ L] [FiniteDimensional F₁ L] [FiniteDimensional F₂ L] [Infinite F₁]
+    (e : F₁ ≃+* F₂) (he : (algebraMap F₂ L).comp e.toRingHom = algebraMap F₁ L) (y : L) :
+    (normPoly F₁ y).map e.toRingHom = normPoly F₂ y := by
+  refine eq_of_infinite_eval_eq _ _ ((Set.infinite_range_of_injective e.injective).mono ?_)
+  rintro _ ⟨t, rfl⟩
+  simp only [Set.mem_setOf_eq, eval_map]
+  have hn : Module.finrank F₁ L = Module.finrank F₂ L :=
+    Algebra.finrank_eq_of_equiv_equiv e (RingEquiv.refl L) (by rw [← he]; rfl)
+  have h1 := norm_sub_algebraMap (F := F₁) y t
+  have h2 := norm_sub_algebraMap (F := F₂) y (e t)
+  have h3 := Algebra.norm_eq_of_ringEquiv e he (y - algebraMap F₁ L t)
+  have h4 : algebraMap F₂ L (e t) = algebraMap F₁ L t := congrArg (· t) he
+  rw [h1, map_mul, map_pow, map_neg, map_one, hn, ← h4, h2] at h3
+  have hu : ((-1 : F₂) ^ Module.finrank F₂ L) ≠ 0 := pow_ne_zero _ (by norm_num)
+  rw [show e t = e.toRingHom t from rfl, eval₂_at_apply]
+  exact mul_left_cancel₀ hu h3
+
 end NormPoly
 
 section ResOrder
