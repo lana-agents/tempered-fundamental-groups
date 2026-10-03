@@ -144,7 +144,7 @@ affine `K`-curve, after a finite extension `K'/K` there are semistable projectiv
 `c` of `Spec (K' ⊗ B)` and `c'` of `Spec (K' ⊗ B')`, both split (`ModelCode.IsSplit`), with
 open immersions `j, j'` over `O'` and a
 **finite** morphism `ψ : c' ⟶ c` over `O'` compatible with `j, j'` (e.g. `c'` the normalization of
-`c` in `K' ⊗ B'`). -/
+`c` in `K' ⊗ B'`), which is harmonic on dual graphs (`ModelCode.IsHarmonic`, W8′). -/
 def Statement.Simultaneous : Prop :=
   ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
     [HenselianLocalRing O]
@@ -163,7 +163,7 @@ def Statement.Simultaneous : Prop :=
       ModelCode.IsSemistable ϖ' c ∧ ModelCode.IsSemistable ϖ' c' ∧
       ModelCode.IsSplit ϖ' c ∧ ModelCode.IsSplit ϖ' c' ∧
       IsOpenImmersion j ∧ IsOpenImmersion j' ∧ IsFinite ψ ∧
-      ψ ≫ c.toSpec = c'.toSpec ∧
+      ψ ≫ c.toSpec = c'.toSpec ∧ ModelCode.IsHarmonic ϖ' ψ ∧
       j ≫ c.toSpec = Spec.map (CommRingCat.ofHom
         ((Algebra.TensorProduct.includeLeftRingHom).comp O'.subtype)) ∧
       j' ≫ ψ = Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.map (AlgHom.id K K')
@@ -180,21 +180,15 @@ semistable projective `O`-models and `ψ : c' ⟶ c` a finite morphism over `O` 
   lying on exactly one component;
 * every component of `c'` maps onto a component of `c`;
 * points over nodes are nodes; in particular every node of `c` on the image of a component `v'`
-  of `c'` is the image of a node on `v'` (edge lifting). -/
+  of `c'` is the image of a node on `v'` (edge lifting).
+
+Not targeted by the W-chain (which proves harmonicity for the models it produces, as a clause of
+`Statement.Simultaneous`); kept as the general statement. -/
 def Statement.Harmonic : Prop :=
   ∀ (O : Type u) [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] (ϖ : O)
     (_ : Irreducible ϖ) (c c' : TemperedFundamentalGroups.ModelCode O) (ψ : c'.scheme ⟶ c.scheme),
     IsFinite ψ → ψ ≫ c.toSpec = c'.toSpec →
-    ModelCode.IsSemistable ϖ c → ModelCode.IsSemistable ϖ c' →
-      (∀ (x' : c'.scheme) (n m : ℕ), ModelCode.IsNodeOfThickness ϖ c' x' n →
-        ModelCode.IsNodeOfThickness ϖ c' x' m → n = m) ∧
-      (∀ x' : c'.scheme, ModelCode.IsNodePt c' x' →
-        ∃ n', 1 ≤ n' ∧ ModelCode.IsNodeOfThickness ϖ c' x' n') ∧
-      (∀ (x' : c'.scheme) (n' : ℕ), ModelCode.IsNodeOfThickness ϖ c' x' n' →
-        (∃ n d : ℕ, 1 ≤ d ∧ n = d * n' ∧ ModelCode.IsNodeOfThickness ϖ c (ψ x') n) ∨
-        (ModelCode.IsSmoothPt c (ψ x') ∧ ∃! v, v ∈ ModelCode.components c ∧ ψ x' ∈ v)) ∧
-      (∀ v' ∈ ModelCode.components c', ψ '' v' ∈ ModelCode.components c) ∧
-      (∀ x' : c'.scheme, ModelCode.IsNodePt c (ψ x') → ModelCode.IsNodePt c' x')
+    ModelCode.IsSemistable ϖ c → ModelCode.IsSemistable ϖ c' → ModelCode.IsHarmonic ϖ ψ
 
 /-- A component `v` of a model `c'` is **contracted** by `ψ : c' ⟶ c` if it maps to a point. -/
 def ModelCode.IsContracted {O : Type u} [CommRing O] {c c' : TemperedFundamentalGroups.ModelCode O}

@@ -137,4 +137,26 @@ the dual graph read off on `Z c` is the geometric one. -/
 def IsSplit (ϖ : O) (c : TemperedFundamentalGroups.ModelCode O) : Prop :=
   HasSplitNodes ϖ c ∧ HasGeomIrreducibleComponents c
 
+/-- **Harmonicity of a morphism of models** (W8′(a), Blueprint §9.7, §10.3) for
+`ψ : c' ⟶ c` over `O`:
+* thicknesses of nodes of `c` and `c'` are well defined, and every node point has a thickness
+  `≥ 1`;
+* every node `x'` of `c'` of thickness `n'` maps either to a node of `c` of thickness `n = d·n'`,
+  `d ≥ 1` (the local degree; lengths are scaled by it), or to a smooth point of `c` lying on
+  exactly one component;
+* every component of `c'` maps onto a component of `c`;
+* points over nodes are nodes (edge lifting at the images of components). -/
+def IsHarmonic (ϖ : O) {c c' : TemperedFundamentalGroups.ModelCode O}
+    (ψ : c'.scheme ⟶ c.scheme) : Prop :=
+  (∀ (x : c.scheme) (n m : ℕ), IsNodeOfThickness ϖ c x n → IsNodeOfThickness ϖ c x m → n = m) ∧
+  (∀ (x' : c'.scheme) (n m : ℕ), IsNodeOfThickness ϖ c' x' n →
+    IsNodeOfThickness ϖ c' x' m → n = m) ∧
+  (∀ x : c.scheme, IsNodePt c x → ∃ n, 1 ≤ n ∧ IsNodeOfThickness ϖ c x n) ∧
+  (∀ x' : c'.scheme, IsNodePt c' x' → ∃ n', 1 ≤ n' ∧ IsNodeOfThickness ϖ c' x' n') ∧
+  (∀ (x' : c'.scheme) (n' : ℕ), IsNodeOfThickness ϖ c' x' n' →
+    (∃ n d : ℕ, 1 ≤ d ∧ n = d * n' ∧ IsNodeOfThickness ϖ c (ψ x') n) ∨
+    (IsSmoothPt c (ψ x') ∧ ∃! v, v ∈ components c ∧ ψ x' ∈ v)) ∧
+  (∀ v' ∈ components c', ψ '' v' ∈ components c) ∧
+  (∀ x' : c'.scheme, IsNodePt c (ψ x') → IsNodePt c' x')
+
 end TemperedFundamentalGroups.SemistableReduction.ModelCode
