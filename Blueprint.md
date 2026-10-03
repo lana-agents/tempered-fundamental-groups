@@ -977,6 +977,23 @@ Not delivered by S7: S9's (h1) `u' v' = ϖⁿ·unit` is not a special-fibre stat
 `u' v' ∈ ϖ B_𝔭`). Estimate: S7.1–S7.3 ≈ 0.4k, S7.4–S7.6 ≈ 1.2k, S7.7–S7.8 ≈ 0.6k, S7.9 ≈ 0.8k.
 Files: `DeltaCount` (S7.1–S7.3).
 
+**S7 status (wp-tempered-s7).** Proved over `C`: S7.1–S7.6 and S7.8, plus the conductor/closedness
+part of S7.7.
+- Files: `DeltaCount`, `DeltaGenus`, `MultiGauss`, `LatticeReduction`, `NodeMaximum`,
+  `CurveIntegralClosure`, `CurveGenerators`, `ConductorLocal`, `NodeSide`, `NodeDouble`,
+  `NodePoints`, `TreeData`, `TreeDivisor`, `TreeReduction`, `TreeNode`, `TreeCount`, `TreePoints`.
+- The tree instantiation is over `TreeCount.TreeData` (vertices `(aᵢ, cᵢ)`, edges `par`/`chi`,
+  free directions `bᵢ`). The node points of an edge `e` (`TreeData.NP`) are the points of
+  `Rint c_e F` (chart `x_e = (x₀ − a_{χe})/c_{πe}`, `c_e = c_{χe}/c_{πe}`) that have an outer
+  branch. `TreeData.Sp P` collects the outer and inner branches through `P`. The condition space
+  `TreeData.Oc P` holds the fractions `y/s` of `R'_e` with `s ∉ P'`.
+- `TreeData.delta_count`: `Σ_W g(κ(W)) + Σ_P (r_P − 1) ≤ g(F) + #S − 1`.
+- `TreeData.jets_of_le`: under the reverse inequality, `eqRes ≤ Oc ⊔ K_M` at every node point.
+- `TreeData.isNodeODP_of_le`: under the reverse inequality, every point with one outer and one
+  inner branch is `GaussTube.IsNodeODP`. It goes through `GaussTube.isNodeODP_of_jets`, which
+  uses `NodeDouble.exists_fp`.
+- S7.9 (transfer to `O_E`) was reassigned to L3/R4/O1.
+
 **Estimate and status.** Proved: S1, S2 (general and Gauss-point form), S3, S4, S5, S6 (outer
 vertex) (`AnnulusUnit`, `NormFormula`, `GaussNorm`, `TwoDirections`, `TubeCount`, `GaussTube`,
 `TubePoints`, `ResidueNorm`, `PlaceNorm`, `VertexMatch`; ≈ 3.3k lines) and the interface
