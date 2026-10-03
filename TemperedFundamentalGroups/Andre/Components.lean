@@ -102,6 +102,17 @@ theorem eq_zero_of_forall_algHom {ε : C} (hε : IsIdempotentElem ε)
 def IsPrimitive {S : Type*} [CommRing S] (ε : S) : Prop :=
   IsIdempotentElem ε ∧ ∀ f : S, IsIdempotentElem f → f * ε = 0 ∨ f * ε = ε
 
+lemma IsPrimitive.map_ringEquiv {S T : Type*} [CommRing S] [CommRing T] {ε : S}
+    (h : IsPrimitive ε) (σ : S ≃+* T) : IsPrimitive (σ ε) := by
+  refine ⟨h.1.map σ, fun f hf => ?_⟩
+  rcases h.2 (σ.symm f) (hf.map σ.symm) with h0 | h0
+  · left
+    have := congrArg σ h0
+    rwa [map_mul, RingEquiv.apply_symm_apply, map_zero] at this
+  · right
+    have := congrArg σ h0
+    rwa [map_mul, RingEquiv.apply_symm_apply] at this
+
 omit [IsDomain R] [IsAlgClosed Ω] [Algebra.Etale R C] [Module.Finite R C] in
 /-- Two primitive idempotents through a common geometric point are equal. -/
 lemma IsPrimitive.eq {ε ε' : C} (h : IsPrimitive ε) (h' : IsPrimitive ε') (t : C →ₐ[R] Ω)
@@ -335,12 +346,14 @@ lemma comp_tensorLift {S T : Type u} [CommRing S] [Algebra R S] [CommRing T] [Al
   ext <;> simp
 
 /-- **Galois closure**: a finite étale `R`-algebra `B₀` with a geometric point `s₀` maps to a
-connected finite étale `R`-algebra `B` with a geometric point `t₀` over `s₀` such that
-`Aut_R(B)` acts transitively on the geometric points of `B`. -/
-theorem exists_galoisClosure (s₀ : B₀ →ₐ[R] Ω) :
+connected finite étale `R`-algebra `B` with a geometric point `t₀` such that every geometric
+point of `B₀` factors as `t₀ ∘ g` for some `g : B₀ → B`, and `Aut_R(B)` acts transitively on
+the geometric points of `B`. -/
+theorem exists_galoisClosure [Nonempty (B₀ →ₐ[R] Ω)] :
     ∃ (B : Type u) (_ : CommRing B) (_ : Algebra R B) (_ : Algebra.Etale R B)
-      (_ : Module.Finite R B) (t₀ : B →ₐ[R] Ω) (g : B₀ →ₐ[R] B),
-      t₀.comp g = s₀ ∧ (∀ e : B, IsIdempotentElem e → e = 0 ∨ e = 1) ∧
+      (_ : Module.Finite R B) (t₀ : B →ₐ[R] Ω),
+      (∀ s : B₀ →ₐ[R] Ω, ∃ g : B₀ →ₐ[R] B, t₀.comp g = s) ∧
+      (∀ e : B, IsIdempotentElem e → e = 0 ∨ e = 1) ∧
       ∀ t t' : B →ₐ[R] Ω, ∃ σ : B ≃ₐ[R] B, t.comp (σ : B →ₐ[R] B) = t' := by
   classical
   let d := Nat.card (B₀ →ₐ[R] Ω)
@@ -381,7 +394,8 @@ theorem exists_galoisClosure (s₀ : B₀ →ₐ[R] Ω) :
   let B := T ⧸ Ideal.span {1 - ε}
   haveI : Algebra.Etale R B := quotient_etale hε.1
   refine ⟨B, inferInstance, inferInstance, inferInstance, inferInstance, liftPoint sT hsε,
-    (Ideal.Quotient.mkₐ R _).comp (ι (en s₀)), ?_, isConnected_quotient hε, fun v v' => ?_⟩
+    fun s₀ => ⟨(Ideal.Quotient.mkₐ R _).comp (ι (en s₀)), ?_⟩, isConnected_quotient hε,
+    fun v v' => ?_⟩
   · ext a
     change sT (ι (en s₀) a) = s₀ a
     rw [lift_ι_apply, Equiv.symm_apply_apply]
@@ -426,6 +440,46 @@ theorem exists_galoisClosure (s₀ : B₀ →ₐ[R] Ω) :
     rfl
 
 end Closure
+
+omit [IsDomain R] [IsAlgClosed Ω] in
+/-- A map out of a finite product into a connected algebra, which at a geometric point is the
+projection to the `k`-th factor followed by `t_k`, restricts to a map out of the `k`-th factor. -/
+theorem exists_algHom_of_pi {ι : Type*} {A : ι → Type u} [∀ k, CommRing (A k)]
+    [∀ k, Algebra R (A k)] {B : Type u} [CommRing B] [Algebra R B]
+    (hB : ∀ e : B, IsIdempotentElem e → e = 0 ∨ e = 1) (g : (Π k, A k) →ₐ[R] B)
+    (t₀ : B →ₐ[R] Ω) (k : ι) (tk : A k →ₐ[R] Ω)
+    (h : t₀.comp g = tk.comp (Pi.evalAlgHom R A k)) :
+    ∃ f : A k →ₐ[R] B, t₀.comp f = tk := by
+  classical
+  have hidem : IsIdempotentElem (Pi.single k (1 : A k) : Π k, A k) := by
+    unfold IsIdempotentElem
+    rw [← Pi.single_mul, one_mul]
+  have he : g (Pi.single k 1) = 1 := by
+    refine (hB _ (hidem.map g)).resolve_left fun h0 => ?_
+    have := congrArg t₀ h0
+    rw [map_zero] at this
+    have h' := DFunLike.congr_fun h (Pi.single k 1)
+    simp only [AlgHom.comp_apply, Pi.evalAlgHom_apply, Pi.single_eq_same, map_one] at h'
+    rw [this] at h'
+    exact zero_ne_one h'
+  refine ⟨{ toFun := fun b => g (Pi.single k b)
+            map_one' := he
+            map_mul' := fun a b => by rw [Pi.single_mul, map_mul]
+            map_zero' := by rw [Pi.single_zero, map_zero]
+            map_add' := fun a b => by rw [Pi.single_add, map_add]
+            commutes' := fun r => ?_ }, ?_⟩
+  · have : (Pi.single k (algebraMap R (A k) r) : Π k, A k) =
+        algebraMap R (Π k, A k) r * Pi.single k 1 := by
+      ext i
+      by_cases hi : i = k
+      · subst hi
+        simp
+      · simp [Pi.single_eq_of_ne hi]
+    rw [this, map_mul, he, mul_one, g.commutes]
+  · ext b
+    change t₀ (g (Pi.single k b)) = tk b
+    have h' := DFunLike.congr_fun h (Pi.single k b)
+    simpa using h'
 
 end Components
 

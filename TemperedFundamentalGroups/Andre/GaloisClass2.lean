@@ -140,12 +140,12 @@ def Level.autHom (Lv : Level O R A) [Subsingleton Lv.L.H] (σ : Lv.L.B ≃ₐ[R]
 
 variable (O R A Ω) in
 /-- **The class of Galois objects over levels with trivial `H`** (scheme case; Blueprint
-§10.3.5). -/
-def galClass₂ : ObjectProperty (TempObj O R A) := fun X =>
+§10.3.5), with models restricted by a predicate `M` (e.g. `M := fun _ => True`). -/
+def galClass₂ (M : ModelCode O → Prop) : ObjectProperty (TempObj O R A) := fun X =>
   ∃ (Lv : Level O R A) (_ : Subsingleton Lv.L.H) (_ : TopologicalSpace.NoetherianSpace Lv.Z)
     (_ : T0Space Lv.Z) (_ : QuasiSober Lv.Z) (_ : ConnectedSpace Lv.Z)
     (hdim : topologicalKrullDim Lv.Z ≤ 1) (z₀ : Lv.Z),
-    Nonempty (Lv.L.B →ₐ[R] Ω) ∧
+    M Lv.c ∧ Nonempty (Lv.L.B →ₐ[R] Ω) ∧
     (∀ t t' : Lv.L.B →ₐ[R] Ω, ∃! σ : Lv.L.B ≃ₐ[R] Lv.L.B,
       t.comp (σ : Lv.L.B →ₐ[R] Lv.L.B) = t') ∧
     (∀ e : Lv.L.B, IsIdempotentElem e → e = 0 ∨ e = 1) ∧
@@ -212,9 +212,9 @@ theorem fibreMap_eq_of_eq' [Subsingleton A]
 end Gal
 
 /-- **(gal)** Automorphisms of a member of `galClass₂` act transitively on its fibre. -/
-theorem isGaloisClass_galClass₂ [Subsingleton A] :
-    IsGaloisClass (tempFibre O R A V hV) (galClass₂ O R A Ω) := by
-  rintro X ⟨Lv, _, _, _, _, _, hdim, z₀, -, hgal, hidem, hact, -, hdom, ⟨e⟩⟩ x y
+theorem isGaloisClass_galClass₂ [Subsingleton A] (M : ModelCode O → Prop) :
+    IsGaloisClass (tempFibre O R A V hV) (galClass₂ O R A Ω M) := by
+  rintro X ⟨Lv, _, _, _, _, _, hdim, z₀, -, -, hgal, hidem, hact, -, hdom, ⟨e⟩⟩ x y
   haveI := hdom
   obtain ⟨π, hπ⟩ := exists_iso_fibreMap V hV (fun t t' => (hgal t t').exists) hidem hact
     (fibreMap V hV e.hom x) (fibreMap V hV e.hom y)
@@ -226,9 +226,9 @@ theorem isGaloisClass_galClass₂ [Subsingleton A] :
 
 /-- **(rig)** Two morphisms out of a member of `galClass₂` which agree at one fibre element induce
 the same map of fibres. -/
-theorem isRigid_galClass₂ [Subsingleton A] :
-    IsRigid (tempFibre O R A V hV) (galClass₂ O R A Ω) := by
-  rintro X ⟨Lv, _, _, _, _, _, hdim, z₀, -, -, hidem, -, -, hdom, ⟨e⟩⟩ Y f f' g hg
+theorem isRigid_galClass₂ [Subsingleton A] (M : ModelCode O → Prop) :
+    IsRigid (tempFibre O R A V hV) (galClass₂ O R A Ω M) := by
+  rintro X ⟨Lv, _, _, _, _, _, hdim, z₀, -, -, -, hidem, -, -, hdom, ⟨e⟩⟩ Y f f' g hg
   haveI := hdom
   have key := fibreMap_eq_of_eq' V hV hidem (e.inv ≫ f) (e.inv ≫ f') (fibreMap V hV e.hom g)
     (by
