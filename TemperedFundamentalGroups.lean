@@ -3,6 +3,7 @@ import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.GaloisClass
 import TemperedFundamentalGroups.Andre.GaloisClass2
 import TemperedFundamentalGroups.Andre.GaloisDom2
+import TemperedFundamentalGroups.Andre.GaloisDomW
 import TemperedFundamentalGroups.Andre.GaloisObject
 import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.ProjPoints
@@ -136,4 +137,5 @@ import TemperedFundamentalGroups.Topology.CountableFibres
 import TemperedFundamentalGroups.Topology.CoveringCode
 import TemperedFundamentalGroups.Topology.CurveCovering
 import TemperedFundamentalGroups.Topology.GenericLift
+import TemperedFundamentalGroups.Topology.TreeLength
 import TemperedFundamentalGroups.Topology.UniversalCovering
