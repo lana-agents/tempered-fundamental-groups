@@ -287,7 +287,7 @@ variable (Lv : Level O R A) {E : Type u} [TopologicalSpace E] {p : E → Lv.Z}
 include hp in
 variable {Lv} in
 /-- Two lifts of the same map `Z̃ → Z` through `p` that agree at one point are equal. -/
-lemma lift_ext {Y : Type u} [TopologicalSpace Y] {f₁ f₂ : E → Y} {q : Y → Lv.Z}
+lemma lift_ext {Y W : Type*} [TopologicalSpace Y] [TopologicalSpace W] {f₁ f₂ : E → Y} {q : Y → W}
     (hq : IsCoveringMap q) (h₁ : Continuous f₁) (h₂ : Continuous f₂) (h : q ∘ f₁ = q ∘ f₂) (e : E)
     (he : f₁ e = f₂ e) : f₁ = f₂ :=
   have := hp.connectedSpace
@@ -343,6 +343,7 @@ variable {Lv hp}
 lemma Pi.spec (π : Pi Lv p) (e : E) : p (π.1.2 e) = Lv.ρs π.1.1 (p e) := π.2 e
 
 include hp in
+variable (hp) in
 /-- Elements of `Π` are determined by their image in `H` and the image of one point. -/
 lemma Pi.ext_of_apply {π π' : Pi Lv p} (h₁ : π.1.1 = π'.1.1) (e : E) (h₂ : π.1.2 e = π'.1.2 e) :
     π = π' := by
@@ -418,7 +419,263 @@ lemma act_Θ (g : Lv.L.H) (x : IndSpace Lv E) :
     (code Lv hp hc).act g (Θ Lv hp hc x) = Θ Lv hp hc (indAct Lv E g x) :=
   CoveringCode.ofCovering_act _ _ _ _ g x
 
+
+/-- The right action of `Π` on `Ind_1^H Z̃`: `(g, e) ↦ (g π₁⁻¹, π₂ e)`. -/
+def deckInd (π : Pi Lv p) : IndSpace Lv E ≃ₜ IndSpace Lv E where
+  toFun x := ⟨x.1 * π.1.1⁻¹, π.1.2 x.2⟩
+  invFun x := ⟨x.1 * π.1.1, π.1.2.symm x.2⟩
+  left_inv x := Sigma.ext (by simp) (heq_of_eq (by simp))
+  right_inv x := Sigma.ext (by simp) (heq_of_eq (by simp))
+  continuous_toFun := continuous_sigma fun i =>
+    (continuous_sigmaMk (σ := fun _ : Lv.L.H => E) (i := i * π.1.1⁻¹)).comp π.1.2.continuous
+  continuous_invFun := continuous_sigma fun i =>
+    (continuous_sigmaMk (σ := fun _ : Lv.L.H => E) (i := i * π.1.1)).comp π.1.2.symm.continuous
+
+omit [Finite Lv.L.H] in
+@[simp] lemma deckInd_apply (π : Pi Lv p) (x : IndSpace Lv E) :
+    deckInd π x = ⟨x.1 * π.1.1⁻¹, π.1.2 x.2⟩ := rfl
+
+omit [Finite Lv.L.H] in
+lemma indProj_deckInd (π : Pi Lv p) (x : IndSpace Lv E) :
+    indProj p (deckInd π x) = indProj p x := by
+  simp only [indProj, deckInd_apply, Pi.spec, map_mul, map_inv, Homeomorph.mul_apply,
+    Homeomorph.inv_apply, Homeomorph.symm_apply_apply]
+
+omit [Finite Lv.L.H] in
+lemma deckInd_indAct (π : Pi Lv p) (g : Lv.L.H) (x : IndSpace Lv E) :
+    deckInd π (indAct Lv E g x) = indAct Lv E g (deckInd π x) :=
+  Sigma.ext (mul_assoc _ _ _) HEq.rfl
+
+omit [Finite Lv.L.H] in
+lemma deckInd_mul (π π' : Pi Lv p) (x : IndSpace Lv E) :
+    deckInd (π * π') x = deckInd π (deckInd π' x) :=
+  Sigma.ext (by simp [mul_assoc]) HEq.rfl
+
+omit [Finite Lv.L.H] in
+lemma deckInd_one (x : IndSpace Lv E) : deckInd (1 : Pi Lv p) x = x :=
+  Sigma.ext (by simp) HEq.rfl
+
+variable (hp hc) in
+/-- **The deck transformation** of `U_Lv` given by `π ∈ Π`: the identity on the level and the
+model, and the right action of `π` on `Ind_1^H Z̃ ≅ (Z̃ × Π)/π₁`. -/
+def deckHom (π : Pi Lv p) : obj Lv hp hc ⟶ obj Lv hp hc where
+  φ := 𝟙 _
+  ψ := 𝟙 _
+  ψ_toSpec := Category.id_comp _
+  j_ψ := (𝟙 (obj Lv hp hc) : TempObj.Hom _ _).j_ψ
+  h x := Θ Lv hp hc (deckInd π ((Θ Lv hp hc).symm x))
+  continuous_h := (Θ Lv hp hc).continuous.comp ((deckInd π).continuous.comp
+    (Θ Lv hp hc).symm.continuous)
+  fst_h x := by
+    refine congrArg Subtype.val (?_ : (Θ Lv hp hc (deckInd π ((Θ Lv hp hc).symm x))).1.1 = x.1.1)
+    conv_rhs => rw [← (Θ Lv hp hc).apply_symm_apply x]
+    rw [Θ_fst, Θ_fst, indProj_deckInd]
+  h_act g x := by
+    obtain ⟨y, rfl⟩ := (Θ Lv hp hc).surjective x
+    change Θ Lv hp hc (deckInd π ((Θ Lv hp hc).symm ((code Lv hp hc).act g (Θ Lv hp hc y)))) =
+      (code Lv hp hc).act g (Θ Lv hp hc (deckInd π ((Θ Lv hp hc).symm (Θ Lv hp hc y))))
+    rw [act_Θ, act_Θ, Homeomorph.symm_apply_apply, Homeomorph.symm_apply_apply, deckInd_indAct]
+
+lemma deckHom_h_Θ (π : Pi Lv p) (x : IndSpace Lv E) :
+    (deckHom hp hc π).h (Θ Lv hp hc x) = Θ Lv hp hc (deckInd π x) := by
+  simp [deckHom]
+
+lemma deckHom_comp (π π' : Pi Lv p) :
+    deckHom hp hc π ≫ deckHom hp hc π' = deckHom hp hc (π' * π) := by
+  refine TempObj.Hom.ext (Category.id_comp _) (Category.id_comp _) (funext fun x => ?_)
+  obtain ⟨y, rfl⟩ := (Θ Lv hp hc).surjective x
+  rw [TempObj.comp_h, Function.comp_apply, deckHom_h_Θ, deckHom_h_Θ, deckHom_h_Θ, deckInd_mul]
+
+lemma deckHom_one : deckHom hp hc (1 : Pi Lv p) = 𝟙 _ := by
+  refine TempObj.Hom.ext rfl rfl (funext fun x => ?_)
+  obtain ⟨y, rfl⟩ := (Θ Lv hp hc).surjective x
+  rw [deckHom_h_Θ, deckInd_one, TempObj.id_h, id]
+
+variable (hp hc) in
+/-- **The deck action** `Π →* Aut U_Lv`. -/
+def deck : Pi Lv p →* Aut (obj Lv hp hc) where
+  toFun π :=
+    { hom := deckHom hp hc π
+      inv := deckHom hp hc π⁻¹
+      hom_inv_id := by rw [deckHom_comp, inv_mul_cancel, deckHom_one]
+      inv_hom_id := by rw [deckHom_comp, mul_inv_cancel, deckHom_one] }
+  map_one' := Iso.ext deckHom_one
+  map_mul' π π' := Iso.ext (deckHom_comp π' π).symm
+
+@[simp] lemma deck_hom (π : Pi Lv p) : (deck hp hc π).hom = deckHom hp hc π := rfl
+
 end Object
+
+
+section Fibre
+
+open TempObj
+
+variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+variable {Lv : Level O R A} [Finite Lv.L.H] {E : Type u} [TopologicalSpace E] {p : E → Lv.Z}
+  {hp : IsUniversalCovering.{u, u, u, u} p} {hc : ∀ z, (p ⁻¹' {z}).Countable}
+
+/-- The point `(t, (1, e))` of the fibre of `U_Lv`, for `e ∈ Z̃` over the specialization of `t`. -/
+def prePt (t : Lv.L.B →ₐ[R] Ω) (e : E) (he : p e = Lv.sp V hV t) :
+    PreFibre Ω V hV (obj Lv hp hc) :=
+  ⟨(t, Θ Lv hp hc ⟨1, e⟩), congrArg Subtype.val ((Θ_fst _).trans ((indProj_one p e).trans he))⟩
+
+lemma proj_eq_sp (q : PreFibre Ω V hV (obj Lv hp hc)) {e : E} (h : q.1.2 = Θ Lv hp hc ⟨1, e⟩) :
+    p e = Lv.sp V hV q.1.1 := by
+  apply Subtype.ext
+  have h₂ := q.2
+  rw [h] at h₂
+  exact (congrArg Subtype.val ((indProj_one p e).symm.trans (Θ_fst _).symm)).trans h₂
+
+/-- In the scheme case (`A` trivial, so `H⁰ = H`), every point of the fibre of `U_Lv` is
+represented by a pair `(t, (1, e))`. -/
+lemma exists_rep [Subsingleton A] (u : Fibre Ω V hV (obj Lv hp hc)) :
+    ∃ (q : PreFibre Ω V hV (obj Lv hp hc)) (e : E), q.1.2 = Θ Lv hp hc ⟨1, e⟩ ∧
+      u = Quotient.mk _ q := by
+  obtain ⟨q, rfl⟩ := Quotient.mk_surjective u
+  obtain ⟨⟨g, e⟩, hge⟩ := (Θ Lv hp hc).surjective q.1.2
+  let k : (obj Lv hp hc).Lv.L.H0 := ⟨g⁻¹, FiniteLevel.mem_H0.2 (Subsingleton.elim _ _)⟩
+  refine ⟨k • q, e, ?_, Quotient.sound ⟨k⁻¹, inv_smul_smul k q⟩⟩
+  change (code Lv hp hc).act g⁻¹ q.1.2 = _
+  rw [← hge, act_Θ]
+  exact congrArg (Θ Lv hp hc) (Sigma.ext (inv_mul_cancel g) HEq.rfl)
+
+/-- **`U_Lv` is Galois** (scheme case): if `H⁰ = H` acts simply transitively on the geometric
+fibre `F_L` (a Galois level), then `Π` acts simply transitively on the fibre `Φ(U_Lv)` through
+the deck transformations. -/
+theorem existsUnique_deck [Subsingleton A]
+    (hgal : ∀ t t' : Lv.L.B →ₐ[R] Ω, ∃! k : Lv.L.H0, FiniteLevel.fibreAct Ω Lv.L k t = t')
+    (u v : Fibre Ω V hV (obj Lv hp hc)) :
+    ∃! π : Pi Lv p, fibreMap V hV (deckHom hp hc π) u = v := by
+  obtain ⟨q₁, e₁, hq₁, rfl⟩ := exists_rep V hV u
+  obtain ⟨q₂, e₂, hq₂, rfl⟩ := exists_rep V hV v
+  obtain ⟨k, hk, -⟩ := hgal q₁.1.1 q₂.1.1
+  have hp₂ : p e₂ = Lv.ρs k (p e₁) := by
+    rw [proj_eq_sp V hV q₂ hq₂, proj_eq_sp V hV q₁ hq₁, ← hk]
+    apply Subtype.ext
+    rw [Level.sp_fibreAct, Level.ρs_apply]
+  obtain ⟨τ, hτ, hτe⟩ := exists_lift Lv hp k hp₂
+  let π : Pi Lv p := ⟨((k : Lv.L.H), τ), hτ⟩
+  have hπ : fibreMap V hV (deckHom hp hc π) (Quotient.mk _ q₁) = Quotient.mk _ q₂ := by
+    change Quotient.mk _ (preMap V hV _ q₁) = Quotient.mk _ q₂
+    refine Eq.symm (Quotient.sound ?_)
+    refine ⟨k, Subtype.ext (Prod.ext hk ?_)⟩
+    change (code Lv hp hc).act k ((deckHom hp hc _).h q₁.1.2) = q₂.1.2
+    rw [hq₁, deckHom_h_Θ, act_Θ, hq₂]
+    refine congrArg (Θ Lv hp hc) (Sigma.ext ?_ (heq_of_eq hτe))
+    change (k : Lv.L.H) * (1 * (k : Lv.L.H)⁻¹) = 1
+    group
+  refine ⟨π, hπ, fun π' hπ' => ?_⟩
+  obtain ⟨m, hm⟩ := Quotient.exact (hπ'.trans hπ.symm : Quotient.mk _ (preMap V hV _ q₁) =
+    Quotient.mk _ (preMap V hV _ q₁))
+  have hm₁ : m = 1 := (hgal q₁.1.1 q₁.1.1).unique (congrArg (fun q => q.1.1) hm)
+    (FiniteLevel.fibreAct_one Ω Lv.L _)
+  subst hm₁
+  have hm₂ := congrArg (fun q => q.1.2) hm
+  change (code Lv hp hc).act 1 ((deckHom hp hc π).h q₁.1.2) = (deckHom hp hc π').h q₁.1.2
+    at hm₂
+  rw [map_one, Homeomorph.one_apply, hq₁, deckHom_h_Θ, deckHom_h_Θ] at hm₂
+  obtain ⟨h₁, h₂⟩ := Sigma.mk.inj ((Θ Lv hp hc).injective hm₂)
+  exact Pi.ext_of_apply hp (by simpa using h₁.symm) e₁ (eq_of_heq h₂).symm
+
+/-- **Rigidity relative to the level and model components**: two morphisms out of `U_Lv` with the
+same level and model morphisms which agree at one point of the covering space are equal. -/
+theorem hom_ext {X : TempObj O R A} {f f' : obj Lv hp hc ⟶ X} (hφ : f.φ = f'.φ) (hψ : f.ψ = f'.ψ)
+    (x₀ : (code Lv hp hc).carrier) (h : f.h x₀ = f'.h x₀) : f = f' := by
+  obtain ⟨⟨g₀, e₀⟩, rfl⟩ := (Θ Lv hp hc).surjective x₀
+  have hc₀ : Continuous fun e : E => Θ Lv hp hc ⟨g₀, e⟩ :=
+    (Θ Lv hp hc).continuous.comp (continuous_sigmaMk (σ := fun _ : Lv.L.H => E))
+  have hsheet : (fun e => f.h (Θ Lv hp hc ⟨g₀, e⟩)) = fun e => f'.h (Θ Lv hp hc ⟨g₀, e⟩) := by
+    refine lift_ext hp X.P.isCoveringMap (f.continuous_h.comp hc₀) (f'.continuous_h.comp hc₀)
+      (funext fun e => Subtype.ext ?_) e₀ h
+    change ((f.h _).1.1 : X.Lv.c.scheme) = (f'.h _).1.1
+    rw [f.fst_h, f'.fst_h, hψ]
+  refine TempObj.Hom.ext hφ hψ (funext fun x => ?_)
+  obtain ⟨⟨g, e⟩, rfl⟩ := (Θ Lv hp hc).surjective x
+  have hx : Θ Lv hp hc ⟨g, e⟩ = (code Lv hp hc).act (g * g₀⁻¹) (Θ Lv hp hc ⟨g₀, e⟩) := by
+    rw [act_Θ]
+    exact congrArg (Θ Lv hp hc) (Sigma.ext (inv_mul_cancel_right g g₀).symm HEq.rfl)
+  rw [hx]
+  change f.h ((obj Lv hp hc).P.act _ _) = f'.h ((obj Lv hp hc).P.act _ _)
+  rw [f.h_act, f'.h_act, congrFun hsheet e, hφ]
+
+/-- `σ_k⁻¹` as an `R`-algebra endomorphism of `B`, for `k ∈ H⁰`. -/
+def twist {L : FiniteLevel R A} (k : L.H0) : L.B →ₐ[R] L.B :=
+  { ((k : SemilinearAut R A L.B).σ.symm : L.B →+* L.B) with
+    commutes' := fun r => (RingEquiv.symm_apply_eq _).2
+      (SemilinearAut.σ_algebraMap_of_a_eq_one (FiniteLevel.mem_H0.1 k.2) r).symm }
+
+omit [IsScalarTower K R Ω] in
+lemma fibreAct_eq_comp_twist {L : FiniteLevel R A} (k : L.H0) (t : L.B →ₐ[R] Ω) :
+    FiniteLevel.fibreAct Ω L k t = t.comp (twist k) := rfl
+
+/-- **Rigidity on fibres**: if the map `j : Spec B → 𝒯` of `Lv` is scheme-theoretically dominant
+and `Spec B` is connected in the sense that `R`-algebra maps into `B` are determined by one
+geometric point (`hconn`), then two morphisms `U_Lv ⟶ X` which agree on one point of the fibre
+induce the same map of fibres. -/
+theorem fibreMap_eq_of_eq [Subsingleton A] [IsSchemeTheoreticallyDominant Lv.j]
+    (hconn : ∀ (L' : FiniteLevel R A) (a a' : L'.B →ₐ[R] Lv.L.B) (t : Lv.L.B →ₐ[R] Ω),
+      t.comp a = t.comp a' → a = a')
+    {X : TempObj O R A} (f f' : obj Lv hp hc ⟶ X) (u : Fibre Ω V hV (obj Lv hp hc))
+    (h : fibreMap V hV f u = fibreMap V hV f' u) : fibreMap V hV f = fibreMap V hV f' := by
+  obtain ⟨q₁, e₁, hq₁, rfl⟩ := exists_rep V hV u
+  obtain ⟨k, hk⟩ := Quotient.exact (h.symm : Quotient.mk _ (preMap V hV f' q₁) =
+    Quotient.mk _ (preMap V hV f q₁))
+  have hk₁ : FiniteLevel.fibreAct Ω X.Lv.L k (q₁.1.1.comp f.φ.f) = q₁.1.1.comp f'.φ.f :=
+    congrArg (fun q => q.1.1) hk
+  have hk₂ : X.P.act (k : X.Lv.L.H) (f.h q₁.1.2) = f'.h q₁.1.2 := congrArg (fun q => q.1.2) hk
+  have hf : f'.φ.f = f.φ.f.comp (twist k) :=
+    hconn X.Lv.L _ _ q₁.1.1
+      (hk₁.symm.trans ((fibreAct_eq_comp_twist k _).trans (AlgHom.comp_assoc _ _ _)))
+  have : IsSchemeTheoreticallyDominant (obj Lv hp hc).Lv.j :=
+    ‹IsSchemeTheoreticallyDominant Lv.j›
+  have hι : (obj Lv hp hc).Lv.j ≫ f'.ψ = (obj Lv hp hc).Lv.j ≫ f.ψ ≫ (X.Lv.ρ k).hom := by
+    have hring : (f'.φ.f :
+          X.Lv.L.B →+* (obj Lv hp hc).Lv.L.B) = (f.φ.f :
+          X.Lv.L.B →+* (obj Lv hp hc).Lv.L.B).comp
+        ((k : SemilinearAut R A X.Lv.L.B).σ.symm : X.Lv.L.B →+* X.Lv.L.B) := by
+      rw [hf]
+      rfl
+    calc (obj Lv hp hc).Lv.j ≫ f'.ψ = Spec.map (CommRingCat.ofHom (f'.φ.f :
+          X.Lv.L.B →+* (obj Lv hp hc).Lv.L.B)) ≫ X.Lv.j :=
+          f'.j_ψ
+      _ = Spec.map (CommRingCat.ofHom (f.φ.f :
+          X.Lv.L.B →+* (obj Lv hp hc).Lv.L.B)) ≫
+          Spec.map (CommRingCat.ofHom ((k : SemilinearAut R A X.Lv.L.B).σ.symm :
+            X.Lv.L.B →+* X.Lv.L.B)) ≫ X.Lv.j := by
+          rw [hring, CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc]
+      _ = Spec.map (CommRingCat.ofHom (f.φ.f :
+          X.Lv.L.B →+* (obj Lv hp hc).Lv.L.B)) ≫ X.Lv.j ≫ (X.Lv.ρ k).hom := by
+          rw [X.Lv.ρ_j]
+      _ = (obj Lv hp hc).Lv.j ≫ f.ψ ≫ (X.Lv.ρ k).hom := by
+          rw [← Category.assoc, ← f.j_ψ, Category.assoc]
+  have hψ : f'.ψ = f.ψ ≫ (X.Lv.ρ k).hom :=
+    ext_of_isSchemeTheoreticallyDominant_of_isSeparated X.Lv.c.toSpec
+      (by rw [f'.ψ_toSpec, Category.assoc, X.Lv.ρ_toSpec, f.ψ_toSpec]) (obj Lv hp hc).Lv.j hι
+  have hc₁ : Continuous fun e : E => Θ Lv hp hc ⟨1, e⟩ :=
+    (Θ Lv hp hc).continuous.comp (continuous_sigmaMk (σ := fun _ : Lv.L.H => E))
+  have hsheet : (fun e => f'.h (Θ Lv hp hc ⟨1, e⟩)) =
+      fun e => X.P.act (k : X.Lv.L.H) (f.h (Θ Lv hp hc ⟨1, e⟩)) := by
+    refine lift_ext hp X.P.isCoveringMap (f'.continuous_h.comp hc₁)
+      ((X.P.act _).continuous.comp (f.continuous_h.comp hc₁)) (funext fun e => Subtype.ext ?_)
+      e₁ (by rw [← hq₁]; exact hk₂.symm)
+    change ((f'.h _).1.1 : X.Lv.c.scheme) = (X.P.act _ (f.h _)).1.1
+    rw [f'.fst_h, X.P.act_fst, Level.ρs_apply, f.fst_h, hψ, Scheme.Hom.comp_apply]
+  funext w
+  obtain ⟨q, e, hq, rfl⟩ := exists_rep V hV w
+  change Quotient.mk _ (preMap V hV f q) = Quotient.mk _ (preMap V hV f' q)
+  refine Eq.symm (Quotient.sound ?_)
+  refine ⟨k, Subtype.ext (Prod.ext ?_ ?_)⟩
+  · change FiniteLevel.fibreAct Ω X.Lv.L k (q.1.1.comp f.φ.f) = q.1.1.comp f'.φ.f
+    rw [hf, fibreAct_eq_comp_twist]
+    rfl
+  · change X.P.act (k : X.Lv.L.H) (f.h q.1.2) = f'.h q.1.2
+    rw [hq]
+    exact (congrFun hsheet e).symm
+
+end Fibre
 
 end
 
