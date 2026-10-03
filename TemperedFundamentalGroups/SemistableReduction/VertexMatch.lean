@@ -449,6 +449,55 @@ theorem res_algebraMap_eq (a : κ₁) (v v' : Ext C F')
   · rw [h'.2.1 heq.symm, h.2.1 heq.symm]
   · rw [h'.2.2 hlt, h.2.2 hlt]
 
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F'] [Algebra C F']
+  [IsScalarTower C (RatFunc C) F'] in
+lemma red_algebraMap_rat (v : Ext C F') {φ : RatFunc C} (h : gauss1 C φ ≤ 1) :
+    red C (algebraMap (RatFunc C) F' φ) v =
+      algebraMap κ₁ (ResidueField v.1.valuationSubring) (residue _ ⟨φ, h⟩) := by
+  have := red_algebraMap_mul φ h (by simp : v.1 (1 : F') ≤ 1)
+  rwa [mul_one, red_one, mul_one] at this
+
+lemma placeHom_const (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (κ : HenselComplete.integers C) :
+    placeHom hc v hQ (algebraMap (nodeRing c) (Rint c F')
+      ⟨algebraMap C (RatFunc C) κ, algebraMap_mem_nodeRing
+        ((HenselComplete.mem_integers_iff _).1 κ.2)⟩) =
+      residue (HenselComplete.integers C) κ := by
+  rw [placeHom_apply]
+  change Q.res (red C (algebraMap (RatFunc C) F' (algebraMap C (RatFunc C) κ)) v) = _
+  rw [← IsScalarTower.algebraMap_apply,
+    red_algebraMap_C (κ : C) (by exact_mod_cast (HenselComplete.mem_integers_iff _).1 κ.2),
+    Q.res_algebraMap]
+
+/-- The norm from a residue curve to `κ(w_{0,1})`, evaluated at a zero `Q` of `x̄`: the
+norm specialization (`PlaceNorm.res_norm_eq_prod`) transported along `κ(w_{0,1}) ≅ k(x̄)`. -/
+theorem res_norm_residue (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) {z : ResidueField v.1.valuationSubring}
+    (hz : ∀ Q' ∈ zeros 𝓀 (red C (xF C F') v), z ∈ Q'.V) :
+    algebraMap κ₁ (ResidueField v.1.valuationSubring) (Algebra.norm κ₁ z) ∈ Q.V ∧
+      Q.res (algebraMap κ₁ (ResidueField v.1.valuationSubring) (Algebra.norm κ₁ z)) =
+        ∏ Q' ∈ zeros 𝓀 (red C (xF C F') v), Q'.res z ^ ord (red C (xF C F') v) Q' := by
+  set E := 𝓀⟮red C (xF C F') v⟯
+  have hinj : Function.Injective (algebraMap κ₁ (ResidueField v.1.valuationSubring)) :=
+    RingHom.injective _
+  let i : κ₁ ≃+* E :=
+    RingEquiv.ofBijective ((algebraMap _ _ : _ →+* _).codRestrict E.toSubfield
+      fun y ↦ (mem_adjoin_red_x_iff v _).2 ⟨y, rfl⟩)
+      ⟨fun a b h ↦ hinj (congrArg Subtype.val h), fun z ↦ by
+        obtain ⟨y, hy⟩ := (mem_adjoin_red_x_iff v z).1 z.2
+        exact ⟨y, Subtype.ext hy⟩⟩
+  have hnorm : (i (Algebra.norm κ₁ z) : ResidueField v.1.valuationSubring) =
+      ((Algebra.norm E z : E) : ResidueField v.1.valuationSubring) := by
+    rw [Algebra.norm_eq_of_ringEquiv i (by ext; rfl) z]
+  have hx : red C (xF C F') v ∉ (algebraMap 𝓀 (ResidueField v.1.valuationSubring)).range :=
+    fun ⟨a, ha⟩ ↦ transcendental_red_x (F := F') v (ha ▸ isAlgebraic_algebraMap a)
+  have := PlaceNorm.res_norm_eq_prod hx hz hQ
+  change ((i (Algebra.norm κ₁ z) : E) : ResidueField v.1.valuationSubring) ∈ Q.V ∧
+    Q.res ((i (Algebra.norm κ₁ z) : E) : ResidueField v.1.valuationSubring) = _
+  rw [hnorm]
+  exact this
+
 end GaussTube
 
 end SemistableReduction
