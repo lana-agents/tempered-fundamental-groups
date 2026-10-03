@@ -59,7 +59,7 @@ def Statement.StrongComponent : Prop :=
       (j : Spec (CommRingCat.of (TensorProduct K K' B)) ⟶ c.scheme)
       (act : G × (K' ≃ₐ[K] K') →* Aut c.scheme)
       (dom : ∀ i, c.scheme ⟶ (c₀ i).scheme),
-      ModelCode.IsSemistable ϖ' c' ∧ ModelCode.IsSplit ϖ' c' ∧
+      ModelCode.IsSemistable ϖ' c' ∧ ModelCode.IsSplit ϖ' c' ∧ ModelCode.NoLoops c' ∧
       e.hom ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom
         ((algebraMap K K').restrict O O' (fun x hx => by
           rw [← ‹O'.comap (algebraMap K K') = O›] at hx; exact hx))) = c.toSpec ∧
@@ -80,7 +80,7 @@ def Statement.StrongComponent : Prop :=
           (c₁ : TemperedFundamentalGroups.ModelCode O)
           (e₁ : c₁.scheme ≅ c₁'.scheme) (ι₁ : c₁.scheme ⟶ c.scheme)
           (j₁ : Spec (CommRingCat.of (TensorProduct K K' B ⧸ Ideal.span {1 - ε})) ⟶ c₁.scheme),
-          ModelCode.IsSemistable ϖ' c₁' ∧ ModelCode.IsSplit ϖ' c₁' ∧
+          ModelCode.IsSemistable ϖ' c₁' ∧ ModelCode.IsSplit ϖ' c₁' ∧ ModelCode.NoLoops c₁' ∧
           e₁.hom ≫ c₁'.toSpec ≫ Spec.map (CommRingCat.ofHom
             ((algebraMap K K').restrict O O' (fun x hx => by
               rw [← ‹O'.comap (algebraMap K K') = O›] at hx; exact hx))) = c₁.toSpec ∧
