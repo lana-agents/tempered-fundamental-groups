@@ -244,7 +244,8 @@ lemma red_mem_V (hc : ‖c‖ < 1) (v : Ext C F') (y : Rint c F')
     rw [eval_eq_sum_range, hm.natDegree_map]
     have h0 := congrArg (fun f ↦ red C f v) hp
     simp only [hsum, red_zero] at h0
-    rw [red_sum _ _ fun i _ ↦ by rw [map_mul, map_pow]; exact mul_le_one' (hle _) (pow_le_one' hy1 _)] at h0
+    rw [red_sum _ _ fun i _ ↦ by
+      rw [map_mul, map_pow]; exact mul_le_one' (hle _) (pow_le_one' hy1 _)] at h0
     rw [← h0]
     refine Finset.sum_congr rfl fun i _ ↦ ?_
     rw [coeff_map, red_mul (hle _) (by rw [map_pow]; exact pow_le_one' hy1 _), red_pow hy1]
@@ -255,7 +256,8 @@ section Place
 
 /-- The reduction of `R'` at a branch `Q` of the outer vertex through the node:
 `y ↦ ȳ_v(Q)`. -/
-noncomputable def placeHom (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+noncomputable def placeHom (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
     (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) : Rint c F' →+* 𝓀 where
   toFun y := Q.res (red C (y : F') v)
   map_one' := by simp [Q.res_one]
@@ -269,10 +271,13 @@ noncomputable def placeHom (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace �
     rw [red_add (valuation_le_one_R hc v y) (valuation_le_one_R hc v z),
       Q.res_add (red_mem_V hc v y hQ) (red_mem_V hc v z hQ)]
 
-lemma placeHom_apply (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
-    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (y : Rint c F') : placeHom hc v hQ y = Q.res (red C (y : F') v) := rfl
+lemma placeHom_apply (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (y : Rint c F') :
+    placeHom hc v hQ y = Q.res (red C (y : F') v) := rfl
 
-lemma placeHom_algebraMap (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+lemma placeHom_algebraMap (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
     (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (a : nodeRing c) :
     ∃ κ : HenselComplete.integers C,
       (∀ s ∈ segment c, w s ((a : RatFunc C) - algebraMap C (RatFunc C) κ) < 1) ∧
@@ -281,7 +286,8 @@ lemma placeHom_algebraMap (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀
   obtain ⟨κ, hs, -, hres⟩ := red_algebraMap_nodeRing_mem hc v a.2 hQ
   exact ⟨κ, hs, hres⟩
 
-lemma placeHom_surjective (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+lemma placeHom_surjective (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
     (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) : Function.Surjective (placeHom hc v hQ) := by
   intro t
   obtain ⟨κ, rfl⟩ := residue_surjective t
@@ -295,14 +301,17 @@ lemma placeHom_surjective (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀
     Q.res_algebraMap]
 
 /-- The ideal of `R'` of the branch `Q`: a maximal ideal over the node. -/
-noncomputable def placeIdeal (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+noncomputable def placeIdeal (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
     (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) : Ideal (Rint c F') := RingHom.ker (placeHom hc v hQ)
 
-lemma placeIdeal_isMaximal (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+lemma placeIdeal_isMaximal (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
     (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) : (placeIdeal hc v hQ).IsMaximal :=
   RingHom.ker_isMaximal_of_surjective _ (placeHom_surjective hc v hQ)
 
-lemma mem_placeIdeal_iff (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+lemma mem_placeIdeal_iff (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
     (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (y : Rint c F') :
     y ∈ placeIdeal hc v hQ ↔ Q.res (red C (y : F') v) = 0 := RingHom.mem_ker
 
@@ -331,7 +340,8 @@ lemma res_aeval (hu : Q.valuation u < 1) (p : k[X]) : Q.res (aeval u p) = p.eval
 
 omit [IsAlgClosed k] [IsCurveFunctionField k κ] in
 lemma aeval_eq_pow_mul (r : k[X]) :
-    aeval u r = u ^ r.rootMultiplicity 0 * aeval u (r /ₘ (X - Polynomial.C 0) ^ r.rootMultiplicity 0) := by
+    aeval u r =
+      u ^ r.rootMultiplicity 0 * aeval u (r /ₘ (X - Polynomial.C 0) ^ r.rootMultiplicity 0) := by
   conv_lhs => rw [← pow_mul_divByMonic_rootMultiplicity_eq r 0]
   simp
 
