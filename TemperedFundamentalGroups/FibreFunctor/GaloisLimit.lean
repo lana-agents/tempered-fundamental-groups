@@ -14,7 +14,7 @@ Let `Φ : C ⥤ Type w` be a functor and `𝒢` a class of objects of `C` ("Galo
 * (dom) every finite family of pointed objects `(X_k, x_k)` is dominated by a pointed Galois
   object `(G, g)`: there are `f_k : G ⟶ X_k` with `Φ f_k g = x_k` (`IsDominating`);
 * (rig) two morphisms `G ⟶ X` out of `G ∈ 𝒢` that agree at one fibre element are equal
-  (`IsRigid`).
+  (`IsRigid`: they then agree on the whole fibre).
 
 The pointed Galois objects `(G, g)` form a cofiltered (thin) category `PtGal Φ 𝒢`. Automorphisms
 of `Φ` correspond to *compatible families* `γ_{(G,g)} ∈ Φ G` (K1, `FibreAut.compatibleEquiv`):
@@ -35,18 +35,20 @@ namespace GaloisLimit
 
 variable {C : Type u} [Category.{v} C] (Φ : C ⥤ Type w) (𝒢 : ObjectProperty C)
 
-/-- (gal) For `G ∈ 𝒢`, `Aut G` acts simply transitively on `Φ G`. -/
+/-- (gal) For `G ∈ 𝒢`, `Aut G` acts transitively on `Φ G`. -/
 def IsGaloisClass : Prop :=
-  ∀ G, 𝒢 G → ∀ x y : Φ.obj G, ∃! σ : G ≅ G, Φ.map σ.hom x = y
+  ∀ G, 𝒢 G → ∀ x y : Φ.obj G, ∃ σ : G ≅ G, Φ.map σ.hom x = y
 
 /-- (dom) Every finite family of pointed objects is dominated by a pointed object of `𝒢`. -/
 def IsDominating : Prop :=
   ∀ (n : ℕ) (P : Fin n → Σ X : C, Φ.obj X), ∃ G, 𝒢 G ∧ ∃ g : Φ.obj G,
     ∃ f : ∀ k, G ⟶ (P k).1, ∀ k, Φ.map (f k) g = (P k).2
 
-/-- (rig) Morphisms out of objects of `𝒢` agreeing at one fibre element are equal. -/
+/-- (rig) Morphisms out of objects of `𝒢` agreeing at one fibre element agree on the whole
+fibre. -/
 def IsRigid : Prop :=
-  ∀ G, 𝒢 G → ∀ {X : C} (f f' : G ⟶ X) (g : Φ.obj G), Φ.map f g = Φ.map f' g → f = f'
+  ∀ G, 𝒢 G → ∀ {X : C} (f f' : G ⟶ X) (g : Φ.obj G), Φ.map f g = Φ.map f' g →
+    Φ.map f = Φ.map f'
 
 /-- Pointed objects of `𝒢`. -/
 structure PtGal where
@@ -58,17 +60,33 @@ structure PtGal where
 
 variable {Φ 𝒢}
 
-instance : Category.{v} (PtGal Φ 𝒢) where
-  Hom p q := {f : p.G ⟶ q.G // Φ.map f p.g = q.g}
-  id p := ⟨𝟙 _, Functor.map_id_apply Φ _ _⟩
-  comp f f' := ⟨f.1 ≫ f'.1, by rw [Functor.map_comp_apply, f.2, f'.2]⟩
-  id_comp f := Subtype.ext (Category.id_comp f.1)
-  comp_id f := Subtype.ext (Category.comp_id f.1)
-  assoc f f' f'' := Subtype.ext (Category.assoc f.1 f'.1 f''.1)
+/-- Pointed morphisms, recorded through their effect on fibres: the maps `Φ p.G → Φ q.G`
+induced by some morphism `p.G ⟶ q.G` sending the base point to the base point. -/
+def PtHom (p q : PtGal Φ 𝒢) : Type w :=
+  {φ : Φ.obj p.G → Φ.obj q.G // (∃ f : p.G ⟶ q.G, (Φ.map f : Φ.obj p.G → Φ.obj q.G) = φ) ∧
+    φ p.g = q.g}
+
+instance : Category.{w} (PtGal Φ 𝒢) where
+  Hom := PtHom
+  id p := ⟨id, ⟨𝟙 _, by ext x; exact Functor.map_id_apply Φ _ _⟩, rfl⟩
+  comp f f' := ⟨f'.1 ∘ f.1, by
+    obtain ⟨⟨a, ha⟩, -⟩ := f.2
+    obtain ⟨⟨b, hb⟩, -⟩ := f'.2
+    refine ⟨a ≫ b, ?_⟩
+    funext x
+    rw [Functor.map_comp_apply, ← ha, ← hb]
+    rfl, by simp only [Function.comp_apply, f.2.2, f'.2.2]⟩
+  id_comp f := Subtype.ext rfl
+  comp_id f := Subtype.ext rfl
+  assoc f f' f'' := Subtype.ext rfl
 
 /-- A family `γ_{(G,g)} ∈ Φ G` compatible with all pointed morphisms. -/
 def IsCompatible (γ : ∀ p : PtGal Φ 𝒢, Φ.obj p.G) : Prop :=
-  ∀ {p q : PtGal Φ 𝒢} (f : p ⟶ q), Φ.map f.1 (γ p) = γ q
+  ∀ {p q : PtGal Φ 𝒢} (f : p ⟶ q), f.1 (γ p) = γ q
+
+/-- The pointed morphism induced by a morphism of `C`. -/
+def ptHom {p q : PtGal Φ 𝒢} (f : p.G ⟶ q.G) (hf : Φ.map f p.g = q.g) : p ⟶ q :=
+  ⟨Φ.map f, ⟨f, rfl⟩, hf⟩
 
 lemma dom₁ (hdom : IsDominating Φ 𝒢) (X : C) (x : Φ.obj X) :
     ∃ p : PtGal Φ 𝒢, ∃ f : p.G ⟶ X, Φ.map f p.g = x := by
@@ -85,10 +103,15 @@ lemma isCofiltered (hdom : IsDominating Φ 𝒢) (hrig : IsRigid Φ 𝒢) :
     IsCofiltered (PtGal Φ 𝒢) where
   cone_objs p q := by
     obtain ⟨r, f, f', hf, hf'⟩ := dom₂ hdom p.G p.g q.G q.g
-    exact ⟨r, ⟨f, hf⟩, ⟨f', hf'⟩, trivial⟩
+    exact ⟨r, ptHom f hf, ptHom f' hf', trivial⟩
   cone_maps p q f f' := ⟨p, 𝟙 p, by
     rw [Category.id_comp, Category.id_comp]
-    exact Subtype.ext (hrig _ p.mem f.1 f'.1 p.g (f.2.trans f'.2.symm))⟩
+    obtain ⟨⟨a, ha⟩, h⟩ := f.2
+    obtain ⟨⟨b, hb⟩, h'⟩ := f'.2
+    apply Subtype.ext
+    rw [← ha, ← hb]
+    have e := hrig _ p.mem a b p.g (by rw [ha, hb, h, h'])
+    rw [e]⟩
   nonempty := by
     obtain ⟨G, hG, g, -⟩ := hdom 0 Fin.elim0
     exact ⟨⟨G, hG, g⟩⟩
@@ -118,10 +141,11 @@ include hdom hrig hγ
 lemma map_eq_map {X : C} {p q : PtGal Φ 𝒢} (f : p.G ⟶ X) (f' : q.G ⟶ X)
     (h : Φ.map f p.g = Φ.map f' q.g) : Φ.map f (γ p) = Φ.map f' (γ q) := by
   obtain ⟨r, a, a', ha, ha'⟩ := dom₂ hdom p.G p.g q.G q.g
-  have he : a ≫ f = a' ≫ f' := hrig _ r.mem _ _ r.g (by
+  have he : Φ.map (a ≫ f) = Φ.map (a' ≫ f') := hrig _ r.mem _ _ r.g (by
     rw [Functor.map_comp_apply, Functor.map_comp_apply, ha, ha', h])
-  rw [← hγ (p := r) ⟨a, ha⟩, ← hγ (p := r) ⟨a', ha'⟩, ← Functor.map_comp_apply,
-    ← Functor.map_comp_apply, he]
+  rw [← hγ (ptHom a ha), ← hγ (ptHom a' ha')]
+  change Φ.map f (Φ.map a (γ r)) = Φ.map f' (Φ.map a' (γ r))
+  rw [← Functor.map_comp_apply, ← Functor.map_comp_apply, he]
 
 lemma extend_eq {X : C} {x : Φ.obj X} (p : PtGal Φ 𝒢) (f : p.G ⟶ X) (hf : Φ.map f p.g = x) :
     extend hdom γ X x = Φ.map f (γ p) :=
@@ -143,7 +167,7 @@ lemma extend_bijective (hgal : IsGaloisClass Φ 𝒢) (X : C) :
     rw [extend_eq hdom hrig hγ r f hf, extend_eq hdom hrig hγ r f' hf'] at hx
     rw [← hf, ← hf', hrig _ r.mem f f' _ hx]
   · obtain ⟨p, f, hf⟩ := dom₁ hdom X y
-    obtain ⟨σ, hσ, -⟩ := hgal _ p.mem (γ p) p.g
+    obtain ⟨σ, hσ⟩ := hgal _ p.mem (γ p) p.g
     refine ⟨Φ.map f (Φ.map σ.hom p.g), ?_⟩
     rw [extend_eq hdom hrig hγ p (σ.hom ≫ f) (Functor.map_comp_apply _ _ _ _),
       Functor.map_comp_apply, hσ, hf]
@@ -191,7 +215,9 @@ def toCompatible (α : FibreAut Φ) (p : PtGal Φ 𝒢) : Φ.obj p.G := α.app p
 
 lemma isCompatible_toCompatible (α : FibreAut Φ) : IsCompatible (toCompatible (𝒢 := 𝒢) α) :=
   fun {p q} f => by
-    rw [toCompatible, toCompatible, ← app_naturality, f.2]
+    obtain ⟨⟨a, ha⟩, h⟩ := f.2
+    rw [toCompatible, toCompatible, ← ha, ← app_naturality]
+    rw [ha, h]
 
 /-- **K1.** Automorphisms of `Φ` are the compatible families over pointed Galois objects. -/
 noncomputable def compatibleEquiv (hgal : IsGaloisClass Φ 𝒢) (hdom : IsDominating Φ 𝒢)
@@ -213,18 +239,14 @@ section K2
 
 variable {C : Type u} [Category.{v} C] {Φ : C ⥤ Type w} {𝒢 : ObjectProperty C}
   (S : ∀ p : PtGal Φ 𝒢, Set (Φ.obj p.G))
-  (hS : ∀ {p q : PtGal Φ 𝒢} (f : p ⟶ q), Φ.map f.1 '' S p ⊆ S q)
+  (hS : ∀ {p q : PtGal Φ 𝒢} (f : p ⟶ q), f.1 '' S p ⊆ S q)
 
 /-- The inverse system of the subsets `S p`. -/
 def subsetSystem : PtGal Φ 𝒢 ⥤ Type w where
   obj p := S p
-  map f := TypeCat.ofHom fun s => ⟨Φ.map f.1 s.1, hS f ⟨s.1, s.2, rfl⟩⟩
-  map_id p := by
-    ext s
-    exact Functor.map_id_apply Φ _ _
-  map_comp f f' := by
-    ext s
-    exact Functor.map_comp_apply Φ f.1 f'.1 _
+  map f := TypeCat.ofHom fun s => ⟨f.1 s.1, hS f ⟨s.1, s.2, rfl⟩⟩
+  map_id _ := rfl
+  map_comp _ _ := rfl
 
 include hS
 
