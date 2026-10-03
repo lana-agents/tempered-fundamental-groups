@@ -701,3 +701,80 @@ every node of the chosen vertex set. Tame case: Abhyankar's lemma. Wild case (`p
 the **annulus theorem** (Bosch–Lütkebohmert: for a suitable vertex set, the preimage of an open
 annulus of the base is a disjoint union of annuli mapping by `u' ↦ ε u'^d`) — the analytic heart
 of W7, planned in §9.9.
+
+### 9.9 W7: semistable vertex sets and the annulus theorem
+
+**Setting.** `C` algebraically closed, complete, `char C = 0`, residue field `k` of
+characteristic `p` (as W4); `F' / C(x)` finite separable of degree `n`; `w_s = w_{0,s}` the
+Gauss points of the segment `s ∈ (r₁, r₂)` (`gaussRat v 0 s`). Model language as in §9.6: a
+convex reduced Gauss tree `V` of `C(x)` (M7), its join model `𝒳_V` (semistable, M7c) and the
+normalization `𝒳'_V` of `𝒳_V` in `F'` (M6: vertex set `V'` = all extensions of the `w ∈ V`).
+An **edge** of `V` is a node chart `R = O_C[u, c/u]` (`u = (x − a)/c_m`, M7b); its *tube* is
+the set of valuations of `C(x)` centred at the node, i.e. the open annulus `|c| < |u| < 1`
+(Gauss points `w_{a, s}` on the open segment and everything in their residue discs).
+
+**Target (W7).** A finite convex `V` such that
+* (a) every type-2 `w'` of `F'` with `g(κ(w')) > 0` lies over `V` (W6: `TypeTwo.card_le_genus`,
+  at most `g(F')` of them, on `wp-tempered-w6`), and every type-2 `w'` with *branching* (more
+  than two essential directions, see (A3)) lies over `V`;
+* (b) the branch points of `F'/C(x)` (zeros/poles of the discriminant of a primitive element,
+  and `∞`) are separated by `V` (each lies in its own residue disc of `V`, and `V` contains the
+  Gauss points `w_{α, |α − β|}` of pairs of branch points);
+* (c) **(annulus theorem)** at every point `P'` of `𝒳'_V` over a node of `𝒳_V`, the local ring
+  of the normalization is étale-locally a node `O_C[u', c'/u']` with `u = ε u'^d`, `ε` a unit
+  and `d` the multiplicity (and over each open disc of the complement, the preimage is a
+  disjoint union of discs, i.e. `𝒳'_V` is smooth at the points over smooth points).
+
+**Interface correction (W7 → W8): `IsKummerAt` is false in the wild case.** Example: `F' = C(u)`,
+`x = u^p + p u`. The branch points are `∞` and `x = (p − 1) u`, `u^{p−1} = −1` (all on
+`|x| = 1`), so `A = {|p|^{p/(p−1)} < |x| < 1}` contains none; its preimage
+`{|p|^{1/(p−1)} < |u| < 1}` is an open annulus (Newton polygon of `u^p + pu − x`), mapped with
+degree `p`, residue extension `x̄ = ū^p` (purely inseparable) at every `w_s`, so every type-2
+point over `A` is rational with two directions. The normalization of the node at `A` is the node
+in `u`. But it is not a Kummer extension `T^p = ε x` with `ε` a unit of the (henselized) base
+node: for such an extension the different of `\hat F'_{w'} / \hat F_{w_s}` is `|p|` for all `s`
+(`O_{w'} = O_{w}[T']`, `T' = T/c^{1/p}`, `|x ∂_x ε| ≤ |ε − ε(0)| < 1`), while for
+`x = u^p + pu` it is `|f'(u)|·|u|/|x| = |p|·s^{(1−p)/p}`, not constant (Cohen–Temkin–Trushin,
+*Morphisms of Berkovich curves and the different function*, §3.4; Berkovich: only *tame* étale
+covers of annuli are Kummer). Hence:
+* `IsKummerAt` (W8, `KummerNode.lean`) remains the right hypothesis **only in the tame case**
+  (`p ∤ d`, Abhyankar's lemma, §9.2 (i));
+* in the wild case W7 must deliver the node itself: **`IsAnnulusAt`** — the local ring of the
+  normalization at `P'` and `Node O_C c'` have a common étale neighbourhood (this is
+  `LocalModel.IsSemistableAt`), together with the multiplicity datum `u = ε u'^d` for
+  harmonicity (W8′). W8's node analysis then reduces to bookkeeping in the wild case.
+
+**Choice of route for (c).** The literature proofs of the wild annulus theorem all rest on the
+local structure of Berkovich curves (Bosch–Lütkebohmert, *Stable reduction and uniformization
+of abelian varieties I*, §2–§5: reductions of affinoids and the reduced fibre theorem;
+Baker–Payne–Rabinoff, *On the structure of non-archimedean analytic curves*: complements of a
+semistable vertex set, which presupposes semistable reduction; Temkin, *Stable modification of
+relative curves* §3–§5: local uniformization of one-dimensional valued field extensions;
+Cohen–Temkin–Trushin: the different function is piecewise monomial). The route closest to the
+existing infrastructure (W4, W5 M6/M7, W6 G6.4–G6.8) is the **tube-degree + δ-count** route:
+
+| # | Statement | Inputs | Status | Size |
+|---|---|---|---|---|
+| S1 | **units of a base annulus**: `φ ∈ C(x)ˣ` with no zero/pole of absolute value in `S` is `c xᵐ (1 + g)` with `w_s(g) < 1` for `s ∈ S`; `w_s(φ) = |c| sᵐ` (`IsMonomialOn`, a subgroup) | Gauss lemma, `C` alg. closed | **proved** (`AnnulusUnit`) | 0.15k |
+| S2 | **norm formula**: `w(N_{F'/C(x)} y) = Π_{w' ∣ w} w'(y)^{f(w')}` for a Gauss point `w` (W4: `e = 1`, local degree `= f`); hence `s ↦ Π_{w' ∣ w_s} w'(y)^{f(w')}` is piecewise monomial (S1 applied to `N(y)`), and so is every elementary symmetric function of the multiset `{w'(y)}` (charpoly coefficients; Newton polygon) | `LocalGlobal` (`Local K g`, `toLocal`), `Algebra.norm_eq_prod_embeddings`, `spectralNorm` = function of the minimal polynomial | planned | 0.4k |
+| S3 | **two directions**: genus `0`, `z ∉ k` with one zero `P` and one pole `Q` ⇒ `κ = k(t)`, `(t) = P − Q`, `z = λ tᵈ`, `d = [κ : k(z)]` | R5–R7 | **proved** (`TwoDirections`) | 0.2k |
+| S4 | **tubes**: valuations of `F'` centred at a closed point `P'` of `𝒳'_V` over a node; the `(u, c/u, ϖ)`-adic completion `\hat R` of the node embeds into `\hat F_{w}` for every `w` in the tube (series converge since `w(u), w(c/u), |ϖ| < 1`); `F' ⊗ Frac \hat R = Π_{P'} \hat F'_{P'}` (idempotents lift, `IsAdicComplete.henselianRing`) | Mathlib `AdicCompletion`, M6 | planned | 1.2k |
+| S5 | **tube degree is constant**: for `w` in the tube, `Σ_{w' ∣ w, w' at P'} e f = [\hat F'_{P'} : Frac \hat R] =: d_{P'}` (B2/B3 applied over `Frac \hat R ⊆ \hat F_w`); in particular the number of extensions and their residue degrees are constant along the open segment once grouped by `P'` (the "piecewise constancy") | S4, W4 | planned | 0.6k |
+| S6 | **matching at the vertices**: `d_{P'} = Σ_Q ord_Q(ū)` over the branches `Q` of the two components through `P'` (rank of the finite flat `\hat R'_{P'}` over `\hat R` = rank of its special fibre; reducedness of the special fibre from `e = 1`) | S4, G6.5 | planned | 1k |
+| S7 | **δ-count**: for the normalization `𝒳'_V`, `g(F') = Σ_{w' ∈ V'} g(κ(w')) + b₁(Γ_{V'}) + Σ_{P'} δ'_{P'}` with `δ'_{P'} = δ_{P'} − (r_{P'} − 1) ≥ 0` (`r` = number of branches), `δ'_{P'} = 0` iff the special fibre has an ordinary double (resp. smooth) point at `P'`; this is G6.6 with **equality** (the codimension of `ρ(L(m(x)_∞)°)` in `⊕ L_{κ_j}(m(x̄)_∞)` is the total `δ` of the special fibre: the gluing conditions of G6.7 at all branches of all closed points, independent for `m ≫ 0`) | G6.4–G6.8 (W6), R7 | planned (shares W6's sharp form) | 1.5k |
+| S8 | **upper bound / local Riemann–Hurwitz**: for `V` satisfying (a), (b) and the two-direction condition on every type-2 point over every edge (S3) and the one-direction condition in every disc, `g(F') ≤ Σ_{V'} g + b₁(Γ_{V'})`; proof by comparing Riemann–Hurwitz for `F'/C(x)` (`2g − 2 = −2n + deg Diff`, char 0: tame at type-1 points) with Riemann–Hurwitz for the residue curves `κ(w')/k(x̄)` (wild/inseparable: Hurwitz with the residue different) through the **different function** along the edges (piecewise monomial by S2 applied to `y = P'(θ)` with `θ` a primitive element integral at the tube; slope at a vertex in direction `Q` = local contribution of `Q` to the residue different — CTT Thm 4.6.4 / 3.4, in valuative form). With S7: `δ' = 0` everywhere | S2, S3, S5, S6, CTT §3–§4 | planned (**hard core**) | 2–3k |
+| S9 | **node lemma**: a closed point `P'` with `δ' = 0`, two branches (from `w'₁`, `w'₂`) and local degree `d` over the node: choose `u' ∈ \hat R'_{P'}` reducing to uniformizers of both branches (possible since the special fibre is an ordinary double point); `O_C[u', c'/u'] → \hat R'_{P'}` is finite of degree `1` (S5 for the subfield `C(u')`, whose Gauss points restrict from `w'_i` by W2), both normal ⇒ isomorphism after completion; descend to an étale neighbourhood (M7c `exists_awayChart_eq`) ⇒ `IsAnnulusAt`; `u = ε u'^d` by S1 for the norm | S5, M7c, `Node` | planned | 0.8k |
+| S10 | **choice of `V`** (a), (b): restrictions of the `≤ g(F')` positive-genus points (W2 + W6), the separating Gauss points of the branch points, and the finitely many breakpoints of the different function on the convex hull (S2/S8; outside the convex hull of the branch points every disc is mapped by discs, `d_{P'} = 1` beyond the last breakpoint); convex closure (M7b) | W2, W6, S2, S8 | planned | 0.6k |
+
+**Tame case shortcut.** If `p ∤ [F' : C(x)]` (or more generally `p ∤ d_{P'}` for all `P'`),
+S7–S8 are not needed: over the tube, `F'` is a product of Kummer extensions `T^d = φ` with `φ`
+in normal form S1 (`p ∤ m` after a unit change), so `IsKummerAt` holds and W8's
+`Node.kummer_isIntegralClosure` applies. This covers the pro-`p'` applications.
+
+**Estimate and status.** S1, S3 proved (≈ 0.35k). The remainder ≈ **8–10k lines**, the core being
+S7–S8 (a valuative local Riemann–Hurwitz formula / the different function of
+Cohen–Temkin–Trushin) and S4–S6 (completed node rings and their decompositions; Mathlib has
+adic completions and Hensel's lemma for adically complete rings, but no henselization). This is
+substantially larger than the original W7 estimate; the alternative (Temkin's local
+uniformization at type-5 points plus gluing of annuli along the segment) has the same core
+(local structure of directions at type-2 points) and no smaller prerequisites.
