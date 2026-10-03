@@ -308,7 +308,7 @@ theorem dom_mid (hW : SemistableReduction.Statement.StrongComponent.{u})
     simp only [levelStructureMap, RingHom.comp_apply, AlgHom.coe_toRingHom]
     exact (f i.down).commutes _
   obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, -, hjS,
-    hact, hactj, hdomj, hdomS, hdim, hcomp⟩ := hW K O R hR (exists_finite_aeval hR).choose
+    hact, hactj, hdomj, hdomS, -, hdim, hcomp⟩ := hW K O R hR (exists_finite_aeval hR).choose
       (exists_finite_aeval hR).choose_spec B G
       (ULift.{u} (Fin n)) c₀ j₀ hj₀
   haveI hK' : Algebra.Etale K K' :=
