@@ -179,6 +179,125 @@ lemma invRad_mem_segment {s : ℝ≥0ˣ} (hs : s ∈ segment c) : invRad hc0 s �
   · rw [div_lt_one hs0]
     exact h1
 
+/-! ### The twisted extension -/
+
+section Twist
+
+variable (c) in
+/-- `F'` with its `C(x)`-algebra structure twisted by the inversion `x ↦ c/x`: the inner
+vertex of the annulus becomes the outer one. -/
+def Inv (_hc0 : c ≠ 0) (F' : Type*) : Type _ := F'
+
+variable {F' : Type*} [Field F'] [Algebra (RatFunc C) F']
+
+instance : Field (Inv c hc0 F') := inferInstanceAs (Field F')
+
+noncomputable instance : Algebra (RatFunc C) (Inv c hc0 F') :=
+  ((algebraMap (RatFunc C) F').comp (inv hc0).toRingHom).toAlgebra
+
+variable [Algebra C F'] [IsScalarTower C (RatFunc C) F']
+
+instance : Algebra C (Inv c hc0 F') := inferInstanceAs (Algebra C F')
+
+/-- The identity `F' → Inv c F'`. -/
+noncomputable def toInv : F' ≃+* Inv c hc0 F' := RingEquiv.refl F'
+
+omit [IsAlgClosed C] [Algebra C F'] [IsScalarTower C (RatFunc C) F'] in
+lemma algebraMap_inv_apply (φ : RatFunc C) :
+    algebraMap (RatFunc C) (Inv c hc0 F') φ = toInv hc0 (algebraMap (RatFunc C) F' (inv hc0 φ)) :=
+  rfl
+
+instance : IsScalarTower C (RatFunc C) (Inv c hc0 F') :=
+  IsScalarTower.of_algebraMap_eq fun a ↦ by
+    rw [algebraMap_inv_apply, AlgEquiv.commutes, ← IsScalarTower.algebraMap_apply]
+    rfl
+
+omit [IsAlgClosed C] [Algebra C F'] [IsScalarTower C (RatFunc C) F'] in
+lemma finrank_inv : Module.finrank (RatFunc C) (Inv c hc0 F') = Module.finrank (RatFunc C) F' :=
+  (Algebra.finrank_eq_of_equiv_equiv (inv hc0).toRingEquiv (toInv hc0) (by
+    ext φ
+    change algebraMap (RatFunc C) F' (inv hc0 (inv hc0 φ)) = _
+    rw [inv_inv_apply]; rfl)).symm
+
+instance [FiniteDimensional (RatFunc C) F'] : FiniteDimensional (RatFunc C) (Inv c hc0 F') :=
+  Module.finite_of_finrank_pos (by rw [finrank_inv]; exact Module.finrank_pos)
+
+/-- Extensions of `w_{0,s}` to `F'` are the extensions of `w_{0,|c|/s}` to the twist. -/
+noncomputable def extInv (s : ℝ≥0ˣ) :
+    GaussExtension (0 : C) s F' ≃ GaussExtension (0 : C) (invRad hc0 s) (Inv c hc0 F') where
+  toFun v := ⟨v.1.comap (toInv hc0).symm.toRingHom, Valuation.ext fun φ ↦ by
+    rw [comap_apply, comap_apply, algebraMap_inv_apply]
+    change v.1 ((toInv hc0).symm (toInv hc0 (algebraMap (RatFunc C) F' (inv hc0 φ)))) = _
+    rw [RingEquiv.symm_apply_apply, ← comap_apply, v.2, gaussRat_inv]⟩
+  invFun v := ⟨v.1.comap (toInv hc0).toRingHom, Valuation.ext fun φ ↦ by
+    rw [comap_apply, comap_apply]
+    have := congrArg (fun u : Valuation (RatFunc C) ℝ≥0 ↦ u (inv hc0 φ)) v.2
+    simp only [comap_apply, algebraMap_inv_apply, inv_inv_apply] at this
+    change v.1 (toInv hc0 (algebraMap (RatFunc C) F' φ)) = _
+    rw [this, ← gaussRat_inv hc0 s, inv_inv_apply]⟩
+  left_inv v := rfl
+  right_inv v := rfl
+
+lemma ramificationIdx_extInv {s : ℝ≥0ˣ} (v : GaussExtension (0 : C) s F') :
+    ramificationIdx (RatFunc C) (extInv hc0 s v).1 = ramificationIdx (RatFunc C) v.1 := by
+  have h1 : valueGroup (extInv hc0 s v).1 = valueGroup v.1 := by
+    ext g
+    simp only [mem_valueGroup_iff]
+    exact ⟨fun ⟨x, hx⟩ ↦ ⟨(toInv hc0).symm x, hx⟩, fun ⟨x, hx⟩ ↦ ⟨toInv hc0 x, by
+      change v.1 ((toInv hc0).symm (toInv hc0 x)) = g
+      rw [RingEquiv.symm_apply_apply, hx]⟩⟩
+  have h2 : valueGroup ((extInv hc0 s v).1.comap (algebraMap (RatFunc C) (Inv c hc0 F'))) =
+      valueGroup (v.1.comap (algebraMap (RatFunc C) F')) := by
+    ext g
+    simp only [mem_valueGroup_iff, comap_apply]
+    constructor
+    · rintro ⟨x, hx⟩
+      refine ⟨inv hc0 x, ?_⟩
+      rw [← hx, algebraMap_inv_apply]
+      change _ = v.1 ((toInv hc0).symm (toInv hc0 _))
+      rw [RingEquiv.symm_apply_apply]
+      rfl
+    · rintro ⟨x, hx⟩
+      refine ⟨inv hc0 x, ?_⟩
+      rw [← hx, algebraMap_inv_apply, inv_inv_apply]
+      change v.1 ((toInv hc0).symm (toInv hc0 _)) = _
+      rw [RingEquiv.symm_apply_apply]
+      rfl
+  rw [ramificationIdx, ramificationIdx, h1, h2]
+
+lemma inertiaDeg_extInv {s : ℝ≥0ˣ} (v : GaussExtension (0 : C) s F') :
+    inertiaDeg (gaussRat (NormedField.valuation (K := C)) 0 (invRad hc0 s)) (extInv hc0 s v).1 =
+      inertiaDeg (gaussRat (NormedField.valuation (K := C)) 0 s) v.1 := by
+  let e₁ : (w (invRad hc0 s)).valuationSubring ≃+* (w s).valuationSubring :=
+    { toFun := fun x ↦ ⟨inv hc0 x, by
+        rw [mem_valuationSubring_iff, gaussRat_inv]; exact x.2⟩
+      invFun := fun y ↦ ⟨inv hc0 y, by
+        rw [mem_valuationSubring_iff, ← gaussRat_inv, inv_inv_apply]; exact y.2⟩
+      left_inv := fun x ↦ Subtype.ext (inv_inv_apply hc0 x)
+      right_inv := fun y ↦ Subtype.ext (inv_inv_apply hc0 y)
+      map_mul' := fun x y ↦ Subtype.ext (map_mul _ _ _)
+      map_add' := fun x y ↦ Subtype.ext (map_add _ _ _) }
+  let e₂ : (extInv hc0 s v).1.valuationSubring ≃+* v.1.valuationSubring :=
+    { toFun := fun x ↦ ⟨(toInv hc0).symm x.1, x.2⟩
+      invFun := fun y ↦ ⟨toInv hc0 y.1, y.2⟩
+      left_inv := fun _ ↦ rfl
+      right_inv := fun _ ↦ rfl
+      map_mul' := fun _ _ ↦ rfl
+      map_add' := fun _ _ ↦ rfl }
+  refine Algebra.finrank_eq_of_equiv_equiv (IsLocalRing.ResidueField.mapEquiv e₁)
+    (IsLocalRing.ResidueField.mapEquiv e₂) ?_
+  ext r
+  obtain ⟨x, rfl⟩ := residue_surjective r
+  simp only [RingHom.coe_comp, Function.comp_apply, RingEquiv.toRingHom_eq_coe,
+    RingEquiv.coe_toRingHom, IsLocalRing.ResidueField.mapEquiv_apply,
+    IsLocalRing.ResidueField.map_residue]
+  rw [HasExtension.algebraMap_residue_eq_residue_algebraMap,
+    HasExtension.algebraMap_residue_eq_residue_algebraMap,
+    IsLocalRing.ResidueField.map_residue]
+  rfl
+
+end Twist
+
 end Inversion
 
 end GaussTube
