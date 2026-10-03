@@ -28,7 +28,7 @@ namespace SemistableReduction
 
 namespace GaussTube
 
-open FundamentalInequality GaussStability GaussFibre ZariskiModel
+open FundamentalInequality GaussStability GaussFibre ZariskiModel PlaceNorm
 
 universe u
 
@@ -402,6 +402,144 @@ theorem exists_frac (hc : ‖c‖ < 1) (hc0 : c ≠ 0) (v : Ext C F')
   · exact ⟨p', q', hq', by rw [← had, div_mul_cancel₀ _ hq']⟩
 
 end Frac
+
+section Span
+
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F'] in
+/-- Elements integral over `k[x̄]` lie in every place of `κ(v)` containing `x̄`. -/
+lemma isIntegral_mem_V (v : Ext C F') {α : ResidueField v.1.valuationSubring}
+    (hα : IsIntegral (Algebra.adjoin 𝓀 {red C (xF C F') v}) α)
+    {R : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)} (hx : red C (xF C F') v ∈ R.V) :
+    α ∈ R.V := by
+  set u := R.V.valuation
+  have hle : ∀ a ∈ Algebra.adjoin 𝓀 {red C (xF C F') v}, a ∈ R.V := fun a ha ↦ by
+    induction ha using Algebra.adjoin_induction with
+    | mem x hx' =>
+      rw [Set.mem_singleton_iff.1 hx']
+      exact hx
+    | algebraMap r => exact R.algebraMap_mem r
+    | add x y _ _ hx hy => exact add_mem hx hy
+    | mul x y _ _ hx hy => exact mul_mem hx hy
+  let φ : Algebra.adjoin 𝓀 {red C (xF C F') v} →+* u.integer :=
+    { toFun := fun a ↦ ⟨a, (ValuationSubring.valuation_le_one_iff _ _).2 (hle a a.2)⟩
+      map_one' := rfl
+      map_mul' := fun _ _ ↦ rfl
+      map_zero' := rfl
+      map_add' := fun _ _ ↦ rfl }
+  have hint : IsIntegral u.integer α := IsIntegral.map_of_comp_eq φ (RingHom.id _) rfl hα
+  exact (ValuationSubring.valuation_le_one_iff _ _).1
+    ((Valuation.integer.integers u).mem_of_integral hint)
+
+/-- Reductions of `R'` lie in every place of `κ(v)` containing `x̄`. -/
+lemma redHom_mem_V' (hc : ‖c‖ < 1) (v : Ext C F') (y : Rint c F')
+    {R : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)} (hx : red C (xF C F') v ∈ R.V) :
+    redHom hc v y ∈ R.V :=
+  isIntegral_mem_V v (redHom_isIntegral hc v y) hx
+
+/-- **The integral closure of `k[x̄]` is spanned over `ρ(R')` by finitely many elements.** -/
+theorem exists_span (hc : ‖c‖ < 1) (v : Ext C F') :
+    ∃ G : Finset (ResidueField v.1.valuationSubring),
+      (∀ g ∈ G, IsIntegral (Algebra.adjoin 𝓀 {red C (xF C F') v}) g) ∧
+      ∀ α, IsIntegral (Algebra.adjoin 𝓀 {red C (xF C F') v}) α →
+        ∃ r : ResidueField v.1.valuationSubring → Rint c F',
+          α = ∑ g ∈ G, redHom hc v (r g) * g := by
+  haveI := IsCurveFunctionField.finiteDimensional_adjoin (transcendental_red_x (F := F') v)
+  obtain ⟨G, hG, hsp⟩ := CurveGenerators.exists_generators (transcendental_red_x (F := F') v)
+  refine ⟨G, hG, fun α hα ↦ ?_⟩
+  obtain ⟨c', hc'⟩ := hsp α hα
+  choose r hr using fun g ↦ exists_redHom_eq_aeval hc v (c' g)
+  exact ⟨r, by rw [hc']; exact Finset.sum_congr rfl fun g _ ↦ by rw [hr]⟩
+
+end Span
+
+section Tau
+
+/-- **Clearing poles away from the point.** Let `Q` be a zero of `x̄` on `κ(v)` whose point `P'` is
+not the point of any other zero of `x̄` on `κ(v)`. Then every `g ∈ O_Q` becomes integral over
+`k[x̄]` after multiplication by the reduction of some `τ ∈ R' ∖ P'`. -/
+theorem exists_tau (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v))
+    (hoth : ∀ R (hR : R ∈ zeros 𝓀 (red C (xF C F') v)), R ≠ Q →
+      placeIdeal hc v hR ≠ placeIdeal hc v hQ)
+    {g : ResidueField v.1.valuationSubring} (hg : g ∈ Q.V) :
+    ∃ τ : Rint c F', τ ∉ placeIdeal hc v hQ ∧
+      IsIntegral (Algebra.adjoin 𝓀 {red C (xF C F') v}) (redHom hc v τ * g) := by
+  classical
+  set xb := red C (xF C F') v
+  set P' := placeIdeal hc v hQ
+  haveI : P'.IsMaximal := placeIdeal_isMaximal hc v hQ
+  have hQx : Q.res xb = 0 := Q.res_eq_zero_of_lt_one (valuation_x_lt_one hQ)
+  -- the finitely many poles of `g` where `xb` is regular
+  set S : Finset (CurvePlace 𝓀 (ResidueField v.1.valuationSubring)) :=
+    (CurvePlace.finite_setOf_notMem g).toFinset.filter fun R ↦ xb ∈ R.V
+  have hS (R) : R ∈ S ↔ g ∉ R.V ∧ xb ∈ R.V := by
+    simp [S, Set.Finite.mem_toFinset]
+  -- an element of `R' ∖ P'` vanishing at each such pole
+  have hy (R : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)) (hR : R ∈ S) :
+      ∃ y : Rint c F', y ∉ P' ∧ R.valuation (redHom hc v y) < 1 := by
+    obtain ⟨hgR, hxR⟩ := (hS R).1 hR
+    have hRQ : R ≠ Q := fun h ↦ hgR (h ▸ hg)
+    by_cases hz : R ∈ zeros 𝓀 xb
+    · have hne := hoth R hz hRQ
+      have hnle : ¬ placeIdeal hc v hz ≤ P' := fun hle ↦
+        hne ((placeIdeal_isMaximal hc v hz).eq_of_le (Ideal.IsMaximal.ne_top ‹_›) hle)
+      obtain ⟨y, hyR, hyP⟩ := Set.not_subset.1 hnle
+      refine ⟨y, hyP, ?_⟩
+      rw [SetLike.mem_coe, mem_placeIdeal_iff] at hyR
+      have := R.valuation_sub_res_lt_one (red_mem_V hc v y hz)
+      rwa [hyR, map_zero, sub_zero] at this
+    · -- `xb` is a unit at `R`: subtract its residue
+      obtain ⟨κ₀, hκ₀⟩ := residue_surjective (R.res xb)
+      refine ⟨xR c - constR c κ₀, fun hmem ↦ ?_, ?_⟩
+      · rw [mem_placeIdeal_iff] at hmem
+        change Q.res (redHom hc v (xR c - constR c κ₀)) = 0 at hmem
+        rw [_root_.map_sub, redHom_xR, redHom_constR, hκ₀, Q.res_sub_algebraMap (Q.valuation_le_one_iff.1
+          (valuation_x_lt_one hQ).le), hQx, zero_sub, neg_eq_zero] at hmem
+        apply hz
+        rw [mem_zeros]
+        intro hinv
+        have h1 := R.valuation_sub_res_lt_one hxR
+        rw [hmem, map_zero, sub_zero] at h1
+        have h2 := R.valuation_le_one_iff.2 hinv
+        rw [map_inv₀] at h2
+        have hx0 : xb ≠ 0 := red_xF_ne_zero' v
+        have := mul_lt_one_of_nonneg_of_lt_one_left zero_le h1 h2
+        rw [mul_inv_cancel₀ ((Valuation.ne_zero_iff _).2 hx0)] at this
+        exact lt_irrefl 1 this
+      · rw [_root_.map_sub, redHom_xR, redHom_constR, hκ₀]
+        exact R.valuation_sub_res_lt_one hxR
+  choose! y hyP hyR using hy
+  set τ : Rint c F' := ∏ R ∈ S, y R ^ R.poleOrder g
+  refine ⟨τ, ?_, ?_⟩
+  · intro hτ
+    obtain ⟨R, hR, hmem⟩ := (Ideal.IsPrime.prod_mem_iff (hp := inferInstance)).1 hτ
+    exact hyP R hR (Ideal.IsPrime.mem_of_pow_mem inferInstance _ hmem)
+  · refine CurveGenerators.isIntegral_of_forall_mem fun R hxR ↦ ?_
+    by_cases hR : R ∈ S
+    · obtain ⟨hgR, -⟩ := (hS R).1 hR
+      have h1 : R.valuation (redHom hc v (y R)) ≤ exp (-1) :=
+        WithZero.le_exp_of_lt_exp_add_one (by simpa using hyR R hR)
+      have hτR : R.valuation (redHom hc v τ) ≤ exp (-(R.poleOrder g : ℤ)) := by
+        simp only [τ, map_prod, map_pow]
+        rw [← Finset.mul_prod_erase S _ hR]
+        calc R.valuation (redHom hc v (y R)) ^ R.poleOrder g *
+              ∏ R' ∈ S.erase R, R.valuation (redHom hc v (y R')) ^ R'.poleOrder g ≤
+              exp (-1) ^ R.poleOrder g * 1 := by
+              refine mul_le_mul' (pow_le_pow_left₀ zero_le h1 _) (Finset.prod_le_one' fun R' _ ↦
+                pow_le_one₀ zero_le (R.valuation_le_one_iff.2 (redHom_mem_V' hc v _ hxR)))
+          _ = exp (-(R.poleOrder g : ℤ)) := by rw [mul_one, ← exp_nsmul]; simp
+      refine R.valuation_le_one_iff.1 ?_
+      rw [map_mul, R.valuation_eq_exp_poleOrder hgR]
+      calc R.valuation (redHom hc v τ) * exp (R.poleOrder g : ℤ) ≤
+            exp (-(R.poleOrder g : ℤ)) * exp (R.poleOrder g : ℤ) := by gcongr
+        _ = 1 := by rw [← exp_add, neg_add_cancel, exp_zero]
+    · have hgR : g ∈ R.V := by
+        by_contra h
+        exact hR ((hS R).2 ⟨h, hxR⟩)
+      exact mul_mem (redHom_mem_V' hc v _ hxR) hgR
+
+end Tau
 
 end GaussTube
 
