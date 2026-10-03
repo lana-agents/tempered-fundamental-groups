@@ -141,6 +141,20 @@ theorem valuation_sub_algebraic_eq_max {U : ValuationSubring E}
     exact absurd (h2.trans_lt hγz) (lt_irrefl _)
   · rw [Valuation.map_sub_eq_of_lt_right _ hgt, max_eq_right hgt.le]
 
+/-- **Gauss centres are centres of minimal distance**: if `(x - a) ^ d / c` has transcendental
+residue (`U(x - a) ^ d = U(c)`), then `U(x - a) ≤ U(x - b)` for every `b` with `b - a` algebraic
+over `K`. In particular two such centres (over possibly different constant fields) give the same
+radius. -/
+theorem valuation_sub_le_of_residue {U : ValuationSubring E} (hU : U.comap (algebraMap K E) = O)
+    {c : K} (hc0 : c ≠ 0) {x a b : E} {d : ℕ} (hd : 0 < d)
+    (hy : U.valuation (x - a) ^ d = U.valuation (algebraMap K E c))
+    (htr : IsResidueTranscendental O U ((x - a) ^ d / algebraMap K E c))
+    (hab : IsAlgebraic K (b - a)) : U.valuation (x - a) ≤ U.valuation (x - b) := by
+  have h := valuation_sub_algebraic_eq_max hU hc0 hd hy htr hab
+  rw [show x - a - (b - a) = x - b by ring] at h
+  rw [h]
+  exact le_max_left _ _
+
 /-- The Gauss norm of `X - β`. -/
 lemma Gauss.sup_X_sub_C {F Γ₀ : Type*} [Field F] [LinearOrderedCommGroupWithZero Γ₀]
     {v : Valuation F Γ₀} {r : Γ₀ˣ} (β : F) :
