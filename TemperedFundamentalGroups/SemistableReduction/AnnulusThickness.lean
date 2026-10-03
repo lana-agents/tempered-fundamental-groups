@@ -9,8 +9,9 @@ import TemperedFundamentalGroups.SemistableReduction.AnnulusAt
 # Thickness scaling at annulus points (W8′)
 
 Blueprint §9.7. If the base node coordinates `x, y` (`x y = ϖ ^ N`) are, at a point `𝔭` of a
-cover, of the form `x = ε u' ^ d`, `y = ε' v' ^ d` in an étale node chart `O[u', v'] ⧸ (u' v' - ϖ ^ n)`
-at its singular point (`IsAnnulusAt ϖ x y d 𝔭`), then `N = d n`: the thickness of the base node is
+cover, of the form `x = ε u' ^ d`, `y = ε' v' ^ d` in an étale node chart
+`O[u', v'] ⧸ (u' v' - ϖ ^ n)` at its singular point (`IsAnnulusAt ϖ x y d 𝔭`), then `N = d n`:
+the thickness of the base node is
 the local degree times the thickness of the node above it (`IsAnnulusAt.thickness_eq`). This is
 the length scaling of the map of metrized dual graphs.
 -/
@@ -24,13 +25,13 @@ variable {O : Type u} [CommRing O]
 namespace Node
 
 /-- `O → O[u, v] ⧸ (u v - a)` is injective for a domain `O` and `a ≠ 0`. -/
-theorem algebraMap_injective [IsDomain O] {a : O} (ha : a ≠ 0) :
+theorem algebraMap_injective [IsDomain O] {a : O} (_ha : a ≠ 0) :
     Function.Injective (algebraMap O (Node O a)) := by
   rw [injective_iff_map_eq_zero]
   intro o ho
   have h := congrArg (fun p ↦ (laurent a 1 p).coeff 0) ho
   simp only [AlgHom.commutes, map_zero, LaurentPolynomial.algebraMap_apply,
-    LaurentPolynomial.C_apply, if_pos rfl] at h
+    LaurentPolynomial.C_apply] at h
   exact (FaithfulSMul.algebraMap_injective O (FractionRing O)) (h.trans (map_zero _).symm)
 
 end Node
