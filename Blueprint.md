@@ -1196,10 +1196,20 @@ Below, `x = t`.
 | S7⁺.5 | **lifting of sections** (integral Serre vanishing): there is `m₀` such that for `m ≥ m₀`, `a ∈ 𝓡₀`, `b ∈ 𝓡_∞` with `ā = x̄ᵐ b̄`, some `f ∈ L(m(x)_∞)` with `‖f‖ ≤ 1` has `f̄ = ā` | `d = a − xᵐb = Σχᵢsᵢ` with `χᵢ` regular on the circle (S7⁺.3 for `a`, for `b` in the basis `t`, and for `tⱼ`, `x^{-k}sᵢ`), `|χ| = ‖d‖ < 1`; split `γ⁻¹χ = χ₊ + χ₋` (S7⁺.4), `f = a − γΣχ₊sᵢ = xᵐb + γΣχ₋sᵢ`; `f ∈ A₀` and `x^{-m}f ∈ A_∞` by coprime denominators (roots `|α| > 1` vs `|α| < 1`), and `L(m(x)_∞) = A₀ ∩ xᵐA_∞` |
 | S7⁺.6 | **genus formula with total δ**: for `m ≫ 0`, `g(F) = 1 + Σ_w (g(κ(w)) − 1) + codim_{Π L(m(x̄)_∞)} H_m` with `H_m = Λ₀ ∩ x̄ᵐΛ_∞` | S7⁺.5, `dim ρ(L_m°) = ℓ(L_m)` (G6.4 and independence of lifts), R7 on `F` and on the `κ(w)`, R5 |
 | S7⁺.7 | **localization**: `codim H_m ≤ Σ_y δ_y^{(M)}` for `M ≫ 0` (points `y` = maximal ideals of `Λ₀`, and of `Λ_∞` over `x̄ = ∞`; `O_y = {a : ∃ s ∈ Λ ∖ y, s a ∈ Λ}`), i.e. `W_m ∩ ⋂_y (O_y + K_{M,y}) ⊆ H_m`. With S7.6 this gives the equality `g = 1 + Σ(g_w − 1) + Σ_y δ_y`, and the `δ'` form consumed by `card_le_of_indep` | conductor element `σ ∈ Λ₀` (finiteness of `Π_w Õ_w`, S7.7 `CurveIntegralClosure`); `K_M ⊆ O_y` at the finitely many `y ∋ σ` (CRT in `Λ₀`); `a ∈ O_y ∀ y ⇒ a ∈ Λ₀` |
-| S7⁺.8 | **Gauss trees** (bridge, separate row): for a finite convex Gauss tree `V` of `C(x)`, a `t ∈ C(x)` with `t⁻¹(w_{0,1}) = V`, and the identification of the normalization of `P¹_t` in `F` with `𝒳'_V` (M10-type uniqueness: a normal model is determined by its vertex set) | open; needed by R5 for `V` and `V ∪ {w_D}` |
+| S7⁺.8 | **Gauss trees** (bridge; re-scoped as M10): for a finite convex Gauss tree `V` of `C(x)`, a `t ∈ C(x)` with `t⁻¹(w_{0,1}) = V`, and the identification of the normalization of `P¹_t` in `F` with `𝒳'_V` (M10-type uniqueness: a normal model is determined by its vertex set) | open; needed by R5 for `V` and `V ∪ {w_D}` |
 
-Files: `ChartBasis` (S7⁺.1–.3), `LaurentSplit` (S7⁺.4), `SectionLift` (S7⁺.5–.6), `SectionLocal`
-(S7⁺.7). Estimate: ≈ 1.5–2k lines; S7⁺.8 ≈ 1k (not started).
+**Status (S7⁺.1–S7⁺.7 proved, no S8 input, no completeness of `C`).**
+`ChartBasis` (`IsCoord`, `exists_trace_bound`, `exists_chartBasis`, `exists_disc_coords`),
+`LaurentSplit` (`exists_laurent_split`), `SectionLift` (`exists_lift`), `SectionGenus`
+(`secSpace`, `secSpace_le_piRR`, `exists_finrank_secSpace_eq`, `genus_add_card_sub_one_eq`),
+`ChartLocal` (abstract affine charts `IsChart`: `center_isMaximal`, `exists_center_eq`, `locSpace`,
+local–global principle `mem_of_forall_mem_sup`, `delta`, counting lemmas
+`finrank_le_finrank_add_sum_quot` / `finrank_add_sum_le_of_surj`, twisted jets
+`exists_jet_twist`), `SectionLocal` (`exists_red_eq`, `exists_conductor`, `isChart_x`,
+`isChart_x_inv`, **`exists_genus_eq_sum_delta`**: for `M ≫ 0`,
+`g(F) + #{w} - 1 = Σ_w g(κ(w)) + Σ_y δ_y^{(M)}`, `y` over the closed points of the charts at `0` and
+`∞` containing the conductor; every `y` with `δ_y ≠ 0` is among them). ≈ 3.9k lines.
+S7⁺.8 is re-scoped as M10 (domination of models with nested vertex sets), not started.
 
 ### 9.10 S8.5: local uniformization at type-4 points (Arzdorf–Wewers)
 
