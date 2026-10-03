@@ -11,14 +11,14 @@ import TemperedFundamentalGroups.SemistableReduction.MonomialPoint
 Let `O ⊆ K` be a valuation subring with uniformizer `ϖ`, `E / K` a field extension with an
 algebraically closed subfield `K̄ ⊇ K` algebraic over `K` (in the application `E = F̄`, the
 algebraic closure of the function field, and `K̄` the algebraic closure of `K` in it), and `U` a
-valuation subring of `E` over `O`. If `y ∈ E` has `U(y) ^ d = U(ϖ) ^ m` and the monomial
-`y ^ d / ϖ ^ m` has transcendental residue over `κ(O)`, then `U` restricts on `K̄[y]` to the Gauss
-valuation of radius `U(y)` (`valuation_aeval_eq_sup_of_residue`):
+valuation subring of `E` over `O`. If `y ∈ E` has `U(y) ^ d = U(c)` for a constant `c ∈ K ∖ 0`
+(e.g. `c = ϖ ^ m`) and `y ^ d / c` has transcendental residue over `κ(O)`, then `U` restricts on
+`K̄[y]` to the Gauss valuation of radius `U(y)` (`valuation_aeval_eq_sup_of_residue`):
 
   `U(Q(y)) = max_i U(qᵢ) U(y) ^ i` for `Q ∈ K̄[X]`.
 
 Proof: for `β ∈ K̄`, `U(y - β) = max(U(y), U(β))` — if `U(β) = U(y)` and `U(y - β) < U(y)`, the
-residue of `y ^ d / ϖ ^ m` would equal that of the algebraic element `β ^ d / ϖ ^ m`
+residue of `y ^ d / c` would equal that of the algebraic element `β ^ d / c`
 (`exists_poly_residue_ne_zero`, a normalised minimal polynomial). Then `Q` splits over `K̄` and the
 Gauss norm is multiplicative (`Gauss.sup_mul`).
 -/
@@ -87,23 +87,23 @@ lemma valuation_aeval_sub_le {U : ValuationSubring E}
 
 variable {Kb : Type*} [Field Kb] [Algebra K Kb] [Algebra Kb E] [IsScalarTower K Kb E]
 
-/-- **Distances to algebraic constants**: if `U(y) ^ d = U(ϖ) ^ m` and `y ^ d / ϖ ^ m` has
+/-- **Distances to algebraic constants**: if `U(y) ^ d = U(c)` (`c ∈ K ∖ 0`) and `y ^ d / c` has
 transcendental residue over `κ(O)`, then `U(y - β) = max(U(y), U(β))` for every `β` algebraic over
 `K`. -/
 theorem valuation_sub_algebraic_eq_max {U : ValuationSubring E}
-    (hU : U.comap (algebraMap K E) = O) {ϖ : O} (hϖ0 : (ϖ : K) ≠ 0) {y : E} {d : ℕ}
-    (hd : 0 < d) {m : ℤ} (hy : U.valuation y ^ d = U.valuation (algebraMap K E ϖ) ^ m)
-    (htr : IsResidueTranscendental O U (y ^ d / algebraMap K E ϖ ^ m)) {β : E}
+    (hU : U.comap (algebraMap K E) = O) {c : K} (hc0 : c ≠ 0) {y : E} {d : ℕ}
+    (hd : 0 < d) (hy : U.valuation y ^ d = U.valuation (algebraMap K E c))
+    (htr : IsResidueTranscendental O U (y ^ d / algebraMap K E c)) {β : E}
     (hβ : IsAlgebraic K β) :
     U.valuation (y - β) = max (U.valuation y) (U.valuation β) := by
   set w := U.valuation
-  set p := algebraMap K E ϖ
-  have hp0 : p ≠ 0 := by simpa [p] using hϖ0
+  set p := algebraMap K E c
+  have hp0 : p ≠ 0 := by simpa [p] using hc0
   have hwp0 : w p ≠ 0 := by simpa [w] using hp0
   have hwy0 : w y ≠ 0 := by
     intro h
     rw [h, zero_pow hd.ne'] at hy
-    exact zpow_ne_zero _ hwp0 hy.symm
+    exact hwp0 hy.symm
   have hO : ∀ o : O, algebraMap K E (o : K) ∈ U := fun o ↦ by
     rw [← ValuationSubring.mem_comap, hU]; exact o.2
   rcases lt_trichotomy (w β) (w y) with hlt | heq | hgt
@@ -111,20 +111,19 @@ theorem valuation_sub_algebraic_eq_max {U : ValuationSubring E}
   · by_contra hne
     have hle : w (y - β) ≤ w y := (Valuation.map_sub _ _ _).trans (by rw [heq, max_self])
     have hlt : w (y - β) < w y := lt_of_le_of_ne hle (by rwa [heq, max_self] at hne)
-    set γ := y ^ d / p ^ m
-    set z := β ^ d / p ^ m
+    set γ := y ^ d / p
+    set z := β ^ d / p
     have hz : IsAlgebraic K z := by
-      have : z = β ^ d * algebraMap K E (((ϖ : K) ^ m)⁻¹) := by
-        simp [z, p, div_eq_mul_inv, map_zpow₀]
+      have : z = β ^ d * algebraMap K E c⁻¹ := by
+        simp [z, p, div_eq_mul_inv]
       rw [this]
       exact (hβ.pow d).mul (isAlgebraic_algebraMap _)
-    have hpm : w (p ^ m) ≠ 0 := by rw [map_zpow₀]; exact zpow_ne_zero _ hwp0
     have hwz : w z = 1 := by
-      rw [map_div₀, map_pow, heq, hy, map_zpow₀, div_self (zpow_ne_zero _ hwp0)]
+      rw [map_div₀, map_pow, heq, hy, div_self hwp0]
     have hγz : w (γ - z) < 1 := by
-      have hdiff : γ - z = (∑ i ∈ Finset.range d, y ^ i * β ^ (d - 1 - i)) * (y - β) / p ^ m := by
+      have hdiff : γ - z = (∑ i ∈ Finset.range d, y ^ i * β ^ (d - 1 - i)) * (y - β) / p := by
         rw [geom_sum₂_mul, sub_div]
-      rw [hdiff, map_div₀, div_lt_one₀ (zero_lt_iff.mpr hpm), map_zpow₀, ← hy, map_mul]
+      rw [hdiff, map_div₀, div_lt_one₀ (zero_lt_iff.mpr hwp0), ← hy, map_mul]
       have hsum : w (∑ i ∈ Finset.range d, y ^ i * β ^ (d - 1 - i)) ≤ w y ^ (d - 1) := by
         refine Valuation.map_sum_le _ fun i hi ↦ ?_
         rw [map_mul, map_pow, map_pow, heq, ← pow_add]
@@ -160,20 +159,19 @@ lemma Gauss.sup_X_sub_C {F Γ₀ : Type*} [Field F] [LinearOrderedCommGroupWithZ
       simpa only [Gauss.term, coeff_sub, coeff_X_one, coeff_C_succ, sub_zero, map_one, pow_one,
         one_mul] using this
 
-/-- **Gauss formula over the algebraic closure of the constants** (XL3): if `U(y) ^ d = U(ϖ) ^ m`
-and `y ^ d / ϖ ^ m` has transcendental residue over `κ(O)`, then for `Q` over an algebraically
-closed `K̄ ⊇ K` algebraic over `K`, `U(Q(y)) = max_i U(qᵢ yⁱ)`. -/
+/-- **Gauss formula over the algebraic closure of the constants** (XL3): if `U(y) ^ d = U(c)`
+(`c ∈ K ∖ 0`) and `y ^ d / c` has transcendental residue over `κ(O)`, then for `Q` over an
+algebraically closed `K̄ ⊇ K` algebraic over `K`, `U(Q(y)) = max_i U(qᵢ yⁱ)`. -/
 theorem valuation_aeval_eq_sup_of_residue [IsAlgClosed Kb] [Algebra.IsAlgebraic K Kb]
-    {U : ValuationSubring E} (hU : U.comap (algebraMap K E) = O) {ϖ : O} (hϖ0 : (ϖ : K) ≠ 0)
-    {y : E} {d : ℕ} (hd : 0 < d) {m : ℤ}
-    (hy : U.valuation y ^ d = U.valuation (algebraMap K E ϖ) ^ m)
-    (htr : IsResidueTranscendental O U (y ^ d / algebraMap K E ϖ ^ m)) (Q : Kb[X]) :
+    {U : ValuationSubring E} (hU : U.comap (algebraMap K E) = O) {c : K} (hc0 : c ≠ 0)
+    {y : E} {d : ℕ} (hd : 0 < d) (hy : U.valuation y ^ d = U.valuation (algebraMap K E c))
+    (htr : IsResidueTranscendental O U (y ^ d / algebraMap K E c)) (Q : Kb[X]) :
     U.valuation (aeval y Q) =
       Q.support.sup fun i ↦ U.valuation (algebraMap Kb E (Q.coeff i) * y ^ i) := by
   have hwy0 : U.valuation y ≠ 0 := by
     intro h
     rw [h, zero_pow hd.ne'] at hy
-    exact zpow_ne_zero _ (by simpa using hϖ0) hy.symm
+    exact (by simpa using hc0 : U.valuation (algebraMap K E c) ≠ 0) hy.symm
   set v := U.valuation.comap (algebraMap Kb E)
   set r : U.ValueGroupˣ := Units.mk0 _ hwy0
   have hconv : Gauss.sup v r Q =
@@ -200,7 +198,7 @@ theorem valuation_aeval_eq_sup_of_residue [IsAlgClosed Kb] [Algebra.IsAlgebraic 
         omega
       have ih₁ := ih Q₁.natDegree hdeg₁ Q₁ rfl
       rw [hQ, map_mul, map_mul, Gauss.sup_mul, ih₁, aeval_sub, aeval_X, aeval_C,
-        Gauss.sup_X_sub_C, valuation_sub_algebraic_eq_max hU hϖ0 hd hy htr
+        Gauss.sup_X_sub_C, valuation_sub_algebraic_eq_max hU hc0 hd hy htr
           ((Algebra.IsAlgebraic.isAlgebraic β).algebraMap)]
       simp [v, r, max_comm]
 
