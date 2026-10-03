@@ -28,11 +28,13 @@ open Algebra IsLocalRing
 namespace SemistableReduction
 
 
-/-- **Unramified + injective ⇒ étale**, for a domain of finite type over a normal domain. -/
-theorem isEtaleAt_of_isUnramifiedAt {R S : Type*} [CommRing R] [IsDomain R]
+/-- **Unramified + injective ⇒ étale (and flat)**, for a domain of finite type over a normal
+domain. -/
+theorem isEtaleAt_and_flat_of_isUnramifiedAt {R S : Type*} [CommRing R] [IsDomain R]
     [IsIntegrallyClosed R] [CommRing S] [IsDomain S] [Algebra R S] [Algebra.FiniteType R S]
     (hinj : Function.Injective (algebraMap R S)) (Q : Ideal S)
-    [Q.IsPrime] [Algebra.IsUnramifiedAt R Q] : Algebra.IsEtaleAt R Q := by
+    [Q.IsPrime] [Algebra.IsUnramifiedAt R Q] :
+    Algebra.IsEtaleAt R Q ∧ Module.Flat R (Localization.AtPrime Q) := by
   obtain ⟨f, hfQ, P, φ, hφ⟩ := Algebra.IsUnramifiedAt.exists_hasStandardEtaleSurjectionOn (R := R) Q
   let SQ := Localization.AtPrime Q
   have hfu : IsUnit (algebraMap S SQ f) := IsLocalization.map_units SQ (⟨f, hfQ⟩ : Q.primeCompl)
@@ -88,6 +90,14 @@ theorem isEtaleAt_of_isUnramifiedAt {R S : Type*} [CommRing R] [IsDomain R]
           ← IsScalarTower.algebraMap_apply] at this
         exact hr0 (hRSQ (by rw [this, map_zero]))
   haveI : FormallyEtale P.Ring SQ := .of_isLocalization Q'.primeCompl
-  exact FormallyEtale.comp R P.Ring SQ
+  haveI : Module.Flat P.Ring SQ := IsLocalization.flat SQ Q'.primeCompl
+  exact ⟨FormallyEtale.comp R P.Ring SQ, Module.Flat.trans R P.Ring SQ⟩
+
+/-- **Unramified + injective ⇒ étale**, for a domain of finite type over a normal domain. -/
+theorem isEtaleAt_of_isUnramifiedAt {R S : Type*} [CommRing R] [IsDomain R]
+    [IsIntegrallyClosed R] [CommRing S] [IsDomain S] [Algebra R S] [Algebra.FiniteType R S]
+    (hinj : Function.Injective (algebraMap R S)) (Q : Ideal S)
+    [Q.IsPrime] [Algebra.IsUnramifiedAt R Q] : Algebra.IsEtaleAt R Q :=
+  (isEtaleAt_and_flat_of_isUnramifiedAt hinj Q).1
 
 end SemistableReduction
