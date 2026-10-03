@@ -989,7 +989,8 @@ product of function fields `κ_j` over `k(t)`, proved from `ell_eq_of_le_degree`
 `B ∩ tᵐ N` for `O_∞`-lattices `N`, localizes `h(V)` into lattice defects of the discs and annuli of
 `V` without S7; it is a reformulation, not a proof, and is not pursued.)
 
-*Revised lemma-level plan for S8 (existence form, merges S8 and S10).*
+*Revised lemma-level plan for S8 (existence form, merges S8 and S10).* **Superseded** (2026-10)
+by the [AW] structure S8.A–S8.C of §9.10 ("Decision"); kept for the record.
 
 | # | Statement | Inputs / remarks | Size |
 |---|---|---|---|
@@ -1046,11 +1047,23 @@ vertices in `U_n`). **S8.5:** *for `F'/C(x)` finite separable there is `N` such 
 `y` of `D'_N` over `x_N` is a smooth point of the special fibre (one branch, `δ_y = 0`)*; in
 particular the hidden genus of `U_N` vanishes (S7 localization), which is what S8.1/S8.6 consume.
 
-**Structural remark (proposal to the coordinator).** Once L1–L6 below exist, [AW]'s own global
-structure (improvement induction [AW §2.4–2.5] + the disc theorem with the limit argument of
-[AW §4]) replaces S8.1 (no König compactness: exhausting discs are totally ordered) and absorbs
-S8.2/S8.4 (cases (1)–(3) of [AW Prop 4.2] are ~1 page each given L2 and L6); S8.3 is the
-"BL Lemma 2.4" input below. The lemma list is written so that it serves either framework.
+**Decision (coordinator, 2026-10): [AW]'s global structure replaces S8.1–S8.4/S8.6.** The
+targeted chain for W7 is now: **S7** (δ-count, `wp-tempered-s7`) + **S8 = [AW]** + **S9** (node
+lemma) ⇒ W7. S8 in [AW] form:
+
+| # | Statement | Inputs |
+|---|---|---|
+| S8.A | **improvement induction** [AW §2.4–2.5, Prop 2.8]: start with `V₀ = {w_{0,1}}` (`ℙ¹_{O}`); while the normalization of `𝒳_V` has a non-semistable point over a *critical* point `x` (a smooth point of `𝒳_{V,s}`: admissibility is preserved), add the Gauss point of the minimal exhausting disc of S8.B in the residue class of `x`; the measure `(δ_x, −m_x)` (`m ≤ δ + 1`) decreases lexicographically (R5), so the process stops with all points over `𝒳_{V,s}` semistable | R5, S8.B, S7 |
+| S8.B | **disc theorem** [AW Thm 2.6]: for a Galois cover of an open residue disc `U` whose component is not a disc, the exhausting discs `D ⊆ U` have a minimum. Solvable / `p`-group case: L6. General case: the exhausting discs are totally ordered (R3/R4, [AW Lemma 2.7(iii)]); their limit (`DiscLimit`, branch `wp-tempered-s81`, = former S8.1) is of type 1, 2, 3 or 4 [AW Prop 4.2]; type 2 ⇒ L6 for the stabilizer; types 1, 3 ⇒ the stabilizer of the point over the limit is solvable and the limit is ruled out as in [AW §4.4] (= former S8.2 type 1 splitting, S8.4 type 3; at type 3 the decomposition group equals the inertia group (A4) and is solvable: wild part a `p`-group, tame quotient abelian); **type 4 ⇒ L7** | L2, L6, L7, `DiscLimit`, S8.2a, S8.4a/b |
+| S8.C | **Galois reduction for the assembly** [AW Prop 2.1 (`relprop1`)]: a semistable `V` for the Galois closure is semistable for every intermediate field (Liu 10.3.48; smooth points: A6, nodes: the analogue of A6 with two branches) | A1, A2, A6, S9 |
+
+Former rows: S8.1 → limits in S8.B (proved part `DiscLimit` kept); S8.2 → case (1) of S8.B;
+S8.3 → R4 (BL Lemma 2.4); S8.4 → case (3) of S8.B; S8.6 → S8.A. The hidden-genus function
+`h(V)` and König compactness are no longer needed. **Interface requirement on S7:** R5's
+comparison formula [AW (2.3)] `δ_y = m_y − |S| + Σ_{V ∈ S} g_V + Σ_{y'} δ_{y'}` needs the genus
+formula `g = 1 + Σ (g_V − 1) + Σ_y δ_y` *with equality* for the two models involved (or a local
+version of it); S7 currently provides `≤` only. The S8.5 target below is used in the form "type 4
+limits of exhausting discs do not occur" (T2′).
 
 **L1. Galois reduction and quotients** (`SemistableReduction/GaloisReduction.lean`: A1–A5
 **proved**, ≈ 0.45k lines; A6 waits for S7's `δ`).
@@ -1129,6 +1142,8 @@ see the fallback paragraph for avoiding it at type 4.
 |---|---|---|---|
 | T1 | for `F''` Galois and `n ≫ 0` (B4), the component `Y_n` of the preimage of `U_n` through `ξ''` is a Galois cover of `U_n` with group `D_{ξ''}`, a `p`-group (A4) | B4, A4 | 0.1k |
 | T2 | **descent**: apply L6 to `Y_n → U_n`: either `Y_n` is a disc (done), or there is a minimal exhausting disc `D_min ⊂ U_n` (a type-2 point). If `ξ ∉ D_min`, then `U_{n'} ⊆ U_n ∖ D_min` for `n' ≫ 0` (`⋂ U_n = ∅` and discs are nested or disjoint), whose preimage is a union of annuli; R4(iii) ⇒ the points over `x_{n'}` are smooth. If `ξ ∈ D_min`, then `U_{n'}` lies in the residue class `X'` of `D_min` containing `ξ`, the component over `X'` is again a `p`-group cover of a disc, and its point has strictly smaller `(δ, −m)` (R5: minimal ⇒ improvement). The measure is well-founded (`m ≤ δ + 1`), so after finitely many steps the component is a disc | L6, R4, R5, S8.0 | 0.4k |
+| T0 | **exhausting discs have connected preimage** [AW Lemma 2.7(i), 4.1(ii)]: for `D` exhausting, the components over the Gauss point of `D` form a connected special fibre `W` whose points over the outer direction are smooth, so `W°` is connected; hence all `w' ∣ w_D` are centred at the same point over the residue point of any `w_n` with `D ⊆ U_n` | `Connectedness` (G6.8), B2, R3 | 0.3k |
+| T2′ | **[AW] case (4)** (the form used by S8.B): if the exhausting discs of a Galois cover `Y → U` (`Y` not a disc) shrink to a type-4 `ξ`, then for `D ⊆ U_n` exhausting, T0 + B4 give a single point over `x_n`, so `G = D_{ξ''}` is a `p`-group (A4) and L6 gives a minimum — contradicting `⋂ D = ∅`. (T2 is the equivalent formulation for the pointwise target above.) | T0, B4, A4, L6 | 0.2k |
 | T3 | **S8.5 for arbitrary `F'`**: Galois closure `F''`, T2 for every point over `ξ`, A6 for `F' = F''^H` | A6, T2 | 0.1k |
 
 **How type-4 valuations are handled.** Never through a model containing `ξ` (impossible: `ξ` is
