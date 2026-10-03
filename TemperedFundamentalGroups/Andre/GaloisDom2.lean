@@ -307,7 +307,7 @@ theorem dom_mid (hW : SemistableReduction.Statement.StrongComponent.{u})
     ext o
     simp only [levelStructureMap, RingHom.comp_apply, AlgHom.coe_toRingHom]
     exact (f i.down).commutes _
-  obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, -, he, -, -, hjS,
+  obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, -, hjS,
     hact, hactj, hdomj, hdomS, hdim, hcomp⟩ := hW K O R hR B G (ULift.{u} (Fin n)) c₀ j₀ hj₀
   haveI hK' : Algebra.Etale K K' :=
     ⟨Algebra.FormallyEtale.of_isSeparable K K',
@@ -325,7 +325,7 @@ theorem dom_mid (hW : SemistableReduction.Statement.StrongComponent.{u})
     have h' : ε' = 0 := by simpa [ε] using congrArg κ h
     rw [h', map_zero] at hsε'
     exact zero_ne_one hsε'
-  obtain ⟨c₁', c₁, e₁, ι₁, j₁, hss₁, -, he₁, hι₁, -, hι₁S, -, hj₁d, hj₁ι, hstab, hconn⟩ :=
+  obtain ⟨c₁', c₁, e₁, ι₁, j₁, hss₁, -, -, he₁, hι₁, -, hι₁S, -, hj₁d, hj₁ι, hstab, hconn⟩ :=
     hcomp ε hε.1 hε0 hε.2
   let Q := C ⧸ Ideal.span {1 - ε'}
   haveI : Algebra.Etale R Q := quotient_etale hε'.1
