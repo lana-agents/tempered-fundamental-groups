@@ -80,7 +80,8 @@ theorem projChart_segre {y : ι → F} (hy : ∀ i, y i ≠ 0) (σ : ι → Bool
       exact Subring.closure_le.2 (Set.union_subset (base_le_projChart σ)
         (Set.singleton_subset_iff.2 hmem))
 
-lemma ZariskiModel.ext_charts {R : Subring F} {M N : ZariskiModel R} (h : M.charts = N.charts) :
+lemma ZariskiModel.ext_of_charts_eq {R : Subring F} {M N : ZariskiModel R}
+    (h : M.charts = N.charts) :
     M = N := by
   cases M
   cases N
@@ -91,7 +92,7 @@ lemma ZariskiModel.ext_charts {R : Subring F} {M N : ZariskiModel R} (h : M.char
 theorem lines_eq_projModel [DecidableEq ι] {y : ι → F} (hy : ∀ i, y i ≠ 0) :
     lines v y = projModel (baseRing F v.valuationSubring) (segre y) := by
   classical
-  refine ZariskiModel.ext_charts (Finset.ext fun A ↦ ?_)
+  refine ZariskiModel.ext_of_charts_eq (Finset.ext fun A ↦ ?_)
   rw [mem_projModel_charts, lines, mem_iJoin_charts]
   constructor
   · rintro ⟨c, hc, rfl⟩

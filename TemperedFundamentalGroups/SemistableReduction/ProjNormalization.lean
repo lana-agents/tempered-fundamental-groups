@@ -6,6 +6,13 @@ Authors: Christian Merten
 import TemperedFundamentalGroups.SemistableReduction.ProjModel
 import TemperedFundamentalGroups.SemistableReduction.ZariskiNormalization
 
+/-!
+# Normalizations of projective Zariski models are projective (Blueprint §9.6, M9c)
+
+Degree shifting between the charts of a projective model and explicit homogeneous coordinates
+for the normalization of a projective model in a finite extension.
+-/
+
 open Polynomial
 
 namespace SemistableReduction
