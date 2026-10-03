@@ -9,14 +9,15 @@ import TemperedFundamentalGroups.Andre.GaloisDom2
 # Galois objects over W-model levels (Blueprint §10.3.6, items 1–2)
 
 Scheme case. B5 measures fibre elements of the Galois objects of `galClass₂` with lengths read
-off on their models, which must be **W-models** (`SemistableReduction.ModelCode.IsWModel`): the
-models produced by the W-chain, between which maps are harmonic (`Statement.HarmonicW`). Here the
+off on their models, which must be **unfolded W-models**
+(`SemistableReduction.ModelCode.IsUnfolded`): the models produced by the W-chain, between which
+maps are x-harmonic (`Statement.HarmonicX`). Here the
 W-model structure is recorded **on the level** (`Level.IsW x`), tied to `j`:
 
-* `Level.IsW x Lv`: the model of `Lv` is, over `O`, a split semistable `O'`-model `c'` without
-  loops, which is a W-model on the x-line `x ∈ R` of a fraction field `L₁` of `B`, with generic
-  point `Spec L₁ → Spec B → c → c'`; the `K'`-structure of `L₁` comes from a map `κ : K' → B`
-  over `K`.
+* `Level.IsW x Lv`: the model of `Lv` is, over `O`, a split semistable `O'`-model `c'`
+  without loops, which is an unfolded W-model on the x-line `x ∈ R` of a fraction field `L₁` of
+  `B`, with generic point `Spec L₁ → Spec B → c → c'`; the `K'`-structure of `L₁` comes from a
+  map `κ : K' → B` over `K`.
 * `galClassW P`: the members of `galClass₂` whose level satisfies a predicate `P` on levels
   (`galClassW_le`: `galClassW P ≤ galClass₂ (fun _ => True)`, so gal and rig are inherited).
 * `coreLevel`: the level with trivial `H` of the core of domination (`dom_core`), and
@@ -64,7 +65,7 @@ def Level.IsW (x : R) (Lv : Level O R A) : Prop :=
       (κ : K' →+* Lv.L.B) (j₁' : Spec (CommRingCat.of L₁) ⟶ c'.scheme),
       algebraMap K' L₁ = (algebraMap Lv.L.B L₁).comp κ ∧
       κ.comp (algebraMap K K') = (algebraMap R Lv.L.B).comp (algebraMap K R) ∧
-      SemistableReduction.ModelCode.IsWModel O' L₁
+      SemistableReduction.ModelCode.IsUnfolded O'
         (algebraMap Lv.L.B L₁ (algebraMap R Lv.L.B x)) c' j₁' ∧
       j₁' = Spec.map (CommRingCat.ofHom (algebraMap Lv.L.B L₁)) ≫ Lv.j ≫ e.hom
 

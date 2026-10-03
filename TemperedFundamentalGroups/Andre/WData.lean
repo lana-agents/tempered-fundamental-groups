@@ -72,7 +72,7 @@ structure WData (x : R) (Lv : Level O R A) where
   j₁ : Spec (CommRingCat.of L₁) ⟶ c'.scheme
   hκL : algebraMap K' L₁ = (algebraMap Lv.L.B L₁).comp κ
   hκ : κ.comp (algebraMap K K') = (algebraMap R Lv.L.B).comp (algebraMap K R)
-  wmodel : SemistableReduction.ModelCode.IsWModel O' L₁
+  wmodel : SemistableReduction.ModelCode.IsUnfolded O'
     (algebraMap Lv.L.B L₁ (algebraMap R Lv.L.B x)) c' j₁
   hj : j₁ = Spec.map (CommRingCat.ofHom (algebraMap Lv.L.B L₁)) ≫ Lv.j ≫ e.hom
 

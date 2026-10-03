@@ -1576,3 +1576,22 @@ Status: K1 and K2 (`GaloisLimit`) are done, as are `galClass₂` with gal, rig a
      `S_p := {γ : Φ f_p γ = δ(1)·x₀, len γ ≤ ℓ₀}`. The index is restricted to the cofinal pointed
      objects over `(X₀, x₀)`.
 5. **K2** gives `α`, with `deckCharacter α = 1`.
+
+**Status (branch `wp-andre-b5b`).** Items 2–4 are proved from `Statement.HarmonicX` (targeted)
+and the named local input `Statement.NodeOfTwoComponents` (`SemistableReduction/TwoComponents.lean`:
+a point on two components of the special fibre of a semistable model is a node):
+`Topology/CoverLength.lean` (tree lengths `tlen` with near endpoints; finiteness; connectivity;
+monotonicity along maps of tree coverings with harmonic weights, `tlen_map_le`, including the
+shortening of crossing walks to walks with distinct nodes and no backtracking),
+`Topology/UniversalLength.lean` (closed maps of curves: components contracted or mapped onto
+components), `Andre/FracMap.lean` (level maps are injective; finite extension of function
+fields), `Andre/WData.lean` (bundled `Level.IsW`; model maps are x-harmonic, `WData.isHarmonicX`),
+`Andre/WHarmonicWeight.lean` (components of `Lv.Z` vs the dual graph; x-length weights are
+harmonic, `WData.isHarmonicWeight`), `Andre/LengthW.lean` (`lenW`, `lenW_self`,
+`finite_lenW_le`, `lenW_map_le`), `Andre/TheoremBW.lean` (`exists_character_eq_of_lenW`,
+`nondegenerate_of_lenW`, `exists_character_eq_of_lenW_lift`). Lengths are `ℝ≥0∞`-valued
+(`exists_deckCharacter_eq_of_length'`). **Remaining (item 4, Tate loop):** the lifting property
+`hlift` (fibre elements lift along pointed morphisms of members without increasing `lenW`, from
+(X1) by path lifting in the trees, plus surjectivity of level maps on geometric points) and the
+base loop `hbase` (one pointed member over `(X₀, x₀)` has a fibre element over `δ(n) x₀`); the
+reduction of the loop to these is `exists_loop_of_lift`.
