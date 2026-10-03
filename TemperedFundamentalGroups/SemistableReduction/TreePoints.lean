@@ -476,6 +476,127 @@ theorem TreeData.Sp_disjoint (P Q : T.Pt hx₀ hp hp1) (hPQ : P ≠ Q) :
 
 end Structure
 
+section Zero
+
+omit [CharZero C] in
+lemma red_ec_eq {e : T.E} {W : TypeTwo C F} (hW : IsOver (T.hvc hx₀ (T.par e)) W)
+    (hδ : ‖-((T.a (T.chi e) - T.a (T.par e)) / T.c (T.par e))‖ ≤ 1) :
+    W.red (T.ec x₀ e) = W.red (T.vc x₀ (T.par e)) + algebraMap 𝓀 _ (residue _
+      ⟨_, (HenselComplete.mem_integers_iff _).2 hδ⟩) := by
+  have hec := T.ec_eq (x₀ := x₀) e
+  rw [map_one, one_mul] at hec
+  rw [hec, TypeTwo.red_add (by rw [hW.valuation_self])
+    (by rw [TypeTwo.valuation_algebraMap]; exact_mod_cast hδ), TypeTwo.red_algebraMap _ hδ]
+
+/-- **The divisors `D̄_{m,W}` vanish at the branches through node points.** -/
+theorem TreeData.Db_branch (m : ℕ) (P : T.Pt hx₀ hp hp1)
+    {β : Branch 𝓀 (Kappa (T.S hx₀ hp hp1))} (hβ : β ∈ T.Sp hx₀ hp hp1 P) :
+    T.Db hx₀ hp hp1 m β.1 β.2 = 0 := by
+  suffices h : (β.1.1.red (T.vc x₀ (T.vtx hx₀ hp hp1 β.1)) -
+      algebraMap 𝓀 _ (T.βbar (T.vtx hx₀ hp hp1 β.1)))⁻¹ ∈ β.2.V by
+    rw [TreeData.Db, Finsupp.smul_apply, zeroDiv, poleDivisor_apply,
+      (β.2.poleOrder_eq_zero_iff).2 h]
+    simp
+  rcases T.Sp_cases hx₀ hp hp1 P hβ with ⟨hW, hv⟩ | ⟨hW, hv⟩
+  · rw [T.vtx_eq hx₀ hp hp1 hW]
+    set t := β.1.1.red (T.vc x₀ (T.par P.1)) - algebraMap 𝓀 _ (T.βbar (T.par P.1))
+    by_contra hinv
+    have ht0 : t ≠ 0 := fun h ↦ hinv (by rw [h, inv_zero]; exact zero_mem _)
+    have hlt : β.2.valuation t < 1 := by
+      have h1 : ¬ β.2.valuation t⁻¹ ≤ 1 := fun h ↦ hinv (β.2.valuation_le_one_iff.1 h)
+      rw [map_inv₀, not_le] at h1
+      have h0 : β.2.valuation t ≠ 0 := (Valuation.ne_zero_iff _).2 ht0
+      by_contra h2
+      rw [not_lt] at h2
+      exact absurd (inv_le_one_of_one_le₀ h2) (not_le.2 h1)
+    have hδ : ‖-((T.a (T.chi P.1) - T.a (T.par P.1)) / T.c (T.par P.1))‖ ≤ 1 := by
+      rw [norm_neg, norm_div, div_le_one (norm_pos_iff.2 (T.hc _))]
+      exact T.hedge_a _
+    set γ : C := T.β (T.par P.1) - (T.a (T.chi P.1) - T.a (T.par P.1)) / T.c (T.par P.1)
+    have hγ : ‖γ‖ = 1 := by
+      have : γ = (T.b (T.par P.1) - T.a (T.chi P.1)) / T.c (T.par P.1) := by
+        simp only [γ, TreeData.β]
+        field_simp [T.hc (T.par P.1)]
+        ring
+      rw [this, norm_div, T.hb_free, div_self (norm_ne_zero_iff.2 (T.hc _))]
+    have hdiff : β.1.1.red (T.ec x₀ P.1) - t = algebraMap 𝓀 _ (residue _
+        ⟨γ, (HenselComplete.mem_integers_iff _).2 hγ.le⟩) := by
+      rw [red_ec_eq T hx₀ hW hδ]
+      simp only [t, TreeData.βbar]
+      rw [add_sub_sub_cancel, ← map_add, ← map_add]
+      congr 2
+      apply Subtype.ext
+      simp only [γ, AddMemClass.mk_add_mk]
+      ring
+    have hlt' : β.2.valuation (β.1.1.red (T.ec x₀ P.1) - t) < 1 :=
+      (Valuation.map_sub _ _ _).trans_lt (max_lt hv hlt)
+    rw [hdiff, β.2.valuation_algebraMap_eq_one' (residue_ne_zero_of_norm_eq_one hγ)] at hlt'
+    exact lt_irrefl _ hlt'
+  · rw [T.vtx_eq hx₀ hp hp1 hW]
+    have hnot := red_vc_notMem_of_inner T hx₀ hW hv
+    refine (β.2.V.mem_or_inv_mem _).resolve_left fun h ↦ hnot ?_
+    have : β.1.1.red (T.vc x₀ (T.chi P.1)) = (β.1.1.red (T.vc x₀ (T.chi P.1)) -
+        algebraMap 𝓀 _ (T.βbar (T.chi P.1))) + algebraMap 𝓀 _ (T.βbar (T.chi P.1)) := by ring
+    rw [this]
+    exact add_mem h (β.2.algebraMap_mem _)
+
+end Zero
+
+section Twist
+
+/-- The twist of the edge `e` is a unit at every branch through a node point of `e`. -/
+theorem TreeData.res_twist_ne_zero (m : ℕ) (P : T.Pt hx₀ hp hp1)
+    {β : Branch 𝓀 (Kappa (T.S hx₀ hp hp1))} (hβ : β ∈ T.Sp hx₀ hp hp1 P) :
+    β.1.1.val (∏ j, T.mu x₀ P.1 j ^ m) = 1 ∧
+      β.1.1.red (∏ j, T.mu x₀ P.1 j ^ m) ∈ β.2.V ∧
+      β.2.res (β.1.1.red (∏ j, T.mu x₀ P.1 j ^ m)) ≠ 0 := by
+  have key : (∀ j, β.1.1.val (T.mu x₀ P.1 j) = 1) ∧
+      ∀ j, β.1.1.red (T.mu x₀ P.1 j) ∈ β.2.V ∧ β.2.res (β.1.1.red (T.mu x₀ P.1 j)) ≠ 0 := by
+    rcases T.Sp_cases hx₀ hp hp1 P hβ with ⟨hW, hv⟩ | ⟨hW, hv⟩
+    · exact ⟨valuation_mu_par T hx₀ hW, res_red_mu_par T hx₀ hW β.2 hv⟩
+    · exact ⟨valuation_mu_chi T hx₀ hW, res_red_mu_chi T hx₀ hW β.2 hv⟩
+  have hv1 : β.1.1.val (∏ j, T.mu x₀ P.1 j ^ m) = 1 := by
+    simp only [map_prod, map_pow, key.1, one_pow, Finset.prod_const_one]
+  refine ⟨hv1, ?_⟩
+  have hu := res_prod_ne_zero β.2 Finset.univ (fun j ↦ β.1.1.red (T.mu x₀ P.1 j ^ m)) fun j _ ↦ by
+    rw [TypeTwo.red_pow (key.1 j).le]
+    exact res_pow_ne_zero β.2 (key.2 j).1 (key.2 j).2 m
+  rwa [TypeTwo.red_prod _ _ fun j _ ↦ by rw [map_pow, key.1 j, one_pow]]
+
+omit [CharZero C] in
+lemma TreeData.one_mem_rrSpace (m : ℕ) : (1 : F) ∈ rrSpace (T.D x₀ m) := by
+  intro Q
+  rw [map_one, ← exp_zero, exp_le_exp]
+  have : 0 ≤ T.D x₀ m :=
+    nsmul_nonneg (Finset.sum_nonneg fun j _ ↦ poleDivisor_nonneg _) m
+  exact this Q
+
+/-- **(H3) The reductions of `L(D_m)°` satisfy the conditions at every node point**: `f = (f h)/h`
+with the twist `h ∉ P'` and `f h ∈ R'_e`. -/
+theorem TreeData.redVec_mem_Oc (m : ℕ) {f : F} (hf : f ∈ rrSpace (T.D x₀ m))
+    (hn : mnorm (T.S hx₀ hp hp1) f ≤ 1) (P : T.Pt hx₀ hp hp1) :
+    redVec (T.S hx₀ hp hp1) f ∈ T.Oc hx₀ hp hp1 P := by
+  letI := T.edgeAlg hx₀ P.1
+  haveI := T.edgeTower hx₀ P.1
+  haveI := T.edgeFin hx₀ P.1
+  have hn' (i : T.ι) (W : TypeTwo C F) (h : IsOver (T.hvc hx₀ i) W) : W.val f ≤ 1 :=
+    (le_mnorm ((T.mem_S hx₀ hp hp1 W).2 ⟨i, h⟩) f).trans hn
+  have hn1 (i : T.ι) (W : TypeTwo C F) (_ : IsOver (T.hvc hx₀ i) W) : W.val (1 : F) ≤ 1 := by
+    simp
+  have hy := isIntegral_twist T hx₀ hp hp1 hf hn' P.1
+  have hs := isIntegral_twist T hx₀ hp hp1 (T.one_mem_rrSpace (x₀ := x₀) m) hn1 P.1
+  set h := ∏ j, T.mu x₀ P.1 j ^ m
+  have hs' : IsIntegral (nodeRing (T.ce P.1)) h := by simpa only [one_mul] using hs
+  obtain ⟨β₀, hβ₀⟩ := T.Sp_nonempty hx₀ hp hp1 P
+  refine ⟨⟨f * h, hy⟩, ⟨h, hs'⟩, fun hmem ↦ ?_, fun β hβ ↦ ?_⟩
+  · have := (T.mem_iff hx₀ hp hp1 P hβ₀ ⟨h, hs'⟩).1 hmem
+    exact (T.res_twist_ne_zero hx₀ hp hp1 m P hβ₀).2.2 this
+  · have hf1 : β.1.1.val f ≤ 1 := (le_mnorm β.1.2 f).trans hn
+    have hh1 := (T.res_twist_ne_zero hx₀ hp hp1 m P hβ).1
+    exact (TypeTwo.red_mul hf1 hh1.le).symm
+
+end Twist
+
 end TreeCount
 
 end SemistableReduction
