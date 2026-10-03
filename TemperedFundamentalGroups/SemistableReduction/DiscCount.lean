@@ -34,7 +34,10 @@ extending the norm of `C` with `ν(t) < 1`: a point of `U` of any type 2–4 tha
   `ν`; at a type-4 point of `U` it is a sum of defects, at a Gauss point a sum of `e · f`;
 * **`discDegree_pos` (B4a)**: every maximal ideal of `R'` over `(𝔪_C, t)` is the centre of an
   extension of *every* disc valuation (positive disc degree; Cayley–Hamilton for an element of
-  `P'` outside the other centres).
+  `P'` outside the other centres);
+* **`existsUnique_of_discDegree_eq_one` (B5)**: at a point of disc degree `1`, every disc valuation
+  has exactly one extension centred there, and its local factor has degree `1` (the completions
+  agree).
 -/
 
 open Polynomial NNReal IntermediateField
@@ -518,6 +521,40 @@ theorem discDegree_pos (hc : c ≠ 0) (ν : DiscVal a c) (P' : Ideal (DRint a c 
   rcases h with h | h
   · exact hne h
   · exact h (by rw [coeff_map, Ideal.Quotient.eq_zero_iff_mem]; exact h0)
+
+
+/-- **B5 (degree-one disc points).** If a point `P'` has disc degree `1` at one disc valuation,
+then at every disc valuation `ν` exactly one extension of `ν` is centred at `P'`, and its factor
+has degree `1`: the completion of `F'` at it is the completion of `C(x)` at `ν`. -/
+theorem existsUnique_of_discDegree_eq_one (hc : c ≠ 0) (ν₀ ν : DiscVal a c)
+    (P' : Ideal (DRint a c F')) [P'.IsMaximal] (h1 : discDegree ν₀ P' = 1) :
+    ∃! g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) F',
+      center (isDiscVal_comap_extValuation g) = P' ∧ g.1.natDegree = 1 := by
+  classical
+  rw [discDegree_eq hc ν₀ ν P', discDegree] at h1
+  set S := Finset.univ.filter (fun g : Factor (DiscField ν)
+      (UniformSpace.Completion (DiscField ν)) F' ↦ center (isDiscVal_comap_extValuation g) = P')
+  have hpos : ∀ g ∈ S, 1 ≤ g.1.natDegree := fun g _ ↦
+    Nat.one_le_iff_ne_zero.2 (irreducible_of_mem_factors g.2).natDegree_pos.ne'
+  -- a sum of positive integers equal to `1` has exactly one term, equal to `1`
+  have hcard : S.card ≤ 1 := by
+    have := Finset.card_nsmul_le_sum S (fun g ↦ g.1.natDegree) 1 hpos
+    rw [smul_eq_mul, mul_one, h1] at this
+    exact this
+  obtain ⟨g, hg⟩ : S.Nonempty := by
+    rw [Finset.nonempty_iff_ne_empty]
+    rintro h
+    rw [h, Finset.sum_empty] at h1
+    exact zero_ne_one h1
+  have hS : S = {g} := Finset.eq_singleton_iff_unique_mem.2
+    ⟨hg, fun g' hg' ↦ Finset.card_le_one.1 hcard _ hg' _ hg⟩
+  have hdeg : g.1.natDegree = 1 := by
+    rw [hS, Finset.sum_singleton] at h1
+    exact h1
+  refine ⟨g, ⟨(Finset.mem_filter.1 hg).2, hdeg⟩, fun g' hg' ↦ ?_⟩
+  have : g' ∈ S := Finset.mem_filter.2 ⟨Finset.mem_univ _, hg'.1⟩
+  rw [hS] at this
+  exact Finset.mem_singleton.1 this
 
 end DiscCount
 
