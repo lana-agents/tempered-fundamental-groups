@@ -308,6 +308,102 @@ lemma mem_placeIdeal_iff (hc : ‖c‖ < 1) (v : Ext C F') {Q : CurvePlace 𝓀 
 
 end Place
 
+section Curve
+
+variable {k κ : Type*} [Field k] [Field κ] [Algebra k κ] [IsAlgClosed k]
+  [IsCurveFunctionField k κ] (Q : CurvePlace k κ) {u : κ}
+
+/-- The value at `0` of `r / X^{ord₀ r}`. -/
+noncomputable def lead0 (r : k[X]) : k := (r /ₘ (X - Polynomial.C 0) ^ r.rootMultiplicity 0).eval 0
+
+omit [IsAlgClosed k] in
+lemma lead0_ne_zero {r : k[X]} (hr : r ≠ 0) : lead0 r ≠ 0 :=
+  eval_divByMonic_pow_rootMultiplicity_ne_zero 0 hr
+
+lemma res_aeval (hu : Q.valuation u < 1) (p : k[X]) : Q.res (aeval u p) = p.eval 0 := by
+  refine Q.res_eq_of_valuation_sub_lt_one ?_
+  have : aeval u p - algebraMap k κ (p.eval 0) = aeval u p.divX * u := by
+    conv_lhs => rw [← divX_mul_X_add p]
+    simp [coeff_zero_eq_eval_zero]
+  rw [this, map_mul]
+  exact mul_lt_one_of_nonneg_of_lt_one_right (valuation_aeval_le_one
+    Q.valuation_algebraMap_le_one (hu.le) _) zero_le hu
+
+omit [IsAlgClosed k] [IsCurveFunctionField k κ] in
+lemma aeval_eq_pow_mul (r : k[X]) :
+    aeval u r = u ^ r.rootMultiplicity 0 * aeval u (r /ₘ (X - Polynomial.C 0) ^ r.rootMultiplicity 0) := by
+  conv_lhs => rw [← pow_mul_divByMonic_rootMultiplicity_eq r 0]
+  simp
+
+lemma valuation_aeval_div (hu : Q.valuation u < 1) (r : k[X]) :
+    Q.valuation (aeval u (r /ₘ (X - Polynomial.C 0) ^ r.rootMultiplicity 0)) = 1 ∨ r = 0 := by
+  by_cases hr : r = 0
+  · exact Or.inr hr
+  left
+  have h := lead0_ne_zero hr
+  have hres := res_aeval Q hu (r /ₘ (X - Polynomial.C 0) ^ r.rootMultiplicity 0)
+  by_contra hne
+  have hlt : Q.valuation (aeval u (r /ₘ (X - Polynomial.C 0) ^ r.rootMultiplicity 0)) < 1 :=
+    lt_of_le_of_ne (valuation_aeval_le_one Q.valuation_algebraMap_le_one hu.le _) hne
+  rw [Q.res_eq_zero_of_lt_one hlt] at hres
+  exact h hres.symm
+
+/-- Membership and value of `r(u) / s(u)` at a zero `Q` of `u`, in terms of the orders and
+leading values of `r` and `s` at `0`. -/
+theorem res_div_aeval (hu : Q.valuation u < 1) (hu0 : u ≠ 0) {r s : k[X]} (hr : r ≠ 0)
+    (hs : s ≠ 0) :
+    (aeval u r / aeval u s ∈ Q.V ↔ s.rootMultiplicity 0 ≤ r.rootMultiplicity 0) ∧
+    (r.rootMultiplicity 0 = s.rootMultiplicity 0 →
+      Q.res (aeval u r / aeval u s) = lead0 r / lead0 s) ∧
+    (s.rootMultiplicity 0 < r.rootMultiplicity 0 → Q.res (aeval u r / aeval u s) = 0) := by
+  set m := r.rootMultiplicity 0
+  set n := s.rootMultiplicity 0
+  set r1 := r /ₘ (X - Polynomial.C 0) ^ m
+  set s1 := s /ₘ (X - Polynomial.C 0) ^ n
+  have hm' : (m : ℤ) = (r.rootMultiplicity 0 : ℤ) := rfl
+  have hn' : (n : ℤ) = (s.rootMultiplicity 0 : ℤ) := rfl
+  have hr1 : Q.valuation (aeval u r1) = 1 := (valuation_aeval_div Q hu r).resolve_right hr
+  have hs1 : Q.valuation (aeval u s1) = 1 := (valuation_aeval_div Q hu s).resolve_right hs
+  have hs10 : aeval u s1 ≠ 0 := fun h ↦ by rw [h, map_zero] at hs1; exact zero_ne_one hs1
+  have hv0 : Q.valuation u ≠ 0 := (Valuation.ne_zero_iff _).2 hu0
+  have hval : Q.valuation (aeval u r / aeval u s) = Q.valuation u ^ ((m : ℤ) - n) := by
+    rw [aeval_eq_pow_mul r, aeval_eq_pow_mul s, map_div₀, map_mul, map_mul, hr1, hs1, mul_one,
+      mul_one, map_pow, map_pow, zpow_sub₀ hv0, zpow_natCast, zpow_natCast]
+  obtain ⟨e, he⟩ : ∃ e : ℤ, Q.valuation u = exp e := ⟨log (Q.valuation u), (exp_log hv0).symm⟩
+  have he0 : e < 0 := by
+    rw [he, ← exp_zero, exp_lt_exp] at hu
+    exact hu
+  refine ⟨?_, fun hmn ↦ ?_, fun hmn ↦ ?_⟩
+  · rw [← Q.valuation_le_one_iff, hval, he, ← exp_zsmul, ← exp_zero, exp_le_exp, smul_eq_mul]
+    constructor
+    · intro h
+      by_contra! H
+      have : (m : ℤ) - n < 0 := by omega
+      nlinarith
+    · intro h
+      have : (0 : ℤ) ≤ (m : ℤ) - n := by omega
+      nlinarith
+  · have heq : aeval u r / aeval u s = aeval u r1 / aeval u s1 := by
+      rw [aeval_eq_pow_mul r, aeval_eq_pow_mul s]
+      change u ^ m * aeval u r1 / (u ^ n * aeval u s1) = _
+      rw [hmn, mul_div_mul_left _ _ (pow_ne_zero _ hu0)]
+    have hmem1 : aeval u r1 ∈ Q.V := Q.valuation_le_one_iff.1 hr1.le
+    have hmem2 : aeval u s1 ∈ Q.V := Q.valuation_le_one_iff.1 hs1.le
+    have hq : aeval u r1 / aeval u s1 ∈ Q.V := by
+      rw [← Q.valuation_le_one_iff, map_div₀, hr1, hs1, div_one]
+    have := Q.res_mul hq hmem2
+    rw [div_mul_cancel₀ _ hs10, res_aeval Q hu, res_aeval Q hu] at this
+    rw [heq, lead0, lead0]
+    change Q.res _ = r1.eval 0 / s1.eval 0
+    rw [this]
+    exact (mul_div_cancel_right₀ _ (lead0_ne_zero hs)).symm
+  · refine Q.res_eq_zero_of_lt_one ?_
+    rw [hval, he, ← exp_zsmul, ← exp_zero, exp_lt_exp, smul_eq_mul]
+    have : (0 : ℤ) < (m : ℤ) - n := by omega
+    nlinarith
+
+end Curve
+
 end GaussTube
 
 end SemistableReduction
