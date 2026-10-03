@@ -3,7 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.SemistableReduction.WModel
+import TemperedFundamentalGroups.SemistableReduction.XHarmonic
 
 /-!
 # W10 with connected components (a strengthened copy of `Statement.Strong`)
@@ -22,10 +22,11 @@ replaced by the **component clause**: for every primitive idempotent `ε` of `K'
 * the action of the stabiliser of `ε` in `G × Gal(K'/K)` restricts to `c₁`;
 * the special fibre of `c₁` is **connected** (Zariski connectedness for the normal proper model
   `c₁` of the connected `Spec ((K' ⊗_K B) ⧸ (1 - ε))` over the complete DVR `O'`);
-* `c₁'` is a **W-model** (`ModelCode.IsWModel`, Blueprint §9.7) of the function field `L₁` of the
-  component on the x-line given by the input `x ∈ R` (`R` finite over `K[x]`), with generic point
-  the restriction of `j₁`: the models produced by the W-chain, between which maps are harmonic
-  (`Statement.HarmonicW`).
+* `c₁'` is an **unfolded W-model** (`ModelCode.IsUnfolded`, Blueprint §9.7) of the function
+  field `L₁` of the component on the x-line given by the input `x ∈ R` (`R` finite over `K[x]`),
+  with generic point the restriction of `j₁`: a W-model (`IsUnfolded.isWModel`) every node of
+  which lies over a node of its Gauss tree (W7 (c): points over smooth points of the base tree are
+  smooth). These are the models between which maps are x-harmonic (`Statement.HarmonicX`).
 
 Domination of the `c₀ i` by `c₁` is `ι₁ ≫ dom i`. The case `ε = 1` (connected `K' ⊗_K B`)
 recovers the connectedness clause of `Strong` (with `c₁ = c`). This is the form of W10 consumed by
@@ -78,6 +79,11 @@ def Statement.StrongComponent : Prop :=
       (∀ i, j ≫ dom i = Spec.map (CommRingCat.ofHom
         (Algebra.TensorProduct.includeRight.toRingHom : B →+* TensorProduct K K' B)) ≫ j₀ i) ∧
       (∀ i, dom i ≫ (c₀ i).toSpec = c.toSpec) ∧
+      (∀ i, (∀ x : (c₀ i).scheme, IsDomain ((c₀ i).scheme.presheaf.stalk x) ∧
+          IsIntegrallyClosed ((c₀ i).scheme.presheaf.stalk x)) → Flat (c₀ i).toSpec →
+        (∀ z ∈ specialFibre (c₀ i).toSpec, ∃ y ∈ specialFibre c.toSpec, dom i y = z) ∧
+        ∀ z ∈ specialFibre (c₀ i).toSpec,
+          Finite (_root_.ConnectedComponents {y : specialFibre c.toSpec // dom i y.1 = z})) ∧
       topologicalKrullDim (specialFibre c.toSpec) ≤ 1 ∧
       (∀ ε : TensorProduct K K' B, IsIdempotentElem ε → ε ≠ 0 →
         (∀ f : TensorProduct K K' B, IsIdempotentElem f → f * ε = 0 ∨ f * ε = ε) →
@@ -104,7 +110,7 @@ def Statement.StrongComponent : Prop :=
             algebraMap K' L₁ = (algebraMap (TensorProduct K K' B ⧸ Ideal.span {1 - ε}) L₁).comp
               ((Ideal.Quotient.mk (Ideal.span {1 - ε})).comp
                 Algebra.TensorProduct.includeLeftRingHom) ∧
-            ModelCode.IsWModel O' L₁ (algebraMap (TensorProduct K K' B ⧸ Ideal.span {1 - ε}) L₁
+            ModelCode.IsUnfolded O' (algebraMap (TensorProduct K K' B ⧸ Ideal.span {1 - ε}) L₁
               (Ideal.Quotient.mk _ (1 ⊗ₜ algebraMap R B x))) c₁' j₁' ∧
             j₁' = Spec.map (CommRingCat.ofHom
               (algebraMap (TensorProduct K K' B ⧸ Ideal.span {1 - ε}) L₁)) ≫ j₁ ≫ e₁.hom)

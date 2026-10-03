@@ -11,7 +11,8 @@ import Mathlib
 Blueprint §9.4, C1. Let `K` be a complete field with a non-archimedean absolute value (a normed
 field with `IsUltrametricDist K` and `CompleteSpace K`). Its ring of integers
 `𝒪 = {‖x‖ ≤ 1}` (the valuation subring of `NormedField.valuation`) is a Henselian local ring
-(`henselianLocalRing`).
+(`henselianLocalRing`); more generally, a simple root modulo the maximal ideal of any (not
+necessarily monic) integral polynomial lifts (`exists_root_of_isUnit`).
 
 Mathlib's `henselian_of_isAdicComplete` does not apply: for a dense value group the maximal
 ideal is idempotent and the `𝔪`-adic topology is discrete. The proof is Newton's iteration
@@ -98,10 +99,10 @@ lemma newtonStep_spec (f : 𝒪[X]) {x : 𝒪} (hu : IsUnit (f.derivative.eval x
 
 variable [CompleteSpace K]
 
-/-- **Hensel's lemma**: the ring of integers of a complete non-archimedean field is a Henselian
-local ring. -/
-theorem henselianLocalRing : HenselianLocalRing 𝒪 := by
-  refine ⟨fun f _ a₀ ha₀ hu₀ ↦ ?_⟩
+/-- **Hensel's lemma** for an arbitrary (not necessarily monic) polynomial over the ring of
+integers of a complete non-archimedean field: a simple root modulo the maximal ideal lifts. -/
+theorem exists_root_of_isUnit (f : 𝒪[X]) {a₀ : 𝒪} (ha₀ : f.eval a₀ ∈ maximalIdeal 𝒪)
+    (hu₀ : IsUnit (f.derivative.eval a₀)) : ∃ a : 𝒪, f.IsRoot a ∧ a - a₀ ∈ maximalIdeal 𝒪 := by
   have hev (z : 𝒪) : aeval (z : K) f = ((f.eval z : 𝒪) : K) := by
     rw [show (z : K) = algebraMap 𝒪 K z from rfl, aeval_algebraMap_apply, coe_aeval_eq_eval]
     rfl
@@ -173,6 +174,11 @@ theorem henselianLocalRing : HenselianLocalRing 𝒪 := by
     exact hroot
   · rw [mem_maximalIdeal_iff_norm_lt_one]
     exact lt_of_le_of_lt hya hc1
+
+/-- **Hensel's lemma**: the ring of integers of a complete non-archimedean field is a Henselian
+local ring. -/
+theorem henselianLocalRing : HenselianLocalRing 𝒪 :=
+  ⟨fun f _ _ ha₀ hu₀ ↦ exists_root_of_isUnit f ha₀ hu₀⟩
 
 end HenselComplete
 
