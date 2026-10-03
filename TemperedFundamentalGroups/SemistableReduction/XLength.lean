@@ -123,8 +123,9 @@ theorem IsXGauss.rho_unique {ϖ x : F} {a b : K} {ρ σ : ℚ} {U : ValuationSub
 
 /-- **Interpolating monomial point** of the node with coordinate `u` (`u v = ϖ' ^ n`) at the
 parameter `s`: `U ⊇ P`, `U(ϖ') < 1` (non-trivial on the constants), `U(u) = U(ϖ') ^ s`, and the
-monomial `u ^ den s / ϖ' ^ num s` has transcendental residue over the residue field of `O'`. The branches are the monomial points at
-`s = 0` (`u` itself has transcendental residue) and `s = n` (`1 / v = u / ϖ' ^ n`). -/
+monomial `u ^ den s / ϖ' ^ num s` has transcendental residue over the residue field of `O'`.
+The branches are the monomial points at `s = 0` (`u` itself has transcendental residue) and
+`s = n` (`1 / v = u / ϖ' ^ n`). -/
 def IsMonomialPt (O' : ValuationSubring K) (P : Set F) (ϖ' u : F) (s : ℚ)
     (U : ValuationSubring F) : Prop :=
   P ⊆ U ∧ U.valuation ϖ' < 1 ∧ IsLogValue U ϖ' u s ∧
