@@ -1062,7 +1062,12 @@ S8.3 → R4 (BL Lemma 2.4); S8.4 → case (3) of S8.B; S8.6 → S8.A. The hidden
 `h(V)` and König compactness are no longer needed. **Interface requirement on S7:** R5's
 comparison formula [AW (2.3)] `δ_y = m_y − |S| + Σ_{V ∈ S} g_V + Σ_{y'} δ_{y'}` needs the genus
 formula `g = 1 + Σ (g_V − 1) + Σ_y δ_y` *with equality* for the two models involved (or a local
-version of it); S7 currently provides `≤` only. The S8.5 target below is used in the form "type 4
+version of it); S7 currently provides `≤` only (`DeltaGenus`: `g ≥ 1 + Σ(g_V − 1) + Σ δ_y`), and the reverse
+inequality is the H⁰ base-change statement (reductions of `L(D)°` fill all special-fibre sections
+with the local conditions; analogue of G6.8's trace/Laurent machinery). **New row S7⁺ (≈ 2.5k,
+unassigned): `g = 1 + Σ(g_V − 1) + Σ δ_y` for normalizations of Gauss-tree models.** No local
+substitute is known: already `δ_y ≥ Σ g_V + Σ δ_{y'} + |S| − m_y` is a lifting statement (gap
+conditions on the exceptional fibre `W`). The S8.5 target below is used in the form "type 4
 limits of exhausting discs do not occur" (T2′).
 
 **L1. Galois reduction and quotients** (`SemistableReduction/GaloisReduction.lean`: A1–A5
