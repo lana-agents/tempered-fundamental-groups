@@ -152,7 +152,8 @@ theorem natDegree_eq_one_of_splits {θ : F'} (hθ : Algebra.adjoin F {θ} = ⊤)
 
 /-- Under the hypotheses of `natDegree_eq_one_of_splits`, `F'` has exactly `[F' : F]` extensions
 of the norm of `F`. -/
-theorem card_extension_eq_finrank (hd : DenseRange (algebraMap F K)) {θ : F'} (hθ : Algebra.adjoin F {θ} = ⊤) {Q : F[X]}
+theorem card_extension_eq_finrank (hd : DenseRange (algebraMap F K)) {θ : F'}
+    (hθ : Algebra.adjoin F {θ} = ⊤) {Q : F[X]}
     (hQ0 : Q ≠ 0) (hQ : aeval θ Q = 0) (hs : (Q.map (algebraMap F K)).Splits) :
     Nat.card (Extension F F') = Module.finrank F F' := by
   haveI := Fact.mk hd
@@ -161,7 +162,8 @@ theorem card_extension_eq_finrank (hd : DenseRange (algebraMap F K)) {θ : F'} (
 
 /-- Under the hypotheses of `natDegree_eq_one_of_splits`, every extension of the norm of `F` to
 `F'` has `e = f = 1`. -/
-theorem ramificationIdx_eq_one_and_inertiaDeg_eq_one (hd : DenseRange (algebraMap F K)) {θ : F'} (hθ : Algebra.adjoin F {θ} = ⊤)
+theorem ramificationIdx_eq_one_and_inertiaDeg_eq_one (hd : DenseRange (algebraMap F K))
+    {θ : F'} (hθ : Algebra.adjoin F {θ} = ⊤)
     {Q : F[X]} (hQ0 : Q ≠ 0) (hQ : aeval θ Q = 0) (hs : (Q.map (algebraMap F K)).Splits)
     (w : Extension F F') :
     ramificationIdx F w.1 = 1 ∧ inertiaDeg (NormedField.valuation (K := F)) w.1 = 1 := by
