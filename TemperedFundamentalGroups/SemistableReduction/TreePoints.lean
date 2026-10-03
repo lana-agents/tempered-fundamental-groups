@@ -597,6 +597,42 @@ theorem TreeData.redVec_mem_Oc (m : ℕ) {f : F} (hf : f ∈ rrSpace (T.D x₀ m
 
 end Twist
 
+section Count
+
+/-- **The δ-count for a Gauss tree** (S7.6, `b₁` form):
+`Σ_W g(κ(W)) + Σ_{P'} (r_{P'} - 1) ≤ g(F) + #S - 1`, the sum over all node points `P'` of all
+edges, `r_{P'}` the number of branches through `P'`. -/
+theorem TreeData.delta_count :
+    (∑ W : T.S hx₀ hp hp1, (genus 𝓀 (Kappa (T.S hx₀ hp hp1) W) : ℤ)) +
+      ∑ P : T.Pt hx₀ hp hp1, (((T.Sp hx₀ hp hp1 P).card : ℤ) - 1) ≤
+        genus C F + (T.S hx₀ hp hp1).card - 1 :=
+  sum_genus_add_sum_card_sub_one_le hp hp1 (T.vc x₀) (T.hvc hx₀) (T.S hx₀ hp hp1)
+    (T.mem_S hx₀ hp hp1) (T.D x₀) (T.Db hx₀ hp hp1) (T.sum_degree_Db hx₀ hp hp1)
+    (T.le_degree_Db hx₀ hp hp1) (fun m _ hf hn ↦ T.redVec_mem hx₀ hp hp1 m hf hn)
+    (T.Sp hx₀ hp hp1) (T.Sp_disjoint hx₀ hp hp1) (fun m P _ hβ ↦ T.Db_branch hx₀ hp hp1 m P hβ)
+    (T.Oc hx₀ hp hp1) (fun m _ hf hn P ↦ T.redVec_mem_Oc hx₀ hp hp1 m hf hn P)
+    (T.Oc_le_eqRes hx₀ hp hp1) (T.Sp_nonempty hx₀ hp hp1)
+
+/-- **The reverse inequality gives the jets** (S7.6 with S8 or S7⁺): if
+`g(F) + #S - 1 ≤ Σ_W g(κ(W)) + Σ_{P'} (r_{P'} - 1)`, then at every node point and every jet order
+`M ≥ 1`, every vector regular at the branches with equal residues there is, up to order `M` at the
+branches, a fraction `y / s` of `R'_e` with `s ∉ P'`. -/
+theorem TreeData.jets_of_le
+    (hS8 : genus C F + (T.S hx₀ hp hp1).card - 1 ≤
+      (∑ W : T.S hx₀ hp hp1, (genus 𝓀 (Kappa (T.S hx₀ hp hp1) W) : ℤ)) +
+        ∑ P : T.Pt hx₀ hp hp1, (((T.Sp hx₀ hp hp1 P).card : ℤ) - 1))
+    (P : T.Pt hx₀ hp hp1) {M : ℕ} (hM : 1 ≤ M) :
+    eqRes 𝓀 (Kappa (T.S hx₀ hp hp1)) (T.Sp hx₀ hp hp1 P) ≤
+      T.Oc hx₀ hp hp1 P ⊔ jetKer 𝓀 (Kappa (T.S hx₀ hp hp1)) M (T.Sp hx₀ hp hp1 P) :=
+  eqRes_le_sup_jetKer hp hp1 (T.vc x₀) (T.hvc hx₀) (T.S hx₀ hp hp1)
+    (T.mem_S hx₀ hp hp1) (T.D x₀) (T.Db hx₀ hp hp1) (T.sum_degree_Db hx₀ hp hp1)
+    (T.le_degree_Db hx₀ hp hp1) (fun m _ hf hn ↦ T.redVec_mem hx₀ hp hp1 m hf hn)
+    (T.Sp hx₀ hp hp1) (T.Sp_disjoint hx₀ hp hp1) (fun m P _ hβ ↦ T.Db_branch hx₀ hp hp1 m P hβ)
+    (T.Oc hx₀ hp hp1) (fun m _ hf hn P ↦ T.redVec_mem_Oc hx₀ hp hp1 m hf hn P)
+    (T.Oc_le_eqRes hx₀ hp hp1) (T.Sp_nonempty hx₀ hp hp1) hS8 P hM
+
+end Count
+
 end TreeCount
 
 end SemistableReduction
