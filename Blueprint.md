@@ -522,7 +522,9 @@ only needed for `char C = p`.
 **Targeted W10 statement: `Statement.StrongA`** (`SemistableReduction/StrongA.lean`). This is the
 exact form that Theorem A (`andreEquiv`, branch `wp-andre`) consumes.
 
-* **Inputs:** `K` complete discretely valued of characteristic `0`; `R` smooth of dimension `1`;
+* **Inputs:** `K` complete discretely valued of characteristic `0` and **mixed characteristic**
+  (`(p : O) ∈ 𝔪_O` for a prime `p`); `R` a smooth **domain** of dimension `1` (without
+  equidimensionality the statement is false: `R = K[t] × K`);
   `B` finite étale over `R`; a finite group `G` acting `K`-linearly on `B`; finitely many
   `O`-models `c₀ i` with maps `j₀ i` over `O`.
 * **Outputs:**
@@ -695,6 +697,46 @@ conjunct apply `.isWModel`.
 Estimate: ≈ 3.7k lines on top of W7 S5/S6 and H6. Split: XL1, XL5, XL6, XL10 and the H6 glue on the
 W8′ branch (`NodeDeformation.exists_node`, `eq_or_eq_of_isDiscreteValuationRing`, `NodeLemma`);
 XL2–XL4, XL7–XL9 on `wp-tempered-hx`.
+### 9.7a W10 assembly: `W7.Statement → Statement.StrongA` (owner: W10 assembler, O7)
+
+Inputs of StrongA: `K`, `O`, `R`, `B`, `G` acting on `R` and `B`, the models `c₀ i`, `j₀ i`.
+
+1. **x-line.** `exists_finite_aeval_invariant` gives a `G`-invariant `x` with `R` finite over `K[x]`.
+   Then `B` is finite over `K[x]`, and `B ⊗_{K[x]} K(x) = Π F_k` with `F_k / K(x)` finite. This
+   needs `R` equidimensional (open point A below).
+2. **Fields.** `C = K̄` with the spectral norm (`UniqueExtension`). The components `F'_l` of the
+   `F_k ⊗_{K(x)} C(x)` are permuted by `Gal(C/K)`.
+3. **W7.** Apply it to the family `(F'_l)` with `V₀` the union of:
+   * the discs from O9: the restrictions to `C(x)` of the residue-transcendental centres of the
+     models `projModel f_i` attached to the `c₀ i` (`f_i` are the coordinates of `j₀ i`);
+   * their `Gal(C/K)`-orbits.
+
+   Equivariance makes the resulting `V` `Gal`-stable.
+4. **Descent.** Take `E / K` finite Galois containing the tree data, with D3c, D3d and S7.9
+   holding. Over `O_E`:
+   * the node charts are semistable by O1 (`IsNodeODP ⇒ IsOrdinaryDoublePoint ⇒` S9);
+   * smooth, generic-fibre and component-generic points by the W10 descent helper.
+
+   The normalization `𝒳'_{V,E}` of the `E`-tree model in each component of `Π F_k ⊗_K E` is
+   semistable, of finite type (M8b) and projective (M9c, `projModelCode`).
+5. **Scheme.**
+   * `c' := ModelCode.sigma` of the component codes over `O_E`; semistable by
+     `isSemistable_sigma`.
+   * `c` over `O` with `e : c ≅ c'` (`baseChangeIso`, componentwise).
+   * `act` from `actOfDominates`/`actOfGenericPt`: `G` fixes `x`, so it preserves the charts;
+     `Gal(E/K)` preserves `V`.
+   * `dom i` from M10 (`dominates_of_vertexSet_subset`, with `hV` by step 3), `homOfDominates`,
+     and the closed immersion `projModelCode f_i ↪ c₀ i`.
+   * `j`: `B_E` is the integral closure of `E[x]` in `Π F_k ⊗ E`, i.e. the root chart of
+     `𝒳'_{V,E}` with `ϖ` inverted. So `j : Spec(E ⊗ B) → c` is the open immersion of the generic
+     fibre of that chart; it is scheme-theoretically dominant (W10Scheme).
+
+Open points (decision by the lead):
+* (A) **Resolved:** `[IsDomain R]` added to StrongA (and to `andreEquiv`).
+* (B) **Resolved:** StrongA requires mixed characteristic. Equal characteristic `0` is an
+  untargeted extension (§9.12, E1).
+* (C) The normed structures on `K` and `K̄` from the complete DVR `O`.
+
 ### 9.6 W5: models and vertex sets
 
 **Formulation (decision).** Models are formalized *birationally*, as Zariski's abstract varieties
@@ -1462,4 +1504,5 @@ norm of `G`). No `CompleteSpace C` remains in `SemistableReduction`.
 | O10 | **EdgeRepair**: for a bad edge `(j, m)` of a convex Gauss tree, subdividing at the canonical finite set of radii `s` where `w_{a_j,s}` has a preimage of positive genus or with `≥ 3` branches makes all sub-edges good (`IsNodeODP`). Needed because the monotone form of W7 is false (S8.A agent: `u² = x`, `V' = {w_{0,1}, w_{b,r}}`, `r < |b| < 1`: the preimage of the edge annulus contains the disc `|u| < |b|^{1/2}`) and W10 needs `∀ V₀ ∃ V ⊇ V₀` | M10/O9 agent (`wp-tempered-m10`) | open |
 | O11 | **Gluing** of exhaustion: `D ⊂ D(0,ε₀) ⊂ U' ⊂ U`, `D(0,ε₀)` exhausting in `U` ⇒ (`D` exhausting in `U` ⇔ in `U'`) (S8.5 K6 option (a), O10) | M10/O9 agent (`wp-tempered-m10`) | open |
 | O7 | W10 assembly: `W7.Statement` + W9 descent ⇒ **`Statement.StrongA`** (the targeted W10; D3e, S9 over `O_{K'}`, M9, actions, domination) | André agent (`wp-tempered-w10`) | open |
+| E1 | (untargeted extension) equal characteristic `0`: a tame W7 (all covers tame, Kummer) to extend `StrongA` and Theorem A to residue characteristic `0` | — | not planned |
 
