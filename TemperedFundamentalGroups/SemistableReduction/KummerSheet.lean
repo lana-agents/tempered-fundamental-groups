@@ -311,6 +311,33 @@ noncomputable def sheetExt :
       L :=
   ⟨extValuation (sheetFactor hc ν₀ P' h1 hl0 hl1), comap_extValuation _⟩
 
+/-- **Characterization of the sheet extension**: an extension of `w_{a,|l c|}` to `L` whose
+centre on `R'` is `P'` is the sheet extension. -/
+theorem eq_sheetExt (u : Valuation L ℝ≥0)
+    (hu : u.comap (algebraMap (RatFunc C) L) = (gaussDiscVal (a := a) hc hl0 hl1).val)
+    (hcen : ∀ y : DRint a c L, u (y : L) < 1 → y ∈ P') :
+    u = (sheetExt hc ν₀ P' h1 hl0 hl1).1 := by
+  set ν := gaussDiscVal (a := a) hc hl0 hl1
+  have hext : u.comap (algebraMap (DiscField ν) L) = NormedField.valuation (K := DiscField ν) := by
+    refine Valuation.ext fun y ↦ ?_
+    have := congrArg (fun v : Valuation (RatFunc C) ℝ≥0 ↦ v y.ofAbs) hu
+    simp only [Valuation.comap_apply] at this
+    rw [Valuation.comap_apply, valuation_withAbs]
+    exact this
+  obtain ⟨g, hg⟩ := exists_eq_extValuation (K := UniformSpace.Completion (DiscField ν)) ⟨u, hext⟩
+  replace hg : extValuation g = u := hg
+  have hcenter : center (isDiscVal_comap_extValuation g) = P' := by
+    haveI := center_isMaximal hc (isDiscVal_comap_extValuation g)
+    refine (this.eq_of_le (Ideal.IsMaximal.ne_top inferInstance) fun y hy ↦ hcen y ?_)
+    rw [← hg]
+    exact hy
+  have hdeg := natDegree_eq_one_of_center (hc := hc) h1 ν hcenter
+  have huniq := (existsUnique_of_discDegree_eq_one hc ν₀ ν P' h1).unique ⟨hcenter, hdeg⟩
+    (sheetFactor_spec hc ν₀ P' h1 hl0 hl1)
+  rw [← hg]
+  change extValuation g = extValuation (sheetFactor hc ν₀ P' h1 hl0 hl1)
+  rw [huniq]
+
 /-- **Polynomial approximation at the sheet**: every element of `R'` is approximated by
 polynomials in `t` with integral coefficients at the sheet extension. -/
 theorem exists_poly_approx (y : DRint a c L) {ε : ℝ} (hε : 0 < ε) :
