@@ -312,11 +312,13 @@ def IsTubeDisc (b : C) {γ : C} (hγ : γ ≠ 0) : Prop :=
   ∀ w : Ext C (Aff b γ hγ F'), genus 𝓀 (IsLocalRing.ResidueField w.1.valuationSubring) = 0 ∧
     (zeros 𝓀 (red C (xF C (Aff b γ hγ F')) w)⁻¹).card = 1
 
-/-- **A circle of a tube**: the extensions of the Gauss point `w_{b,|γ|}` have rational residue
-curves with exactly one point over `t̄ = ∞` and exactly one over `t̄ = 0`. -/
+/-- **A circle of a tube**: for every centre `b'` of the open disc `|x - b| < |γ|`, the extensions
+of the Gauss point `w_{b',|γ|} = w_{b,|γ|}` have rational residue curves with exactly one point
+over `t̄ = ∞` and exactly one over `t̄ = 0` (`t = (x - b')/γ`; the point over `0` is the residue
+class of `b`). -/
 def IsTubeCircle (b : C) {γ : C} (hγ : γ ≠ 0) : Prop :=
-  IsTubeDisc F' b hγ ∧ ∀ w : Ext C (Aff b γ hγ F'),
-    (zeros 𝓀 (red C (xF C (Aff b γ hγ F')) w)).card = 1
+  ∀ b' : C, ‖b - b'‖ < ‖γ‖ → IsTubeDisc F' b' hγ ∧ ∀ w : Ext C (Aff b' γ hγ F'),
+    (zeros 𝓀 (red C (xF C (Aff b' γ hγ F')) w)).card = 1
 
 /-- **The valuative tube condition** for the open annulus `|c'| < |t| < 1`, `t = (x - a)/c`:
 every Gauss point of its skeleton is a circle of a tube, and every Gauss point `w_{a + c β, |c γ|}`
@@ -466,7 +468,8 @@ theorem discCond_of_discCond {a c e u : C} (hc : c ≠ 0) (hu0 : u ≠ 0) (heu :
         (h₂.1 (γ / u) (div_ne_zero hγ hu0) ?_)
       rw [norm_div, div_lt_one hu]
       exact hγu
-    · exact (h₁.1 γ hγ (heu.trans_le hγu) h1).1
+    · exact (h₁.1 γ hγ (heu.trans_le hγu) h1 a
+        (by simpa using norm_pos_iff.2 (mul_ne_zero hc hγ))).1
   · rcases lt_or_ge ‖β‖ ‖u‖ with hβu | hβu
     · refine (isTubeDisc_congr _ _ (by field_simp) (by field_simp)).1
         (h₂.2 (β / u) (γ / u) (div_ne_zero hγ hu0) ?_ ?_)
