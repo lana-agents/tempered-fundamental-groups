@@ -337,6 +337,96 @@ lemma compMap_mk [Module.Finite K[X] A] (𝔪 : MaximalSpectrum (LX K M' A)) (y 
 
 end BaseChange
 
+/-! ### The cover over `K` itself -/
+
+section OverK
+
+/-- The localization `K(X) ⊗_{K[X]} A` of `A` at the nonzero polynomials. -/
+def LB : Type u := RatFunc K ⊗[K[X]] A
+
+namespace LB
+
+noncomputable instance : CommRing (LB K A) := inferInstanceAs (CommRing (RatFunc K ⊗[K[X]] A))
+
+noncomputable instance : Algebra (RatFunc K) (LB K A) :=
+  inferInstanceAs (Algebra (RatFunc K) (RatFunc K ⊗[K[X]] A))
+
+noncomputable instance : Algebra K (LB K A) :=
+  inferInstanceAs (Algebra K (RatFunc K ⊗[K[X]] A))
+
+instance : IsScalarTower K (RatFunc K) (LB K A) :=
+  inferInstanceAs (IsScalarTower K (RatFunc K) (RatFunc K ⊗[K[X]] A))
+
+noncomputable instance : Algebra K[X] (LB K A) :=
+  inferInstanceAs (Algebra K[X] (RatFunc K ⊗[K[X]] A))
+
+instance : IsScalarTower K[X] (RatFunc K) (LB K A) :=
+  inferInstanceAs (IsScalarTower K[X] (RatFunc K) (RatFunc K ⊗[K[X]] A))
+
+noncomputable instance : Algebra A (LB K A) := Algebra.TensorProduct.rightAlgebra
+
+instance : IsScalarTower K[X] A (LB K A) := Algebra.TensorProduct.right_isScalarTower
+
+instance [Module.Finite K[X] A] : Module.Finite (RatFunc K) (LB K A) :=
+  inferInstanceAs (Module.Finite (RatFunc K) (RatFunc K ⊗[K[X]] A))
+
+instance isLocalization :
+    IsLocalization (Algebra.algebraMapSubmonoid A (nonZeroDivisors K[X])) (LB K A) :=
+  IsLocalization.tensorRight (RatFunc K) (nonZeroDivisors K[X])
+
+instance [Module.Finite K[X] A] : IsArtinianRing (LB K A) :=
+  IsArtinianRing.of_finite (RatFunc K) (LB K A)
+
+end LB
+
+instance (𝔪 : MaximalSpectrum (LB K A)) : 𝔪.asIdeal.IsMaximal := 𝔪.isMaximal
+
+/-- A component of `A` over `K`. -/
+abbrev CompB (𝔪 : MaximalSpectrum (LB K A)) : Type u := LB K A ⧸ 𝔪.asIdeal
+
+noncomputable instance (𝔪 : MaximalSpectrum (LB K A)) : Field (CompB K A 𝔪) :=
+  Ideal.Quotient.field _
+
+lemma ofA_algebraMap (p : K[X]) :
+    BX.ofA K M A (algebraMap K[X] A p) =
+      algebraMap M[X] (BX K M A) (p.map (algebraMap K M)) := by
+  change ((1 : M[X]) ⊗ₜ (algebraMap K[X] A p) : M[X] ⊗[K[X]] A) =
+    (p.map (algebraMap K M) ⊗ₜ 1 : M[X] ⊗[K[X]] A)
+  rw [Algebra.algebraMap_eq_smul_one, TensorProduct.tmul_smul, TensorProduct.smul_tmul',
+    Algebra.smul_def, mul_one]
+  rfl
+
+lemma ofA_mem_algebraMapSubmonoid :
+    Algebra.algebraMapSubmonoid A (nonZeroDivisors K[X]) ≤
+      (Algebra.algebraMapSubmonoid (BX K M A) (nonZeroDivisors M[X])).comap (BX.ofA K M A) := by
+  rintro _ ⟨p, hp, rfl⟩
+  refine ⟨p.map (algebraMap K M), mem_nonZeroDivisors_of_ne_zero ?_, (ofA_algebraMap K M A p).symm⟩
+  exact (Polynomial.map_ne_zero_iff (algebraMap K M).injective).2 (nonZeroDivisors.ne_zero hp)
+
+/-- `K(X) ⊗_{K[X]} A → M(X) ⊗_{M[X]} (M ⊗_K A)`. -/
+noncomputable def lbMap : LB K A →+* LX K M A :=
+  IsLocalization.map (LX K M A) (BX.ofA K M A) (ofA_mem_algebraMapSubmonoid K M A)
+
+lemma lbMap_algebraMap (a : A) :
+    lbMap K M A (algebraMap A (LB K A) a) = algebraMap (BX K M A) (LX K M A) (BX.ofA K M A a) :=
+  IsLocalization.map_eq _ _
+
+/-- The contraction of a maximal ideal of `LX K M A` to `LB K A`. -/
+noncomputable def contrB [Module.Finite K[X] A] (𝔪 : MaximalSpectrum (LX K M A)) :
+    MaximalSpectrum (LB K A) :=
+  ⟨𝔪.asIdeal.comap (lbMap K M A), IsArtinianRing.isMaximal_of_isPrime _⟩
+
+/-- The map of components `CompB (𝔪 ∩ LB) → Comp 𝔪`. -/
+noncomputable def compBMap [Module.Finite K[X] A] (𝔪 : MaximalSpectrum (LX K M A)) :
+    CompB K A (contrB K M A 𝔪) →+* Comp K M A 𝔪 :=
+  Ideal.quotientMap 𝔪.asIdeal (lbMap K M A) le_rfl
+
+lemma compBMap_mk [Module.Finite K[X] A] (𝔪 : MaximalSpectrum (LX K M A)) (y : LB K A) :
+    compBMap K M A 𝔪 (Ideal.Quotient.mk _ y) = Ideal.Quotient.mk 𝔪.asIdeal (lbMap K M A y) :=
+  rfl
+
+end OverK
+
 end W10Fields
 
 end SemistableReduction

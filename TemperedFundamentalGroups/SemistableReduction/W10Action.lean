@@ -170,6 +170,28 @@ theorem lxMap_algebraMap_ratFunc (φ : RatFunc M) :
       bxMap_algebraMap]
   exact congrFun (congrArg DFunLike.coe this) φ
 
+/-- `LB K A → LX K M A` is semilinear over `ratFuncMap`. -/
+theorem lbMap_algebraMap_ratFunc (φ : RatFunc K) :
+    lbMap K M A (algebraMap (RatFunc K) (LB K A) φ) =
+      algebraMap (RatFunc M) (LX K M A) (ratFuncMap (algebraMap K M) φ) := by
+  have : (lbMap K M A).comp (algebraMap (RatFunc K) (LB K A)) =
+      (algebraMap (RatFunc M) (LX K M A)).comp (ratFuncMap (algebraMap K M)) := by
+    refine IsLocalization.ringHom_ext (nonZeroDivisors K[X]) (RingHom.ext fun q ↦ ?_)
+    simp only [RingHom.comp_apply]
+    rw [ratFuncMap_algebraMap, ← IsScalarTower.algebraMap_apply,
+      ← IsScalarTower.algebraMap_apply, IsScalarTower.algebraMap_apply K[X] A (LB K A),
+      IsScalarTower.algebraMap_apply M[X] (BX K M A) (LX K M A), lbMap_algebraMap,
+      ofA_algebraMap]
+  exact congrFun (congrArg DFunLike.coe this) φ
+
+/-- The action is semilinear on the constants `M ⊆ LX`. -/
+theorem lxEquiv_algebraMap_const (τ : M ≃ₐ[K] M) (g : A ≃ₐ[K[X]] A) (m : M) :
+    lxEquiv K M A τ g (algebraMap M (LX K M A) m) = algebraMap M (LX K M A) (τ m) := by
+  rw [IsScalarTower.algebraMap_apply M (RatFunc M) (LX K M A), lxEquiv_algebraMap_ratFunc,
+    IsScalarTower.algebraMap_apply M (RatFunc M) (LX K M A)]
+  congr 1
+  exact ratFuncMap_algebraMap_C _ m
+
 end BaseChange
 
 section Group
