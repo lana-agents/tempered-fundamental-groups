@@ -75,6 +75,12 @@ noncomputable instance : Algebra (RatFunc M) (LX K M A) :=
 noncomputable instance : Algebra M[X] (LX K M A) :=
   inferInstanceAs (Algebra M[X] (RatFunc M ⊗[M[X]] BX K M A))
 
+noncomputable instance : Algebra M (LX K M A) :=
+  inferInstanceAs (Algebra M (RatFunc M ⊗[M[X]] BX K M A))
+
+instance : IsScalarTower M (RatFunc M) (LX K M A) :=
+  inferInstanceAs (IsScalarTower M (RatFunc M) (RatFunc M ⊗[M[X]] BX K M A))
+
 instance : IsScalarTower M[X] (RatFunc M) (LX K M A) :=
   inferInstanceAs (IsScalarTower M[X] (RatFunc M) (RatFunc M ⊗[M[X]] BX K M A))
 
@@ -255,6 +261,81 @@ theorem mem_D_of_isIntegral (𝔪 : MaximalSpectrum (LX K M A)) {z : Comp K M A 
   rw [hb, ← equivPi_apply, AlgEquiv.apply_symm_apply, Pi.single_eq_same]
 
 end Normal
+
+/-! ### Change of constants -/
+
+section BaseChange
+
+variable {M} {M' : Type u} [Field M'] [Algebra K M'] [Algebra M M'] [IsScalarTower K M M']
+
+/-- `M[X] → M'[X]` as a `K[X]`-algebra map. -/
+noncomputable def polyMap : M[X] →ₐ[K[X]] M'[X] :=
+  { Polynomial.mapRingHom (algebraMap M M') with
+    commutes' := fun q ↦ by
+      change (q.map (algebraMap K M)).map (algebraMap M M') = q.map (algebraMap K M')
+      rw [Polynomial.map_map, ← IsScalarTower.algebraMap_eq] }
+
+lemma polyMap_apply (q : M[X]) : polyMap K (M := M) (M' := M') q = q.map (algebraMap M M') := rfl
+
+variable (M M')
+
+/-- `M ⊗_K A → M' ⊗_K A`. -/
+noncomputable def bxMap : BX K M A →+* BX K M' A :=
+  (Algebra.TensorProduct.map (polyMap K (M := M) (M' := M')) (AlgHom.id K[X] A)).toRingHom
+
+variable {M M'}
+
+lemma bxMap_algebraMap (q : M[X]) :
+    bxMap K M A M' (algebraMap M[X] (BX K M A) q) =
+      algebraMap M'[X] (BX K M' A) (q.map (algebraMap M M')) := by
+  change bxMap K M A M' (q ⊗ₜ 1 : M[X] ⊗[K[X]] A) = (q.map (algebraMap M M') ⊗ₜ 1 : M'[X] ⊗[K[X]] A)
+  rfl
+
+lemma bxMap_ofA (a : A) : bxMap K M A M' (BX.ofA K M A a) = BX.ofA K M' A a := by
+  change bxMap K M A M' (1 ⊗ₜ a : M[X] ⊗[K[X]] A) = (1 ⊗ₜ a : M'[X] ⊗[K[X]] A)
+  change (polyMap K (M := M) (M' := M') 1 ⊗ₜ a : M'[X] ⊗[K[X]] A) = _
+  rw [map_one]
+
+lemma map_algebraMapSubmonoid_le :
+    Algebra.algebraMapSubmonoid (BX K M A) (nonZeroDivisors M[X]) ≤
+      (Algebra.algebraMapSubmonoid (BX K M' A) (nonZeroDivisors M'[X])).comap
+        (bxMap K M A M') := by
+  rintro _ ⟨q, hq, rfl⟩
+  refine ⟨q.map (algebraMap M M'), mem_nonZeroDivisors_of_ne_zero ?_, (bxMap_algebraMap K A q).symm⟩
+  exact (Polynomial.map_ne_zero_iff (algebraMap M M').injective).2 (nonZeroDivisors.ne_zero hq)
+
+variable (M M')
+
+/-- `LX K M A → LX K M' A`. -/
+noncomputable def lxMap : LX K M A →+* LX K M' A :=
+  IsLocalization.map (LX K M' A) (bxMap K M A M') (map_algebraMapSubmonoid_le K A)
+
+variable {M M'}
+
+lemma lxMap_algebraMap (b : BX K M A) :
+    lxMap K M A M' (algebraMap (BX K M A) (LX K M A) b) =
+      algebraMap (BX K M' A) (LX K M' A) (bxMap K M A M' b) :=
+  IsLocalization.map_eq _ _
+
+variable (M M')
+
+/-- The contraction of a maximal ideal of `LX K M' A` (a maximal ideal: `LX K M A` is artinian). -/
+noncomputable def contrMax [Module.Finite K[X] A] (𝔪 : MaximalSpectrum (LX K M' A)) :
+    MaximalSpectrum (LX K M A) :=
+  ⟨𝔪.asIdeal.comap (lxMap K M A M'), IsArtinianRing.isMaximal_of_isPrime _⟩
+
+/-- The map of components `LX K M A ⧸ (𝔪 ∩ LX K M A) → LX K M' A ⧸ 𝔪`. -/
+noncomputable def compMap [Module.Finite K[X] A] (𝔪 : MaximalSpectrum (LX K M' A)) :
+    Comp K M A (contrMax K M A M' 𝔪) →+* Comp K M' A 𝔪 :=
+  Ideal.quotientMap 𝔪.asIdeal (lxMap K M A M') le_rfl
+
+variable {M M'}
+
+lemma compMap_mk [Module.Finite K[X] A] (𝔪 : MaximalSpectrum (LX K M' A)) (y : LX K M A) :
+    compMap K M A M' 𝔪 (Ideal.Quotient.mk _ y) = Ideal.Quotient.mk 𝔪.asIdeal (lxMap K M A M' y) :=
+  rfl
+
+end BaseChange
 
 end W10Fields
 
