@@ -592,6 +592,166 @@ theorem discGoodAt_transport
 
 end DiscGood
 
+/-! ### Ordinary double points of node charts -/
+
+section Node
+
+open GaussTube
+
+variable [Algebra C G₁] [Algebra C G₂] [IsScalarTower C (RatFunc C) G₁]
+  [IsScalarTower C (RatFunc C) G₂] [FiniteDimensional (RatFunc C) G₁]
+  [FiniteDimensional (RatFunc C) G₂]
+
+attribute [local instance] isCurveFunctionField DiscreteCoefficients.isAlgClosed_residueField
+
+/-- **Residues are transported** by the residue automorphism. -/
+lemma res_placeMap {v : Ext C G₂} {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    {z : ResidueField v.1.valuationSubring} (hz : z ∈ Q.V) :
+    (d.placeMap v Q).res (d.κmap v z) = τbar d.τ d.hτ (Q.res z) := by
+  refine CurvePlace.res_eq_of_valuation_sub_lt_one _ ?_
+  have h := Q.valuation_sub_res_lt_one hz
+  rw [CurvePlace.valuation_lt_one_iff, valuation_lt_one_iff'] at h ⊢
+  rw [← d.κmap_algebraMap, ← _root_.map_sub, ← map_inv₀, d.mem_placeMap, d.mem_placeMap, Ne,
+    (d.κmap v).map_eq_zero_iff]
+  exact h
+
+variable {c₂ c₁ : C} (hc₂ : ‖c₂‖ < 1) (hc₁ : ‖c₁‖ < 1)
+  (hN : ∀ φ, φ ∈ nodeRing c₂ ↔ d.ψ φ ∈ nodeRing c₁)
+
+lemma mem_placeIdeal_map {v : Ext C G₂} {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C G₂) v)) (y : Rint c₁ G₁) :
+    y ∈ placeIdeal hc₁ (d.extMap v) (d.mem_zeros_map hQ) ↔
+      d.symm.icMap (d.symm_hA hN) y ∈ placeIdeal hc₂ v hQ := by
+  rw [mem_placeIdeal_iff, mem_placeIdeal_iff]
+  conv_lhs => rw [← d.icMap_icMap_symm hN y, coe_icMap, d.red_map]
+  exact d.res_map_eq_zero_iff (red_mem_V hc₂ v _ hQ)
+
+variable {hc₂0 : c₂ ≠ 0} {hc₁0 : c₁ ≠ 0}
+  (d' : Data C (GaussTube.Inv c₁ hc₁0 G₁) (GaussTube.Inv c₂ hc₂0 G₂))
+  (hN' : ∀ φ, φ ∈ nodeRing c₂ ↔ d'.ψ φ ∈ nodeRing c₁)
+  (he' : ∀ y : G₂, d'.e (toInv hc₂0 y) = toInv hc₁0 (d.e y)) (hτ' : d'.τ = d.τ)
+
+omit [IsAlgClosed C] [Algebra C G₁] [Algebra C G₂] [IsScalarTower C (RatFunc C) G₁]
+  [IsScalarTower C (RatFunc C) G₂] [FiniteDimensional (RatFunc C) G₁]
+  [FiniteDimensional (RatFunc C) G₂] in
+include he' in
+lemma rintEquiv_icMap (y : Rint c₂ G₂) :
+    rintEquiv hc₁0 (d.icMap hN y) = d'.icMap hN' (rintEquiv hc₂0 y) :=
+  Subtype.ext (he' y).symm
+
+omit [IsAlgClosed C] [Algebra C G₁] [Algebra C G₂] [IsScalarTower C (RatFunc C) G₁]
+  [IsScalarTower C (RatFunc C) G₂] [FiniteDimensional (RatFunc C) G₁]
+  [FiniteDimensional (RatFunc C) G₂] in
+include he' in
+lemma rintEquiv_symm_icMap_symm (y : Rint c₁ (GaussTube.Inv c₁ hc₁0 G₁)) :
+    (rintEquiv hc₂0).symm (d'.symm.icMap (d'.symm_hA hN') y) =
+      d.symm.icMap (d.symm_hA hN) ((rintEquiv hc₁0).symm y) := by
+  apply Subtype.ext
+  change (toInv hc₂0).symm (d'.e.symm y) = d.e.symm ((toInv hc₁0).symm y)
+  rw [RingEquiv.symm_apply_eq]
+  apply d'.e.injective
+  rw [RingEquiv.apply_symm_apply, he', RingEquiv.apply_symm_apply, RingEquiv.apply_symm_apply]
+
+set_option maxHeartbeats 1600000 in
+-- the branch sets live in twisted fields; unfolding them is expensive
+include he' hτ' hN' in
+/-- **Ordinary double points are transported.** -/
+theorem isNodeODP_comap {P' : Ideal (Rint c₂ G₂)} (h : IsNodeODP hc₂ hc₂0 P') :
+    IsNodeODP hc₁ hc₁0 (P'.comap (d.symm.icMap (d.symm_hA hN))) := by
+  obtain ⟨⟨v₁, Q₁, hQ₁⟩, ⟨w₂, Q₂, hQ₂⟩, hb₁, hb₂, hjet⟩ := h
+  have hP₁ : placeIdeal hc₂ v₁ hQ₁ = P' := by
+    have : (⟨v₁, Q₁, hQ₁⟩ : OuterBranch C G₂) ∈ outerBranches hc₂ P' := by rw [hb₁]; rfl
+    exact this
+  have hP₂ : placeIdeal hc₂ w₂ hQ₂ = P'.comap (rintEquiv hc₂0).symm.toRingHom := by
+    have : (⟨w₂, Q₂, hQ₂⟩ : OuterBranch C (GaussTube.Inv c₂ hc₂0 G₂)) ∈
+        innerBranches hc₂ hc₂0 P' := by
+      rw [hb₂]; rfl
+    exact this
+  set P₁ := P'.comap (d.symm.icMap (d.symm_hA hN))
+  refine ⟨d.brMap ⟨v₁, Q₁, hQ₁⟩, d'.brMap ⟨w₂, Q₂, hQ₂⟩, ?_, ?_, ?_⟩
+  · -- the outer branch
+    ext b
+    constructor
+    · intro hb
+      have hb' : d.symm.brMap b ∈ outerBranches hc₂ P' := by
+        obtain ⟨v, Q, hQ⟩ := b
+        change placeIdeal hc₁ v hQ = P₁ at hb
+        change placeIdeal hc₂ (d.symm.extMap v) (d.symm.mem_zeros_map hQ) = P'
+        ext y
+        rw [d.symm.mem_placeIdeal_map hc₁ hc₂ (d.symm_hA hN) hQ, hb, Ideal.mem_comap]
+        have : d.symm.icMap (d.symm_hA hN)
+            (d.symm.symm.icMap (d.symm.symm_hA (d.symm_hA hN)) y) = y :=
+          Subtype.ext (d.e.symm_apply_apply _)
+        rw [this]
+      rw [hb₁, Set.mem_singleton_iff] at hb'
+      rw [Set.mem_singleton_iff, ← d.brMap_brMap_symm b, hb']
+    · rintro rfl
+      change placeIdeal hc₁ (d.extMap v₁) (d.mem_zeros_map hQ₁) = P₁
+      ext y
+      rw [d.mem_placeIdeal_map hc₂ hc₁ hN hQ₁, hP₁, Ideal.mem_comap]
+  · -- the inner branch
+    ext b
+    constructor
+    · intro hb
+      have hb' : d'.symm.brMap b ∈ innerBranches hc₂ hc₂0 P' := by
+        obtain ⟨w, Q, hQ⟩ := b
+        change placeIdeal hc₁ w hQ = P₁.comap (rintEquiv hc₁0).symm.toRingHom at hb
+        change placeIdeal hc₂ (d'.symm.extMap w) (d'.symm.mem_zeros_map hQ) =
+          P'.comap (rintEquiv hc₂0).symm.toRingHom
+        ext y
+        rw [d'.symm.mem_placeIdeal_map hc₁ hc₂ (d'.symm_hA hN') hQ, hb, Ideal.mem_comap,
+          Ideal.mem_comap]
+        have : d'.symm.icMap (d'.symm_hA hN')
+            (d'.symm.symm.icMap (d'.symm.symm_hA (d'.symm_hA hN')) y) = y :=
+          Subtype.ext (d'.e.symm_apply_apply _)
+        change d.symm.icMap (d.symm_hA hN) ((rintEquiv hc₁0).symm
+          (d'.symm.symm.icMap (d'.symm.symm_hA (d'.symm_hA hN')) y)) ∈ P' ↔
+            (rintEquiv hc₂0).symm y ∈ P'
+        rw [← d.rintEquiv_symm_icMap_symm hN d' hN' he', this]
+      rw [hb₂, Set.mem_singleton_iff] at hb'
+      rw [Set.mem_singleton_iff, ← d'.brMap_brMap_symm b, hb']
+    · rintro rfl
+      change placeIdeal hc₁ (d'.extMap w₂) (d'.mem_zeros_map hQ₂) =
+        P₁.comap (rintEquiv hc₁0).symm.toRingHom
+      ext y
+      rw [d'.mem_placeIdeal_map hc₂ hc₁ hN' hQ₂, hP₂, Ideal.mem_comap, Ideal.mem_comap,
+        Ideal.mem_comap]
+      change (rintEquiv hc₂0).symm (d'.symm.icMap (d'.symm_hA hN') y) ∈ P' ↔
+        d.symm.icMap (d.symm_hA hN) ((rintEquiv hc₁0).symm y) ∈ P'
+      rw [d.rintEquiv_symm_icMap_symm hN d' hN' he']
+  · -- the jets
+    intro a ha b hb hab
+    obtain ⟨a₀, rfl⟩ := (d.κmap v₁).surjective a
+    obtain ⟨b₀, rfl⟩ := (d'.κmap w₂).surjective b
+    have ha₀ : a₀ ∈ Q₁.V := (d.mem_placeMap (v := v₁) (Q := Q₁)).1 ha
+    have hb₀ : b₀ ∈ Q₂.V := (d'.mem_placeMap (v := w₂) (Q := Q₂)).1 hb
+    have hab₀ : Q₁.res a₀ = Q₂.res b₀ := by
+      have := hab
+      change (d.placeMap v₁ Q₁).res (d.κmap v₁ a₀) =
+        (d'.placeMap w₂ Q₂).res (d'.κmap w₂ b₀) at this
+      rw [d.res_placeMap ha₀, d'.res_placeMap hb₀] at this
+      have h2 : τbar d'.τ d'.hτ = τbar d.τ d.hτ := by
+        simp only [hτ']
+      rw [h2] at this
+      exact (τbar d.τ d.hτ).injective this
+    obtain ⟨y, s, hs, hy₁, hy₂⟩ := hjet a₀ ha₀ b₀ hb₀ hab₀
+    refine ⟨d.icMap hN y, d.icMap hN s, ?_, ?_, ?_⟩
+    · rw [Ideal.mem_comap, d.icMap_symm_icMap hN]
+      exact hs
+    · change red C (d.e y) (d.extMap v₁) = d.κmap v₁ a₀ * red C (d.e s) (d.extMap v₁)
+      rw [d.red_map, d.red_map]
+      change d.κmap v₁ (redHom hc₂ v₁ y) = _ * d.κmap v₁ (redHom hc₂ v₁ s)
+      rw [hy₁, map_mul]
+    · change redHom hc₁ (d'.extMap w₂) (rintEquiv hc₁0 (d.icMap hN y)) =
+        d'.κmap w₂ b₀ * redHom hc₁ (d'.extMap w₂) (rintEquiv hc₁0 (d.icMap hN s))
+      rw [d.rintEquiv_icMap hN d' hN' he', d.rintEquiv_icMap hN d' hN' he']
+      change red C (d'.e _) (d'.extMap w₂) = _ * red C (d'.e _) (d'.extMap w₂)
+      rw [d'.red_map, d'.red_map]
+      change d'.κmap w₂ (redHomInv hc₂ hc₂0 w₂ y) = _ * d'.κmap w₂ (redHomInv hc₂ hc₂0 w₂ s)
+      rw [hy₂, map_mul]
+
+end Node
+
 end Data
 
 /-! ### Change of representative -/
