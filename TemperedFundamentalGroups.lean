@@ -191,6 +191,7 @@ import TemperedFundamentalGroups.Setup.InvariantLine
 import TemperedFundamentalGroups.Setup.NoetherLine
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Schmidt
+import TemperedFundamentalGroups.Setup.SmoothNormal
 import TemperedFundamentalGroups.Setup.Valuation
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
