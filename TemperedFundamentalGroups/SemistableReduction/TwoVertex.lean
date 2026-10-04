@@ -327,6 +327,53 @@ instance : FiniteDimensional (RatFunc C) (TwoV c F') := by
 
 end Twist
 
+/-! ### The extensions of the Gauss point of `t` -/
+
+section Ext
+
+open GaussStability
+
+variable [IsAlgClosed C] {c} (hc0 : c ≠ 0) (hc1 : ‖c‖ < 1)
+  {F' : Type*} [Field F'] [Algebra (RatFunc C) F'] [Algebra C F']
+  [IsScalarTower C (RatFunc C) F']
+
+/-- The radius `|c|` of the inner vertex. -/
+noncomputable abbrev rc (hc0 : c ≠ 0) : ℝ≥0ˣ := Units.mk0 ‖c‖₊ (by simpa using hc0)
+
+omit [Algebra C F'] [IsScalarTower C (RatFunc C) F'] in
+include hc0 hc1 in
+lemma comap_twoV_eq {r : ℝ≥0ˣ} (hr : (r : ℝ≥0) = 1 ∨ (r : ℝ≥0) = ‖c‖₊)
+    (v : GaussExtension (0 : C) r F') :
+    (v.1.comap (toTwoV c).symm.toRingHom).comap (algebraMap (RatFunc C) (TwoV c F')) =
+      gauss1 C := by
+  refine Valuation.ext fun φ ↦ ?_
+  rw [Valuation.comap_apply, Valuation.comap_apply, algebraMap_twoV_apply]
+  change v.1 (algebraMap (RatFunc C) F' (ψ c φ)) = _
+  rw [← Valuation.comap_apply, v.2, ← gaussRat_comp_ψ hc0 hc1.le hr]
+  rfl
+
+/-- An extension of `w_{0,1}` (outer vertex) as an extension of the Gauss point of `t`. -/
+noncomputable def extU (v : GaussExtension (0 : C) 1 F') : Ext C (TwoV c F') :=
+  ⟨v.1.comap (toTwoV c).symm.toRingHom, comap_twoV_eq hc0 hc1 (.inl rfl) v⟩
+
+/-- An extension of `w_{0,|c|}` (inner vertex) as an extension of the Gauss point of `t`. -/
+noncomputable def extD (v : GaussExtension (0 : C) (rc hc0) F') : Ext C (TwoV c F') :=
+  ⟨v.1.comap (toTwoV c).symm.toRingHom, comap_twoV_eq hc0 hc1 (.inr rfl) v⟩
+
+omit [Algebra C F'] [IsScalarTower C (RatFunc C) F'] in
+include hc0 hc1 in
+/-- Every extension of the Gauss point of `t` comes from one of the two vertices. -/
+lemma ext_cases (w : Ext C (TwoV c F')) :
+    (w.1.comap (toTwoV c).toRingHom).comap (algebraMap (RatFunc C) F') = gauss1 C ∨
+      (w.1.comap (toTwoV c).toRingHom).comap (algebraMap (RatFunc C) F') =
+        gaussRat ν 0 (rc hc0) := by
+  refine eq_or_eq_of_comap hc0 hc1 (Valuation.ext fun φ ↦ ?_)
+  have := congrArg (fun u : Valuation (RatFunc C) ℝ≥0 ↦ u φ) w.2
+  simp only [Valuation.comap_apply, algebraMap_twoV_apply] at this
+  exact this
+
+end Ext
+
 end TwoVertex
 
 end SemistableReduction
