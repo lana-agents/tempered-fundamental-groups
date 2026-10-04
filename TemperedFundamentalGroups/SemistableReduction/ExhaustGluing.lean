@@ -9,9 +9,10 @@ import TemperedFundamentalGroups.SemistableReduction.TreeBridge
 import TemperedFundamentalGroups.SemistableReduction.NodeUpward
 import TemperedFundamentalGroups.SemistableReduction.GaussTreeSemistable
 import TemperedFundamentalGroups.SemistableReduction.GaussTreeFinite
+import TemperedFundamentalGroups.SemistableReduction.W7Statement
 
 /-!
-# Gluing of exhausting discs: intersections of node charts (O11, preparation)
+# Gluing of exhausting discs (O11, O11g)
 
 Blueprint §9.12, O11. For `|c'| ≤ |e| ≤ |u| ≤ 1` the annulus `|c'| ≤ |t| ≤ 1` is the union of the
 annuli `|e| ≤ |t| ≤ 1` and `|c'| ≤ |t| ≤ |u|`, and its (normalized) node chart is the intersection
@@ -24,6 +25,22 @@ of theirs:
   closed subrings with the same fraction field (minimal polynomials);
 * **`mem_rint_iff_and`**: `Rint c' (Aff a c F') = Rint e (Aff a c F') ∩ Rint (c'/u) (Aff a (cu) F')`
   as subsets of `F'`.
+
+Gluing, modulo a valuative characterization of exhaustion (named hypotheses, Blueprint §9.12):
+
+* `IsTubeDisc`, `IsTubeCircle`: the extensions of a Gauss point have rational residue curves with
+  one point over `t̄ = ∞` (and one over `t̄ = 0`); `TubeCond a c c'`: every Gauss point of the open
+  annulus `|c'| < |t| < 1` (`t = (x - a)/c`) is a circle (on the skeleton) or a disc (off it) of a
+  tube; `DiscCond a c`: every Gauss point of the open disc `|t| < 1` is a disc of a tube;
+* `tubeCond_of_tubeCond`, `discCond_of_discCond` (formal gluing over overlapping segments),
+  `tubeCond_restrict`, `discCond_restrict`;
+* (T⇒) `TubeOfExhausting`, (T⇐) `ExhaustingOfTube`, (D⇒) `DiscCondOfSmooth`, (D⇐)
+  `SmoothOfDiscCond`: exhaustion (resp. goodness of a disc) is equivalent to the tube (resp. disc)
+  condition;
+* **`isExhausting_iff_of_le`** (O11): `D ⊂ D(a, |ce|) ⊂ U' ⊂ U` with `D(a, |ce|)` exhausting in `U`:
+  `D` is exhausting in `U` iff in `U'`;
+* **`discSmooth_iff_of_le`** (O11g): with `D(a, |ce|) ⊂ U'` exhausting in `U`, `U` is good iff `U'`
+  is good.
 -/
 
 open Polynomial
@@ -261,6 +278,230 @@ theorem mem_rint_iff_and {a c c' e u : C} (hc0 : c ≠ 0) (hc'0 : c' ≠ 0) (hu0
   rfl
 
 end Twisted
+
+end ExhaustGluing
+
+end SemistableReduction
+
+/-! ### The valuative tube condition and the gluing of exhausting discs -/
+
+namespace SemistableReduction
+
+namespace ExhaustGluing
+
+open GaussTube GaussFibre AffineTwist PlaceNorm
+
+universe u
+
+section Tube
+
+variable {C : Type u} [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
+  (F' : Type*) [Field F'] [Algebra (RatFunc C) F'] [Algebra C F']
+  [IsScalarTower C (RatFunc C) F'] [FiniteDimensional (RatFunc C) F']
+
+attribute [local instance] GaussFibre.isCurveFunctionField
+  DiscreteCoefficients.isAlgClosed_residueField
+
+local notation "𝓀" => IsLocalRing.ResidueField (HenselComplete.integers C)
+
+/-- **A disc of a tube**: every extension `w` of the Gauss point `w_{b,|γ|}` (an extension of
+`w_{0,1}` on the twist `Aff b γ F'`, coordinate `t = (x - b)/γ`) has a rational residue curve
+with exactly one point over `t̄ = ∞`. Inside the preimage of an open annulus which is a disjoint
+union of open annuli, the preimage of every closed disc is a disjoint union of closed discs. -/
+def IsTubeDisc (b : C) {γ : C} (hγ : γ ≠ 0) : Prop :=
+  ∀ w : Ext C (Aff b γ hγ F'), genus 𝓀 (IsLocalRing.ResidueField w.1.valuationSubring) = 0 ∧
+    (zeros 𝓀 (red C (xF C (Aff b γ hγ F')) w)⁻¹).card = 1
+
+/-- **A circle of a tube**: the extensions of the Gauss point `w_{b,|γ|}` have rational residue
+curves with exactly one point over `t̄ = ∞` and exactly one over `t̄ = 0`. -/
+def IsTubeCircle (b : C) {γ : C} (hγ : γ ≠ 0) : Prop :=
+  IsTubeDisc F' b hγ ∧ ∀ w : Ext C (Aff b γ hγ F'),
+    (zeros 𝓀 (red C (xF C (Aff b γ hγ F')) w)).card = 1
+
+/-- **The valuative tube condition** for the open annulus `|c'| < |t| < 1`, `t = (x - a)/c`:
+every Gauss point of its skeleton is a circle of a tube, and every Gauss point `w_{a + c β, |c γ|}`
+off the skeleton (`|c'| < |β| < 1`, `0 < |γ| < |β|`) is a disc of a tube. -/
+def TubeCond (a : C) {c : C} (hc : c ≠ 0) (c' : C) : Prop :=
+  (∀ (γ : C) (hγ : γ ≠ 0), ‖c'‖ < ‖γ‖ → ‖γ‖ < 1 → IsTubeCircle F' a (mul_ne_zero hc hγ)) ∧
+  ∀ (β γ : C) (hγ : γ ≠ 0), ‖c'‖ < ‖β‖ → ‖β‖ < 1 → ‖γ‖ < ‖β‖ →
+    IsTubeDisc F' (a + c * β) (mul_ne_zero hc hγ)
+
+variable {F'}
+
+lemma isTubeDisc_congr {b b' γ γ' : C} (hγ : γ ≠ 0) (hγ' : γ' ≠ 0) (hb : b = b')
+    (h : γ = γ') : IsTubeDisc F' b hγ ↔ IsTubeDisc F' b' hγ' := by
+  subst hb h
+  rfl
+
+lemma isTubeCircle_congr {b b' γ γ' : C} (hγ : γ ≠ 0) (hγ' : γ' ≠ 0) (hb : b = b')
+    (h : γ = γ') : IsTubeCircle F' b hγ ↔ IsTubeCircle F' b' hγ' := by
+  subst hb h
+  rfl
+
+/-- **Gluing of tube conditions** (formal): for `|e| < |u|`, the tube condition for
+the annulus `|c'| < |t| < 1` follows from those for `|e| < |t| < 1` and `|c'| < |t| < |u|` (the
+latter in the coordinate `t/u`): every Gauss point of the big open annulus lies in one of the
+two. -/
+theorem tubeCond_of_tubeCond {a c c' e u : C} (hc : c ≠ 0) (hu0 : u ≠ 0) (heu : ‖e‖ < ‖u‖)
+    (h₁ : TubeCond F' a hc e) (h₂ : TubeCond F' a (mul_ne_zero hc hu0) (c' / u)) :
+    TubeCond F' a hc c' := by
+  have hu : 0 < ‖u‖ := norm_pos_iff.2 hu0
+  refine ⟨fun γ hγ h1 h2 ↦ ?_, fun β γ hγ h1 h2 h3 ↦ ?_⟩
+  · rcases lt_or_ge ‖e‖ ‖γ‖ with he | he
+    · exact h₁.1 γ hγ he h2
+    · have hγu : γ / u ≠ 0 := div_ne_zero hγ hu0
+      refine (isTubeCircle_congr _ _ rfl (by field_simp)).1
+        (h₂.1 (γ / u) hγu ?_ ?_)
+      · rw [norm_div, norm_div]
+        exact div_lt_div_of_pos_right h1 hu
+      · rw [norm_div, div_lt_one hu]
+        exact he.trans_lt heu
+  · rcases lt_or_ge ‖e‖ ‖β‖ with he | he
+    · exact h₁.2 β γ hγ he h2 h3
+    · have hγu : γ / u ≠ 0 := div_ne_zero hγ hu0
+      refine (isTubeDisc_congr _ _ (by field_simp) (by field_simp)).1
+        (h₂.2 (β / u) (γ / u) hγu ?_ ?_ ?_)
+      · rw [norm_div, norm_div]
+        exact div_lt_div_of_pos_right h1 hu
+      · rw [norm_div, div_lt_one hu]
+        exact he.trans_lt heu
+      · rw [norm_div, norm_div]
+        exact div_lt_div_of_pos_right h3 hu
+
+/-- Restriction of tube conditions to a sub-annulus `|c'| < |t| < |u|` (in the coordinate
+`t/u`). -/
+theorem tubeCond_restrict {a c c' u : C} (hc : c ≠ 0) (hu0 : u ≠ 0) (hu1 : ‖u‖ ≤ 1)
+    (h : TubeCond F' a hc c') : TubeCond F' a (mul_ne_zero hc hu0) (c' / u) := by
+  have hu : 0 < ‖u‖ := norm_pos_iff.2 hu0
+  refine ⟨fun γ hγ h1 h2 ↦ ?_, fun β γ hγ h1 h2 h3 ↦ ?_⟩
+  · rw [norm_div, div_lt_iff₀ hu] at h1
+    refine (isTubeCircle_congr _ _ rfl (by ring)).1
+      (h.1 (u * γ) (mul_ne_zero hu0 hγ) (by rw [norm_mul]; linarith) ?_)
+    rw [norm_mul]
+    exact (mul_le_of_le_one_left (norm_nonneg _) hu1).trans_lt h2
+  · rw [norm_div, div_lt_iff₀ hu] at h1
+    refine (isTubeDisc_congr _ _ (by ring) (by ring)).1
+      (h.2 (u * β) (u * γ) (mul_ne_zero hu0 hγ) (by rw [norm_mul]; linarith) ?_ ?_)
+    · rw [norm_mul]
+      exact (mul_le_of_le_one_left (norm_nonneg _) hu1).trans_lt h2
+    · rw [norm_mul, norm_mul]
+      exact mul_lt_mul_of_pos_left h3 hu
+
+variable (C F') in
+/-- **(T⇒)** (named hypothesis, Blueprint §9.12 O11): the preimage of an annulus whose node points
+are all ordinary double points satisfies the valuative tube condition. To be discharged from the
+exact node data (`GaussTube.NodeData`) by counting extensions along the tube. -/
+def TubeOfExhausting : Prop :=
+  ∀ (a c c' : C) (hc : c ≠ 0) (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0),
+    IsExhausting a hc hc' hc0' F' → TubeCond F' a hc c'
+
+variable (C F') in
+/-- **(T⇐)** (named hypothesis, Blueprint §9.12 O12): if the open annulus satisfies the valuative
+tube condition, every node point of its normalized chart is an ordinary double point. Expected
+from the local improvement formula (R5). -/
+def ExhaustingOfTube : Prop :=
+  ∀ (a c c' : C) (hc : c ≠ 0) (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0),
+    TubeCond F' a hc c' → IsExhausting a hc hc' hc0' F'
+
+/-- **O11: gluing of exhausting discs** (modulo (T⇒) and (T⇐)). For `U = {|x - a| < |c|}`,
+`U' = {|x - a| < |c u|}` (`|u| < 1`), `D(a, |c e|) ⊆ U'` (`|e| < |u|`) exhausting in `U`, and
+`D = D(a, |c c'|) ⊆ D(a, |c e|)`: `D` is exhausting in `U` iff it is exhausting in `U'`. -/
+theorem isExhausting_iff_of_le (hT : TubeOfExhausting C F') (hT' : ExhaustingOfTube C F')
+    {a c u e c' : C} (hc0 : c ≠ 0) (hu0 : u ≠ 0) (hu : ‖u‖ < 1) (he0 : e ≠ 0)
+    (heu : ‖e‖ < ‖u‖) (hc'0 : c' ≠ 0) (hc'e : ‖c'‖ ≤ ‖e‖)
+    (hbig : IsExhausting a hc0 (heu.trans hu) he0 F') :
+    IsExhausting a hc0 (hc'e.trans_lt (heu.trans hu)) hc'0 F' ↔
+      IsExhausting a (mul_ne_zero hc0 hu0) (c' := c' / u)
+        (by rw [norm_div, div_lt_one (norm_pos_iff.2 hu0)]; exact hc'e.trans_lt heu)
+        (div_ne_zero hc'0 hu0) F' := by
+  constructor
+  · intro h
+    exact hT' _ _ _ _ _ _ (tubeCond_restrict hc0 hu0 hu.le (hT _ _ _ _ _ _ h))
+  · intro h
+    exact hT' _ _ _ _ _ _ (tubeCond_of_tubeCond hc0 hu0 heu (hT _ _ _ _ _ _ hbig)
+      (hT _ _ _ _ _ _ h))
+
+/-! #### Good residue discs -/
+
+variable (F') in
+/-- **The valuative disc condition** for the open disc `|t| < 1`, `t = (x - a)/c`: every Gauss
+point inside it is a disc of a tube (the closed discs `D(a, |c γ|)`, `0 < |γ| < 1`, and
+`D(a + c β, |c γ|)`, `0 < |γ| < |β| < 1`, are all closed discs in the open disc). -/
+def DiscCond (a : C) {c : C} (hc : c ≠ 0) : Prop :=
+  (∀ (γ : C) (hγ : γ ≠ 0), ‖γ‖ < 1 → IsTubeDisc F' a (mul_ne_zero hc hγ)) ∧
+  ∀ (β γ : C) (hγ : γ ≠ 0), ‖β‖ < 1 → ‖γ‖ < ‖β‖ → IsTubeDisc F' (a + c * β) (mul_ne_zero hc hγ)
+
+variable (F') in
+/-- Every point over the open disc `|x - a| < |c|` is smooth (`S8A.DiscGood`, wp-tempered-s8a). -/
+def DiscSmooth (a : C) {c : C} (hc : c ≠ 0) : Prop :=
+  ∀ P' : Ideal (DiscCount.DRint (0 : C) 1 (Aff a c hc F')), P'.IsMaximal →
+    P'.comap (algebraMap (DiscCount.discRing (0 : C) 1)
+      (DiscCount.DRint (0 : C) 1 (Aff a c hc F'))) = DiscCount.discIdeal (0 : C) 1 →
+      SmoothVertex.IsDiscSmooth P'
+
+/-- Restriction of the disc condition to a smaller concentric disc. -/
+theorem discCond_restrict {a c u : C} (hc : c ≠ 0) (hu0 : u ≠ 0) (hu1 : ‖u‖ ≤ 1)
+    (h : DiscCond F' a hc) : DiscCond F' a (mul_ne_zero hc hu0) := by
+  have hu : 0 < ‖u‖ := norm_pos_iff.2 hu0
+  refine ⟨fun γ hγ h1 ↦ ?_, fun β γ hγ h1 h2 ↦ ?_⟩
+  · refine (isTubeDisc_congr _ _ rfl (by ring)).1 (h.1 (u * γ) (mul_ne_zero hu0 hγ) ?_)
+    rw [norm_mul]
+    exact (mul_le_of_le_one_left (norm_nonneg _) hu1).trans_lt h1
+  · refine (isTubeDisc_congr _ _ (by ring) (by ring)).1
+      (h.2 (u * β) (u * γ) (mul_ne_zero hu0 hγ) ?_ ?_)
+    · rw [norm_mul]
+      exact (mul_le_of_le_one_left (norm_nonneg _) hu1).trans_lt h1
+    · rw [norm_mul, norm_mul]
+      exact mul_lt_mul_of_pos_left h2 hu
+
+/-- **Gluing of disc conditions** (formal): for `|e| < |u|`, the disc condition for
+`|t| < 1` follows from the one for `|t| < |u|` and the tube condition for `|e| < |t| < 1`. -/
+theorem discCond_of_discCond {a c e u : C} (hc : c ≠ 0) (hu0 : u ≠ 0) (heu : ‖e‖ < ‖u‖)
+    (h₁ : TubeCond F' a hc e) (h₂ : DiscCond F' a (mul_ne_zero hc hu0)) :
+    DiscCond F' a hc := by
+  have hu : 0 < ‖u‖ := norm_pos_iff.2 hu0
+  refine ⟨fun γ hγ h1 ↦ ?_, fun β γ hγ h1 h2 ↦ ?_⟩
+  · rcases lt_or_ge ‖γ‖ ‖u‖ with hγu | hγu
+    · refine (isTubeDisc_congr _ _ rfl (by field_simp)).1
+        (h₂.1 (γ / u) (div_ne_zero hγ hu0) ?_)
+      rw [norm_div, div_lt_one hu]
+      exact hγu
+    · exact (h₁.1 γ hγ (heu.trans_le hγu) h1).1
+  · rcases lt_or_ge ‖β‖ ‖u‖ with hβu | hβu
+    · refine (isTubeDisc_congr _ _ (by field_simp) (by field_simp)).1
+        (h₂.2 (β / u) (γ / u) (div_ne_zero hγ hu0) ?_ ?_)
+      · rw [norm_div, div_lt_one hu]
+        exact hβu
+      · rw [norm_div, norm_div]
+        exact div_lt_div_of_pos_right h2 hu
+    · exact h₁.2 β γ hγ (heu.trans_le hβu) h1 h2
+
+variable (C F') in
+/-- **(D⇒)** (named hypothesis, Blueprint §9.12 O11g): over a good open disc the valuative disc
+condition holds. -/
+def DiscCondOfSmooth : Prop :=
+  ∀ (a c : C) (hc : c ≠ 0), DiscSmooth F' a hc → DiscCond F' a hc
+
+variable (C F') in
+/-- **(D⇐)** (named hypothesis, Blueprint §9.12 O12): an open disc satisfying the valuative disc
+condition is good. -/
+def SmoothOfDiscCond : Prop :=
+  ∀ (a c : C) (hc : c ≠ 0), DiscCond F' a hc → DiscSmooth F' a hc
+
+/-- **O11g: gluing of good discs** (modulo (T⇒), (D⇒), (D⇐)). For `U = {|x - a| < |c|}`,
+`U' = {|x - a| < |c u|}` (`|u| < 1`) and `D(a, |c e|) ⊆ U'` (`|e| < |u|`) exhausting in `U`:
+`U` is good iff `U'` is good. -/
+theorem discSmooth_iff_of_le (hT : TubeOfExhausting C F') (hD : DiscCondOfSmooth C F')
+    (hD' : SmoothOfDiscCond C F') {a c u e : C} (hc0 : c ≠ 0) (hu0 : u ≠ 0) (hu : ‖u‖ < 1)
+    (he0 : e ≠ 0) (heu : ‖e‖ < ‖u‖) (hbig : IsExhausting a hc0 (heu.trans hu) he0 F') :
+    DiscSmooth F' a hc0 ↔ DiscSmooth F' a (mul_ne_zero hc0 hu0) := by
+  constructor
+  · intro h
+    exact hD' _ _ _ (discCond_restrict hc0 hu0 hu.le (hD _ _ _ h))
+  · intro h
+    exact hD' _ _ _ (discCond_of_discCond hc0 hu0 heu (hT _ _ _ _ _ _ hbig) (hD _ _ _ h))
+
+end Tube
 
 end ExhaustGluing
 
