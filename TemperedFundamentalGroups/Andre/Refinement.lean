@@ -1014,7 +1014,8 @@ finitely many models of `Spec (B₀ ⊗_K M)`, W10 gives a finite Galois extensi
 with a semistable model on `B₀ ⊗_K (M ⊗_K K')` with group the image of `G₀ × Δ × Gal(K'/K)`,
 whose model dominates the given ones. -/
 theorem exists_core (hW : SemistableReduction.Statement.StrongA.{u})
-    [IsDomain R] (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
+    [IsDomain R] [PerfectField (IsLocalRing.ResidueField O)]
+    (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
     (hR : ringKrullDim R = 1)
     (B₀ : Type u) [CommRing B₀] [Algebra R B₀] [Algebra K B₀] [IsScalarTower K R B₀]
     [Algebra.Etale R B₀] [Module.Finite R B₀]
@@ -1210,7 +1211,8 @@ variable (Ω) in
 /-- **Every level has a semistable base change** (from W10): `AndreInput.refinement` for
 `bc := IsBaseChange`. -/
 theorem refinement_input (hW : SemistableReduction.Statement.StrongA.{u})
-    [IsDomain R] (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
+    [IsDomain R] [PerfectField (IsLocalRing.ResidueField O)]
+    (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
     (hR : ringKrullDim R = 1) (Lv : Level O R A) :
     ∃ (Lv₃ : Level O R A) (ℓ : LevelHom O R A Lv₃ Lv),
       IsSemistableLevel Lv₃ ∧ ℓ.IsBaseChange Ω := by
@@ -1249,7 +1251,8 @@ variable (Ω) in
 /-- **Two base changes over a morphism of levels have a common semistable base change** (from
 W10): `AndreInput.common` for `bc := IsBaseChange`. -/
 theorem common_input (hW : SemistableReduction.Statement.StrongA.{u})
-    [IsDomain R] (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
+    [IsDomain R] [PerfectField (IsLocalRing.ResidueField O)]
+    (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
     (hR : ringKrullDim R = 1)
     {Lv₁ Lv Lv₂ Lv' : Level O R A} (ℓ₁ : LevelHom O R A Lv₁ Lv) (ℓ₂ : LevelHom O R A Lv₂ Lv')
     (u : LevelHom O R A Lv Lv') (h₁ : ℓ₁.IsBaseChange Ω) (h₂ : ℓ₂.IsBaseChange Ω) :
@@ -1362,7 +1365,8 @@ variable (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
 
 /-- **The geometric input for Theorem A** from W10, with base changes as admissible refinements. -/
 theorem andreInput (hW : SemistableReduction.Statement.StrongA.{u})
-    [IsDomain R] (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
+    [IsDomain R] [PerfectField (IsLocalRing.ResidueField O)]
+    (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
     (hR : ringKrullDim R = 1) :
     AndreInput O R A Ω V hV (fun ℓ => ℓ.IsBaseChange Ω) where
   bc_id := bc_id_input Ω
@@ -1373,7 +1377,8 @@ theorem andreInput (hW : SemistableReduction.Statement.StrongA.{u})
 
 /-- **Theorem A** (Blueprint §10.1), from W10: the tempered fundamental group is André's group. -/
 def andreEquiv (hW : SemistableReduction.Statement.StrongA.{u})
-    [IsDomain R] (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
+    [IsDomain R] [PerfectField (IsLocalRing.ResidueField O)]
+    (hp : ∃ p : ℕ, p.Prime ∧ (p : O) ∈ IsLocalRing.maximalIdeal O)
     (hR : ringKrullDim R = 1) :
     temperedPi1 O R A V hV ≃ₜ* andreGroup O R A V hV :=
   andreEquivOfInput (andreInput V hV hW hp hR)

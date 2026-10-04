@@ -1485,13 +1485,13 @@ morphisms, and K2 gives `α` with `deckCharacter α = 1`.
 
 #### 10.5 Status of Theorem A
 
-**[L], modulo W10.** `andreEquiv (V hV) (hW : Statement.StrongA) [IsDomain R] (hp : ∃ p, p.Prime ∧ (p : O) ∈ 𝔪_O) (hR : ringKrullDim R = 1) :
+**[L], modulo W10.** `andreEquiv (V hV) (hW : Statement.StrongA) [IsDomain R] [PerfectField κ_O] (hp : ∃ p, p.Prime ∧ (p : O) ∈ 𝔪_O) (hR : ringKrullDim R = 1) :
 temperedPi1 O R A V hV ≃ₜ* andreGroup O R A V hV` is in `Andre/Refinement.lean`. It uses
 `andreInput` with base-change refinements, together with `pullback_input`. The standing
 hypotheses are:
 
 * `CharZero K` and `IsDiscreteValuationRing O`, mixed characteristic `(p : O) ∈ 𝔪_O` (W7 is proved
-  for residue characteristic `p > 0`), and `R` a domain (StrongA is false otherwise);
+  for residue characteristic `p > 0`), perfect residue field (W10 descent), and `R` a domain (StrongA is false otherwise);
 * `IsAdicComplete (maximalIdeal O) O`;
 * `Algebra.Smooth K R`;
 * `SMulCommClass A K R` and `Finite A`;
