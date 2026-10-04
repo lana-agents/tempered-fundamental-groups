@@ -193,6 +193,7 @@ semistable reduction.
 | D2 | The category `TempObj`, fibre functor `tempFibre`, `temperedPi1 := Aut` | `Tempered/Category.lean` | [L] |
 | D3 | `etalePi1` on `A`-equivariant finite étale algebras; functor `etaleToTemp`; continuous `temperedToEtale` | `pi1`: `Pi1/Orbifold/Etale.lean`; `Tempered/Comparison.lean` | [L] |
 | E1 | `etalePi1` is profinite; for `A = 1` it is `≃ₜ*` to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` | `pi1`: `Pi1/Orbifold/EtaleProfinite.lean`, `EtaleMathlib.lean` | [L] |
+| E2 | (untargeted extension) imperfect residue fields: smoothness of the E-charts at non-separable closed points (geometrically regular ⇒ smooth, descent of smoothness) | — | not planned |
 | E2 | Step 3 of §4: restriction along a realization (essentially surjective, morphisms realized after refinement) is `≃ₜ*` | `FibreFunctor/Realization.lean` | [L] (abstract lemma; its hypotheses for André's category are steps 1–2, [C]) |
 | E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | `Topology/CountableFibres.lean` | [L] (topological lemma; the resulting equivalence of categories after adding coproducts is argued, not formalized) |
 | E4 | Galois elements: the decomposition group `{σ ∈ Aut_R(Ω) : σV = V}` acts on `temperedPi1` (`[(t,p)] ↦ [(σ∘t, p)]`, specialization is Galois invariant), compatibly with its action on `etalePi1` | `Tempered/Galois.lean`, `Models/Specialization.lean` (`sp_galois`) | [L] |
@@ -523,7 +524,7 @@ only needed for `char C = p`.
 exact form that Theorem A (`andreEquiv`, branch `wp-andre`) consumes.
 
 * **Inputs:** `K` complete discretely valued of characteristic `0` and **mixed characteristic**
-  (`(p : O) ∈ 𝔪_O` for a prime `p`); `R` a smooth **domain** of dimension `1` (without
+  (`(p : O) ∈ 𝔪_O` for a prime `p`) with **perfect residue field**; `R` a smooth **domain** of dimension `1` (without
   equidimensionality the statement is false: `R = K[t] × K`);
   `B` finite étale over `R`; a finite group `G` acting `K`-linearly on `B`; finitely many
   `O`-models `c₀ i` with maps `j₀ i` over `O`.
@@ -735,6 +736,10 @@ Open points (decision by the lead):
 * (A) **Resolved:** `[IsDomain R]` added to StrongA (and to `andreEquiv`).
 * (B) **Resolved:** StrongA requires mixed characteristic. Equal characteristic `0` is an
   untargeted extension (§9.12, E1).
+* (D) **Resolved:** StrongA requires a perfect residue field: closed points of special fibres are
+  made rational by unramified extensions `E'/E`, and semistability descends along the étale
+  `B_E → B_E ⊗ O_{E'}` (normalization commutes with smooth base change). Imperfect residue
+  fields: untargeted extension (§9.12, E2).
 * (C) The normed structures on `K` and `K̄` from the complete DVR `O`.
 
 ### 9.6 W5: models and vertex sets
