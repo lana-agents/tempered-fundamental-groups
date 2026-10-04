@@ -85,10 +85,12 @@ def GoodGluingFor : Prop :=
 def ClassicalGoodFor : Prop :=
   ∀ a : C, ∃ s₀ : ℝ, 0 < s₀ ∧ ∀ c : C, c ≠ 0 → ‖c‖ ≤ s₀ → BallGood F (ball a ‖c‖)
 
-/-- **Dual of R4(ii)** (type 2): the outward germ of annuli at a type-2 point `w_{a,|z|}`. -/
+/-- **Dual of R4(ii)** (type 2), for a fixed centre `a₀`: the outward germ of annuli at the type-2
+point `w_{a₀,|z|}`: there is `ρ' > |z|` such that for `|z| < |d| ≤ ρ'` the disc `D(a₀, |z|)` is
+exhausting in `ball a₀ ‖d‖`, in every chart centred at `a₀`. (The threshold may depend on `a₀`.) -/
 def TypeTwoGermFor : Prop :=
-  ∀ a z : C, z ≠ 0 → ∃ ρ' > ‖z‖, ∀ c₂ : C, ‖z‖ < ‖c₂‖ → ‖c₂‖ ≤ ρ' →
-    EdgeGood F (closedBall a ‖z‖) (closedBall a ‖c₂‖)
+  ∀ a₀ z : C, z ≠ 0 → ∃ ρ' > ‖z‖, ∀ (d c' : C) (hd : d ≠ 0) (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0),
+    ‖d * c'‖ = ‖z‖ → ‖d‖ ≤ ρ' → IsExhausting a₀ hd hc' hc0' F
 
 /-- **S8.4** (type 3): the germ of annuli at a type-3 point `w_{a,ρ}`, `ρ ∉ |C^×|`. -/
 def TypeThreeGermFor : Prop :=
@@ -132,15 +134,18 @@ lemma norm_le_of_closedBall_subset {a : C} {d d' : C}
     (h : closedBall a ‖d‖ ⊆ closedBall a ‖d'‖) : ‖d‖ ≤ ‖d'‖ :=
   ((closedBall_subset_closedBall_iff').1 h).1
 
-/-- **Gluing of exhaustion in `EdgeGood` form** (from O11): for `‖c₁‖ ≤ ‖d₁‖ < ‖d₂‖ < ‖c‖`, if
+/-- **Gluing of exhaustion in a chart** (from O11): for `‖c₁‖ ≤ ‖d₁‖ < ‖d₂‖ < ‖c‖`, if
 `closedBall a ‖d₁‖` is exhausting in `ball a ‖c‖` and `closedBall a ‖c₁‖` is exhausting in
-`ball a ‖d₂‖`, then `closedBall a ‖c₁‖` is exhausting in `ball a ‖c‖`. -/
-theorem edgeGood_glue (ho11 : O11For C F) {a c d₁ d₂ c₁ : C} (hc : c ≠ 0) (hd₁ : d₁ ≠ 0)
-    (hd₂ : d₂ ≠ 0) (h₁₂ : ‖d₁‖ < ‖d₂‖) (h₂c : ‖d₂‖ < ‖c‖) (h₁ : ‖c₁‖ ≤ ‖d₁‖)
-    (hE : EdgeGood F (closedBall a ‖d₁‖) (closedBall a ‖c‖))
-    (hD : EdgeGood F (closedBall a ‖c₁‖) (closedBall a ‖d₂‖)) :
-    EdgeGood F (closedBall a ‖c₁‖) (closedBall a ‖c‖) := by
-  intro a₀ c₀ c₀' hc₀ hc₀' hc0₀' hD0 hG0
+`ball a ‖d₂‖` in the charts centred at `a₀`, then `closedBall a ‖c₁‖` is exhausting in `ball a ‖c‖`
+in the chart `(a₀, c₀, c₀')`. -/
+theorem isExhausting_glue (ho11 : O11For C F) {a c d₁ d₂ c₁ a₀ c₀ c₀' : C} (hc : c ≠ 0)
+    (hd₁ : d₁ ≠ 0) (hd₂ : d₂ ≠ 0) (h₁₂ : ‖d₁‖ < ‖d₂‖) (h₂c : ‖d₂‖ < ‖c‖) (h₁ : ‖c₁‖ ≤ ‖d₁‖)
+    (hE : EdgeGood F (closedBall a ‖d₁‖) (closedBall a ‖c‖)) (hc₀ : c₀ ≠ 0) (hc₀' : ‖c₀'‖ < 1)
+    (hc0₀' : c₀' ≠ 0) (hD0 : closedBall a ‖c₁‖ = closedBall a₀ ‖c₀ * c₀'‖)
+    (hG0 : closedBall a ‖c‖ = closedBall a₀ ‖c₀‖)
+    (hsmall : ∀ (d c' : C) (hd : d ≠ 0) (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0),
+      ‖d * c'‖ = ‖c₁‖ → ‖d‖ = ‖d₂‖ → IsExhausting a₀ hd hc' hc0' F) :
+    IsExhausting a₀ hc₀ hc₀' hc0₀' F := by
   have hc0pos : 0 < ‖c₀‖ := norm_pos_iff.2 hc₀
   obtain ⟨hcc, hac⟩ := (closedBall_eq_closedBall_iff' hc hc₀).1 hG0
   have hc₁0 : c₁ ≠ 0 := by
@@ -168,14 +173,40 @@ theorem edgeGood_glue (ho11 : O11For C F) {a c d₁ d₂ c₁ : C} (hc : c ≠ 0
     refine hE a₀ c₀ e hc₀ (heu.trans hu) he0 ?_ hG0
     rw [hce]
     exact closedBall_eq_of_norm_sub_le (ha1.trans h₁)
-  have hsmall : IsExhausting a₀ (mul_ne_zero hc₀ hu0) hcu hcu0 F := by
-    refine hD a₀ (c₀ * u) (c₀' / u) (mul_ne_zero hc₀ hu0) hcu hcu0 ?_ ?_
-    · rw [hD0]
-      congr 2
-      field_simp
-    · rw [hcuu]
-      exact closedBall_eq_of_norm_sub_le (ha1.trans (h₁.trans h₁₂.le))
-  exact ho11 hc₀ hu0 hu he0 heu hc0₀' hc'e hcu hcu0 hbig hsmall
+  have hsm : IsExhausting a₀ (mul_ne_zero hc₀ hu0) hcu hcu0 F := by
+    refine hsmall (c₀ * u) (c₀' / u) (mul_ne_zero hc₀ hu0) hcu hcu0 ?_ (by rw [hcuu])
+    rw [h1c]
+    congr 1
+    field_simp
+  exact ho11 hc₀ hu0 hu he0 heu hc0₀' hc'e hcu hcu0 hbig hsm
+
+/-- **Gluing of exhaustion in `EdgeGood` form** (from O11): for `‖c₁‖ ≤ ‖d₁‖ < ‖d₂‖ < ‖c‖`, if
+`closedBall a ‖d₁‖` is exhausting in `ball a ‖c‖` and `closedBall a ‖c₁‖` is exhausting in
+`ball a ‖d₂‖`, then `closedBall a ‖c₁‖` is exhausting in `ball a ‖c‖`. -/
+theorem edgeGood_glue (ho11 : O11For C F) {a c d₁ d₂ c₁ : C} (hc : c ≠ 0) (hd₁ : d₁ ≠ 0)
+    (hd₂ : d₂ ≠ 0) (h₁₂ : ‖d₁‖ < ‖d₂‖) (h₂c : ‖d₂‖ < ‖c‖) (h₁ : ‖c₁‖ ≤ ‖d₁‖)
+    (hE : EdgeGood F (closedBall a ‖d₁‖) (closedBall a ‖c‖))
+    (hD : EdgeGood F (closedBall a ‖c₁‖) (closedBall a ‖d₂‖)) :
+    EdgeGood F (closedBall a ‖c₁‖) (closedBall a ‖c‖) := by
+  intro a₀ c₀ c₀' hc₀ hc₀' hc0₀' hD0 hG0
+  refine isExhausting_glue ho11 hc hd₁ hd₂ h₁₂ h₂c h₁ hE hc₀ hc₀' hc0₀' hD0 hG0
+    fun d c' hd hc' hc0' hdc hdd ↦ hD a₀ d c' hd hc' hc0' ?_ ?_
+  · have hc₁0 : c₁ ≠ 0 := by
+      rintro rfl
+      have h := (closedBall_subset_closedBall_iff').1 hD0.ge
+      rw [norm_zero, norm_mul] at h
+      exact (mul_pos (norm_pos_iff.2 hc₀) (norm_pos_iff.2 hc0₀')).not_ge h.1
+    obtain ⟨-, ha1⟩ := (closedBall_eq_closedBall_iff' hc₁0 (mul_ne_zero hc₀ hc0₀')).1 hD0
+    rw [hdc]
+    exact closedBall_eq_of_norm_sub_le ha1
+  · have hc₁0 : c₁ ≠ 0 := by
+      rintro rfl
+      have h := (closedBall_subset_closedBall_iff').1 hD0.ge
+      rw [norm_zero, norm_mul] at h
+      exact (mul_pos (norm_pos_iff.2 hc₀) (norm_pos_iff.2 hc0₀')).not_ge h.1
+    obtain ⟨-, ha1⟩ := (closedBall_eq_closedBall_iff' hc₁0 (mul_ne_zero hc₀ hc0₀')).1 hD0
+    rw [hdd]
+    exact closedBall_eq_of_norm_sub_le (ha1.trans (h₁.trans h₁₂.le))
 
 /-- **S8.B** ([AW Thm 2.6], Blueprint §9.12 O6.1) from the open inputs: a bad residue ball contains
 a smallest exhausting disc. -/
@@ -224,14 +255,20 @@ theorem s8bMinFor_of_inputs (H : S8BLimitInputs C F) : S8BMinFor C F := by
     have hρ₁ : ρ < ‖d₁‖ := lt_of_le_of_ne (hρle _ ⟨d₁, hd₁, rfl, hd₁D⟩)
       (fun h ↦ hρR (h ▸ ⟨d₁, hd₁, rfl, hd₁D⟩))
     exact ⟨d₁, d₂, hd₁, hd₂, hρ₁, h₁₂, h₂t, hd₁D, hd₂D⟩
-  -- a germ of annuli below `ρ` contradicts the minimality of `ρ`
-  have hgerm : ∀ c₁ : C, c₁ ≠ 0 → ‖c₁‖ ≤ ρ → ∀ ρ₂ > ρ, (∀ c₂ : C, ρ < ‖c₂‖ → ‖c₂‖ ≤ ρ₂ →
-      EdgeGood F (closedBall a ‖c₁‖) (closedBall a ‖c₂‖)) → False := by
-    intro c₁ hc₁ hc₁ρ ρ₂ hρ₂ hgood
-    obtain ⟨d₁, d₂, hd₁, hd₂, hρ₁, h₁₂, h₂t, hd₁D, hd₂D⟩ := htwo ρ₂ hρ₂
-    have hE : EdgeGood F (closedBall a ‖d₁‖) (closedBall a ‖c‖) := hcballeq ▸ hd₁D.2.2
-    have hglue := edgeGood_glue H.o11 hc hd₁ hd₂ h₁₂ (hRc d₂ hd₂D) (hc₁ρ.trans hρ₁.le) hE
-      (hgood d₂ (hρ₁.trans h₁₂) h₂t.le)
+  -- a germ of annuli below `ρ` (chart-wise) contradicts the minimality of `ρ`
+  have hgerm : ∀ c₁ : C, c₁ ≠ 0 → ‖c₁‖ ≤ ρ → (∀ a₀ ∈ closedBall a ‖c₁‖, ∃ ρ₂ > ρ,
+      ∀ (d c' : C) (hd : d ≠ 0) (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0), ‖d * c'‖ = ‖c₁‖ → ρ < ‖d‖ →
+        ‖d‖ ≤ ρ₂ → IsExhausting a₀ hd hc' hc0' F) → False := by
+    intro c₁ hc₁ hc₁ρ hloc
+    have hglue : EdgeGood F (closedBall a ‖c₁‖) (closedBall a ‖c‖) := by
+      intro a₀ c₀ c₀' hc₀ hc₀' hc0₀' hD0 hG0
+      obtain ⟨-, ha1⟩ := (closedBall_eq_closedBall_iff' hc₁ (mul_ne_zero hc₀ hc0₀')).1 hD0
+      obtain ⟨ρ₂, hρ₂, hsm⟩ := hloc a₀ (mem_closedBall'.2 (by rwa [norm_sub_rev]))
+      obtain ⟨d₁, d₂, hd₁, hd₂, hρ₁, h₁₂, h₂t, hd₁D, hd₂D⟩ := htwo ρ₂ hρ₂
+      exact isExhausting_glue H.o11 hc hd₁ hd₂ h₁₂ (hRc d₂ hd₂D) (hc₁ρ.trans hρ₁.le)
+        (hcballeq ▸ hd₁D.2.2) hc₀ hc₀' hc0₀' hD0 hG0 fun d c' hd hc' hc0' hdc hdd ↦
+          hsm d c' hd hc' hc0' hdc (hdd ▸ hρ₁.trans h₁₂) (hdd ▸ h₂t.le)
+    obtain ⟨d₁, -, hd₁, -, hρ₁, -, -, hd₁D, -⟩ := htwo (ρ + 1) (by linarith)
     have hmem : closedBall a ‖c₁‖ ∈ 𝒟 :=
       ⟨⟨a, c₁, hc₁, rfl⟩, (closedBall_subset_closedBall (hc₁ρ.trans hρ₁.le)).trans hd₁D.2.1,
         hcballeq ▸ hglue⟩
@@ -245,12 +282,17 @@ theorem s8bMinFor_of_inputs (H : S8BLimitInputs C F) : S8BMinFor C F := by
   · -- type 2
     obtain ⟨z, hz⟩ := hval
     have hz0 : z ≠ 0 := by rintro rfl; rw [norm_zero] at hz; exact hρpos.ne hz
-    obtain ⟨ρ', hρ', hgood⟩ := H.typeTwo a z hz0
-    exact hgerm z hz0 hz.le ρ' (hz ▸ hρ') fun c₂ h₁ h₂ ↦ hgood c₂ (hz ▸ h₁) h₂
+    refine hgerm z hz0 hz.le fun a₀ _ ↦ ?_
+    obtain ⟨ρ', hρ', hgood⟩ := H.typeTwo a₀ z hz0
+    exact ⟨ρ', hz ▸ hρ', fun d c' hd hc' hc0' hdc _ hdρ ↦ hgood d c' hd hc' hc0' hdc hdρ⟩
   · -- type 3
     push Not at hval
     obtain ⟨c₁, hc₁, hc₁ρ, ρ₂, hρ₂, hgood⟩ := H.typeThree a ρ hρpos hval
-    exact hgerm c₁ hc₁ hc₁ρ.le ρ₂ hρ₂ hgood
+    refine hgerm c₁ hc₁ hc₁ρ.le fun a₀ ha₀ ↦ ⟨ρ₂, hρ₂, fun d c' hd hc' hc0' hdc hρd hdρ ↦ ?_⟩
+    have ha₀' : ‖a - a₀‖ ≤ ‖c₁‖ := by rw [norm_sub_rev]; exact mem_closedBall'.1 ha₀
+    refine hgood d hρd hdρ a₀ d c' hd hc' hc0' ?_ ?_
+    · rw [hdc]; exact closedBall_eq_of_norm_sub_le ha₀'
+    · exact closedBall_eq_of_norm_sub_le (ha₀'.trans (hc₁ρ.le.trans hρd.le))
 
 end Proofs
 
