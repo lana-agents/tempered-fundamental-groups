@@ -204,6 +204,43 @@ theorem piAct_algebraMap (h : H) (φ : RatFunc M) :
 
 end Group
 
+section Permutation
+
+/-- The maximal ideal `σ⁻¹ 𝔫`. -/
+noncomputable def comapMax (σ : LX K M A ≃+* LX K M A) (𝔫 : MaximalSpectrum (LX K M A)) :
+    MaximalSpectrum (LX K M A) :=
+  ⟨𝔫.asIdeal.comap (σ : LX K M A →+* LX K M A),
+    Ideal.comap_isMaximal_of_surjective _ σ.surjective⟩
+
+/-- The isomorphism of components `LX ⧸ σ⁻¹ 𝔫 ≃ LX ⧸ 𝔫` induced by `σ`. -/
+noncomputable def compEquiv (σ : LX K M A ≃+* LX K M A) (𝔫 : MaximalSpectrum (LX K M A)) :
+    Comp K M A (comapMax σ 𝔫) ≃+* Comp K M A 𝔫 :=
+  Ideal.quotientEquiv _ _ σ (Ideal.map_comap_of_surjective _ σ.surjective _).symm
+
+lemma compEquiv_mk (σ : LX K M A ≃+* LX K M A) (𝔫 : MaximalSpectrum (LX K M A)) (y : LX K M A) :
+    compEquiv σ 𝔫 (Ideal.Quotient.mk _ y) = Ideal.Quotient.mk 𝔫.asIdeal (σ y) :=
+  rfl
+
+variable [Module.Finite K[X] A] [Module.IsTorsionFree K[X] A] [IsReduced (BX K M A)]
+
+lemma equivPi_apply_equiv (σ : LX K M A ≃+* LX K M A) (y : LX K M A)
+    (𝔫 : MaximalSpectrum (LX K M A)) :
+    equivPi K M A (σ y) 𝔫 = compEquiv σ 𝔫 (equivPi K M A y (comapMax σ 𝔫)) := by
+  rw [equivPi_apply, equivPi_apply, compEquiv_mk]
+
+variable {H : Type*} [Group H] (α : H →* (M ≃ₐ[K] M)) (β : H →* (A ≃ₐ[K[X]] A))
+
+/-- **The action on the components is componentwise**: `piAct h` maps the component
+`(lxAct h)⁻¹ 𝔫` to `𝔫` by `compEquiv`. -/
+theorem piAct_apply (h : H) (z : ∀ 𝔪 : MaximalSpectrum (LX K M A), Comp K M A 𝔪)
+    (𝔫 : MaximalSpectrum (LX K M A)) :
+    piAct K M A α β h z 𝔫 =
+      compEquiv (lxAct K M A α β h) 𝔫 (z (comapMax (lxAct K M A α β h) 𝔫)) := by
+  obtain ⟨y, rfl⟩ := (equivPi K M A).surjective z
+  rw [piAct_equivPi, equivPi_apply_equiv]
+
+end Permutation
+
 end W10Fields
 
 end SemistableReduction
