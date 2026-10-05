@@ -540,6 +540,93 @@ theorem jC_equivariant (h : H (K := K) G E) :
 
 end JAct
 
+section Dom
+
+variable {K : Type u} [Field K] (O : ValuationSubring K)
+  {B : Type u} [CommRing B] [Algebra K[X] B] [Module.Finite K[X] B] [Module.IsTorsionFree K[X] B]
+  [Algebra K B] [IsScalarTower K K[X] B]
+  {E : Type u} [Field E] [Algebra K E] (O' : ValuationSubring E)
+  (hO' : O'.comap (algebraMap K E) = O) [IsReduced (BX K E B)]
+  (hn : IsIntegrallyClosedIn (BX K E B) (LX K E B))
+  (n : MaximalSpectrum (LX K E B) → ℕ) {g : ∀ 𝔪, Fin (n 𝔪 + 1) → Comp K E B 𝔪}
+  (hg : ∀ 𝔪 j, g 𝔪 j ≠ 0)
+  (hroot : ∀ 𝔪, LocallyDominates (algebraMap O' (Comp K E B 𝔪)).range (RingHom.id _)
+    (D K E B 𝔪).subtype (g 𝔪))
+  {r : ℕ} (θ : Fin r → O') (hθ0 : ∀ s, (θ s : E) ≠ 0)
+  (hθint : ∀ s, letI := algebraOO' O E O' hO'; IsIntegral O (θ s))
+  (hθgen : ∀ y : O', (y : E) ∈ Subring.closure
+    ((((algebraMap K E).comp O.subtype).range : Set E) ∪ Set.range fun s ↦ (θ s : E)))
+  (c₀ : ModelCode O) (j₀ : Spec (CommRingCat.of B) ⟶ c₀.scheme)
+
+attribute [local instance] compAlgO
+
+/-- The composite `Spec (Comp 𝔪) ⟶ Spec (E ⊗_K B) ⟶ Spec B ⟶ c₀`. -/
+noncomputable def compPt (𝔪 : MaximalSpectrum (LX K E B)) :
+    Spec (CommRingCat.of (Comp K E B 𝔪)) ⟶ c₀.scheme :=
+  Spec.map (CommRingCat.ofHom ((Pi.evalRingHom _ 𝔪).comp ((ψ (K := K) (B := B) (E := E)).comp
+    (Algebra.TensorProduct.includeRight.toRingHom : B →+* TensorProduct K E B)))) ≫ j₀
+
+variable {nf : MaximalSpectrum (LX K E B) → ℕ} {f : ∀ 𝔪, Fin (nf 𝔪 + 1) → Comp K E B 𝔪}
+  (hf : ∀ 𝔪 j, f 𝔪 j ≠ 0) (ι : ∀ 𝔪, (projModelCode O (hf 𝔪)).scheme ⟶ c₀.scheme)
+  (hdom : ∀ 𝔪 l, LocallyDominates (algebraMap O (Comp K E B 𝔪)).range (RingHom.id _)
+    (projChart (algebraMap O' (Comp K E B 𝔪)).range (g 𝔪) l).subtype (f 𝔪))
+
+/-- The domination on `c'`. -/
+noncomputable def domc' : (c' O' n hg).scheme ⟶ c₀.scheme :=
+  (ModelCode.sigmaIso fun 𝔪 ↦ projModelCode O' (hg 𝔪)).inv ≫ Sigma.desc fun 𝔪 ↦
+    homOfLocalProj (R₁ := (algebraMap O (Comp K E B 𝔪)).range)
+      (R₂ := (algebraMap O' (Comp K E B 𝔪)).range) rfl rfl (hf 𝔪) (hg 𝔪) (RingHom.id _)
+      (hdom 𝔪) ≫ ι 𝔪
+
+omit [Module.IsTorsionFree K[X] B] [Algebra K B] [IsScalarTower K K[X] B]
+  [IsReduced (BX K E B)] in
+lemma sigmaι_domc' (𝔪 : MaximalSpectrum (LX K E B)) :
+    ModelCode.sigmaι (fun 𝔪 ↦ projModelCode O' (hg 𝔪)) 𝔪 ≫ domc' O O' n hg c₀ hf ι hdom =
+      homOfLocalProj (R₁ := (algebraMap O (Comp K E B 𝔪)).range)
+        (R₂ := (algebraMap O' (Comp K E B 𝔪)).range) rfl rfl (hf 𝔪) (hg 𝔪) (RingHom.id _)
+        (hdom 𝔪) ≫ ι 𝔪 := by
+  rw [ModelCode.sigmaι, domc', Category.assoc, Iso.hom_inv_id_assoc]
+  exact Sigma.ι_desc _ 𝔪
+
+/-- **The domination `dom : c ⟶ c₀`.** -/
+noncomputable def dom : (c O O' n hg θ hθ0).scheme ⟶ c₀.scheme :=
+  (e O O' hO' n hg θ hθ0 hθint hθgen).hom ≫ domc' O O' n hg c₀ hf ι hdom
+
+variable (hιO : ∀ 𝔪, ι 𝔪 ≫ c₀.toSpec = (projModelCode O (hf 𝔪)).toSpec)
+
+omit [Module.IsTorsionFree K[X] B] [Algebra K B] [IsScalarTower K K[X] B]
+  [IsReduced (BX K E B)] in
+include hιO in
+/-- `dom` lies over `Spec O`. -/
+theorem dom_toSpec :
+    dom O O' hO' n hg θ hθ0 hθint hθgen c₀ hf ι hdom ≫ c₀.toSpec = (c O O' n hg θ hθ0).toSpec := by
+  rw [← e_toSpec O O' hO' n hg θ hθ0 hθint hθgen, dom, Category.assoc]
+  congr 1
+  refine ModelCode.sigma_hom_ext _ fun 𝔪 ↦ ?_
+  rw [reassoc_of% sigmaι_domc', hιO, reassoc_of% ModelCode.sigmaι_toSpec]
+  exact homOfLocalProj_toSpec _ _ _ _ _ _ (algOO' O E O' hO') rfl
+
+variable (hι : ∀ 𝔪, genericPt O (hf 𝔪) ≫ ι 𝔪 = compPt O c₀ j₀ 𝔪)
+
+include hι in
+/-- **`j ≫ dom = Spec (B → E ⊗ B) ≫ j₀`.** -/
+theorem jC_dom :
+    jC O O' hO' hn n hg hroot θ hθ0 hθint hθgen ≫ dom O O' hO' n hg θ hθ0 hθint hθgen c₀ hf ι hdom =
+      Spec.map (CommRingCat.ofHom
+        (Algebra.TensorProduct.includeRight.toRingHom : B →+* TensorProduct K E B)) ≫ j₀ := by
+  refine hom_ext_ψ ?_
+  have h1 := genericPtSigma_e O O' hO' n hg θ hθ0 hθint hθgen
+  rw [reassoc_of% SpecMap_ψ_jC, dom, reassoc_of% h1]
+  rw [← cancel_epi (sigmaSpec.{u, u} fun 𝔪 : MaximalSpectrum (LX K E B) ↦
+    CommRingCat.of (Comp K E B 𝔪))]
+  refine Sigma.hom_ext _ _ fun 𝔪 ↦ ?_
+  rw [ι_sigmaSpec_assoc, ι_sigmaSpec_assoc, reassoc_of% SpecMap_eval_genericPtSigma,
+    sigmaι_domc', reassoc_of% genericPt_comp_homOfLocalProj, hι, compPt]
+  simp only [CommRingCat.ofHom_id, Spec.map_id, Category.id_comp, ← Spec.map_comp_assoc,
+    ← CommRingCat.ofHom_comp]
+
+end Dom
+
 end W10Assembly
 
 end SemistableReduction
