@@ -22,7 +22,10 @@ this form.
   a semistable model has relative dimension `1` at every point, so no generic point of it can be
   the image of the factor `Spec K'`). The orbicurve rings of Theorem A are domains.
 * mixed characteristic `(p : O) ∈ 𝔪_O` for a prime `p`: W7 is proved for residue characteristic
-  `p > 0`. Equal characteristic `0` (tame) is an untargeted extension (Blueprint §9.12).
+  `p > 0`. Equal characteristic `0` (tame) is an untargeted extension (Blueprint §9.12, E1).
+* perfect residue field: closed points of the special fibres then have separable residue fields,
+  so they become rational after unramified extensions, along which semistability descends. This
+  covers all `p`-adic local fields. Imperfect residue fields: untargeted extension (§9.12, E2).
 -/
 
 universe u
@@ -34,7 +37,7 @@ namespace TemperedFundamentalGroups.SemistableReduction
 /-- **W10, minimal form for Theorem A.** -/
 def Statement.StrongA : Prop :=
   ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
-    [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+    [IsAdicComplete (IsLocalRing.maximalIdeal O) O] [PerfectField (IsLocalRing.ResidueField O)]
     (p : ℕ) (_ : p.Prime) (_ : (p : O) ∈ IsLocalRing.maximalIdeal O)
     (R : Type u) [CommRing R] [IsDomain R] [Algebra K R] [Algebra.Smooth K R]
     (_ : ringKrullDim R = 1)
@@ -74,7 +77,7 @@ def Statement.StrongA : Prop :=
 /-- `StrongComponent` implies the minimal form `StrongA`. -/
 theorem Statement.strongA_of_strongComponent (h : Statement.StrongComponent.{u}) :
     Statement.StrongA.{u} := by
-  intro K _ _ O _ _ _ _ _ R _ _ _ _ hR B _ _ _ _ _ _ G _ _ _ _ _ _ _ ι _ c₀ j₀ hj₀
+  intro K _ _ O _ _ _ _ _ _ R _ _ _ _ hR B _ _ _ _ _ _ G _ _ _ _ _ _ _ ι _ c₀ j₀ hj₀
   obtain ⟨K', i1, i2, i3, i4, O', hO', i5, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, hjd,
     hjS, hact, hactj, hdom, hdomS, -⟩ := h K O R hR (exists_finite_aeval hR).choose
       (exists_finite_aeval hR).choose_spec B G ι c₀ j₀ hj₀
