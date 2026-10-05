@@ -392,6 +392,8 @@ variable {K : Type u} [Field K] (O : ValuationSubring K)
   (hθgen : ∀ y : O', (y : E) ∈ Subring.closure
     ((((algebraMap K E).comp O.subtype).range : Set E) ∪ Set.range fun s ↦ (θ s : E)))
 
+attribute [local instance] compAlgO
+
 omit [Algebra K B] [IsScalarTower K K[X] B] in
 lemma toPi_injective : Function.Injective (toPi (K := K) (B := B) (E := E)) := by
   intro x y hxy
@@ -447,7 +449,96 @@ lemma hom_ext_ψ {Y : Scheme.{u}} [Y.IsSeparated]
       Spec.map (CommRingCat.ofHom (ψ (K := K) (B := B) (E := E))) ≫ b) : a = b :=
   ext_of_isDominant _ h
 
+omit [Module.Finite K[X] B] [Module.IsTorsionFree K[X] B] [IsReduced (BX K E B)] in
+lemma ψ_tmul_one (k : E) :
+    ψ (K := K) (B := B) (E := E) (k ⊗ₜ 1) = fun 𝔪 ↦ algebraMap E (Comp K E B 𝔪) k := by
+  ext 𝔪
+  change Ideal.Quotient.mk 𝔪.asIdeal (algebraMap (BX K E B) (LX K E B)
+    (tensorEquiv K E B (k ⊗ₜ 1))) = Ideal.Quotient.mk 𝔪.asIdeal (algebraMap E (LX K E B) k)
+  congr 1
+  rw [tensorEquiv_tmul_one, ← IsScalarTower.algebraMap_apply,
+    IsScalarTower.algebraMap_apply E[X] (RatFunc E) (LX K E B),
+    IsScalarTower.algebraMap_apply E (RatFunc E) (LX K E B), RatFunc.algebraMap_C]
+  rfl
+
+/-- `j` lies over `Spec O`. -/
+theorem jC_toSpec :
+    jC O O' hO' hn n hg hroot θ hθ0 hθint hθgen ≫ (c O O' n hg θ hθ0).toSpec =
+      Spec.map (CommRingCat.ofHom ((Algebra.TensorProduct.includeLeftRingHom).comp
+        ((algebraMap K E).comp O.subtype) : O →+* TensorProduct K E B)) := by
+  refine hom_ext_ψ ?_
+  rw [reassoc_of% SpecMap_ψ_jC, genericPtSigma_toSpec, ← Spec.map_comp,
+    ← CommRingCat.ofHom_comp]
+  congr 2
+  ext o 𝔪
+  change _ = ψ (K := K) (B := B) (E := E) (algebraMap K E o ⊗ₜ 1) 𝔪
+  rw [ψ_tmul_one]
+  rfl
+
 end JC
+
+section JAct
+
+variable {K : Type u} [Field K] (O : ValuationSubring K)
+  {B : Type u} [CommRing B] [Algebra K[X] B] [Module.Finite K[X] B] [Module.IsTorsionFree K[X] B]
+  [Algebra K B] [IsScalarTower K K[X] B]
+  {E : Type u} [Field E] [Algebra K E] (O' : ValuationSubring E)
+  (hO' : O'.comap (algebraMap K E) = O) [IsReduced (BX K E B)]
+  (hn : IsIntegrallyClosedIn (BX K E B) (LX K E B))
+  {G : Type u} [Group G] (β : G →* (B ≃ₐ[K[X]] B))
+  (hσO' : ∀ σ : E ≃ₐ[K] E, ∀ y ∈ O', σ y ∈ O')
+  (n : MaximalSpectrum (LX K E B) → ℕ) {g : ∀ 𝔪, Fin (n 𝔪 + 1) → Comp K E B 𝔪}
+  (hg : ∀ 𝔪 j, g 𝔪 j ≠ 0)
+  (hroot : ∀ 𝔪, LocallyDominates (algebraMap O' (Comp K E B 𝔪)).range (RingHom.id _)
+    (D K E B 𝔪).subtype (g 𝔪))
+  (hact : ∀ (h : H (K := K) G E) (𝔫 : MaximalSpectrum (LX K E B)),
+    ∀ Q ∈ (projModel (algebraMap O' (Comp K E B 𝔫)).range (g 𝔫)).points, ∃ i,
+      ∀ y ∈ projChart (algebraMap O' (Comp K E B (πh β h 𝔫))).range (g (πh β h 𝔫)) i,
+        φh β h 𝔫 y ∈ Q)
+  {r : ℕ} (θ : Fin r → O') (hθ0 : ∀ s, (θ s : E) ≠ 0)
+  (hθint : ∀ s, letI := algebraOO' O E O' hO'; IsIntegral O (θ s))
+  (hθgen : ∀ y : O', (y : E) ∈ Subring.closure
+    ((((algebraMap K E).comp O.subtype).range : Set E) ∪ Set.range fun s ↦ (θ s : E)))
+
+omit [Algebra K B] [IsScalarTower K K[X] B] in
+lemma toPi_bxEquiv (h : H (K := K) G E) (b : BX K E B) :
+    toPi (K := K) (B := B) (E := E)
+        (bxEquiv K E B (αH (G := G) h) (βH β h) b) =
+      piAct K E B (αH (G := G)) (βH β) h (toPi (K := K) (B := B) (E := E) b) := by
+  have e1 : ∀ b', toPi (K := K) (B := B) (E := E) b' =
+      equivPi K E B (algebraMap (BX K E B) (LX K E B) b') := fun b' ↦ by
+    ext 𝔪; rw [equivPi_apply]; rfl
+  rw [e1, e1, piAct_equivPi]
+  congr 1
+  exact (lxEquiv_algebraMap _ _ b).symm
+
+/-- `ψ` intertwines the action on `E ⊗_K B` with the action on the components. -/
+lemma ψ_congr (h : H (K := K) G E) (x : TensorProduct K E B) :
+    ψ (K := K) (B := B) (E := E) (Algebra.TensorProduct.congr (αH (G := G) h)
+        ((βH β h).restrictScalars K) x) =
+      piAct K E B (αH (G := G)) (βH β) h (ψ (K := K) (B := B) (E := E) x) := by
+  rw [ψ, RingHom.comp_apply, RingHom.comp_apply]
+  change toPi (tensorEquiv K E B (Algebra.TensorProduct.congr _ _ x)) = _
+  rw [tensorEquiv_congr, toPi_bxEquiv]
+  rfl
+
+/-- **`j` is equivariant.** -/
+theorem jC_equivariant (h : H (K := K) G E) :
+    Spec.map (CommRingCat.ofHom (Algebra.TensorProduct.congr (αH (G := G) h⁻¹)
+        ((βH β h⁻¹).restrictScalars K)).toRingHom) ≫
+        jC O O' hO' hn n hg hroot θ hθ0 hθint hθgen =
+      jC O O' hO' hn n hg hroot θ hθ0 hθint hθgen ≫
+        (act O O' hO' β hσO' n hg hact θ hθ0 hθint hθgen h).hom := by
+  refine hom_ext_ψ ?_
+  rw [reassoc_of% SpecMap_ψ_jC, act_hom, γc_actC, ← Category.assoc, ← Spec.map_comp,
+    ← CommRingCat.ofHom_comp]
+  have : (ψ (K := K) (B := B) (E := E)).comp ((Algebra.TensorProduct.congr (αH (G := G) h⁻¹)
+      ((βH β h⁻¹).restrictScalars K)).toRingHom : TensorProduct K E B →+* _) =
+        (piAct K E B (αH (G := G)) (βH β) h⁻¹).toRingHom.comp (ψ (K := K) (B := B) (E := E)) :=
+    RingHom.ext fun x ↦ ψ_congr β h⁻¹ x
+  rw [this, CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc, SpecMap_ψ_jC]
+
+end JAct
 
 end W10Assembly
 
