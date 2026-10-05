@@ -139,4 +139,37 @@ theorem jSigma_toSpec (τ : O →+* Π k, D k)
 
 end JSigma
 
+section SigmaIso
+
+variable {O O' : Type u} [CommRing O] [CommRing O'] {ι : Type u} [Fintype ι]
+  (c : ι → TemperedFundamentalGroups.ModelCode O) (c' : ι → TemperedFundamentalGroups.ModelCode O')
+  (e : ∀ k, (c k).scheme ≅ (c' k).scheme)
+
+/-- Componentwise isomorphisms of disjoint unions. -/
+noncomputable def sigmaIsoOfIso : (ModelCode.sigma c).scheme ≅ (ModelCode.sigma c').scheme where
+  hom := (ModelCode.sigmaIso c).inv ≫
+    Limits.Sigma.desc fun k ↦ (e k).hom ≫ ModelCode.sigmaι c' k
+  inv := (ModelCode.sigmaIso c').inv ≫
+    Limits.Sigma.desc fun k ↦ (e k).inv ≫ ModelCode.sigmaι c k
+  hom_inv_id := by
+    refine ModelCode.sigma_hom_ext _ fun k ↦ ?_
+    simp only [ModelCode.sigmaι, Category.assoc, Iso.hom_inv_id_assoc, Limits.Sigma.ι_desc_assoc,
+      Limits.Sigma.ι_desc, Iso.hom_inv_id_assoc, Category.comp_id]
+  inv_hom_id := by
+    refine ModelCode.sigma_hom_ext _ fun k ↦ ?_
+    simp only [ModelCode.sigmaι, Category.assoc, Iso.hom_inv_id_assoc, Limits.Sigma.ι_desc_assoc,
+      Limits.Sigma.ι_desc, Iso.inv_hom_id_assoc, Category.comp_id]
+
+theorem sigmaι_sigmaIsoOfIso (k : ι) :
+    ModelCode.sigmaι c k ≫ (sigmaIsoOfIso c c' e).hom = (e k).hom ≫ ModelCode.sigmaι c' k := by
+  simp only [sigmaIsoOfIso, ModelCode.sigmaι, Category.assoc, Iso.hom_inv_id_assoc,
+    Limits.Sigma.ι_desc]
+
+theorem sigmaι_sigmaIsoOfIso_inv (k : ι) :
+    ModelCode.sigmaι c' k ≫ (sigmaIsoOfIso c c' e).inv = (e k).inv ≫ ModelCode.sigmaι c k := by
+  simp only [sigmaIsoOfIso, ModelCode.sigmaι, Category.assoc, Iso.hom_inv_id_assoc,
+    Limits.Sigma.ι_desc]
+
+end SigmaIso
+
 end SemistableReduction

@@ -152,6 +152,48 @@ theorem lxEquiv_algebraMap_ratFunc (τ : M ≃ₐ[K] M) (g : A ≃ₐ[K[X]] A) (
       bxEquiv_algebraMap]
   exact congrFun (congrArg DFunLike.coe this) φ
 
+section BaseChange
+
+variable {M' : Type u} [Field M'] [Algebra K M'] [Algebra M M'] [IsScalarTower K M M']
+
+/-- The change of constants `LX K M A → LX K M' A` is semilinear over `ratFuncMap`. -/
+theorem lxMap_algebraMap_ratFunc (φ : RatFunc M) :
+    lxMap K M A M' (algebraMap (RatFunc M) (LX K M A) φ) =
+      algebraMap (RatFunc M') (LX K M' A) (ratFuncMap (algebraMap M M') φ) := by
+  have : (lxMap K M A M').comp (algebraMap (RatFunc M) (LX K M A)) =
+      (algebraMap (RatFunc M') (LX K M' A)).comp (ratFuncMap (algebraMap M M')) := by
+    refine IsLocalization.ringHom_ext (nonZeroDivisors M[X]) (RingHom.ext fun q ↦ ?_)
+    simp only [RingHom.comp_apply]
+    rw [ratFuncMap_algebraMap, ← IsScalarTower.algebraMap_apply,
+      ← IsScalarTower.algebraMap_apply, IsScalarTower.algebraMap_apply M[X] (BX K M A),
+      IsScalarTower.algebraMap_apply M'[X] (BX K M' A) (LX K M' A), lxMap_algebraMap,
+      bxMap_algebraMap]
+  exact congrFun (congrArg DFunLike.coe this) φ
+
+/-- `LB K A → LX K M A` is semilinear over `ratFuncMap`. -/
+theorem lbMap_algebraMap_ratFunc (φ : RatFunc K) :
+    lbMap K M A (algebraMap (RatFunc K) (LB K A) φ) =
+      algebraMap (RatFunc M) (LX K M A) (ratFuncMap (algebraMap K M) φ) := by
+  have : (lbMap K M A).comp (algebraMap (RatFunc K) (LB K A)) =
+      (algebraMap (RatFunc M) (LX K M A)).comp (ratFuncMap (algebraMap K M)) := by
+    refine IsLocalization.ringHom_ext (nonZeroDivisors K[X]) (RingHom.ext fun q ↦ ?_)
+    simp only [RingHom.comp_apply]
+    rw [ratFuncMap_algebraMap, ← IsScalarTower.algebraMap_apply,
+      ← IsScalarTower.algebraMap_apply, IsScalarTower.algebraMap_apply K[X] A (LB K A),
+      IsScalarTower.algebraMap_apply M[X] (BX K M A) (LX K M A), lbMap_algebraMap,
+      ofA_algebraMap]
+  exact congrFun (congrArg DFunLike.coe this) φ
+
+/-- The action is semilinear on the constants `M ⊆ LX`. -/
+theorem lxEquiv_algebraMap_const (τ : M ≃ₐ[K] M) (g : A ≃ₐ[K[X]] A) (m : M) :
+    lxEquiv K M A τ g (algebraMap M (LX K M A) m) = algebraMap M (LX K M A) (τ m) := by
+  rw [IsScalarTower.algebraMap_apply M (RatFunc M) (LX K M A), lxEquiv_algebraMap_ratFunc,
+    IsScalarTower.algebraMap_apply M (RatFunc M) (LX K M A)]
+  congr 1
+  exact ratFuncMap_algebraMap_C _ m
+
+end BaseChange
+
 section Group
 
 variable (K M A) {H : Type*} [Group H] (α : H →* (M ≃ₐ[K] M)) (β : H →* (A ≃ₐ[K[X]] A))
