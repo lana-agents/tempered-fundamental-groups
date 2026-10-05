@@ -155,6 +155,18 @@ theorem isSemistable_c' (ϖ' : O')
     TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSemistable ϖ' (c' O' n hg) :=
   TemperedFundamentalGroups.SemistableReduction.ModelCode.isSemistable_sigma _ ϖ' hss
 
+omit [Module.IsTorsionFree K[X] B] in
+/-- `e` is compatible with the generic points. -/
+theorem genericPtSigma_e :
+    genericPtSigma O (fun 𝔪 k ↦ thetasFamily_ne_zero (θc_ne_zero O' θ hθ0 𝔪) (hg 𝔪) k) ≫
+        (e O O' hO' n hg θ hθ0 hθint hθgen).hom = genericPtSigma O' hg := by
+  rw [← cancel_epi (sigmaSpec.{u, u} fun 𝔪 : MaximalSpectrum (LX K E B) ↦
+    CommRingCat.of (Comp K E B 𝔪))]
+  refine Sigma.hom_ext _ _ fun 𝔪 ↦ ?_
+  rw [ι_sigmaSpec_assoc, ι_sigmaSpec_assoc, reassoc_of% SpecMap_eval_genericPtSigma, e,
+    sigmaι_sigmaIsoOfIso, SpecMap_eval_genericPtSigma, eComp,
+    reassoc_of% genericPt_comp_baseChangeIsoFin]
+
 end Models
 
 section J
@@ -293,6 +305,75 @@ lemma actc'_toSpec (h : H (K := K) G E) :
   homSigmaLocal_toSpec _ _ _ _ _ _ fun 𝔫 ↦ RingHom.ext (φh_algebraMap O' β hσO' h 𝔫)
 
 end Act
+
+section ActC
+
+variable {K : Type u} [Field K] (O : ValuationSubring K)
+  {B : Type u} [CommRing B] [Algebra K[X] B] [Module.Finite K[X] B] [Module.IsTorsionFree K[X] B]
+  {E : Type u} [Field E] [Algebra K E] (O' : ValuationSubring E)
+  (hO' : O'.comap (algebraMap K E) = O) [IsReduced (BX K E B)]
+  {G : Type u} [Group G] (β : G →* (B ≃ₐ[K[X]] B))
+  (hσO' : ∀ σ : E ≃ₐ[K] E, ∀ y ∈ O', σ y ∈ O')
+  (n : MaximalSpectrum (LX K E B) → ℕ) {g : ∀ 𝔪, Fin (n 𝔪 + 1) → Comp K E B 𝔪}
+  (hg : ∀ 𝔪 j, g 𝔪 j ≠ 0)
+  (hact : ∀ (h : H (K := K) G E) (𝔫 : MaximalSpectrum (LX K E B)),
+    ∀ Q ∈ (projModel (algebraMap O' (Comp K E B 𝔫)).range (g 𝔫)).points, ∃ i,
+      ∀ y ∈ projChart (algebraMap O' (Comp K E B (πh β h 𝔫))).range (g (πh β h 𝔫)) i,
+        φh β h 𝔫 y ∈ Q)
+  {r : ℕ} (θ : Fin r → O') (hθ0 : ∀ s, (θ s : E) ≠ 0)
+  (hθint : ∀ s, letI := algebraOO' O E O' hO'; IsIntegral O (θ s))
+  (hθgen : ∀ y : O', (y : E) ∈ Subring.closure
+    ((((algebraMap K E).comp O.subtype).range : Set E) ∪ Set.range fun s ↦ (θ s : E)))
+
+attribute [local instance] compAlgO
+
+/-- The generic point of `c`. -/
+noncomputable abbrev γc : Spec (CommRingCat.of (∀ 𝔪 : MaximalSpectrum (LX K E B), Comp K E B 𝔪)) ⟶
+    (c O O' n hg θ hθ0).scheme :=
+  genericPtSigma O (fun 𝔪 k ↦ thetasFamily_ne_zero (θc_ne_zero O' θ hθ0 𝔪) (hg 𝔪) k)
+
+/-- The endomorphisms of `c` transported from `c'`. -/
+noncomputable def actC (h : H (K := K) G E) :
+    (c O O' n hg θ hθ0).scheme ⟶ (c O O' n hg θ hθ0).scheme :=
+  (e O O' hO' n hg θ hθ0 hθint hθgen).hom ≫ actc' O' β hσO' n hg hact h ≫
+    (e O O' hO' n hg θ hθ0 hθint hθgen).inv
+
+lemma γc_actC (h : H (K := K) G E) :
+    γc O O' n hg θ hθ0 ≫ actC O O' hO' β hσO' n hg hact θ hθ0 hθint hθgen h =
+      Spec.map (CommRingCat.ofHom
+        (piAct K E B (αH (G := G)) (βH β) h⁻¹).toRingHom) ≫ γc O O' n hg θ hθ0 := by
+  have h1 := genericPtSigma_e O O' hO' n hg θ hθ0 hθint hθgen
+  have h2 : genericPtSigma O' hg ≫ (e O O' hO' n hg θ hθ0 hθint hθgen).inv =
+      γc O O' n hg θ hθ0 := by rw [← h1, Category.assoc, Iso.hom_inv_id, Category.comp_id]
+  rw [actC, reassoc_of% h1, reassoc_of% genericPtSigma_actc', h2]
+
+/-- **The action of `G × Gal(E/K)` on `c`.** -/
+noncomputable def act : H (K := K) G E →* Aut (c O O' n hg θ hθ0).scheme :=
+  actOfGenericPt (γc O O' n hg θ hθ0) (piAct K E B (αH (G := G)) (βH β))
+    (actC O O' hO' β hσO' n hg hact θ hθ0 hθint hθgen)
+    (γc_actC O O' hO' β hσO' n hg hact θ hθ0 hθint hθgen)
+
+lemma act_hom (h : H (K := K) G E) :
+    (act O O' hO' β hσO' n hg hact θ hθ0 hθint hθgen h).hom =
+      actC O O' hO' β hσO' n hg hact θ hθ0 hθint hθgen h := rfl
+
+include hO' in
+lemma τh_comp_algOO' (h : H (K := K) G E) :
+    (τh O' hσO' h).comp (algOO' O E O' hO') = algOO' O E O' hO' := by
+  ext o
+  change (αH (G := G) h⁻¹ : E ≃ₐ[K] E) (algebraMap K E o) = algebraMap K E o
+  exact AlgEquiv.commutes _ _
+
+/-- The action on `c` lies over `Spec O`. -/
+theorem act_toSpec (h : H (K := K) G E) :
+    (act O O' hO' β hσO' n hg hact θ hθ0 hθint hθgen h).hom ≫ (c O O' n hg θ hθ0).toSpec =
+      (c O O' n hg θ hθ0).toSpec := by
+  rw [act_hom, actC, ← e_toSpec O O' hO' n hg θ hθ0 hθint hθgen]
+  simp only [Category.assoc, Iso.inv_hom_id_assoc]
+  rw [reassoc_of% actc'_toSpec, ← Spec.map_comp, ← CommRingCat.ofHom_comp,
+    τh_comp_algOO' O O' hO' hσO' h]
+
+end ActC
 
 end W10Assembly
 
