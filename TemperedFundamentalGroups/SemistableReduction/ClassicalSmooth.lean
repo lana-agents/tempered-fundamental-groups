@@ -43,16 +43,17 @@ local notation "𝒪" => HenselComplete.integers C
 
 variable (C G) in
 /-- **Unramified split datum** at the residue point `x̄ = 0` of `w_{0,1}`. -/
-structure SplitDatum (θ : G) (γ : Fin (Module.finrank (RatFunc C) G) → 𝒪) : Prop where
+structure SplitDatum (θ : G) {n : ℕ} (γ : Fin n → 𝒪) : Prop where
+  card : n = Module.finrank (RatFunc C) G
   integral : IsIntegral (discRing (0 : C) 1) θ
   sep : ∀ i j, i ≠ j → residue 𝒪 (γ i) ≠ residue 𝒪 (γ j)
   coeff : ∀ k, gauss1 C ((minpoly (RatFunc C) θ).coeff k -
     algebraMap C (RatFunc C) (((∏ i, (X - Polynomial.C (γ i))).map (algebraMap 𝒪 C)).coeff k)) < 1
 
-variable {θ : G} {γ : Fin (Module.finrank (RatFunc C) G) → HenselComplete.integers C}
+variable {θ : G} {n : ℕ} {γ : Fin n → HenselComplete.integers C}
 
 /-- The model polynomial `∏ᵢ (Y - γᵢ)`. -/
-noncomputable def P₀ (γ : Fin (Module.finrank (RatFunc C) G) → 𝒪) : 𝒪[X] :=
+noncomputable def P₀ (γ : Fin n → 𝒪) : 𝒪[X] :=
   ∏ i, (X - Polynomial.C (γ i))
 
 omit [IsAlgClosed C] [Algebra C G] [IsScalarTower C (RatFunc C) G] [FiniteDimensional (RatFunc C) G]
@@ -73,7 +74,7 @@ lemma valuation_aeval_lt_one (v : Ext C G) {t : G} (ht : v.1 t ≤ 1) {Q : (RatF
 
 omit [IsAlgClosed C] [Algebra C G] [IsScalarTower C (RatFunc C) G] [FiniteDimensional (RatFunc C) G]
   in
-lemma P₀_map_residue (γ : Fin (Module.finrank (RatFunc C) G) → 𝒪) :
+lemma P₀_map_residue (γ : Fin n → 𝒪) :
     (P₀ γ).map (residue 𝒪) = ∏ i, (X - Polynomial.C (residue 𝒪 (γ i))) := by
   simp [P₀, Polynomial.map_prod]
 
@@ -121,7 +122,7 @@ lemma norm_sub_eq (b : C) : ∃ m : ℕ, 0 < m ∧
 omit [IsAlgClosed C] [Algebra C G] [IsScalarTower C (RatFunc C) G] [FiniteDimensional (RatFunc C) G]
   in
 /-- `P(γⱼ)` has Gauss value `< 1`. -/
-lemma gauss1_eval_lt_one (h : SplitDatum C G θ γ) (j : Fin (Module.finrank (RatFunc C) G)) :
+lemma gauss1_eval_lt_one (h : SplitDatum C G θ γ) (j : Fin n) :
     gauss1 C ((minpoly (RatFunc C) θ).eval (algebraMap C (RatFunc C) (γ j))) < 1 := by
   set PC : C[X] := (P₀ γ).map (algebraMap 𝒪 C)
   set Qd : (RatFunc C)[X] := minpoly (RatFunc C) θ - PC.map (algebraMap C (RatFunc C))
@@ -162,7 +163,7 @@ lemma red_const (v : Ext C G) (b : 𝒪) :
 
 include hp hp1 in
 /-- **Every constant `γ̄ⱼ` is a reduction of `θ`** (norm formula). -/
-lemma exists_ext_red_eq (h : SplitDatum C G θ γ) (j : Fin (Module.finrank (RatFunc C) G)) :
+lemma exists_ext_red_eq (h : SplitDatum C G θ γ) (j : Fin n) :
     ∃ v : Ext C G, red C θ v = algebraMap 𝓀 _ (residue 𝒪 (γ j)) := by
   classical
   haveI : Finite (Ext C G) := finite_ext hp hp1
@@ -224,7 +225,7 @@ include hp hp1 in
 /-- **Counting**: every extension has `f = 1`, and `v ↦ (index of red θ)` is a bijection. -/
 lemma count (h : SplitDatum C G θ γ) :
     (∀ v : Ext C G, inertiaDeg (gauss1 C) v.1 = 1) ∧
-      ∃ ι : Ext C G ≃ Fin (Module.finrank (RatFunc C) G),
+      ∃ ι : Ext C G ≃ Fin n,
         ∀ v, red C θ v = algebraMap 𝓀 _ (residue 𝒪 (γ (ι v))) := by
   classical
   haveI : Finite (Ext C G) := finite_ext hp hp1
@@ -239,9 +240,10 @@ lemma count (h : SplitDatum C G θ γ) :
     refine ⟨v, hres_inj _ _ ?_⟩
     have := (hι v).symm.trans hv
     exact (algebraMap 𝓀 (ResidueField v.1.valuationSubring)).injective this
-  have hcard : Module.finrank (RatFunc C) G ≤ Fintype.card (Ext C G) := by
+  have hcard : n ≤ Fintype.card (Ext C G) := by
     simpa using Fintype.card_le_of_surjective ι hsurj
   have hsum := sum_inertiaDeg_eq hp hp1 (F := G)
+  rw [← h.card] at hsum
   have hpos : ∀ v : Ext C G, 1 ≤ inertiaDeg (gauss1 C) v.1 := fun v ↦ by
     haveI : Module.Finite (ResidueField (gauss1 C).valuationSubring)
       (ResidueField v.1.valuationSubring) := finite_residueField
@@ -255,7 +257,7 @@ lemma count (h : SplitDatum C G θ γ) :
     exact fun v ↦ (heq v (Finset.mem_univ v)).symm
   refine ⟨hall, Equiv.ofBijective ι ⟨?_, hsurj⟩, hι⟩
   refine (Fintype.bijective_iff_surjective_and_card ι).2 ⟨hsurj, ?_⟩ |>.1
-  have : Fintype.card (Ext C G) ≤ Module.finrank (RatFunc C) G := by
+  have : Fintype.card (Ext C G) ≤ n := by
     rw [← hsum, ← Finset.card_univ]
     calc Finset.univ.card = ∑ _v : Ext C G, 1 := by simp
       _ ≤ _ := Finset.sum_le_sum fun v _ ↦ hpos v
@@ -360,7 +362,7 @@ theorem isDiscSmooth_of_splitDatum (h : SplitDatum C G θ γ) (P' : Ideal (DRint
   have hQm : ∀ v, Q v ∈ zeros 𝓀 (red C (xF C G) v) := fun v ↦ by
     rw [(hQ v).1]; exact Finset.mem_singleton_self _
   let θD : DRint (0 : C) 1 G := ⟨θ, h.integral⟩
-  let y : Fin (Module.finrank (RatFunc C) G) → DRint (0 : C) 1 G := fun i ↦ θD - constD (γ i)
+  let y : Fin n → DRint (0 : C) 1 G := fun i ↦ θD - constD (γ i)
   have hredy : ∀ v i, redD v (y i) = algebraMap 𝓀 _ (residue 𝒪 (γ (ι v))) -
       algebraMap 𝓀 _ (residue 𝒪 (γ i)) := by
     intro v i
@@ -399,7 +401,7 @@ theorem isDiscSmooth_of_splitDatum (h : SplitDatum C G θ γ) (P' : Ideal (DRint
       · exact hcen P₁ inferInstance hP'
       · obtain ⟨v, -, rfl⟩ := Finset.mem_image.1 hP₁
         exact hcen _ (placeIdealD_isMaximal v (hQm v)) (comap_placeIdealD v (hQm v))
-    have hcardT : T.card = Module.finrank (RatFunc C) G + 1 := by
+    have hcardT : T.card = n + 1 := by
       rw [Finset.card_insert_of_notMem (fun hm ↦ by
         obtain ⟨v, -, hv⟩ := Finset.mem_image.1 hm
         exact hno v hv), Finset.card_image_of_injective _ fun v v' ↦ hinj v v',
@@ -407,6 +409,7 @@ theorem isDiscSmooth_of_splitDatum (h : SplitDatum C G θ γ) (P' : Ideal (DRint
     have := (Finset.card_le_card hT).trans Finset.card_image_le
     rw [hcardT, Finset.card_univ] at this
     have := this.trans (card_factor_le (C := C) (G := G))
+    rw [← h.card] at this
     omega
   -- the smooth point
   refine ⟨⟨v, Q v, hQm v⟩, ?_, fun α hα ↦ ?_⟩
