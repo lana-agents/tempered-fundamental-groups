@@ -159,6 +159,70 @@ theorem outer_ext_eq (hp1 : ‖(p : C)‖ < 1) (hγ : γ ^ (p - 1) = -(p : C))
 
 end Outer
 
+/-! ### The residue field of the outer vertex -/
+
+section OuterResidue
+
+open IsLocalRing FundamentalInequality IntermediateField
+
+attribute [local instance] isCurveFunctionField DiscreteCoefficients.isAlgClosed_residueField
+
+local notation "𝓀" => IsLocalRing.ResidueField (HenselComplete.integers C)
+
+/-- The twisted field as an `L`-algebra (through the untwisted structure). Only a local instance
+of low priority: it is generic in `L` and would otherwise shadow `Algebra C (Aff a' c' F')`. -/
+@[reducible] noncomputable def algebraAff {a' c' : C} {hc' : c' ≠ 0} :
+    Algebra L (Aff a' c' hc' F') := inferInstanceAs (Algebra L F')
+
+attribute [local instance 10] algebraAff
+
+omit [IsUltrametricDist C] [IsAlgClosed C] [Algebra (RatFunc C) L]
+  [FiniteDimensional (RatFunc C) L] [Algebra.IsSeparable (RatFunc C) L] [Algebra (RatFunc C) F']
+  [IsScalarTower (RatFunc C) L F'] [Algebra C F'] [IsScalarTower C (RatFunc C) F']
+  [FiniteDimensional (RatFunc C) F'] in
+lemma algebraMap_aff_L {a' c' : C} {hc' : c' ≠ 0} (y : L) :
+    algebraMap L (Aff a' c' hc' F') y = toAff hc' (algebraMap L F' y) := rfl
+
+
+omit [FiniteDimensional (RatFunc C) F'] in
+/-- **Residues of the sheet lie in `k(x̄)`**: the image of the residue field of the sheet
+extension in the residue field of an outer vertex over it is contained in `k(x̄)`. -/
+theorem residue_sheet_mem_adjoin (v : Ext C (Aff a (l * c) (mul_ne_zero hl0 hc) F'))
+    (hvS : v.1.comap (algebraMap L (Aff a (l * c) (mul_ne_zero hl0 hc) F')) =
+      (sheetExt hc ν₀ P' h1 hl0 hl1).1)
+    [(sheetExt hc ν₀ P' h1 hl0 hl1).1.HasExtension v.1]
+    (z : ResidueField (sheetExt hc ν₀ P' h1 hl0 hl1).1.valuationSubring) :
+    algebraMap _ (ResidueField v.1.valuationSubring) z ∈
+      𝓀⟮red C (xF C (Aff a (l * c) (mul_ne_zero hl0 hc) F')) v⟯ := by
+  obtain ⟨y, rfl⟩ := residue_surjective z
+  obtain ⟨φ, hφ⟩ := exists_ratFunc_approx hc ν₀ P' h1 hl0 hl1 (y : L) one_pos
+  replace hφ : (sheetExt hc ν₀ P' h1 hl0 hl1).1 ((y : L) - algebraMap (RatFunc C) L φ) < 1 := by
+    exact_mod_cast hφ
+  set σ := (aff a (l * c) (mul_ne_zero hl0 hc)).symm
+  have hSφ : (sheetExt hc ν₀ P' h1 hl0 hl1).1 (algebraMap (RatFunc C) L φ) ≤ 1 := by
+    have := Valuation.map_add (sheetExt hc ν₀ P' h1 hl0 hl1).1
+      (algebraMap (RatFunc C) L φ - (y : L)) (y : L)
+    rw [sub_add_cancel, Valuation.map_sub_swap] at this
+    exact this.trans (max_le hφ.le y.2)
+  have hσ : GaussFibre.gauss1 C (σ φ) ≤ 1 := by
+    rw [gauss1_aff_symm, ← sheet_algebraMap hc ν₀ P' h1 hl0 hl1]; exact hSφ
+  have hmap : algebraMap L (Aff a (l * c) (mul_ne_zero hl0 hc) F') (algebraMap (RatFunc C) L φ) =
+      algebraMap (RatFunc C) (Aff a (l * c) (mul_ne_zero hl0 hc) F') (σ φ) := by
+    rw [algebraMap_aff_apply, AlgEquiv.apply_symm_apply, algebraMap_aff_L,
+      ← IsScalarTower.algebraMap_apply]
+  have key : v.1 (algebraMap (RatFunc C) (Aff a (l * c) (mul_ne_zero hl0 hc) F') (σ φ) -
+      algebraMap L (Aff a (l * c) (mul_ne_zero hl0 hc) F') (y : L)) < 1 := by
+    rw [← hmap, ← map_sub, ← Valuation.comap_apply, hvS, Valuation.map_sub_swap]
+    exact hφ
+  rw [mem_adjoin_red_x_iff]
+  refine ⟨residue _ ⟨σ φ, hσ⟩, ?_⟩
+  rw [Valuation.HasExtension.algebraMap_residue_eq_residue_algebraMap,
+    Valuation.HasExtension.algebraMap_residue_eq_residue_algebraMap, ← sub_eq_zero, ← map_sub,
+    residue_eq_zero_iff, Valuation.mem_maximalIdeal_iff]
+  exact key
+
+end OuterResidue
+
 end KummerAnnulus
 
 end SemistableReduction
