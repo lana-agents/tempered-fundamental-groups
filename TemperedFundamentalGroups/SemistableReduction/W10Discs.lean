@@ -6,6 +6,7 @@ Authors: Christian Merten
 import TemperedFundamentalGroups.SemistableReduction.AbhyankarInequality
 import TemperedFundamentalGroups.SemistableReduction.GaussModel
 import TemperedFundamentalGroups.SemistableReduction.VertexDescent
+import TemperedFundamentalGroups.SemistableReduction.W7Statement
 
 /-!
 # Type-2 valuation subrings of `C(X)` are Gauss valuation rings
@@ -259,6 +260,130 @@ theorem comap_mem_RT {charts₁ : Set (Subring F₁)} {charts₂ : Set (Subring 
       rw [map_inv₀, himg]; exact h₂
 
 end Transport
+
+section V0
+
+open ZariskiModel
+
+variable {C : Type*} [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
+  {κ : Type*} [Finite κ] (F : κ → Type*) [∀ k, Field (F k)] [∀ k, Algebra (RatFunc C) (F k)]
+  [∀ k, Algebra C (F k)] [∀ k, IsScalarTower C (RatFunc C) (F k)]
+  [∀ k, FiniteDimensional (RatFunc C) (F k)] (charts : ∀ k, Set (Subring (F k)))
+
+set_option hygiene false in
+local notation "ν" => NormedField.valuation (K := C)
+
+/-- The restrictions to `C(X)` of the residue-transcendental centres. -/
+def S0 : Set (ValuationSubring (RatFunc C)) :=
+  {V | ∃ k, ∃ W ∈ RT (ν).valuationSubring (charts k), V = W.comap (algebraMap (RatFunc C) (F k))}
+
+omit [IsAlgClosed C] [∀ k, IsScalarTower C (RatFunc C) (F k)]
+  [∀ k, FiniteDimensional (RatFunc C) (F k)] in
+lemma S0_finite (hfin : ∀ k, (RT (ν).valuationSubring (charts k)).Finite) :
+    (S0 (C := C) F charts).Finite := by
+  have : S0 (C := C) F charts = ⋃ k, (fun W ↦ W.comap (algebraMap (RatFunc C) (F k))) ''
+      (RT (ν).valuationSubring (charts k)) := by
+    ext V; simp [S0, eq_comm]
+  rw [this]
+  exact Set.finite_iUnion fun k ↦ (hfin k).image _
+
+omit [Finite κ] in
+lemma exists_disc_of_mem_S0 {V : ValuationSubring (RatFunc C)} (hV : V ∈ S0 (C := C) F charts) :
+    ∃ (a c : C) (hc : c ≠ 0), V = (gaussRat ν a
+      (Units.mk0 (ν c) ((Valuation.ne_zero_iff ν).2 hc))).valuationSubring := by
+  obtain ⟨k, W, ⟨hWO, B, -, hBW, z, -, hz⟩, rfl⟩ := hV
+  haveI : Algebra.IsAlgebraic (RatFunc C) (F k) := Algebra.IsAlgebraic.of_finite _ _
+  have hT : IsTypeTwo (ν).valuationSubring (W.comap (algebraMap (RatFunc C) (F k))) :=
+    isTypeTwo_comap hWO ⟨z, hz⟩
+  refine exists_eq_gaussRat_valuationSubring ?_ hT
+  rw [comap_comap_eq hWO]
+
+section Galois
+
+variable {F charts} (τ : C ≃+* C) (hτ : ∀ z, ‖τ z‖ = ‖z‖) {π : κ → κ}
+  (σ : ∀ k, F (π k) ≃+* F k)
+  (hσ : ∀ k φ, σ k (algebraMap (RatFunc C) (F (π k)) φ) =
+    algebraMap (RatFunc C) (F k) (ratFuncMap (τ : C →+* C) φ))
+  (hch : ∀ k, ∀ B ∈ charts k, B.comap (σ k : F (π k) →+* F k) ∈ charts (π k))
+
+omit [IsAlgClosed C] in
+include hτ in
+lemma valuation_comap_eq : (ν).comap (τ : C →+* C) = ν := by
+  ext x
+  rw [Valuation.comap_apply, NormedField.valuation_apply, NormedField.valuation_apply]
+  rw [show ‖(τ : C →+* C) x‖₊ = ‖x‖₊ from NNReal.eq (hτ x)]
+
+omit [Finite κ] [IsAlgClosed C] [∀ k, FiniteDimensional (RatFunc C) (F k)] in
+include hτ hσ hch in
+lemma comap_mem_S0 {V : ValuationSubring (RatFunc C)} (hV : V ∈ S0 (C := C) F charts) :
+    V.comap (ratFuncMap (τ : C →+* C)) ∈ S0 (C := C) F charts := by
+  obtain ⟨k, W, hW, rfl⟩ := hV
+  have hτO : ∀ x, x ∈ (ν).valuationSubring ↔ τ x ∈ (ν).valuationSubring := fun x ↦ by
+    simp only [Valuation.mem_valuationSubring_iff, NormedField.valuation_apply, ← NNReal.coe_le_coe,
+      coe_nnnorm, NNReal.coe_one, hτ]
+  have hφ : ∀ c, σ k (algebraMap C (F (π k)) c) = algebraMap C (F k) (τ c) := fun c ↦ by
+    rw [IsScalarTower.algebraMap_apply C (RatFunc C) (F (π k)), hσ,
+      IsScalarTower.algebraMap_apply C (RatFunc C) (F k), ratFuncMap_algebraMap_C]
+    rfl
+  refine ⟨π k, W.comap (σ k : F (π k) →+* F k),
+    comap_mem_RT τ hτO (σ k) hφ (hch k) hW, ?_⟩
+  ext φ
+  simp only [ValuationSubring.mem_comap]
+  change algebraMap (RatFunc C) (F k) (ratFuncMap (τ : C →+* C) φ) ∈ W ↔
+    σ k (algebraMap (RatFunc C) (F (π k)) φ) ∈ W
+  rw [hσ]
+
+omit [IsAlgClosed C] in
+include hτ in
+lemma comap_gaussRat_valuationSubring (a : C) (r : NNRealˣ) :
+    (gaussRat ν a r).valuationSubring.comap (ratFuncMap (τ : C →+* C)) =
+      (gaussRat ν (τ.symm a) r).valuationSubring := by
+  have := comap_valuationSubring_gaussRat (τ : C →+* C) ν (τ.symm a) r
+  rwa [RingEquiv.coe_toRingHom, τ.apply_symm_apply, valuation_comap_eq τ hτ] at this
+
+end Galois
+
+/-- **The discs `V₀`**: the Gauss valuations under the residue-transcendental centres, a finite
+family stable under the isometric automorphisms that transport the charts. -/
+theorem exists_V0 (hfin : ∀ k, (RT (ν).valuationSubring (charts k)).Finite)
+    (Gal : Set (C ≃+* C)) (hinv : ∀ τ ∈ Gal, τ.symm ∈ Gal) (hiso : ∀ τ ∈ Gal, ∀ z, ‖τ z‖ = ‖z‖)
+    (htr : ∀ τ ∈ Gal, ∃ (π : κ → κ) (σ : ∀ k, F (π k) ≃+* F k),
+      (∀ k φ, σ k (algebraMap (RatFunc C) (F (π k)) φ) =
+        algebraMap (RatFunc C) (F k) (ratFuncMap (τ : C →+* C) φ)) ∧
+      ∀ k, ∀ B ∈ charts k, B.comap (σ k : F (π k) →+* F k) ∈ charts (π k)) :
+    ∃ (n : ℕ) (a₀ c₀ : Fin n → C) (hc₀ : ∀ i, c₀ i ≠ 0),
+      (∀ k, ∀ W ∈ RT (ν).valuationSubring (charts k), ∃ i,
+        W.comap (algebraMap (RatFunc C) (F k)) = (gaussRat ν (a₀ i)
+          (Units.mk0 (ν (c₀ i)) ((Valuation.ne_zero_iff ν).2 (hc₀ i)))).valuationSubring) ∧
+      ∀ τ ∈ Gal, W7.DiscsLE (fun i ↦ τ (a₀ i)) c₀ a₀ c₀ := by
+  classical
+  set S := S0 (C := C) F charts
+  have hS := S0_finite F charts hfin
+  set T := hS.toFinset
+  set e := T.equivFin.symm
+  have hmem : ∀ i, ((e i : ValuationSubring (RatFunc C))) ∈ S := fun i ↦
+    hS.mem_toFinset.1 (e i).2
+  choose a c hc hac using fun i ↦ exists_disc_of_mem_S0 F charts (hmem i)
+  have hsurj : ∀ V ∈ S, ∃ i, V = e i := fun V hV ↦
+    ⟨e.symm ⟨V, hS.mem_toFinset.2 hV⟩, by rw [Equiv.apply_symm_apply]⟩
+  refine ⟨T.card, a, c, hc, fun k W hW ↦ ?_, fun τ hτ ↦ ?_⟩
+  · obtain ⟨i, hi⟩ := hsurj _ ⟨k, W, hW, rfl⟩
+    exact ⟨i, hi.trans (hac i)⟩
+  · intro i
+    obtain ⟨π, σ, hσ, hch⟩ := htr τ.symm (hinv τ hτ)
+    have hV := comap_mem_S0 τ.symm (hiso _ (hinv τ hτ)) σ hσ hch (hac i ▸ hmem i)
+    rw [comap_gaussRat_valuationSubring τ.symm (hiso _ (hinv τ hτ)), RingEquiv.symm_symm] at hV
+    obtain ⟨j, hj⟩ := hsurj _ hV
+    rw [hac j] at hj
+    obtain ⟨h₁, h₂⟩ := disc_eq_of_valuationSubring_eq (hc i) (hc j) hj
+    refine ⟨j, ?_, ?_⟩
+    · rw [NormedField.valuation_apply, NormedField.valuation_apply] at h₁
+      exact congrArg NNReal.toReal h₁.symm
+    · rw [NormedField.valuation_apply, NormedField.valuation_apply, ← NNReal.coe_le_coe,
+        coe_nnnorm, coe_nnnorm, ← norm_neg, neg_sub] at h₂
+      exact h₂
+
+end V0
 
 end W10Discs
 
