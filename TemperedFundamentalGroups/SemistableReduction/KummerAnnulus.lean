@@ -75,6 +75,49 @@ lemma coe_nodeMap (y : DRint a c L) :
     ((nodeMap (F' := F') hc hl0 hl1 l₀ y : Rint l₀ _) : Aff a (l * c) (mul_ne_zero hl0 hc) F') =
       toAff (mul_ne_zero hl0 hc) (algebraMap L F' (y : L)) := rfl
 
+/-! ### Zeros in a purely inseparable extension of `k(x)` -/
+
+section Insep
+
+open PlaceNorm CurvePlace IntermediateField
+
+variable {k κ : Type*} [Field k] [Field κ] [Algebra k κ] [IsAlgClosed k]
+  [IsCurveFunctionField k κ]
+
+lemma mem_V_iff_expo {x : κ} (hx0 : x ≠ 0) {Q : CurvePlace k κ} (hQ : Q ∈ zeros k x)
+    {a : k⟮x⟯} (ha : a ≠ 0) : (a : κ) ∈ Q.V ↔ 0 ≤ expo x a := by
+  rw [← valuation_le_one_iff, valuation_eq_expo hx0 ha hQ, ← WithZero.exp_zero,
+    WithZero.exp_le_exp]
+  have h1 : (1 : ℤ) ≤ ord x Q := by exact_mod_cast one_le_ord hQ
+  constructor
+  · intro h
+    by_contra h'
+    push Not at h'
+    nlinarith
+  · intro h
+    nlinarith
+
+/-- **Zeros in a purely inseparable extension**: if every `p`-th power of `κ` lies in `k(x)`,
+then `x` has at most one zero. -/
+theorem eq_of_mem_zeros {p : ℕ} (hp : p ≠ 0) {x : κ} (hx0 : x ≠ 0)
+    (hpow : ∀ z : κ, z ^ p ∈ k⟮x⟯) {Q₁ Q₂ : CurvePlace k κ} (h₁ : Q₁ ∈ zeros k x)
+    (h₂ : Q₂ ∈ zeros k x) : Q₁ = Q₂ := by
+  have key : ∀ Q : CurvePlace k κ, Q ∈ zeros k x → ∀ z : κ, z ≠ 0 →
+      (z ∈ Q.V ↔ 0 ≤ expo x ⟨z ^ p, hpow z⟩) := by
+    intro Q hQ z hz
+    have ha : (⟨z ^ p, hpow z⟩ : k⟮x⟯) ≠ 0 := fun h ↦ hz (pow_eq_zero_iff hp |>.1 congr($h.1))
+    rw [← mem_V_iff_expo hx0 hQ ha, ← valuation_le_one_iff, ← valuation_le_one_iff, map_pow,
+      pow_le_one_iff hp]
+  obtain ⟨V₁, hk₁, ht₁⟩ := Q₁
+  obtain ⟨V₂, hk₂, ht₂⟩ := Q₂
+  congr 1
+  ext z
+  by_cases hz : z = 0
+  · subst hz; exact ⟨fun _ ↦ V₂.zero_mem, fun _ ↦ V₁.zero_mem⟩
+  · exact (key _ h₁ z hz).trans (key _ h₂ z hz).symm
+
+end Insep
+
 /-! ### Kummer data at a radius -/
 
 variable (p : ℕ) (γ : C) (θ : F') (f : L)
@@ -220,6 +263,61 @@ theorem residue_sheet_mem_adjoin (v : Ext C (Aff a (l * c) (mul_ne_zero hl0 hc) 
     Valuation.HasExtension.algebraMap_residue_eq_residue_algebraMap, ← sub_eq_zero, ← map_sub,
     residue_eq_zero_iff, Valuation.mem_maximalIdeal_iff]
   exact key
+
+/-- **A unique outer branch at an outer vertex over the sheet** (purely inseparable case): the
+residue field `κ(v)` is purely inseparable of exponent one over `k(x̄)`, so `x̄` has at most one
+zero. -/
+theorem outer_zero_unique [Fact p.Prime] [FiniteDimensional L F'] (hp1 : ‖(p : C)‖ < 1)
+    (hγ : γ ^ (p - 1) = -(p : C)) (hθ : θ ^ p = algebraMap L F' f)
+    (hspan : Submodule.span L (Set.range fun i : Fin p ↦ θ ^ (i : ℕ)) = ⊤)
+    (D : InsepData hc ν₀ P' h1 hl0 hl1 p γ f)
+    (v : Ext C (Aff a (l * c) (mul_ne_zero hl0 hc) F'))
+    (hvS : v.1.comap ((toAff (a := a) (mul_ne_zero hl0 hc) (F' := F')).toRingHom.comp
+      (algebraMap L F')) = (sheetExt hc ν₀ P' h1 hl0 hl1).1)
+    {Q₁ Q₂ : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (h₁ : Q₁ ∈ zeros 𝓀 (red C (xF C (Aff a (l * c) (mul_ne_zero hl0 hc) F')) v))
+    (h₂ : Q₂ ∈ zeros 𝓀 (red C (xF C (Aff a (l * c) (mul_ne_zero hl0 hc) F')) v)) :
+    Q₁ = Q₂ := by
+  set F₁ := Aff a (l * c) (mul_ne_zero hl0 hc) F'
+  letI : FiniteDimensional L F₁ := inferInstanceAs (FiniteDimensional L F')
+  have hvS' : v.1.comap (algebraMap L F₁) = (sheetExt hc ν₀ P' h1 hl0 hl1).1 := hvS
+  haveI := DenseCompletion.hasExtension_of_comap_eq hvS'
+  have hθ₁ : toAff (mul_ne_zero hl0 hc) θ ^ p = algebraMap L F₁ f := by
+    rw [← map_pow, hθ]; rfl
+  have hspan₁ : Submodule.span L
+      (Set.range fun i : Fin p ↦ (toAff (mul_ne_zero hl0 hc) θ : F₁) ^ (i : ℕ)) = ⊤ := hspan
+  have hpow : ∀ z : ResidueField v.1.valuationSubring,
+      z ^ p ∈ 𝓀⟮red C (xF C F₁) v⟯ := by
+    intro z
+    obtain ⟨y, hy⟩ := insep_residue_pow_mem hc ν₀ P' h1 hl0 hl1 p hp1 hγ hvS' hθ₁ hspan₁ D.hh'
+      D.hγl D.hl1' D.hGle D.hGm D.hpm D.hf z
+    rw [← hy]
+    exact residue_sheet_mem_adjoin hc ν₀ P' h1 hl0 hl1 v hvS' y
+  have hx0 : red C (xF C F₁) v ≠ 0 := fun h0 ↦ transcendental_red_x v (by
+    rw [h0]; exact isAlgebraic_zero)
+  exact eq_of_mem_zeros (k := 𝓀) (κ := ResidueField v.1.valuationSubring)
+    (Fact.out : p.Prime).ne_zero hx0 hpow h₁ h₂
+
+/-- **Exactly one outer branch** through a node point over `P'` (purely inseparable case). -/
+theorem outerBranches_eq_singleton [CharZero C] [Fact p.Prime] [FiniteDimensional L F']
+    (hp1 : ‖(p : C)‖ < 1) (hγ : γ ^ (p - 1) = -(p : C)) (hθ : θ ^ p = algebraMap L F' f)
+    (hspan : Submodule.span L (Set.range fun i : Fin p ↦ θ ^ (i : ℕ)) = ⊤)
+    (D : InsepData hc ν₀ P' h1 hl0 hl1 p γ f) {l₀ : C} (hl₀1 : ‖l₀‖ < 1) (hl₀0 : l₀ ≠ 0)
+    (P'' : Ideal (Rint l₀ (Aff a (l * c) (mul_ne_zero hl0 hc) F'))) [P''.IsMaximal]
+    (hnode : P''.comap (algebraMap (nodeRing l₀) _) = tubeIdeal l₀)
+    (hP'' : P''.comap (nodeMap (F' := F') hc hl0 hl1 l₀) = P') :
+    ∃ b, outerBranches hl₀1 P'' = {b} := by
+  obtain ⟨b, hb⟩ := exists_outerBranch (Fact.out : p.Prime) hp1 hl₀1 hl₀0 P'' hnode
+  refine ⟨b, Set.eq_singleton_iff_unique_mem.2 ⟨hb, fun b' hb' ↦ ?_⟩⟩
+  obtain ⟨v, Q, hQ⟩ := b
+  obtain ⟨v', Q', hQ'⟩ := b'
+  have hvv : v' = v := outer_ext_eq hc ν₀ P' h1 hl0 hl1 p γ θ f hp1 hγ hθ hspan D hl₀1 hQ' hQ hb'
+    hb hP'' hP''
+  subst hvv
+  have hr := outer_restrict hc ν₀ P' h1 hl0 hl1 hl₀1 v' hQ hb hP''
+  have hQQ : Q' = Q := outer_zero_unique hc ν₀ P' h1 hl0 hl1 p γ θ f hp1 hγ hθ hspan D v' hr hQ' hQ
+  subst hQQ
+  rfl
 
 end OuterResidue
 
