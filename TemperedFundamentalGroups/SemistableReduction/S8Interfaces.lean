@@ -46,8 +46,8 @@ finite extension of `C(x)`.
   is good;
 * `EdgeRepair` (O10, owner R4 agent): the breaks of a segment are finite, and every sub-edge
   containing no break is good;
-* `Transport` (owner S8.A agent): `BallGood` and `EdgeGood` are invariant under isometric
-  automorphisms `τ` of `C` extending to `τ`-semilinear automorphisms of `F`;
+* `TransportFor`: `BallGood` and `EdgeGood` are invariant under isometric automorphisms `τ` of
+  `C` extending to `τ`-semilinear automorphisms of `F` (**proved**, `S8A.Transport.transportFor`);
 * `S8CReduction` (S8.C, [AW Prop 2.1], L1 A1–A6, owner S8.5/L1): a finite family of extensions
   embeds into one Galois extension `F''` of `C(x)` such that semistability of a Gauss tree for
   `F''` implies it for every member, and `τ`-semilinear automorphisms of the family lift to `F''`.
@@ -160,7 +160,7 @@ end Field
 
 /-! ### The interfaces, quantified over all bases and Galois extensions -/
 
-/-- The local inputs for Galois extensions (S8.B, R5, finiteness, `∞`, EdgeRepair, transport). -/
+/-- The local inputs for Galois extensions (S8.B, R5, finiteness, `∞`, EdgeRepair). -/
 structure GaloisInputs : Prop where
   s8b : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
@@ -182,10 +182,6 @@ structure GaloisInputs : Prop where
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
     [FiniteDimensional (RatFunc C) F], EdgeRepairFor C F
-  transport : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
-    [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
-    ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F], TransportFor C F
 
 /-- **S8.C** ([AW Prop 2.1], L1): a finite family of finite extensions of `C(x)` embeds into one
 finite Galois extension `F''` such that every Gauss tree semistable for `F''` is semistable for

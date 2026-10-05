@@ -3,13 +3,14 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.SemistableReduction.S8Equivariance
+import TemperedFundamentalGroups.SemistableReduction.S8Transport
 
 /-!
 # S8.A: `W7.Statement` from the local interfaces
 
 Blueprint §9.12, O6. **`W7.statement_of_interfaces`**: the local inputs `S8A.GaloisInputs`
-(S8.B, R5, finiteness of bad balls, the residue class at `∞`, EdgeRepair, transport) and the
+(S8.B, R5, finiteness of bad balls, the residue class at `∞`, EdgeRepair; transport is
+proved, `Transport.transportFor`) and the
 Galois reduction `S8A.S8CReduction` imply `W7.Statement`. All of them are explicit hypotheses,
 recorded as open in Blueprint §9.12 (O6.1–O6.6, O10).
 
@@ -38,7 +39,7 @@ theorem W7.statement_of_interfaces (hG : GaloisInputs.{u}) (hC : S8CReduction.{u
   have hfin := hG.finiteBad C p hp hp1 F
   obtain ⟨R₀, hR₀⟩ := hG.infty C p hp hp1 F
   have hrep := hG.edgeRepair C p hp hp1 F
-  have htr := hG.transport C p hp hp1 F
+  have htr : TransportFor C F := Transport.transportFor
   classical
   -- the root
   obtain ⟨ρ, hρ⟩ := NormedField.exists_lt_norm C (max R₀ (∑ k, (‖a₀ k‖ + ‖c₀ k‖)))
