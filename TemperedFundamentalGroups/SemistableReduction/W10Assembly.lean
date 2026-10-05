@@ -375,6 +375,80 @@ theorem act_toSpec (h : H (K := K) G E) :
 
 end ActC
 
+section JC
+
+variable {K : Type u} [Field K] (O : ValuationSubring K)
+  {B : Type u} [CommRing B] [Algebra K[X] B] [Module.Finite K[X] B] [Module.IsTorsionFree K[X] B]
+  [Algebra K B] [IsScalarTower K K[X] B]
+  {E : Type u} [Field E] [Algebra K E] (O' : ValuationSubring E)
+  (hO' : O'.comap (algebraMap K E) = O) [IsReduced (BX K E B)]
+  (hn : IsIntegrallyClosedIn (BX K E B) (LX K E B))
+  (n : MaximalSpectrum (LX K E B) → ℕ) {g : ∀ 𝔪, Fin (n 𝔪 + 1) → Comp K E B 𝔪}
+  (hg : ∀ 𝔪 j, g 𝔪 j ≠ 0)
+  (hroot : ∀ 𝔪, LocallyDominates (algebraMap O' (Comp K E B 𝔪)).range (RingHom.id _)
+    (D K E B 𝔪).subtype (g 𝔪))
+  {r : ℕ} (θ : Fin r → O') (hθ0 : ∀ s, (θ s : E) ≠ 0)
+  (hθint : ∀ s, letI := algebraOO' O E O' hO'; IsIntegral O (θ s))
+  (hθgen : ∀ y : O', (y : E) ∈ Subring.closure
+    ((((algebraMap K E).comp O.subtype).range : Set E) ∪ Set.range fun s ↦ (θ s : E)))
+
+omit [Algebra K B] [IsScalarTower K K[X] B] in
+lemma toPi_injective : Function.Injective (toPi (K := K) (B := B) (E := E)) := by
+  intro x y hxy
+  apply injective_toLX K E B
+  apply (equivPi K E B).injective
+  ext 𝔪
+  rw [equivPi_apply, equivPi_apply]
+  exact congrFun hxy 𝔪
+
+/-- The generic point of `E ⊗_K B`: `E ⊗_K B → ∏ Comp`. -/
+noncomputable def ψ : TensorProduct K E B →+* (∀ 𝔪 : MaximalSpectrum (LX K E B), Comp K E B 𝔪) :=
+  (toPi (K := K) (B := B) (E := E)).comp (tensorEquiv K E B).toRingHom
+
+lemma ψ_injective : Function.Injective (ψ (K := K) (B := B) (E := E)) :=
+  (toPi_injective).comp (tensorEquiv K E B).injective
+
+instance : IsReduced (TensorProduct K E B) :=
+  isReduced_of_injective (tensorEquiv K E B).toRingHom (tensorEquiv K E B).injective
+
+instance isDominant_SpecMap_ψ :
+    IsDominant (Spec.map (CommRingCat.ofHom (ψ (K := K) (B := B) (E := E)))) :=
+  isDominant_SpecMap_of_injective _ ψ_injective
+
+/-- **The morphism `j : Spec (E ⊗_K B) ⟶ c`.** -/
+noncomputable def jC : Spec (CommRingCat.of (TensorProduct K E B)) ⟶ (c O O' n hg θ hθ0).scheme :=
+  Spec.map (CommRingCat.ofHom (tensorEquiv K E B).symm.toRingHom) ≫ jc' O' hn n hg hroot ≫
+    (e O O' hO' n hg θ hθ0 hθint hθgen).inv
+
+/-- `j` restricts to the generic point of `c`. -/
+theorem SpecMap_ψ_jC :
+    Spec.map (CommRingCat.ofHom (ψ (K := K) (B := B) (E := E))) ≫
+        jC O O' hO' hn n hg hroot θ hθ0 hθint hθgen = γc O O' n hg θ hθ0 := by
+  have h1 := genericPtSigma_e O O' hO' n hg θ hθ0 hθint hθgen
+  have h2 : genericPtSigma O' hg ≫ (e O O' hO' n hg θ hθ0 hθint hθgen).inv =
+      γc O O' n hg θ hθ0 := by rw [← h1, Category.assoc, Iso.hom_inv_id, Category.comp_id]
+  rw [jC, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+  have : (ψ (K := K) (B := B) (E := E)).comp (tensorEquiv K E B).symm.toRingHom =
+      toPi (K := K) (B := B) (E := E) := by
+    ext x : 1
+    simp [ψ]
+  rw [this, reassoc_of% toPi_jc', h2]
+
+instance : IsSchemeTheoreticallyDominant (jC O O' hO' hn n hg hroot θ hθ0 hθint hθgen) := by
+  have : IsIso (CommRingCat.ofHom (tensorEquiv K E B).symm.toRingHom) :=
+    (tensorEquiv K E B).symm.toRingEquiv.toCommRingCatIso.isIso_hom
+  unfold jC; infer_instance
+
+/-- Morphisms out of `Spec (E ⊗_K B)` into a separated scheme are determined on the generic
+point. -/
+lemma hom_ext_ψ {Y : Scheme.{u}} [Y.IsSeparated]
+    {a b : Spec (CommRingCat.of (TensorProduct K E B)) ⟶ Y}
+    (h : Spec.map (CommRingCat.ofHom (ψ (K := K) (B := B) (E := E))) ≫ a =
+      Spec.map (CommRingCat.ofHom (ψ (K := K) (B := B) (E := E))) ≫ b) : a = b :=
+  ext_of_isDominant _ h
+
+end JC
+
 end W10Assembly
 
 end SemistableReduction
