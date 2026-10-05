@@ -133,6 +133,133 @@ theorem isTypeTwo_comap [Algebra.IsAlgebraic M F] (hW : W.comap (algebraMap K F)
 
 end Restriction
 
+section Disc
+
+variable {K : Type*} [Field K] {Γ₀ : Type*} [LinearOrderedCommGroupWithZero Γ₀]
+  {v : Valuation K Γ₀}
+
+lemma le_of_valuationSubring_le {a b c d : K} (hc : c ≠ 0) (hd : d ≠ 0)
+    (h : (gaussRat v a (Units.mk0 (v c) ((Valuation.ne_zero_iff v).2 hc))).valuationSubring ≤
+      (gaussRat v b (Units.mk0 (v d) ((Valuation.ne_zero_iff v).2 hd))).valuationSubring) :
+    max (v (b - a)) (v d) ≤ v c := by
+  have hc' : v c ≠ 0 := (Valuation.ne_zero_iff v).2 hc
+  set y : RatFunc K := algebraMap K (RatFunc K) c⁻¹ * algebraMap K[X] (RatFunc K) (X - C a)
+  have hy : y ∈ (gaussRat v a (Units.mk0 (v c) hc')).valuationSubring := by
+    change gaussRat v a _ y ≤ 1
+    rw [map_mul, gaussRat_algebraMap_C, gaussRat_algebraMap, gauss_X_sub_C, sub_self,
+      Valuation.map_zero, Units.val_mk0, max_eq_right zero_le, map_inv₀, inv_mul_cancel₀ hc']
+  have := h hy
+  change gaussRat v b _ y ≤ 1 at this
+  rw [map_mul, gaussRat_algebraMap_C, gaussRat_algebraMap, gauss_X_sub_C, Units.val_mk0,
+    map_inv₀, inv_mul_le_iff₀ (zero_lt_iff.2 hc'), mul_one] at this
+  exact this
+
+/-- **Equal Gauss valuation rings have equal discs.** -/
+lemma disc_eq_of_valuationSubring_eq {a b c d : K} (hc : c ≠ 0) (hd : d ≠ 0)
+    (h : (gaussRat v a (Units.mk0 (v c) ((Valuation.ne_zero_iff v).2 hc))).valuationSubring =
+      (gaussRat v b (Units.mk0 (v d) ((Valuation.ne_zero_iff v).2 hd))).valuationSubring) :
+    v c = v d ∧ v (a - b) ≤ v d := by
+  have h₁ := le_of_valuationSubring_le hc hd h.le
+  have h₂ := le_of_valuationSubring_le hd hc h.ge
+  have hcd : v c = v d := le_antisymm (le_max_right _ _ |>.trans h₂) (le_max_right _ _ |>.trans h₁)
+  exact ⟨hcd, (le_max_left _ _).trans h₂⟩
+
+end Disc
+
+section Transport
+
+open ZariskiModel
+
+variable {K F₁ F₂ : Type*} [Field K] [Field F₁] [Field F₂] [Algebra K F₁] [Algebra K F₂]
+  {O : ValuationSubring K}
+
+/-- The residue-transcendental centres on a set of charts. -/
+def RT (O : ValuationSubring K) (charts : Set (Subring F₁)) : Set (ValuationSubring F₁) :=
+  {W | W.comap (algebraMap K F₁) = O ∧ ∃ B ∈ charts, B ≤ W.toSubring ∧
+    ∃ z ∈ B, IsResidueTranscendental O W z}
+
+lemma valuation_eq_one_iff' (A : ValuationSubring F₁) (x : F₁) :
+    A.valuation x = 1 ↔ x ≠ 0 ∧ x ∈ A ∧ x⁻¹ ∈ A := by
+  constructor
+  · intro h
+    have hx : x ≠ 0 := by rintro rfl; simp at h
+    refine ⟨hx, (A.valuation_le_one_iff x).1 h.le, (A.valuation_le_one_iff _).1 ?_⟩
+    rw [map_inv₀, h, inv_one]
+  · rintro ⟨hx, h₁, h₂⟩
+    have a := (A.valuation_le_one_iff x).2 h₁
+    have b := (A.valuation_le_one_iff _).2 h₂
+    rw [map_inv₀] at b
+    have h0 : A.valuation x ≠ 0 := (Valuation.ne_zero_iff _).2 hx
+    refine le_antisymm a ?_
+    calc (1 : _) = A.valuation x * (A.valuation x)⁻¹ := (mul_inv_cancel₀ h0).symm
+      _ ≤ A.valuation x * 1 := by gcongr
+      _ = A.valuation x := mul_one _
+
+variable (τ : K ≃+* K) (hτO : ∀ x, x ∈ O ↔ τ x ∈ O) (φ : F₁ ≃+* F₂)
+  (hφ : ∀ k, φ (algebraMap K F₁ k) = algebraMap K F₂ (τ k))
+
+/-- `τ` restricted to `O`. -/
+def τO : O ≃+* O :=
+  { toFun := fun o ↦ ⟨τ (o : K), (hτO o).1 o.2⟩
+    invFun := fun o ↦ ⟨τ.symm (o : K), (hτO _).2 (by rw [τ.apply_symm_apply]; exact o.2)⟩
+    left_inv := fun o ↦ Subtype.ext (τ.symm_apply_apply (o : K))
+    right_inv := fun o ↦ Subtype.ext (τ.apply_symm_apply (o : K))
+    map_mul' := fun a b ↦ Subtype.ext (map_mul τ (a : K) (b : K))
+    map_add' := fun a b ↦ Subtype.ext (map_add τ (a : K) (b : K)) }
+
+include hτO hφ in
+/-- **Transport of residue-transcendental centres** along a semilinear field isomorphism. -/
+theorem comap_mem_RT {charts₁ : Set (Subring F₁)} {charts₂ : Set (Subring F₂)}
+    (hch : ∀ B ∈ charts₂, B.comap (φ : F₁ →+* F₂) ∈ charts₁) {W : ValuationSubring F₂}
+    (hW : W ∈ RT O charts₂) : W.comap (φ : F₁ →+* F₂) ∈ RT O charts₁ := by
+  obtain ⟨hWO, B, hB, hBW, z, hzB, hzW, hz⟩ := hW
+  refine ⟨?_, B.comap (φ : F₁ →+* F₂), hch B hB, fun y hy ↦ hBW hy, φ.symm z, ?_, ?_, ?_⟩
+  · ext x
+    rw [ValuationSubring.mem_comap, ValuationSubring.mem_comap]
+    change φ (algebraMap K F₁ x) ∈ W ↔ x ∈ O
+    rw [hφ, ← ValuationSubring.mem_comap, hWO, ← hτO]
+  · change φ (φ.symm z) ∈ B
+    rw [φ.apply_symm_apply]; exact hzB
+  · change φ (φ.symm z) ∈ W
+    rw [φ.apply_symm_apply]; exact hzW
+  · intro P hP
+    set P' : O[X] := P.map (τO τ hτO : O →+* O)
+    have hP' : P'.map (IsLocalRing.residue O) ≠ 0 := by
+      intro h0
+      apply hP
+      ext i
+      have := congrArg (coeff · i) h0
+      simp only [coeff_map, coeff_zero, P'] at this ⊢
+      rw [IsLocalRing.residue_eq_zero_iff] at this ⊢
+      intro hu
+      exact this ((τO τ hτO).toRingHom.isUnit_map hu)
+    have key := hz P' hP'
+    rw [valuation_eq_one_iff'] at key ⊢
+    have e₁ : ∀ (w : F₁) (Q : O[X]),
+        aeval w (Q.map (algebraMap O K)) = eval₂ ((algebraMap K F₁).comp O.subtype) w Q :=
+      fun w Q ↦ by rw [aeval_def, eval₂_map]; rfl
+    have e₂ : ∀ (w : F₂) (Q : O[X]),
+        aeval w (Q.map (algebraMap O K)) = eval₂ ((algebraMap K F₂).comp O.subtype) w Q :=
+      fun w Q ↦ by rw [aeval_def, eval₂_map]; rfl
+    have himg : φ (aeval (φ.symm z) (P.map (algebraMap O K))) =
+        aeval z (P'.map (algebraMap O K)) := by
+      rw [e₁, e₂]
+      change (φ : F₁ →+* F₂) _ = _
+      rw [hom_eval₂, RingEquiv.coe_toRingHom, φ.apply_symm_apply, eval₂_map]
+      congr 1
+      ext o
+      change φ (algebraMap K F₁ (o : K)) = algebraMap K F₂ (τ (o : K))
+      exact hφ _
+    obtain ⟨h₀, h₁, h₂⟩ := key
+    refine ⟨fun h ↦ h₀ ?_, ?_, ?_⟩
+    · rw [← himg, h, map_zero]
+    · change φ _ ∈ W
+      rw [himg]; exact h₁
+    · change φ _ ∈ W
+      rw [map_inv₀, himg]; exact h₂
+
+end Transport
+
 end W10Discs
 
 end SemistableReduction
