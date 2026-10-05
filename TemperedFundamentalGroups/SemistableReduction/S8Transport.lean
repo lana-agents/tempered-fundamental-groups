@@ -25,7 +25,7 @@ their residues (`res_map_eq_zero_iff`) and the zeros of `x̄` (`mem_zeros_map`).
 -/
 
 open IsLocalRing Valuation Metric
-open scoped NNReal
+open scoped NNReal Polynomial
 
 namespace SemistableReduction
 
@@ -750,6 +750,72 @@ theorem isNodeODP_comap {P' : Ideal (Rint c₂ G₂)} (h : IsNodeODP hc₂ hc₂
       change d'.κmap w₂ (redHomInv hc₂ hc₂0 w₂ y) = _ * d'.κmap w₂ (redHomInv hc₂ hc₂0 w₂ s)
       rw [hy₂, map_mul]
 
+omit [Algebra C G₁] [Algebra C G₂] [IsScalarTower C (RatFunc C) G₁]
+  [IsScalarTower C (RatFunc C) G₂] [FiniteDimensional (RatFunc C) G₁]
+  [FiniteDimensional (RatFunc C) G₂] in
+omit [IsAlgClosed C] in
+/-- `ψ` maps node charts to node charts as soon as it maps their generators. -/
+lemma ψ_mem_nodeRing {c₂ c₁ : C} (hX : d.ψ RatFunc.X ∈ nodeRing c₁)
+    (hY : d.ψ (algebraMap C (RatFunc C) c₂ / RatFunc.X) ∈ nodeRing c₁) {φ : RatFunc C}
+    (hφ : φ ∈ nodeRing c₂) : d.ψ φ ∈ nodeRing c₁ := by
+  rw [nodeRing, nodeChart] at hφ
+  induction hφ using Subring.closure_induction with
+  | mem z hz =>
+    rcases hz with ⟨o, ho, rfl⟩ | hz
+    · rw [d.ψC]
+      refine algebraMap_mem_nodeRing ?_
+      rw [d.hτ]
+      exact (HenselComplete.mem_integers_iff _).1 ho
+    · rcases hz with rfl | hz
+      · exact hX
+      · rw [Set.mem_singleton_iff.1 hz]
+        exact hY
+  | zero => simp
+  | one => simp
+  | add _ _ _ _ ha hb => rw [map_add]; exact add_mem ha hb
+  | neg _ _ ha => rw [_root_.map_neg]; exact neg_mem ha
+  | mul _ _ _ _ ha hb => rw [map_mul]; exact mul_mem ha hb
+
+omit [Algebra C G₁] [Algebra C G₂] [IsScalarTower C (RatFunc C) G₁]
+  [IsScalarTower C (RatFunc C) G₂] [FiniteDimensional (RatFunc C) G₁]
+  [FiniteDimensional (RatFunc C) G₂] in
+omit [IsAlgClosed C] in
+lemma chartHom_mem_tubeIdeal_iff {s : ℝ≥0ˣ} (hs₂ : s ∈ segment c₂) (hs₁ : s ∈ segment c₁)
+    (hws : ∀ φ, gaussRat (NormedField.valuation (K := C)) 0 s (d.ψ φ) =
+      gaussRat (NormedField.valuation (K := C)) 0 s φ) (φ : nodeRing c₂) :
+    d.chartHom hN φ ∈ tubeIdeal c₁ ↔ φ ∈ tubeIdeal c₂ := by
+  rw [mem_tubeIdeal_iff _ hs₁, mem_tubeIdeal_iff _ hs₂]
+  change gaussRat _ 0 s (d.ψ φ) < 1 ↔ _
+  rw [hws]
+
+include he' hτ' hN' hN in
+/-- **Exhausting discs are transported.** -/
+theorem exhausting_transport {s : ℝ≥0ˣ} (hs₂ : s ∈ segment c₂) (hs₁ : s ∈ segment c₁)
+    (hws : ∀ φ, gaussRat (NormedField.valuation (K := C)) 0 s (d.ψ φ) =
+      gaussRat (NormedField.valuation (K := C)) 0 s φ)
+    (h : ∀ P' : Ideal (Rint c₂ G₂), P'.IsMaximal →
+      P'.comap (algebraMap (nodeRing c₂) (Rint c₂ G₂)) = tubeIdeal c₂ → IsNodeODP hc₂ hc₂0 P') :
+    ∀ P' : Ideal (Rint c₁ G₁), P'.IsMaximal →
+      P'.comap (algebraMap (nodeRing c₁) (Rint c₁ G₁)) = tubeIdeal c₁ →
+        IsNodeODP hc₁ hc₁0 P' := by
+  intro P₁ hmax hP₁
+  set P := P₁.comap (d.icMap hN)
+  have hsurj : Function.Surjective (d.icMap hN) := fun y ↦ ⟨_, d.icMap_icMap_symm hN y⟩
+  haveI : P.IsMaximal := Ideal.comap_isMaximal_of_surjective _ hsurj
+  have hP : P.comap (algebraMap (nodeRing c₂) (Rint c₂ G₂)) = tubeIdeal c₂ := by
+    ext φ
+    rw [Ideal.mem_comap, Ideal.mem_comap, ← d.chartHom_mem_tubeIdeal_iff hN hs₂ hs₁ hws, ← hP₁,
+      Ideal.mem_comap]
+    have : d.icMap hN (algebraMap (nodeRing c₂) (Rint c₂ G₂) φ) =
+        algebraMap (nodeRing c₁) (Rint c₁ G₁) (d.chartHom hN φ) :=
+      Subtype.ext (d.he φ)
+    rw [this]
+  have := d.isNodeODP_comap hc₂ hc₁ hN d' hN' he' hτ' (h P inferInstance hP)
+  have hPP : P.comap (d.symm.icMap (d.symm_hA hN)) = P₁ := by
+    ext y
+    rw [Ideal.mem_comap, Ideal.mem_comap, d.icMap_icMap_symm]
+  rwa [hPP] at this
+
 end Node
 
 end Data
@@ -820,6 +886,285 @@ theorem discGood_iff_of_ball_eq {a a' c c' : C} (hc : c ≠ 0) (hc' : c' ≠ 0)
 /-- `BallGood` is `DiscGood` for any representative. -/
 theorem ballGood_iff {a c : C} (hc : c ≠ 0) : BallGood F (ball a ‖c‖) ↔ DiscGood F a hc :=
   ⟨fun h ↦ h a c hc rfl, fun h _ _ hc' h' ↦ (discGood_iff_of_ball_eq hc hc' h').1 h⟩
+
+/-! ### Rescaling node charts -/
+
+section Rescale
+
+open GaussTube
+
+lemma isExhausting_congr {a c₁ c₂ c₁' c₂' : C} (h1 : c₁ = c₂) (h2 : c₁' = c₂') (hc₁ : c₁ ≠ 0)
+    (hc₂ : c₂ ≠ 0) (hc₁' : ‖c₁'‖ < 1) (hc₂' : ‖c₂'‖ < 1) (hc₁0' : c₁' ≠ 0) (hc₂0' : c₂' ≠ 0) :
+    IsExhausting a hc₁ hc₁' hc₁0' F ↔ IsExhausting a hc₂ hc₂' hc₂0' F := by
+  subst h1
+  subst h2
+  rfl
+
+variable {a c c' l : C} (hc : c ≠ 0) (hl : ‖l‖ = 1)
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+lemma ne_zero_of_norm_eq_one {l : C} (hl : ‖l‖ = 1) : l ≠ 0 := by
+  rintro rfl
+  simp at hl
+
+/-- The rescaling data `t ↦ t / l` (outer side). -/
+noncomputable def rescaleData :
+    Data C (Aff a (c * l) (mul_ne_zero hc (ne_zero_of_norm_eq_one hl)) F)
+    (Aff a c hc F) :=
+  repData (F := F) (mul_ne_zero hc (ne_zero_of_norm_eq_one hl)) hc
+    (by rw [norm_mul, hl, mul_one])
+    (by
+      rw [sub_self, norm_zero, norm_mul, hl, mul_one]
+      exact norm_pos_iff.2 hc)
+
+omit [Algebra C F] [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F] in
+lemma rescaleData_ψ_X : (rescaleData (F := F) (a := a) hc hl).ψ RatFunc.X =
+    algebraMap C (RatFunc C) l * RatFunc.X := by
+  have hl0 := ne_zero_of_norm_eq_one hl
+  change (aff a (c * l) (mul_ne_zero hc hl0)).symm (aff a c hc RatFunc.X) = _
+  rw [AlgEquiv.symm_apply_eq, map_mul, AlgEquiv.commutes, aff_apply, aff_apply, affHom_X,
+    affHom_X, gaussCoord_eq, gaussCoord_eq]
+  have h0 : algebraMap C (RatFunc C) c ≠ 0 := by simpa using hc
+  have h0' : algebraMap C (RatFunc C) l ≠ 0 := by simpa using hl0
+  simp only [map_inv₀, map_mul]
+  field_simp
+
+omit [Algebra C F] [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F] in
+lemma rescaleData_symm_ψ_X : (rescaleData (F := F) (a := a) hc hl).ψ.symm RatFunc.X =
+    algebraMap C (RatFunc C) l⁻¹ * RatFunc.X := by
+  have hl0 := ne_zero_of_norm_eq_one hl
+  rw [RingEquiv.symm_apply_eq, map_mul, (rescaleData hc hl).ψC, rescaleData_ψ_X]
+  change _ = algebraMap C (RatFunc C) l⁻¹ * (algebraMap C (RatFunc C) l * RatFunc.X)
+  rw [← mul_assoc, ← map_mul, inv_mul_cancel₀ hl0, map_one, one_mul]
+
+variable {hc0' : c' ≠ 0}
+
+omit [IsAlgClosed C] in
+lemma aff_inv_rescale (φ : RatFunc C) :
+    aff a c hc (GaussTube.inv hc0' φ) =
+      aff a (c * l) (mul_ne_zero hc (ne_zero_of_norm_eq_one hl))
+        (GaussTube.inv (div_ne_zero hc0' (ne_zero_of_norm_eq_one hl)) φ) := by
+  have hl0 := ne_zero_of_norm_eq_one hl
+  refine congrArg (fun f : RatFunc C →ₐ[C] RatFunc C ↦ f φ)
+    (ratFunc_algHom_ext (φ := ((aff a c hc).toAlgHom.comp (GaussTube.inv hc0').toAlgHom))
+    (ψ := ((aff a (c * l) (mul_ne_zero hc hl0)).toAlgHom.comp
+      (GaussTube.inv (div_ne_zero hc0' hl0)).toAlgHom)) ?_)
+  change aff a c hc (GaussTube.inv hc0' RatFunc.X) =
+    aff a (c * l) (mul_ne_zero hc hl0) (GaussTube.inv (div_ne_zero hc0' hl0) RatFunc.X)
+  rw [GaussTube.inv_apply, GaussTube.inv_apply, GaussTube.invHom_X, GaussTube.invHom_X,
+    map_div₀, map_div₀, AlgEquiv.commutes, AlgEquiv.commutes, aff_apply, aff_apply, affHom_X,
+    affHom_X, gaussCoord_eq, gaussCoord_eq]
+  have h0 : algebraMap C (RatFunc C) c ≠ 0 := by simpa using hc
+  have h0' : algebraMap C (RatFunc C) l ≠ 0 := by simpa using hl0
+  simp only [map_inv₀, map_mul, map_div₀]
+  field_simp
+
+/-- The rescaling data, inner side (the identity: both inversions give the coordinate `c'/t`). -/
+noncomputable def rescaleDataInv :
+    Data C (GaussTube.Inv (c' / l) (div_ne_zero hc0' (ne_zero_of_norm_eq_one hl))
+      (Aff a (c * l) (mul_ne_zero hc (ne_zero_of_norm_eq_one hl)) F))
+      (GaussTube.Inv c' hc0' (Aff a c hc F)) where
+  τ := RingEquiv.refl C
+  hτ _ := rfl
+  ψ := RingEquiv.refl _
+  ψC _ := rfl
+  ψg _ := rfl
+  α := 1
+  γ := 0
+  hα := norm_one
+  hγ := by simp
+  ψX := by simp
+  e := (GaussTube.toInv hc0').symm.trans ((toAff hc).symm.trans
+    ((toAff (mul_ne_zero hc (ne_zero_of_norm_eq_one hl))).trans
+      (GaussTube.toInv (div_ne_zero hc0' (ne_zero_of_norm_eq_one hl)))))
+  he φ := by
+    change algebraMap (RatFunc C) F (aff a c hc (GaussTube.inv hc0' φ)) =
+      algebraMap (RatFunc C) F (aff a (c * l) _ (GaussTube.inv _ φ))
+    rw [aff_inv_rescale hc hl]
+
+omit [IsAlgClosed C] in
+lemma nodeRing_le {d₁ d₂ w : C} (hw : ‖w‖ ≤ 1) (hd : d₁ = w * d₂) : nodeRing d₁ ≤ nodeRing d₂ := by
+  refine Subring.closure_le.2 (Set.union_subset ?_ ?_)
+  · exact fun z hz ↦ ZariskiModel.baseRing_le_nodeChart hz
+  · rintro z (rfl | hz)
+    · exact X_mem_nodeRing d₂
+    · rw [Set.mem_singleton_iff.1 hz, hd, map_mul, mul_div_assoc]
+      exact mul_mem (algebraMap_mem_nodeRing hw) (div_X_mem_nodeRing d₂)
+
+omit [IsAlgClosed C] in
+lemma nodeRing_eq {c₁ c₂ u : C} (hu : ‖u‖ = 1) (h : c₁ = u * c₂) : nodeRing c₁ = nodeRing c₂ := by
+  have hu0 := ne_zero_of_norm_eq_one hu
+  exact le_antisymm (nodeRing_le hu.le h) (nodeRing_le (w := u⁻¹)
+    (by rw [norm_inv, hu, inv_one]) (by rw [h, ← mul_assoc, inv_mul_cancel₀ hu0, one_mul]))
+
+set_option maxHeartbeats 1600000 in
+-- unfolding the rescaling data
+omit [Algebra C F] [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F] in
+lemma gaussRat_rescale (s : ℝ≥0ˣ) (φ : RatFunc C) :
+    gaussRat (NormedField.valuation (K := C)) 0 s ((rescaleData (F := F) (a := a) hc hl).ψ φ) =
+      gaussRat (NormedField.valuation (K := C)) 0 s φ := by
+  have hl0 := ne_zero_of_norm_eq_one hl
+  have h := valuation_ratFunc_ext_of_linear
+    (w₁ := (gaussRat (NormedField.valuation (K := C)) 0 s).comap
+      (rescaleData (F := F) (a := a) hc hl).ψ.toRingHom)
+    (w₂ := gaussRat (NormedField.valuation (K := C)) 0 s) (fun e ↦ ?_) (fun b ↦ ?_)
+  · exact congrArg (fun w : Valuation (RatFunc C) ℝ≥0 ↦ w φ) h
+  · rw [Valuation.comap_apply, RingEquiv.toRingHom_eq_coe, RingEquiv.coe_toRingHom,
+      (rescaleData (F := F) (a := a) hc hl).ψC]
+    rfl
+  · rw [Valuation.comap_apply, RingEquiv.toRingHom_eq_coe, RingEquiv.coe_toRingHom]
+    have hXb : algebraMap C[X] (RatFunc C) (Polynomial.X - Polynomial.C b) =
+        RatFunc.X - algebraMap C (RatFunc C) b := by
+      rw [_root_.map_sub, RatFunc.algebraMap_X, ratFunc_algebraMap_C]
+    have hlin : algebraMap C (RatFunc C) l * RatFunc.X - algebraMap C (RatFunc C) b =
+        algebraMap C (RatFunc C) l *
+          algebraMap C[X] (RatFunc C) (Polynomial.X - Polynomial.C (b / l)) := by
+      rw [_root_.map_sub, RatFunc.algebraMap_X, ratFunc_algebraMap_C, mul_sub, ← map_mul,
+        mul_div_cancel₀ _ hl0]
+    rw [hXb, _root_.map_sub, rescaleData_ψ_X, (rescaleData (F := F) (a := a) hc hl).ψC, ← hXb]
+    change gaussRat _ 0 s (algebraMap C (RatFunc C) l * RatFunc.X -
+      algebraMap C (RatFunc C) b) = _
+    rw [hlin, map_mul, gaussRat_algebraMap_C, gaussRat_algebraMap, gaussRat_algebraMap,
+      gauss_X_sub_C, gauss_X_sub_C, NormedField.valuation_apply, NormedField.valuation_apply,
+      NormedField.valuation_apply, zero_sub, zero_sub, nnnorm_neg, nnnorm_neg, nnnorm_div]
+    have : ‖l‖₊ = 1 := by ext; exact hl
+    rw [this, one_mul, div_one]
+
+/-- **Rescaling of node charts**: `O_C[t, c'/t]` (`t = (x - a)/c`) is also the node chart of
+`t / l` with parameter `c' / l` (`|l| = 1`). -/
+theorem isExhausting_of_rescale (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0)
+    (h : IsExhausting a hc hc' hc0' F) :
+    IsExhausting a (mul_ne_zero hc (ne_zero_of_norm_eq_one hl))
+      (c' := c' / l) (by rw [norm_div, hl, div_one]; exact hc')
+      (div_ne_zero hc0' (ne_zero_of_norm_eq_one hl)) F := by
+  have hl0 := ne_zero_of_norm_eq_one hl
+  set d := rescaleData (F := F) (a := a) hc hl
+  have hl1 : ‖l‖ ≤ 1 := hl.le
+  have hli : ‖l⁻¹‖ ≤ 1 := by rw [norm_inv, hl, inv_one]
+  have hN : ∀ φ, φ ∈ nodeRing c' ↔ d.ψ φ ∈ nodeRing (c' / l) := by
+    intro φ
+    constructor
+    · refine d.ψ_mem_nodeRing ?_ ?_
+      · rw [rescaleData_ψ_X]
+        exact mul_mem (algebraMap_mem_nodeRing hl1) (X_mem_nodeRing _)
+      · rw [map_div₀, d.ψC, rescaleData_ψ_X]
+        change algebraMap C (RatFunc C) c' / (algebraMap C (RatFunc C) l * RatFunc.X) ∈ _
+        rw [div_mul_eq_div_div, ← map_div₀]
+        exact div_X_mem_nodeRing _
+    · intro hφ
+      have := d.symm.ψ_mem_nodeRing (c₂ := c' / l) (c₁ := c') ?_ ?_ hφ
+      · rwa [show d.symm.ψ (d.ψ φ) = φ from d.ψ.symm_apply_apply φ] at this
+      · change d.ψ.symm RatFunc.X ∈ _
+        rw [rescaleData_symm_ψ_X]
+        exact mul_mem (algebraMap_mem_nodeRing hli) (X_mem_nodeRing _)
+      · change d.ψ.symm (algebraMap C (RatFunc C) (c' / l) / RatFunc.X) ∈ _
+        rw [map_div₀, rescaleData_symm_ψ_X]
+        have : d.ψ.symm (algebraMap C (RatFunc C) (c' / l)) =
+            algebraMap C (RatFunc C) (c' / l) := d.symm.ψC _
+        have hcc : c' / l / l⁻¹ = c' := by field_simp
+        rw [this, div_mul_eq_div_div, ← map_div₀, hcc]
+        exact div_X_mem_nodeRing _
+  have hN' : ∀ φ, φ ∈ nodeRing c' ↔
+      (rescaleDataInv (F := F) (a := a) hc hl (hc0' := hc0')).ψ φ ∈ nodeRing (c' / l) := by
+    intro φ
+    change φ ∈ nodeRing c' ↔ φ ∈ nodeRing (c' / l)
+    rw [nodeRing_eq (u := l⁻¹) (by rw [norm_inv, hl, inv_one]) (div_eq_inv_mul c' l)]
+  -- a radius of the open segment
+  obtain ⟨s, hs₂, hs₁⟩ : ∃ s : ℝ≥0ˣ, s ∈ segment c' ∧ s ∈ segment (c' / l) := by
+    have hlt : (‖c'‖₊ : ℝ) < 1 := by simpa using hc'
+    have h1 : ‖c'‖₊ < (‖c'‖₊ + 1) / 2 := by
+      rw [← NNReal.coe_lt_coe]; push_cast; linarith
+    have h2 : (‖c'‖₊ + 1) / 2 < 1 := by
+      rw [← NNReal.coe_lt_coe]; push_cast; linarith
+    have hn : ‖c' / l‖₊ = ‖c'‖₊ := by
+      rw [nnnorm_div]
+      have : ‖l‖₊ = 1 := by ext; exact hl
+      rw [this, div_one]
+    refine ⟨Units.mk0 ((‖c'‖₊ + 1) / 2) (by positivity), ⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;>
+      simp only [Units.val_mk0]
+    · exact h1
+    · exact h2
+    · rw [hn]; exact h1
+    · exact h2
+  exact d.exhausting_transport hc' (by rw [norm_div, hl, div_one]; exact hc') hN
+    (rescaleDataInv (F := F) (a := a) hc hl (hc0' := hc0')) hN' (fun _ ↦ rfl) rfl hs₂ hs₁
+    (gaussRat_rescale hc hl s) h
+
+/-- **Rescaling of node charts**, both directions. -/
+theorem isExhausting_iff_of_rescale (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0) :
+    IsExhausting a hc hc' hc0' F ↔
+      IsExhausting a (mul_ne_zero hc (ne_zero_of_norm_eq_one hl))
+        (c' := c' / l) (by rw [norm_div, hl, div_one]; exact hc')
+        (div_ne_zero hc0' (ne_zero_of_norm_eq_one hl)) F := by
+  have hl0 := ne_zero_of_norm_eq_one hl
+  have hli : ‖l⁻¹‖ = 1 := by rw [norm_inv, hl, inv_one]
+  refine ⟨isExhausting_of_rescale hc hl hc' hc0', fun h ↦ ?_⟩
+  have := isExhausting_of_rescale (mul_ne_zero hc hl0) hli _ _ h
+  exact (isExhausting_congr (by field_simp) (by field_simp) _ _ _ _ _ _).1 this
+
+end Rescale
+
+/-! ### Isomorphisms over `C(x)` -/
+
+section Iso
+
+open GaussTube
+
+variable {G₁ G₂ : Type*} [Field G₁] [Field G₂] [Algebra (RatFunc C) G₁] [Algebra (RatFunc C) G₂]
+  [Algebra C G₁] [Algebra C G₂] [IsScalarTower C (RatFunc C) G₁]
+  [IsScalarTower C (RatFunc C) G₂] [FiniteDimensional (RatFunc C) G₁]
+  [FiniteDimensional (RatFunc C) G₂]
+  (e : G₂ ≃+* G₁) (he : ∀ φ, e (algebraMap (RatFunc C) G₂ φ) = algebraMap (RatFunc C) G₁ φ)
+
+/-- Transport data of an isomorphism over `C(x)`. -/
+noncomputable def idData : Data C G₁ G₂ where
+  τ := RingEquiv.refl C
+  hτ _ := rfl
+  ψ := RingEquiv.refl _
+  ψC _ := rfl
+  ψg _ := rfl
+  α := 1
+  γ := 0
+  hα := norm_one
+  hγ := by simp
+  ψX := by simp
+  e := e
+  he := he
+
+/-- Transport data of an isomorphism over `C(x)`, on the inversions. -/
+noncomputable def idDataInv {c : C} (hc0 : c ≠ 0) :
+    Data C (GaussTube.Inv c hc0 G₁) (GaussTube.Inv c hc0 G₂) where
+  τ := RingEquiv.refl C
+  hτ _ := rfl
+  ψ := RingEquiv.refl _
+  ψC _ := rfl
+  ψg _ := rfl
+  α := 1
+  γ := 0
+  hα := norm_one
+  hγ := by simp
+  ψX := by simp
+  e := (toInv hc0).symm.trans (e.trans (toInv hc0))
+  he φ := by
+    change toInv hc0 (e (algebraMap (RatFunc C) G₂ (GaussTube.inv hc0 φ))) =
+      toInv hc0 (algebraMap (RatFunc C) G₁ (GaussTube.inv hc0 φ))
+    rw [he]
+
+include he in
+/-- **Node points are invariant under isomorphisms over `C(x)`.** -/
+theorem nodeODP_transport_id {c : C} (hc : ‖c‖ < 1) (hc0 : c ≠ 0)
+    (h : ∀ P' : Ideal (Rint c G₂), P'.IsMaximal →
+      P'.comap (algebraMap (nodeRing c) (Rint c G₂)) = tubeIdeal c → IsNodeODP hc hc0 P') :
+    ∀ P' : Ideal (Rint c G₁), P'.IsMaximal →
+      P'.comap (algebraMap (nodeRing c) (Rint c G₁)) = tubeIdeal c → IsNodeODP hc hc0 P' := by
+  obtain ⟨s, hs⟩ : ∃ s : ℝ≥0ˣ, s ∈ segment c := by
+    have hlt : (‖c‖₊ : ℝ) < 1 := by simpa using hc
+    refine ⟨Units.mk0 ((‖c‖₊ + 1) / 2) (by positivity), ?_, ?_⟩ <;> simp only [Units.val_mk0] <;>
+      rw [← NNReal.coe_lt_coe] <;> push_cast <;> linarith
+  exact (idData e he).exhausting_transport hc hc (fun _ ↦ Iff.rfl) (idDataInv e he hc0)
+    (fun _ ↦ Iff.rfl) (fun _ ↦ rfl) rfl hs hs (fun _ ↦ rfl) h
+
+end Iso
 
 end Representative
 
