@@ -6,55 +6,33 @@ Authors: Christian Merten
 import TemperedFundamentalGroups.SemistableReduction.NodeUpwardMain
 
 /-!
-# Germs of Gauss valuations at the outer vertex
+# Exact node data near the outer boundary (R4(ii))
 
-Blueprint §9.10, L3, R4(ii) (the germ lemmas G1–G3). Let `w_s = w_{0,s}` be the Gauss valuations
-of `C(x)` and `v` the extensions of `w_{0,1}` to `F'`.
+Blueprint §9.10, L3, R4(ii) (BL Lemma 2.4: every disc close enough to the outer boundary is
+exhausting), proved unconditionally by the germ technique. Let `w_s = w_{0,s}` be the Gauss
+valuations of `C(x)` and `v` the extensions of `w_{0,1}` to `F'`.
 
-* `CurvePlace.valuation_aeval_eq`: for a place `Q` and `π` in its maximal ideal, a polynomial
-  `p ≠ 0` with constant coefficients satisfies `Q(p(π)) = Q(π)^{ord₀ p}`;
-* `eventually_gaussRat_le_one`: (**bridge**) if `gauss₁(a) ≤ 1` and the residue of `a` is regular
-  at a zero of `x̄`, then `w_s(a) ≤ 1` for all `s < 1` close to `1`.
+* `isGermLE_of_red` (germ bridge): if `w_1(a) ≤ 1` and `ā` is regular at a zero of `x̄`, then
+  `w_s(a) ≤ 1` for all `s < 1` close to `1`;
+* `exists_valuation_le_one_near` (G2/G3): if `y` is integral at every `v` and its residues are
+  regular at all zeros of `x̄`, then `w'(y) ≤ 1` for every `w' ∣ w_s`, `s < 1` close to `1`
+  (the norms `N(y - t)` are germ-integral by `residue_norm_eq_prod`; Lagrange interpolation
+  `coeff_mem_of_eval_mem` passes to the characteristic polynomial);
+* `exists_tau_near`: such `y` becomes integral over the node chart `O_C[x, c/x]`,
+  `|c|` close to `1`, after multiplication by some `τ` outside the node ideal;
+* `exists_lift_red` (G1): residue families on the outer residue curves lift to `F'`;
+* **`nonempty_nodeData_of_coord`** (reusable, any radius): exact node data `NodeData` from a
+  coordinate `u` with `σ x = e uᵈ` (`σ, e ∉ P'`) and `σ_u u ∈ R'` reducing to a uniformizer;
+* `exists_near_branch`, **`exists_near_nodeData`**: near the boundary, every point over the node
+  has a single outer branch and exact node data;
+* **`exists_near_isNodeODP`**: near the boundary every point over the node is an ODP (with R4(i),
+  `isNodeODP_of_le`); **`belowGerm`**: the disc form, via `AffineTwist.IsExhausting`.
 -/
 
 open Polynomial WithZero
 open scoped NNReal
 
 namespace SemistableReduction
-
-namespace CurvePlace
-
-variable {k κ : Type*} [Field k] [Field κ] [Algebra k κ] [IsAlgClosed k]
-  [IsCurveFunctionField k κ] (Q : CurvePlace k κ)
-
-omit [IsAlgClosed k] [IsCurveFunctionField k κ] in
-lemma aeval_mem_V {π : κ} (hπ : π ∈ Q.V) (p : k[X]) : aeval π p ∈ Q.V := by
-  induction p using Polynomial.induction_on' with
-  | add p q hp hq => rw [map_add]; exact add_mem hp hq
-  | monomial n c =>
-    rw [aeval_monomial]
-    exact mul_mem (Q.algebraMap_mem c) (pow_mem hπ n)
-
-/-- `Q(p(π)) = Q(π)^{ord₀ p}` for `π` in the maximal ideal of `Q`. -/
-lemma valuation_aeval_eq {π : κ} (hπ : Q.valuation π < 1) {p : k[X]} (hp : p ≠ 0) :
-    Q.valuation (aeval π p) = Q.valuation π ^ p.natTrailingDegree := by
-  obtain ⟨q, hpq, hndvd⟩ := p.exists_eq_pow_rootMultiplicity_mul_and_not_dvd hp 0
-  rw [rootMultiplicity_eq_natTrailingDegree', map_zero, sub_zero] at hpq
-  have hq0 : q.eval 0 ≠ 0 := by
-    intro h0
-    apply hndvd
-    rw [map_zero, sub_zero, X_dvd_iff, coeff_zero_eq_eval_zero]
-    exact h0
-  have hπV : π ∈ Q.V := Q.valuation_le_one_iff.1 hπ.le
-  have hq1 : Q.valuation (aeval π q) = 1 := by
-    refine le_antisymm (Q.valuation_le_one_iff.2 (Q.aeval_mem_V hπV q)) (not_lt.1 fun h ↦ ?_)
-    have := Q.res_eq_zero_of_lt_one h
-    rw [Q.res_aeval hπ, coeff_zero_eq_eval_zero] at this
-    exact hq0 this
-  conv_lhs => rw [hpq]
-  rw [map_mul, map_pow, aeval_X, map_mul, map_pow, hq1, mul_one]
-
-end CurvePlace
 
 section PolyGerm
 
@@ -568,6 +546,518 @@ theorem exists_tau_near {y : F'} (hy : ∀ v : Ext C F', v.1 y ≤ 1)
       exact hvy
 
 end Tau
+
+section Construct
+
+/-- **Exact node data from a node coordinate** (reusable, any radius). Let `P'` be a prime of
+`R' = Rint c F'` and `u ∈ F'` with `σ x = e uᵈ` (`σ, e ∈ R' ∖ P'`), `σ_u u ∈ R'` (`σ_u ∉ P'`)
+reducing to a uniformizer at the branch `b₁`. Then `u, v = κ / u` with `κᵈ = c` are exact node
+data at `P'`: `σ v ∈ R'` since `(σ v)ᵈ = σ^{d-1} e · (c / x)`. -/
+theorem nonempty_nodeData_of_coord {c : C} (hc : ‖c‖ < 1) (hc0 : c ≠ 0)
+    {P' : Ideal (Rint c F')} [P'.IsPrime] {b₁ : OuterBranch C F'} {d : ℕ} (hd : 1 ≤ d) (u : F')
+    (σ e : Rint c F') (hσ : σ ∉ P') (he : e ∉ P') (hx : (σ : F') * xF C F' = e * u ^ d)
+    (uR σu : Rint c F') (hσu : σu ∉ P') (huR : (uR : F') = σu * u)
+    (hval : b₁.2.1.valuation (redHom hc b₁.1 uR) = exp (-1)) : Nonempty (NodeData hc P' b₁) := by
+  obtain ⟨κ, hκ⟩ := IsAlgClosed.exists_pow_nat_eq c (by omega : 0 < d)
+  have hκ0 : κ ≠ 0 := by
+    rintro rfl
+    rw [zero_pow (by omega)] at hκ
+    exact hc0 hκ.symm
+  have hσ0 : (σ : F') ≠ 0 := fun h ↦ hσ (by
+    rw [show σ = 0 from Subtype.ext h]
+    exact P'.zero_mem)
+  have hx0 : xF C F' ≠ 0 := by
+    simpa [xF] using (RatFunc.X_ne_zero : (RatFunc.X : RatFunc C) ≠ 0)
+  have hu0 : u ≠ 0 := by
+    rintro rfl
+    rw [zero_pow (by omega), mul_zero] at hx
+    exact mul_ne_zero hσ0 hx0 hx
+  set v : F' := algebraMap C F' κ / u
+  have huv : u * v = algebraMap C F' κ := mul_div_cancel₀ _ hu0
+  have hy : ((yR c : Rint c F') : F') = algebraMap C F' c / xF C F' := by
+    change algebraMap (RatFunc C) F' (algebraMap C (RatFunc C) c / RatFunc.X) = _
+    rw [map_div₀, ← IsScalarTower.algebraMap_apply]
+  set r : Rint c F' := σ ^ (d - 1) * e * yR c
+  have hpow : ((σ : F') * v) ^ d = (r : F') := by
+    refine mul_right_cancel₀ (pow_ne_zero d hu0) ?_
+    have h1 : ((σ : F') * v) ^ d * u ^ d = (σ : F') ^ d * algebraMap C F' c := by
+      rw [← mul_pow, mul_assoc, mul_comm v u, huv, mul_pow, ← map_pow, hκ]
+    have h2 : (σ : F') ^ d = (σ : F') ^ (d - 1) * σ := (pow_sub_one_mul (by omega) _).symm
+    rw [h1]
+    simp only [r, Subalgebra.coe_mul, Subalgebra.coe_pow, hy]
+    rw [mul_assoc, mul_assoc, mul_comm _ (u ^ d), ← mul_assoc (e : F'), ← hx, h2]
+    field_simp
+  have hint : IsIntegral (nodeRing c) ((σ : F') * v) :=
+    IsIntegral.of_pow (by omega : 0 < d) (hpow ▸ r.2)
+  exact ⟨⟨d, hd, u, v, κ, hκ0, huv, σ, e, hσ, he, hx, uR, σu, hσu, huR, ⟨_, hint⟩, σ, hσ, rfl,
+    hval⟩⟩
+
+end Construct
+
+section Lift
+
+local notation "κ₁" => ResidueField (Valuation.valuationSubring (gauss1 C))
+
+variable [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+
+include hp hp1 in
+omit [Algebra C F'] [IsScalarTower C (RatFunc C) F'] in
+/-- **Lifting residue families (G1).** Every family of residues `z_v ∈ κ(v)`, one on each residue
+curve of the outer vertex, is the reduction of a single `y ∈ F'` integral at all `v`: write `z_v`
+in the basis of `κ(v)` formed by the residues of the orthonormal basis of G6.3 and lift the
+coefficients. -/
+theorem exists_lift_red (z : ∀ v : Ext C F', ResidueField v.1.valuationSubring) :
+    ∃ y : F', (∀ v : Ext C F', v.1 y ≤ 1) ∧ ∀ v : Ext C F', red C y v = z v := by
+  classical
+  haveI : Finite (Ext C F') := finite_ext (F := F') hp hp1
+  letI : Fintype (Ext C F') := Fintype.ofFinite _
+  obtain ⟨b, -, hsmall, hres⟩ := exists_orthonormal_basis' ramificationIdx_eq_one
+    (sum_inertiaDeg_eq hp hp1 (F := F'))
+  choose ℓ hℓli hℓ using hres
+  set O := (gauss1 C).valuationSubring
+  have hfin (v : Ext C F') : Module.Finite κ₁ (ResidueField v.1.valuationSubring) :=
+    finite_residueField
+  have hne (v : Ext C F') : Nonempty (Fin (inertiaDeg (gauss1 C) v.1)) :=
+    ⟨⟨0, Module.finrank_pos⟩⟩
+  let β (v : Ext C F') : Module.Basis (Fin (inertiaDeg (gauss1 C) v.1)) κ₁
+      (ResidueField v.1.valuationSubring) :=
+    basisOfLinearIndependentOfCardEqFinrank (hℓli v) (by rw [Fintype.card_fin]; rfl)
+  have hβ (v : Ext C F') (l) : β v l = residue v.1.valuationSubring (ℓ v l) := by
+    simp [β, coe_basisOfLinearIndependentOfCardEqFinrank]
+  have hb1 (i : OIndex C F') (v : Ext C F') : v.1 (b i) ≤ 1 := by
+    by_cases hw : v = i.1
+    · subst hw
+      have : (b i : F') = (b i - ℓ i.1 i.2) + ℓ i.1 i.2 := by ring
+      rw [this]
+      exact (Valuation.map_add _ _ _).trans (max_le (hℓ i.1 i.2).le (ℓ i.1 i.2).2)
+    · exact (hsmall i v hw).le
+  have hredb (i : OIndex C F') (v : Ext C F') :
+      red C (b i) v = if h : i.1 = v then h ▸ β i.1 i.2 else 0 := by
+    split_ifs with h
+    · subst h
+      rw [hβ, ← sub_eq_zero, ← red_of_le (ℓ i.1 i.2).2, ← red_sub (hb1 i i.1) (ℓ i.1 i.2).2,
+        red_eq_zero_iff (by
+          have : (b i : F') - ℓ i.1 i.2 = b i + -(ℓ i.1 i.2 : F') := sub_eq_add_neg _ _
+          rw [this]
+          exact (Valuation.map_add _ _ _).trans (max_le (hb1 i i.1) (by
+            rw [Valuation.map_neg]; exact (ℓ i.1 i.2).2)))]
+      exact hℓ i.1 i.2
+    · exact (red_eq_zero_iff (hb1 i v)).2 (hsmall i v (Ne.symm h))
+  -- lifts of the coefficients
+  choose o ho using fun i : OIndex C F' ↦ residue_surjective ((β i.1).repr (z i.1) i.2)
+  set y : F' := ∑ i, algebraMap (RatFunc C) F' (o i : RatFunc C) * b i
+  have hterm (i : OIndex C F') (v : Ext C F') :
+      v.1 (algebraMap (RatFunc C) F' (o i : RatFunc C) * b i) ≤ 1 := by
+    rw [map_mul, valuation_algebraMap]
+    exact mul_le_one' (o i).2 (hb1 i v)
+  refine ⟨y, fun v ↦ ?_, fun v ↦ ?_⟩
+  · exact Valuation.map_sum_le _ fun i _ ↦ hterm i v
+  · rw [red_sum _ _ fun i _ ↦ hterm i v]
+    simp_rw [red_algebraMap_mul _ (o _).2 (hb1 _ v), hredb]
+    rw [Fintype.sum_sigma, Finset.sum_eq_single v]
+    · conv_rhs => rw [← (β v).sum_repr (z v)]
+      refine Finset.sum_congr rfl fun l _ ↦ ?_
+      simp only [dite_eq_ite, if_true]
+      rw [Algebra.smul_def]
+      congr 2
+      exact ho ⟨v, l⟩
+    · intro v' _ hw'
+      refine Finset.sum_eq_zero fun l _ ↦ ?_
+      simp [hw']
+    · simp
+
+end Lift
+
+section Branch
+
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F'] [Algebra C F']
+  [IsScalarTower C (RatFunc C) F'] in
+lemma red_inv_of_eq_one {v : Ext C F'} {f : F'} (hf : v.1 f = 1) :
+    red C f⁻¹ v = (red C f v)⁻¹ := by
+  have hf' : v.1 f⁻¹ ≤ 1 := by rw [map_inv₀, hf, inv_one]
+  have hf0 : f ≠ 0 := by
+    rintro rfl
+    rw [map_zero] at hf
+    exact zero_ne_one hf
+  have h := red_mul hf.le hf'
+  rw [mul_inv_cancel₀ hf0, red_one] at h
+  exact eq_inv_of_mul_eq_one_right h.symm
+
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F'] [Algebra C F']
+  [IsScalarTower C (RatFunc C) F'] in
+lemma valuation_eq_one_of_red_ne_zero {v : Ext C F'} {f : F'} (hf : v.1 f ≤ 1)
+    (h : red C f v ≠ 0) : v.1 f = 1 :=
+  le_antisymm hf (not_lt.1 fun hlt ↦ h ((red_eq_zero_iff hf).2 hlt))
+
+lemma notMem_placeIdeal_iff {c : C} (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) (Y : Rint c F') :
+    Y ∉ placeIdeal hc v hQ ↔ Q.valuation (red C (Y : F') v) = 1 := by
+  rw [mem_placeIdeal_iff]
+  have hm := red_mem_V hc v Y hQ
+  refine ⟨fun h ↦ CurvePlace.valuation_eq_one_of_res_ne_zero Q hm h, fun h h0 ↦ ?_⟩
+  have := Q.valuation_sub_res_lt_one hm
+  rw [h0, map_zero, sub_zero, h] at this
+  exact lt_irrefl 1 this
+
+lemma notMem_placeIdeal_of_notMem_tubeIdeal {c : C} (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) {τ : nodeRing c} (hτ : τ ∉ tubeIdeal c) :
+    algebraMap (nodeRing c) (Rint c F') τ ∉ placeIdeal hc v hQ := by
+  have hc1 : ‖c‖₊ < 1 := by exact_mod_cast hc
+  obtain ⟨t, ht1, ht2⟩ := exists_between hc1
+  set st : ℝ≥0ˣ := Units.mk0 t (ne_of_gt (lt_of_le_of_lt zero_le ht1))
+  have hst : st ∈ segment c := ⟨ht1, ht2⟩
+  intro hmem
+  exact hτ ((mem_tubeIdeal_iff_placeHom hc hst v hQ τ).2 hmem)
+
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F'] [Algebra C F']
+  [IsScalarTower C (RatFunc C) F'] in
+lemma coe_algebraMap_rint {c : C} (τ : nodeRing c) :
+    ((algebraMap (nodeRing c) (Rint c F') τ : Rint c F') : F') =
+      algebraMap (RatFunc C) F' (τ : RatFunc C) := rfl
+
+lemma valuation_algebraMap_le_one {c : C} (hc : ‖c‖ < 1) (v : Ext C F') (τ : nodeRing c) :
+    v.1 (algebraMap (RatFunc C) F' (τ : RatFunc C)) ≤ 1 := by
+  rw [← coe_algebraMap_rint]
+  exact valuation_le_one_R hc v _
+
+lemma Qval_algebraMap_eq_one {c : C} (hc : ‖c‖ < 1) (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) {τ : nodeRing c} (hτ : τ ∉ tubeIdeal c) :
+    Q.valuation (red C (algebraMap (RatFunc C) F' (τ : RatFunc C)) v) = 1 := by
+  rw [← coe_algebraMap_rint]
+  exact (notMem_placeIdeal_iff hc v hQ _).1 (notMem_placeIdeal_of_notMem_tubeIdeal hc v hQ hτ)
+
+variable [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+
+include hp hp1 in
+/-- **Exact node data near the boundary, one branch at a time (R4(ii)).** For a zero `Q` of `x̄`
+on a residue curve `κ(v)` of the outer vertex there is `s₀ < 1` such that for all node charts
+`O_C[x, c/x]` with `s₀ < |c| < 1`, the point `P'` of `R'` of the branch `(v, Q)` has `(v, Q)` as
+its only outer branch and carries exact node data. Construction: `ū ∈ κ(v)` with `ord_Q ū = 1`
+regular at the other zeros of `x̄`, `f̄` with `f̄(Q) ≠ 0` vanishing to high order at the other
+zeros, lifted (G1) to `u, f ∈ F'` with `ū = 1`, `f̄ = 0` on the other residue curves; `u`, `f` and
+`f x / uᵈ` (`d = ord_Q x̄`) become integral over the node chart after multiplication by elements
+`τ ∉` node ideal (G2, `exists_tau_near`), and `σ x = e uᵈ` with `σ = τ₃ τ_f f`,
+`e = τ_f τ₃ f x / uᵈ` (`nonempty_nodeData_of_coord`). -/
+theorem exists_near_branch (v : Ext C F')
+    {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ zeros 𝓀 (red C (xF C F') v)) :
+    ∃ s₀ : ℝ≥0, s₀ < 1 ∧ ∀ c : C, (hc0 : c ≠ 0) → s₀ < ‖c‖₊ → ∀ hc : ‖c‖ < 1,
+      outerBranches hc (placeIdeal hc v hQ) = {⟨v, ⟨Q, hQ⟩⟩} ∧
+        Nonempty (NodeData hc (placeIdeal hc v hQ) ⟨v, ⟨Q, hQ⟩⟩) := by
+  classical
+  set xb := red C (xF C F') v
+  set d := ord xb Q
+  have hd : 1 ≤ d := one_le_ord hQ
+  have hxb0 : xb ≠ 0 := red_xF_ne_zero' v
+  have hxQ : Q.valuation xb = exp (-(d : ℤ)) := valuation_x hQ
+  have hxQ' (Q' : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)) (hQ' : Q' ∈ zeros 𝓀 xb) :
+      Q'.valuation xb < 1 := valuation_x_lt_one hQ'
+  -- the residues `ū` and `f̄`
+  obtain ⟨ub, hubQ, hubT⟩ := CurvePlace.exists_valuation_eq_and_le Q (zeros 𝓀 xb) (-1)
+    (fun _ ↦ 1) (fun _ ↦ one_ne_zero)
+  have hub0 : ub ≠ 0 := by
+    rintro rfl
+    rw [map_zero] at hubQ
+    exact exp_ne_zero hubQ.symm
+  have hubV (Q' : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)) (hQ' : Q' ∈ zeros 𝓀 xb) :
+      Q'.valuation ub ≤ 1 := by
+    by_cases hQQ : Q' = Q
+    · rw [hQQ, hubQ, ← exp_zero, exp_le_exp]
+      omega
+    · exact hubT Q' hQ' hQQ
+  have hne (Q' : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)) :
+      Q'.valuation (ub ^ d * xb) ≠ 0 :=
+    (Valuation.ne_zero_iff _).2 (mul_ne_zero (pow_ne_zero _ hub0) hxb0)
+  obtain ⟨fb, hfbQ, hfbT⟩ := CurvePlace.exists_valuation_eq_and_le Q (zeros 𝓀 xb) 0
+    (fun Q' ↦ Q'.valuation (ub ^ d * xb)) hne
+  have hfbT' (Q' : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)) (hQ' : Q' ∈ zeros 𝓀 xb)
+      (hQQ : Q' ≠ Q) : Q'.valuation fb < 1 := by
+    refine (hfbT Q' hQ' hQQ).trans_lt ?_
+    rw [map_mul, map_pow]
+    exact mul_lt_one_of_nonneg_of_lt_one_right (pow_le_one₀ zero_le (hubV Q' hQ')) zero_le
+      (hxQ' Q' hQ')
+  -- the lifts `u` and `f`
+  obtain ⟨u, hu1, hured⟩ := exists_lift_red hp hp1
+    (Function.update (β := fun v ↦ ResidueField v.1.valuationSubring) (fun _ ↦ 1) v ub)
+  obtain ⟨f, hf1, hfred⟩ := exists_lift_red hp hp1
+    (Function.update (β := fun v ↦ ResidueField v.1.valuationSubring) (fun _ ↦ 0) v fb)
+  have huv : red C u v = ub := by rw [hured, Function.update_self]
+  have huv' (v' : Ext C F') (h : v' ≠ v) : red C u v' = 1 := by
+    rw [hured, Function.update_of_ne h]
+  have hfv : red C f v = fb := by rw [hfred, Function.update_self]
+  have hfv' (v' : Ext C F') (h : v' ≠ v) : red C f v' = 0 := by
+    rw [hfred, Function.update_of_ne h]
+  have hu_eq (v' : Ext C F') : v'.1 u = 1 := by
+    refine valuation_eq_one_of_red_ne_zero (hu1 v') ?_
+    by_cases h : v' = v
+    · subst h
+      rw [huv]
+      exact hub0
+    · rw [huv' v' h]
+      exact one_ne_zero
+  have hu0 : u ≠ 0 := by
+    rintro rfl
+    have := hu_eq v
+    rw [map_zero] at this
+    exact zero_ne_one this
+  set g := f * xF C F' * (u ^ d)⁻¹
+  have hud (v' : Ext C F') : v'.1 (u ^ d) = 1 := by rw [map_pow, hu_eq, one_pow]
+  have hg1 (v' : Ext C F') : v'.1 g ≤ 1 := by
+    simp only [g, map_mul, map_inv₀, hud, valuation_xF, inv_one, mul_one]
+    exact hf1 v'
+  have hgred (v' : Ext C F') :
+      red C g v' = red C f v' * red C (xF C F') v' * ((red C u v') ^ d)⁻¹ := by
+    rw [red_mul (by rw [map_mul, valuation_xF, mul_one]; exact hf1 v')
+      (by rw [map_inv₀, hud, inv_one]), red_mul (hf1 v') (valuation_xF v').le,
+      red_inv_of_eq_one (hud v'), red_pow (hu_eq v').le]
+  -- the hypotheses of `exists_tau_near`
+  have hyQu : ∀ v' : Ext C F', ∀ Q' ∈ zeros 𝓀 (red C (xF C F') v'), red C u v' ∈ Q'.V := by
+    intro v' Q' hQ'
+    by_cases h : v' = v
+    · subst h
+      rw [huv]
+      exact Q'.valuation_le_one_iff.1 (hubV Q' hQ')
+    · rw [huv' v' h]
+      exact one_mem _
+  have hfbV (Q' : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)) (hQ' : Q' ∈ zeros 𝓀 xb) :
+      Q'.valuation fb ≤ 1 := by
+    by_cases hQQ : Q' = Q
+    · rw [hQQ, hfbQ, exp_zero]
+    · exact (hfbT' Q' hQ' hQQ).le
+  have hyQf : ∀ v' : Ext C F', ∀ Q' ∈ zeros 𝓀 (red C (xF C F') v'), red C f v' ∈ Q'.V := by
+    intro v' Q' hQ'
+    by_cases h : v' = v
+    · subst h
+      rw [hfv]
+      exact Q'.valuation_le_one_iff.1 (hfbV Q' hQ')
+    · rw [hfv' v' h]
+      exact zero_mem _
+  have hgQ : Q.valuation (fb * xb * (ub ^ d)⁻¹) = 1 := by
+    rw [map_mul, map_mul, map_inv₀, map_pow, hfbQ, hxQ, hubQ, exp_zero, one_mul, ← exp_nsmul,
+      ← exp_neg]
+    simp
+  have hyQg : ∀ v' : Ext C F', ∀ Q' ∈ zeros 𝓀 (red C (xF C F') v'), red C g v' ∈ Q'.V := by
+    intro v' Q' hQ'
+    rw [hgred]
+    by_cases h : v' = v
+    · subst h
+      rw [hfv, huv]
+      refine Q'.valuation_le_one_iff.1 ?_
+      by_cases hQQ : Q' = Q
+      · rw [hQQ, hgQ]
+      · have hu0' : Q'.valuation ub ^ d ≠ 0 :=
+          pow_ne_zero _ ((Valuation.ne_zero_iff _).2 hub0)
+        have h1 := hfbT Q' hQ' hQQ
+        rw [map_mul, map_pow] at h1
+        rw [map_mul, map_mul, map_inv₀, map_pow]
+        calc Q'.valuation fb * Q'.valuation xb * (Q'.valuation ub ^ d)⁻¹ ≤
+              Q'.valuation ub ^ d * Q'.valuation xb * Q'.valuation xb *
+                (Q'.valuation ub ^ d)⁻¹ := by gcongr
+          _ = Q'.valuation xb * Q'.valuation xb := by field_simp
+          _ ≤ 1 := mul_le_one' (hxQ' Q' hQ').le (hxQ' Q' hQ').le
+    · rw [hfv' v' h, zero_mul, zero_mul]
+      exact zero_mem _
+  obtain ⟨s₁, hs₁, H₁⟩ := exists_tau_near hp hp1 hu1 hyQu v hQ
+  obtain ⟨s₂, hs₂, H₂⟩ := exists_tau_near hp hp1 hf1 hyQf v hQ
+  obtain ⟨s₃, hs₃, H₃⟩ := exists_tau_near hp hp1 hg1 hyQg v hQ
+  refine ⟨max s₁ (max s₂ s₃), max_lt hs₁ (max_lt hs₂ hs₃), fun c hc0 hcs hc ↦ ?_⟩
+  obtain ⟨τu, hτu, hintu⟩ := H₁ c hc0 ((le_max_left _ _).trans_lt hcs) hc
+  obtain ⟨τf, hτf, hintf⟩ := H₂ c hc0
+    (((le_max_left _ _).trans (le_max_right _ _)).trans_lt hcs) hc
+  obtain ⟨τg, hτg, hintg⟩ := H₃ c hc0
+    (((le_max_right _ _).trans (le_max_right _ _)).trans_lt hcs) hc
+  let P' := placeIdeal hc v hQ
+  haveI : P'.IsPrime := (placeIdeal_isMaximal hc v hQ).isPrime
+  let Tu := algebraMap (nodeRing c) (Rint c F') τu
+  let Tf := algebraMap (nodeRing c) (Rint c F') τf
+  let Tg := algebraMap (nodeRing c) (Rint c F') τg
+  have hval1 (τ : nodeRing c) (hτ : τ ∉ tubeIdeal c) :
+      Q.valuation (red C (algebraMap (RatFunc C) F' (τ : RatFunc C)) v) = 1 :=
+    Qval_algebraMap_eq_one hc v hQ hτ
+  have hle1 (τ : nodeRing c) : v.1 (algebraMap (RatFunc C) F' (τ : RatFunc C)) ≤ 1 :=
+    valuation_algebraMap_le_one hc v τ
+  let U : Rint c F' := ⟨_, hintu⟩
+  let Fm : Rint c F' := ⟨_, hintf⟩
+  let G : Rint c F' := ⟨_, hintg⟩
+  have hFm : Q.valuation (red C (Fm : F') v) = 1 := by
+    change Q.valuation (red C (algebraMap (RatFunc C) F' (τf : RatFunc C) * f) v) = 1
+    rw [red_mul (hle1 τf) (hf1 v), map_mul, hval1 τf hτf, hfv, hfbQ, exp_zero, one_mul]
+  have hG : Q.valuation (red C (G : F') v) = 1 := by
+    change Q.valuation (red C (algebraMap (RatFunc C) F' (τg : RatFunc C) * g) v) = 1
+    rw [red_mul (hle1 τg) (hg1 v), map_mul, hval1 τg hτg, hgred, hfv, huv, one_mul]
+    exact hgQ
+  have hFmP : Fm ∉ P' := (notMem_placeIdeal_iff hc v hQ _).2 hFm
+  have hσ : Tg * Fm ∉ P' := by
+    rw [notMem_placeIdeal_iff, Subalgebra.coe_mul,
+      red_mul (valuation_le_one_R hc v _) (valuation_le_one_R hc v _), map_mul, hFm, mul_one]
+    exact hval1 τg hτg
+  have he : Tf * G ∉ P' := by
+    rw [notMem_placeIdeal_iff, Subalgebra.coe_mul,
+      red_mul (valuation_le_one_R hc v _) (valuation_le_one_R hc v _), map_mul, hG, mul_one]
+    exact hval1 τf hτf
+  have hx : ((Tg * Fm : Rint c F') : F') * xF C F' = ((Tf * G : Rint c F') : F') * u ^ d := by
+    change (algebraMap (RatFunc C) F' (τg : RatFunc C) *
+      (algebraMap (RatFunc C) F' (τf : RatFunc C) * f)) * xF C F' =
+      (algebraMap (RatFunc C) F' (τf : RatFunc C) *
+        (algebraMap (RatFunc C) F' (τg : RatFunc C) * (f * xF C F' * (u ^ d)⁻¹))) * u ^ d
+    field_simp
+  have hval : Q.valuation (redHom hc v U) = exp (-1) := by
+    rw [redHom_apply]
+    change Q.valuation (red C (algebraMap (RatFunc C) F' (τu : RatFunc C) * u) v) = exp (-1)
+    rw [red_mul (hle1 τu) (hu1 v), map_mul, hval1 τu hτu, huv, hubQ, one_mul]
+  have hTu : Tu ∉ P' := notMem_placeIdeal_of_notMem_tubeIdeal hc v hQ hτu
+  refine ⟨Set.ext fun b' ↦ ⟨fun hb' ↦ ?_, fun hb' ↦ ?_⟩,
+    nonempty_nodeData_of_coord hc hc0 hd u (Tg * Fm) (Tf * G) hσ he hx U Tu hTu rfl hval⟩
+  · obtain ⟨v', Q', hQ'⟩ := b'
+    change placeIdeal hc v' hQ' = P' at hb'
+    have hFm' : Fm ∉ placeIdeal hc v' hQ' := hb' ▸ hFmP
+    rw [notMem_placeIdeal_iff] at hFm'
+    change Q'.valuation (red C (algebraMap (RatFunc C) F' (τf : RatFunc C) * f) v') = 1 at hFm'
+    rw [red_mul (valuation_algebraMap_le_one hc v' τf) (hf1 v'), map_mul] at hFm'
+    have hτle : Q'.valuation (red C (algebraMap (RatFunc C) F' (τf : RatFunc C)) v') ≤ 1 := by
+      have := red_mem_V hc v' Tf hQ'
+      rw [coe_algebraMap_rint] at this
+      exact Q'.valuation_le_one_iff.2 this
+    by_cases hv : v' = v
+    · subst hv
+      by_cases hQQ : Q' = Q
+      · subst hQQ
+        rfl
+      · exfalso
+        rw [hfv] at hFm'
+        have := mul_lt_one_of_nonneg_of_lt_one_right hτle zero_le (hfbT' Q' hQ' hQQ)
+        rw [hFm'] at this
+        exact lt_irrefl 1 this
+    · exfalso
+      rw [hfv' v' hv, map_zero, mul_zero] at hFm'
+      exact zero_ne_one hFm'
+  · rw [Set.mem_singleton_iff] at hb'
+    subst hb'
+    rfl
+
+variable [Algebra.IsSeparable (RatFunc C) F']
+
+include hp hp1 in
+/-- **R4(ii): exact node data at all points near the outer boundary.** There is `s₀ < 1` such
+that for every node chart `O_C[x, c/x]` with `s₀ < |c| < 1`, every point `P'` of `R' = Rint c F'`
+over the node has a single outer branch `b₁` and exact node data. No descent is involved: the
+data are constructed directly (`exists_near_branch`), for the finitely many branches. -/
+theorem exists_near_nodeData :
+    ∃ s₀ : ℝ≥0, s₀ < 1 ∧ ∀ c : C, (hc0 : c ≠ 0) → s₀ < ‖c‖₊ → ∀ hc : ‖c‖ < 1,
+      ∀ P' : Ideal (Rint c F'), P'.IsMaximal →
+        P'.comap (algebraMap (nodeRing c) (Rint c F')) = tubeIdeal c →
+          ∃ b₁ : OuterBranch C F', outerBranches hc P' = {b₁} ∧ Nonempty (NodeData hc P' b₁) := by
+  classical
+  haveI : Finite (Ext C F') := finite_ext (F := F') hp hp1
+  letI : Fintype (Ext C F') := Fintype.ofFinite _
+  choose S hS hB using fun b : OuterBranch C F' ↦ exists_near_branch hp hp1 b.1 b.2.2
+  refine ⟨Finset.univ.sup S, (Finset.sup_lt_iff zero_lt_one).2 fun b _ ↦ hS b,
+    fun c hc0 hcs hc P' hP' hP ↦ ?_⟩
+  obtain ⟨b, hb⟩ := exists_outerBranch hp hp1 hc hc0 P' hP
+  obtain ⟨h₁, hN⟩ := hB b c hc0 ((Finset.le_sup (Finset.mem_univ b)).trans_lt hcs) hc
+  rw [hb] at h₁ hN
+  exact ⟨b, h₁, hN⟩
+
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F'] [Algebra C F']
+  [IsScalarTower C (RatFunc C) F'] [CharZero C] [Algebra.IsSeparable (RatFunc C) F'] in
+/-- A point of `R''` over the node restricts to a point of `R'` over the node (`|c'| < |c''|`). -/
+lemma comap_rintMap_comap {c' c'' : C} (hc'' : ‖c''‖ < 1) (hc0'' : c'' ≠ 0)
+    (hlt : ‖c'‖ < ‖c''‖) (P'' : Ideal (Rint c'' F'))
+    (hP'' : P''.comap (algebraMap (nodeRing c'') (Rint c'' F')) = tubeIdeal c'') :
+    (P''.comap (rintMap (F' := F') (nodeRing_le hlt.le hc0''))).comap
+      (algebraMap (nodeRing c') (Rint c' F')) = tubeIdeal c' := by
+  have hc1 : ‖c''‖₊ < 1 := by exact_mod_cast hc''
+  obtain ⟨t, ht1, ht2⟩ := exists_between hc1
+  set st : ℝ≥0ˣ := Units.mk0 t (ne_of_gt (lt_of_le_of_lt zero_le ht1))
+  have hst'' : st ∈ segment c'' := ⟨ht1, ht2⟩
+  have hst' : st ∈ segment c' :=
+    ⟨lt_trans (show ‖c'‖₊ < ‖c''‖₊ by exact_mod_cast hlt) ht1, ht2⟩
+  ext a
+  have heq : rintMap (F' := F') (nodeRing_le hlt.le hc0'')
+      (algebraMap (nodeRing c') (Rint c' F') a) =
+      algebraMap (nodeRing c'') (Rint c'' F') ⟨a, nodeRing_le hlt.le hc0'' a.2⟩ :=
+    Subtype.ext (by rw [coe_rintMap, coe_algebraMap_rint, coe_algebraMap_rint])
+  rw [Ideal.mem_comap, Ideal.mem_comap, heq, ← Ideal.mem_comap, hP'', mem_tubeIdeal_iff _ hst'',
+    mem_tubeIdeal_iff _ hst']
+
+include hp hp1 in
+/-- **R4(ii): every annulus close enough to the outer boundary is exhausting** (BL Lemma 2.4).
+There is `s₀ < 1` such that for every `c''` with `s₀ < |c''| < 1`, every point of
+`R'' = Rint c'' F'` over the node is an ordinary double point over `C`: it lies over a point of
+`R' = Rint c' F'` (`c' = c''²`, still near the boundary) with exact node data
+(`exists_near_nodeData`), and R4(i) (`isNodeODP_of_le`) applies. -/
+theorem exists_near_isNodeODP :
+    ∃ s₀ : ℝ≥0, s₀ < 1 ∧ ∀ c'' : C, (hc0'' : c'' ≠ 0) → s₀ < ‖c''‖₊ → ∀ hc'' : ‖c''‖ < 1,
+      ∀ P'' : Ideal (Rint c'' F'), P''.IsMaximal →
+        P''.comap (algebraMap (nodeRing c'') (Rint c'' F')) = tubeIdeal c'' →
+          IsNodeODP hc'' hc0'' P'' := by
+  obtain ⟨s₁, hs₁, H⟩ := exists_near_nodeData (F' := F') hp hp1
+  refine ⟨NNReal.sqrt s₁, by rw [← NNReal.sqrt_one, NNReal.sqrt_lt_sqrt]; exact hs₁,
+    fun c'' hc0'' hcs hc'' P'' hP''m hP'' ↦ ?_⟩
+  set c' := c'' ^ 2
+  have hc0' : c' ≠ 0 := pow_ne_zero _ hc0''
+  have hn : 0 < ‖c''‖ := norm_pos_iff.2 hc0''
+  have hlt : ‖c'‖ < ‖c''‖ := by
+    rw [norm_pow]
+    nlinarith
+  have hc' : ‖c'‖ < 1 := hlt.trans hc''
+  have hcs' : s₁ < ‖c'‖₊ := by
+    rw [nnnorm_pow]
+    by_contra h
+    exact absurd hcs (not_lt.2 (NNReal.le_sqrt_iff_sq_le.2 (not_lt.1 h)))
+  set P' := P''.comap (rintMap (F' := F') (nodeRing_le hlt.le hc0''))
+  have hcomap := comap_rintMap_comap hc'' hc0'' hlt P'' hP''
+  haveI : P'.IsMaximal :=
+    Ideal.isMaximal_of_isIntegral_of_isMaximal_comap (R := nodeRing c') _
+      (by rw [hcomap]; exact tubeIdeal_isMaximal hc' hc0')
+  obtain ⟨b₁, h₁, ⟨N⟩⟩ := H c' hc0' hcs' hc' P' inferInstance hcomap
+  exact isNodeODP_of_le hp hp1 hc' hc'' hc0' hc0'' hlt P'' hP'' rfl h₁ N
+
+end Branch
+
+omit [IsUltrametricDist C] in
+/-- Absolute values of `C` come arbitrarily close to `1` from below. -/
+lemma exists_nnnorm_between {s₀ : ℝ≥0} (hs₀ : s₀ < 1) : ∃ e : C, s₀ < ‖e‖₊ ∧ ‖e‖₊ < 1 := by
+  obtain ⟨π, hπ0, hπ1⟩ := NormedField.exists_norm_lt_one C
+  have hπ0' : 0 < ‖π‖₊ := by exact_mod_cast hπ0
+  have hπ1' : ‖π‖₊ < 1 := by exact_mod_cast hπ1
+  obtain ⟨N, hN⟩ := exists_pow_lt_of_lt_one hπ0' hs₀
+  have hN0 : N ≠ 0 := by
+    rintro rfl
+    rw [pow_zero] at hN
+    exact absurd (hN.trans hπ1') (lt_irrefl 1)
+  obtain ⟨e, he⟩ := IsAlgClosed.exists_pow_nat_eq π (Nat.pos_of_ne_zero hN0)
+  have hen : ‖e‖₊ ^ N = ‖π‖₊ := by rw [← nnnorm_pow, he]
+  refine ⟨e, lt_of_pow_lt_pow_left₀ N zero_le (hen ▸ hN), not_le.1 fun h ↦ ?_⟩
+  have := one_le_pow₀ (n := N) h
+  rw [hen] at this
+  exact absurd (this.trans_lt hπ1') (lt_irrefl 1)
+
+variable [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+
+include hp hp1 in
+/-- **R4(ii), disc form** (`BelowGerm`, BL Lemma 2.4): for every residue class
+`U = {|x - a| < |c|}` there is `e`, `0 < |e| < 1`, such that every closed disc
+`D = {|x - a| ≤ |c c'|}` with `|e| ≤ |c'| < 1` is exhausting. Unconditional: no descent and no
+interim `NodeData` hypothesis (the exact node data are constructed near the boundary,
+`exists_near_nodeData`). -/
+theorem belowGerm (a c : C) (hc : c ≠ 0) :
+    ∃ e : C, e ≠ 0 ∧ ‖e‖ < 1 ∧ ∀ (c' : C) (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0), ‖e‖ ≤ ‖c'‖ →
+      AffineTwist.IsExhausting a hc hc' hc0' F' := by
+  haveI : Algebra.IsSeparable (RatFunc C) (AffineTwist.Aff a c hc F') :=
+    Algebra.IsAlgebraic.isSeparable_of_perfectField
+  obtain ⟨s₀, hs₀, H⟩ := exists_near_isNodeODP (F' := AffineTwist.Aff a c hc F') hp hp1
+  obtain ⟨e, hse, he1⟩ := exists_nnnorm_between (C := C) hs₀
+  have he0 : e ≠ 0 := by
+    rintro rfl
+    rw [nnnorm_zero] at hse
+    exact absurd hse (not_lt.2 zero_le)
+  refine ⟨e, he0, by exact_mod_cast he1, fun c' hc' hc0' hle P' hP' hP ↦ ?_⟩
+  have hle' : ‖e‖₊ ≤ ‖c'‖₊ := by exact_mod_cast hle
+  exact H c' hc0' (hse.trans_le hle') hc' P' hP' hP
 
 end GaussTube
 
