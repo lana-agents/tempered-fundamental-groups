@@ -94,6 +94,28 @@ lemma coe_rintMap (hle : nodeRing c' ≤ nodeRing c'') (y : Rint c' F') :
 
 end Le
 
+omit [Algebra C F'] [IsScalarTower C (RatFunc C) F'] [IsAlgClosed C]
+  [FiniteDimensional (RatFunc C) F'] in
+@[simp]
+lemma coe_rintEquiv {c : C} (hc0 : c ≠ 0) (y : Rint c F') :
+    ((rintEquiv hc0 y : Rint c (Inv c hc0 F')) : Inv c hc0 F') = toInv hc0 (y : F') :=
+  Subtype.coe_mk (p := (· ∈ Rint c (Inv c hc0 F'))) _ _
+
+lemma redHom_rintMap {c' c'' : C} (hc' : ‖c'‖ < 1) (hc'' : ‖c''‖ < 1)
+    (hle : nodeRing c' ≤ nodeRing c'') (v : Ext C F') (y : Rint c' F') :
+    redHom hc'' v (rintMap hle y) = redHom hc' v y := by
+  rw [redHom_apply, redHom_apply, coe_rintMap]
+
+lemma redHomInv_apply {c : C} (hc : ‖c‖ < 1) (hc0 : c ≠ 0) (w : Ext C (Inv c hc0 F'))
+    (y : Rint c F') : redHomInv hc hc0 w y = red C (toInv hc0 (y : F')) w := by
+  rw [← coe_rintEquiv hc0 y, ← redHom_apply hc]
+  rfl
+
+lemma redHomInv_rintMap {c' c'' : C} (hc'' : ‖c''‖ < 1) (hc0'' : c'' ≠ 0)
+    (hle : nodeRing c' ≤ nodeRing c'') (w : Ext C (Inv c'' hc0'' F')) (y : Rint c' F') :
+    redHomInv hc'' hc0'' w (rintMap hle y) = red C (toInv hc0'' (y : F')) w := by
+  rw [redHomInv_apply, coe_rintMap]
+
 /-! ### Every point over the node is a centre -/
 
 section Pos
@@ -327,6 +349,54 @@ lemma NodeData.ord_x : ord (red C (xF C F') b₁.1) b₁.2.1 = N.d := by
   omega
 
 end OuterFacts
+
+section Red
+
+variable {F : Type*} [Field F] [Algebra (RatFunc C) F] [Algebra C F]
+  [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F]
+
+/-- An element congruent to a constant of norm one has value one and residue-valuation one at
+every place. -/
+lemma val_and_Qval_eq_one (w : Ext C F) (Q : CurvePlace 𝓀 (IsLocalRing.ResidueField
+    w.1.valuationSubring)) {z : F} {κ : C} (hκ : ‖κ‖₊ = 1)
+    (hz : w.1 (z - algebraMap C F κ) < 1) :
+    w.1 z = 1 ∧ Q.valuation (red C z w) = 1 := by
+  have hκw : w.1 (algebraMap C F κ) = 1 := by rw [valuation_algebraMap_C', hκ]
+  have hzκ : z = (z - algebraMap C F κ) + algebraMap C F κ := by ring
+  have hwz : w.1 z = 1 := by
+    rw [hzκ, Valuation.map_add_eq_of_lt_right _ (hκw ▸ hz), hκw]
+  refine ⟨hwz, ?_⟩
+  have hred : red C z w = algebraMap 𝓀 _ (IsLocalRing.residue (HenselComplete.integers C)
+      ⟨κ, (HenselComplete.mem_integers_iff κ).2 (by
+        rw [← coe_nnnorm, hκ, NNReal.coe_one])⟩) := by
+    rw [hzκ, red_add hz.le hκw.le, (red_eq_zero_iff hz.le).2 hz, zero_add,
+      red_algebraMap_C κ hκ.le]
+  rw [hred]
+  refine SemistableReduction.valuation_algebraMap_eq_one Q.valuation_algebraMap_le_one ?_
+  rw [Ne, IsLocalRing.residue_eq_zero_iff, HenselComplete.mem_maximalIdeal_iff_norm_lt_one]
+  simp [← coe_nnnorm, hκ]
+
+end Red
+
+section Main
+
+variable [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+  [Algebra.IsSeparable (RatFunc C) F']
+
+omit [CharZero C] [Algebra.IsSeparable (RatFunc C) F'] [IsAlgClosed C] [Algebra C F']
+  [IsScalarTower C (RatFunc C) F'] in
+/-- Finitely many extensions of a Gauss valuation. -/
+lemma finite_gaussExtension (a : C) (r : ℝ≥0ˣ) [Algebra.IsSeparable (RatFunc C) F'] :
+    Finite (GaussExtension a r F') := by
+  haveI : Fact (DenseRange (algebraMap (GaussField a r)
+      (UniformSpace.Completion (GaussField a r)))) :=
+    ⟨DenseCompletion.denseRange_algebraMap_completion _⟩
+  haveI := LocalGlobal.finite_extension (F := GaussField a r)
+    (UniformSpace.Completion (GaussField a r)) (F' := F')
+  exact Finite.of_equiv _ gaussExtensionEquiv.symm
+
+
+end Main
 
 end Upward
 

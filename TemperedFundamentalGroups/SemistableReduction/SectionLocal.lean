@@ -278,14 +278,20 @@ set_option maxHeartbeats 1000000 in
 -- the dimension count over the closed points of both charts elaborates slowly
 open Classical in
 include hsum in
-/-- **The genus formula with local `δ`-invariants** (S7⁺.7): there are conductor elements `σ₀`,
-`σ_∞` of the two reduced charts such that for `M ≫ 0`,
+/-- **The genus formula with local `δ`-invariants** for given conductor elements `σ₀`, `σ_∞` of
+the two reduced charts (S7⁺.7): for `M ≫ 0`,
 `g(F) + #{w} - 1 = Σ_w g(κ(w)) + Σ_y δ_y^{(M)}`, where `y` runs over the closed points of the
 chart at `0` containing `σ₀` and the closed points of the chart at `∞` over `x̄ = ∞` containing
-`σ_∞` (every closed point with `δ_y ≠ 0` is among them). Equivalently
-`g(F) = 1 + Σ_w (g(κ(w)) - 1) + Σ_y δ_y`. -/
-theorem exists_genus_eq_sum_delta [CharZero C] :
-    ∃ σ₀ ∈ redRing C F (xF C F), ∃ σi ∈ redRing C F (xF C F)⁻¹, ∃ M₀ : ℕ, ∀ M : ℕ, M₀ ≤ M →
+`σ_∞`. -/
+theorem genus_eq_sum_delta_of_conductor [CharZero C] {σ₀ σi : Π w : Ext C F,
+      ResidueField w.1.valuationSubring}
+    (hσ₀ : σ₀ ∈ redRing C F (xF C F)) (hσ₀0 : ∀ w, σ₀ w ≠ 0)
+    (hσ₀c : ∀ v ∈ regRing 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring)
+      (fun w : Ext C F ↦ red C (xF C F) w), σ₀ * v ∈ redRing C F (xF C F))
+    (hσi : σi ∈ redRing C F (xF C F)⁻¹) (hσi0 : ∀ w, σi w ≠ 0)
+    (hσic : ∀ v ∈ regRing 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring)
+      (fun w : Ext C F ↦ red C (xF C F)⁻¹ w), σi * v ∈ redRing C F (xF C F)⁻¹) :
+    ∃ M₀ : ℕ, ∀ M : ℕ, M₀ ≤ M →
       (genus C F : ℤ) + Fintype.card (Ext C F) - 1 =
         (∑ w : Ext C F, (genus 𝓀 (ResidueField w.1.valuationSubring) : ℤ)) +
         (∑ y ∈ points (isChart_x hb) σ₀,
@@ -298,12 +304,10 @@ theorem exists_genus_eq_sum_delta [CharZero C] :
   classical
   set hΛ₀ := isChart_x hb
   set hΛi := isChart_x_inv hb
-  obtain ⟨σ₀, hσ₀, hσ₀0, hσ₀c⟩ := exists_conductor_x hb hsum
-  obtain ⟨σi, hσi, hσi0, hσic⟩ := exists_conductor_x_inv hb hsum
   obtain ⟨M₁, hM₁⟩ := mem_of_forall_mem_sup hΛ₀ hσ₀ hσ₀0 hσ₀c
   obtain ⟨M₂, hM₂⟩ := mem_of_forall_mem_sup hΛi hσi hσi0 hσic
   obtain ⟨m₀, hm₀⟩ := genus_add_card_sub_one_eq hb hsum
-  refine ⟨σ₀, hσ₀, σi, hσi, max M₁ M₂, fun M hM ↦ ?_⟩
+  refine ⟨max M₁ M₂, fun M hM ↦ ?_⟩
   set Y₀ := points hΛ₀ σ₀
   set Yi := (points hΛi σi).filter
     (fun y ↦ (⟨_, hΛi.mem⟩ : redRing C F (xF C F)⁻¹) ∈ y)
@@ -493,6 +497,30 @@ theorem exists_genus_eq_sum_delta [CharZero C] :
   have key2 := (Nat.cast_le (α := ℤ)).2 hcount2
   push_cast at key key2
   linarith
+
+open Classical in
+include hsum in
+/-- **The genus formula with local `δ`-invariants** (S7⁺.7): there are conductor elements `σ₀`,
+`σ_∞` of the two reduced charts such that for `M ≫ 0`,
+`g(F) + #{w} - 1 = Σ_w g(κ(w)) + Σ_y δ_y^{(M)}`, where `y` runs over the closed points of the
+chart at `0` containing `σ₀` and the closed points of the chart at `∞` over `x̄ = ∞` containing
+`σ_∞` (every closed point with `δ_y ≠ 0` is among them). Equivalently
+`g(F) = 1 + Σ_w (g(κ(w)) - 1) + Σ_y δ_y`. -/
+theorem exists_genus_eq_sum_delta [CharZero C] :
+    ∃ σ₀ ∈ redRing C F (xF C F), ∃ σi ∈ redRing C F (xF C F)⁻¹, ∃ M₀ : ℕ, ∀ M : ℕ, M₀ ≤ M →
+      (genus C F : ℤ) + Fintype.card (Ext C F) - 1 =
+        (∑ w : Ext C F, (genus 𝓀 (ResidueField w.1.valuationSubring) : ℤ)) +
+        (∑ y ∈ points (isChart_x hb) σ₀,
+          (delta 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) (isChart_x hb) σ₀ y M
+            : ℤ)) +
+        ∑ y ∈ (points (isChart_x_inv hb) σi).filter
+            (fun y ↦ (⟨_, (isChart_x_inv hb).mem⟩ : redRing C F (xF C F)⁻¹) ∈ y),
+          (delta 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) (isChart_x_inv hb) σi
+            y M : ℤ) := by
+  obtain ⟨σ₀, hσ₀, hσ₀0, hσ₀c⟩ := exists_conductor_x hb hsum
+  obtain ⟨σi, hσi, hσi0, hσic⟩ := exists_conductor_x_inv hb hsum
+  exact ⟨σ₀, hσ₀, σi, hσi,
+    genus_eq_sum_delta_of_conductor hb hsum hσ₀ hσ₀0 hσ₀c hσi hσi0 hσic⟩
 
 end Main
 
