@@ -42,6 +42,8 @@ open CategoryTheory AlgebraicGeometry
 
 namespace TemperedFundamentalGroups.SemistableReduction
 
+-- Note: untargeted (kept for Theorem B). As stated it is false for non-equidimensional `R`
+-- (e.g. `R = K[t] × K`); the targeted `Statement.StrongA` assumes `[IsDomain R]`.
 /-- **The strong form of W10 with connected components**: `Statement.Strong`, with its last
 clause replaced by the component clause (see the module docstring). -/
 def Statement.StrongComponent : Prop :=
