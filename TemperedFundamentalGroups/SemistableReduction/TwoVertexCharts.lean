@@ -703,6 +703,253 @@ lemma exists_bound_outer {f : Aff (0 : C) c hc0 F}
     rw [hvu, hvs, max_eq_right (one_le_inv₀ (pos_iff_ne_zero.2 hc0') |>.2 hc1'),
       mul_inv_cancel₀ hc0']) M hM
 
+include hp hp1 in
+/-- **The chart of `G` at `s = 0` and the inner chart of `T` at `t = ∞`** agree after inverting
+`c/(x t)` (instance (I3) of the locality). -/
+theorem isLocalIso_innerInf
+    (hΛG : IsChart 𝓀 (fun w : Ext C (Aff (0 : C) c hc0 F) ↦ red C (xF C (Aff (0 : C) c hc0 F)) w)
+      (redRing C (Aff (0 : C) c hc0 F) (xF C (Aff (0 : C) c hc0 F))))
+    (hΛT : IsChart 𝓀 (fun w : Ext C (TwoV c F) ↦ red C (xF C (TwoV c F))⁻¹ w)
+      (redRing C (TwoV c F) (xF C (TwoV c F))⁻¹)) :
+    IsLocalIso hΛG hΛT (extEmb (φG hc0) (fun _ ↦ rfl) (ιD hc0 hc1) (ιD_apply hc0 hc1))
+      (fun w ↦ red C (toAff hc0 (U1G (F := F) c)) w)
+      (fun w' ↦ red C (toTwoV c (rr (F := F) c)) w') := by
+  have hr := isIntegral_rr (C := C) (F := F) (c := c)
+  have hvout (w : Ext C F) : ∀ b : C, w.1 (algebraMap C F b) = ‖b‖₊ := valuation_algebraMap_C' w
+  have hvin (w : Ext C (Aff (0 : C) c hc0 F)) :
+      ∀ b : C, (w.1.comap (toAff hc0).toRingHom) (algebraMap C F b) = ‖b‖₊ :=
+    fun b ↦ val_toAff_C hc0 w b
+  have hxin (w : Ext C (Aff (0 : C) c hc0 F)) :
+      (w.1.comap (toAff hc0).toRingHom) (xF C F) = ‖c‖₊ := valuation_toAff_x hc0 w
+  have hcF : algebraMap C F c ≠ 0 := (_root_.map_ne_zero _).2 hc0
+  refine isLocalIso_of _ _ _ _ hΛG hΛT (U1G_mem hc0 hc1) ⟨hr, gnorm_le_iff.2 fun w' ↦ ?_⟩
+    (fun f hf ↦ ?_) (fun g hg ↦ ?_) ?_ ?_
+  · rcases ext_cases' hc0 hc1 w' with ⟨w, rfl⟩ | ⟨w, rfl⟩
+    · rw [ιU_apply, val_rr_out hc1 (hvout w) (valuation_xF w)]
+      exact_mod_cast hc1.le
+    · rw [ιD_toTwoV]
+      exact (val_rr_in hc0 hc1 (hvin w) (hxin w)).le
+  · -- forward
+    have hf' : IsIntegral (Algebra.adjoin C {φG hc0 (toAff hc0 (sF (F := F) c))}) (φG hc0 f) := by
+      have := hf.1
+      rw [xF_G] at this
+      exact this
+    obtain ⟨N₀, hN₀⟩ := ChartBounds.exists_pow_mul_isIntegral' (u := toTwoV c (rr (F := F) c))
+      hr (by
+        have key : rr (F := F) c * sF c = tinv c := by
+          have hx := xF_ne_zero (C := C) (F := F)
+          have hD := Dn_ne_zero (F := F) (c := c)
+          rw [rr, sF, tinv, map_inv₀]; field_simp
+        have e : toTwoV c (rr (F := F) c) * φG hc0 (toAff hc0 (sF (F := F) c)) =
+            (xF C (TwoV c F))⁻¹ := by
+          rw [xF_twoV_inv, ← key]; rfl
+        rw [e]
+        exact isIntegral_of_mem (Algebra.self_mem_adjoin_singleton C _)) hf'
+    obtain ⟨d, hd⟩ := exists_bound_outer hc0 hc1 hp hp1 hf (u := rr c) fun w ↦
+      val_rr_out hc1 (hvout w) (valuation_xF w)
+    refine ⟨N₀ + (d + 1), ⟨?_, gnorm_le_iff.2 fun w' ↦ ?_⟩, fun w' hw' ↦ ?_⟩
+    · rw [pow_add, mul_comm (_ ^ N₀), mul_assoc]
+      exact (hr.pow _).mul hN₀
+    · rcases ext_cases' hc0 hc1 w' with ⟨w, rfl⟩ | ⟨w, rfl⟩
+      · exact hd w _ (by omega)
+      · have hr1 : (ιD hc0 hc1 w).1 (toTwoV c (rr (F := F) c)) = 1 := by
+          change (w.1.comap (toAff hc0).toRingHom) (rr (F := F) c) = 1
+          exact val_rr_in hc0 hc1 (hvin w) (hxin w)
+        rw [map_mul, map_pow, hr1, one_pow, one_mul, ιD_apply]
+        exact (le_gnorm w f).trans hf.2
+    · rcases ext_cases' hc0 hc1 w' with ⟨w, rfl⟩ | ⟨w, rfl⟩
+      · have e : toTwoV c (rr (F := F) c) ^ (N₀ + (d + 1)) * φG hc0 f =
+            toTwoV c (rr c) * (toTwoV c (rr (F := F) c) ^ (N₀ + d) * φG hc0 f) := by ring
+        rw [e, map_mul, ιU_apply]
+        exact mul_lt_one_of_nonneg_of_lt_one_left zero_le
+          ((val_rr_out hc1 (hvout w) (valuation_xF w)).trans_lt (by exact_mod_cast hc1))
+          (hd w _ (by omega))
+      · exact absurd ⟨w, rfl⟩ hw'
+  · -- backward
+    have hg' : IsIntegral (Algebra.adjoin C {toAff (a := (0 : C)) hc0 (tinv (F := F) c)})
+        ((φG hc0).symm g) := by
+      have := hg.1
+      rw [xF_twoV_inv] at this
+      exact this
+    obtain ⟨N, hN⟩ := ChartBounds.exists_pow_mul_isIntegral (u := toAff hc0 (U1G (F := F) c))
+      (S := Algebra.adjoin C {xF C (Aff (0 : C) c hc0 F)}) (U1G_mem_adjoin hc0) (by
+        have key : U1G (F := F) c * tinv c = sF c := by
+          have hx := xF_ne_zero (C := C) (F := F)
+          have hD := Dn_ne_zero (F := F) (c := c)
+          rw [U1G, sF, tinv, Dn, map_inv₀]; field_simp; ring
+        have e : toAff hc0 (U1G (F := F) c) * toAff (a := (0 : C)) hc0 (tinv (F := F) c) =
+            xF C (Aff (0 : C) c hc0 F) := by
+          rw [xF_G, ← key]; rfl
+        rw [e]
+        exact Algebra.self_mem_adjoin_singleton C _) hg'
+    refine ⟨N, hN, gnorm_le_iff.2 fun w ↦ ?_⟩
+    rw [map_mul, map_pow]
+    refine mul_le_one' (pow_le_one₀ zero_le ((le_gnorm w _).trans (U1G_mem hc0 hc1).2)) ?_
+    rw [← ιD_apply hc0 hc1 w, RingEquiv.apply_symm_apply]
+    exact (le_gnorm _ g).trans hg.2
+  · intro w Q _ _
+    have : red C ((φG hc0).symm (toTwoV c (rr (F := F) c))) w = 1 := by
+      refine red_eq_one_of ?_
+      change (w.1.comap (toAff hc0).toRingHom) (rr (F := F) c - 1) < 1
+      exact val_rr_sub_one_in hc0 hc1 (hvin w) (hxin w)
+    rw [this, Valuation.map_one]
+  · intro w' Q _ hu
+    rcases ext_cases' hc0 hc1 w' with ⟨w, rfl⟩ | ⟨w, rfl⟩
+    · exfalso
+      have hlt : (ιU hc0 hc1 w).1 (toTwoV c (rr (F := F) c)) < 1 := by
+        rw [ιU_apply, val_rr_out hc1 (hvout w) (valuation_xF w)]
+        exact_mod_cast hc1
+      rw [(red_eq_zero_iff hlt.le).2 hlt, map_zero] at hu
+      exact zero_ne_one hu
+    · refine ⟨⟨w, rfl⟩, ?_⟩
+      have : red C (φG hc0 (toAff hc0 (U1G (F := F) c))) (ιD hc0 hc1 w) = 1 := by
+        refine red_eq_one_of ?_
+        change w.1 (toAff hc0 (U1G (F := F) c - 1)) < 1
+        exact val_U1G_sub_one hc0 hc1 w
+      rw [this, Valuation.map_one]
+
+/-- `c/x`. -/
+noncomputable abbrev cxF (c : C) : F := algebraMap C F c / xF C F
+
+omit [IsUltrametricDist C] [IsAlgClosed C] [IsScalarTower C (RatFunc C) F] [CharZero C]
+  [Fintype (GaussFibre.Ext C (Aff 0 c hc0 F))] [Fintype (GaussFibre.Ext C (TwoV c F))] in
+include hc0 in
+lemma cxF_mul_sF : cxF (F := F) c * sF c = 1 := by
+  have hx := xF_ne_zero (C := C) (F := F)
+  have hcF : algebraMap C F c ≠ 0 := (_root_.map_ne_zero _).2 hc0
+  rw [cxF, sF, map_inv₀]
+  field_simp
+
+omit [IsAlgClosed C] [FiniteDimensional (RatFunc C) F] [CharZero C]
+  [Fintype (GaussFibre.Ext C (TwoV c F))] in
+lemma val_cxF_out (w : Ext C F) : w.1 (cxF (F := F) c) = ‖c‖₊ := by
+  rw [cxF, map_div₀, valuation_algebraMap_C', valuation_xF, div_one]
+
+omit [IsAlgClosed C] [CharZero C] [Fintype (GaussFibre.Ext C (Aff 0 c hc0 F))]
+  [Fintype (GaussFibre.Ext C (TwoV c F))] in
+lemma val_cxF_in (w : Ext C (Aff (0 : C) c hc0 F)) : w.1 (toAff hc0 (cxF (F := F) c)) = 1 := by
+  have h := congrArg w.1 (congrArg (toAff hc0) (cxF_mul_sF hc0 (F := F)))
+  rw [map_one, map_one, map_mul, map_mul, val_sF_in, mul_one] at h
+  exact h
+
+omit [IsUltrametricDist C] [CharZero C] [Fintype (GaussFibre.Ext C (TwoV c F))] in
+lemma isIntegral_cxF :
+    IsIntegral (Algebra.adjoin C {xF C (TwoV c F)}) (toTwoV c (cxF (F := F) c)) := by
+  have h : toTwoV c (cxF (F := F) c) = xF C (TwoV c F) - toTwoV c (xF C F) := by
+    rw [xF_twoV', ← map_sub, add_sub_cancel_left]
+  rw [h]
+  exact (isIntegral_of_mem (Algebra.self_mem_adjoin_singleton C _)).sub isIntegral_xT
+
+omit [IsAlgClosed C] [CharZero C] [Fintype (GaussFibre.Ext C (Aff 0 c hc0 F))]
+  [Fintype (GaussFibre.Ext C (TwoV c F))] in
+/-- In the residue field, `(c/x)‾ (x/c)‾ = 1` at inner extensions. -/
+lemma red_cxF_mul_red_sF (w : Ext C (Aff (0 : C) c hc0 F)) :
+    red C (toAff hc0 (cxF (F := F) c)) w * red C (toAff hc0 (sF (F := F) c)) w = 1 := by
+  rw [← red_mul (val_cxF_in hc0 w).le (val_sF_in hc0 w).le, ← map_mul, cxF_mul_sF hc0, map_one,
+    red_one]
+
+include hp hp1 in
+/-- **The chart of `G` at `s` and the inner finite chart of `T`** agree after inverting `s̄`
+(resp. `(c/x)‾ = s̄⁻¹`) (instance (I4) of the locality). -/
+theorem isLocalIso_innerMid
+    (hΛG : IsChart 𝓀 (fun w : Ext C (Aff (0 : C) c hc0 F) ↦ red C (xF C (Aff (0 : C) c hc0 F)) w)
+      (redRing C (Aff (0 : C) c hc0 F) (xF C (Aff (0 : C) c hc0 F))))
+    (hΛT : IsChart 𝓀 (fun w : Ext C (TwoV c F) ↦ red C (xF C (TwoV c F)) w)
+      (redRing C (TwoV c F) (xF C (TwoV c F)))) :
+    IsLocalIso hΛG hΛT (extEmb (φG hc0) (fun _ ↦ rfl) (ιD hc0 hc1) (ιD_apply hc0 hc1))
+      (fun w ↦ red C (xF C (Aff (0 : C) c hc0 F)) w)
+      (fun w' ↦ red C (toTwoV c (cxF (F := F) c)) w') := by
+  have hcx := isIntegral_cxF (C := C) (F := F) (c := c)
+  have hc1' : ‖c‖₊ < 1 := by exact_mod_cast hc1
+  refine isLocalIso_of _ _ _ _ hΛG hΛT
+    ⟨isIntegral_of_mem (Algebra.self_mem_adjoin_singleton C _),
+      gnorm_le_iff.2 fun w ↦ (valuation_xF w).le⟩
+    ⟨hcx, gnorm_le_iff.2 fun w' ↦ ?_⟩ (fun f hf ↦ ?_) (fun g hg ↦ ?_) ?_ ?_
+  · rcases ext_cases' hc0 hc1 w' with ⟨w, rfl⟩ | ⟨w, rfl⟩
+    · rw [ιU_apply, val_cxF_out]; exact hc1'.le
+    · rw [ιD_toTwoV, val_cxF_in]
+  · -- forward
+    have hf' : IsIntegral (Algebra.adjoin C {φG hc0 (toAff hc0 (sF (F := F) c))}) (φG hc0 f) := by
+      have := hf.1
+      rw [xF_G] at this
+      exact this
+    obtain ⟨N₀, hN₀⟩ := ChartBounds.exists_pow_mul_isIntegral' (u := toTwoV c (cxF (F := F) c))
+      hcx (by
+        have e : toTwoV c (cxF (F := F) c) * φG hc0 (toAff hc0 (sF (F := F) c)) = 1 := by
+          change toTwoV c (cxF (F := F) c * sF c) = 1
+          rw [cxF_mul_sF hc0, map_one]
+        rw [e]
+        exact isIntegral_one) hf'
+    obtain ⟨d, hd⟩ := exists_bound_outer hc0 hc1 hp hp1 hf (u := cxF c) fun w ↦ val_cxF_out w
+    refine ⟨N₀ + (d + 1), ⟨?_, gnorm_le_iff.2 fun w' ↦ ?_⟩, fun w' hw' ↦ ?_⟩
+    · rw [pow_add, mul_comm (_ ^ N₀), mul_assoc]
+      exact (hcx.pow _).mul hN₀
+    · rcases ext_cases' hc0 hc1 w' with ⟨w, rfl⟩ | ⟨w, rfl⟩
+      · exact hd w _ (by omega)
+      · rw [map_mul, map_pow, ιD_toTwoV, val_cxF_in, one_pow, one_mul, ιD_apply]
+        exact (le_gnorm w f).trans hf.2
+    · rcases ext_cases' hc0 hc1 w' with ⟨w, rfl⟩ | ⟨w, rfl⟩
+      · have e : toTwoV c (cxF (F := F) c) ^ (N₀ + (d + 1)) * φG hc0 f =
+            toTwoV c (cxF c) * (toTwoV c (cxF (F := F) c) ^ (N₀ + d) * φG hc0 f) := by ring
+        rw [e, map_mul, ιU_apply]
+        exact mul_lt_one_of_nonneg_of_lt_one_left zero_le
+          ((val_cxF_out w).trans_lt hc1') (hd w _ (by omega))
+      · exact absurd ⟨w, rfl⟩ hw'
+  · -- backward
+    have hg' : IsIntegral (Algebra.adjoin C {toAff (a := (0 : C)) hc0
+        (xF C F + algebraMap C F c / xF C F)}) ((φG hc0).symm g) := by
+      have := hg.1
+      rw [xF_twoV'] at this
+      exact this
+    obtain ⟨N, hN⟩ := ChartBounds.exists_pow_mul_isIntegral
+      (u := toAff (a := (0 : C)) hc0 (sF (F := F) c))
+      (S := Algebra.adjoin C {xF C (Aff (0 : C) c hc0 F)})
+      (by rw [xF_G]; exact Algebra.self_mem_adjoin_singleton C _) (by
+        have key : sF (F := F) c * (xF C F + algebraMap C F c / xF C F) =
+            algebraMap C F c * sF c ^ 2 + 1 := by
+          have hx := xF_ne_zero (C := C) (F := F)
+          have hcF : algebraMap C F c ≠ 0 := (_root_.map_ne_zero _).2 hc0
+          rw [sF, map_inv₀]; field_simp
+        have e : toAff hc0 (sF (F := F) c) *
+            toAff (a := (0 : C)) hc0 (xF C F + algebraMap C F c / xF C F) =
+            algebraMap C _ c * xF C (Aff (0 : C) c hc0 F) ^ 2 + 1 := by
+          rw [xF_G, ← map_mul, key]; rfl
+        rw [e]
+        exact add_mem (mul_mem (Subalgebra.algebraMap_mem _ c)
+          (pow_mem (Algebra.self_mem_adjoin_singleton C _) 2)) (one_mem _)) hg'
+    rw [← xF_G] at hN
+    refine ⟨N, hN, gnorm_le_iff.2 fun w ↦ ?_⟩
+    rw [map_mul, map_pow, xF_G, val_sF_in, one_pow, one_mul, ← ιD_apply hc0 hc1 w,
+      RingEquiv.apply_symm_apply]
+    exact (le_gnorm _ g).trans hg.2
+  · intro w Q _ hu
+    have h := congrArg Q.valuation (red_cxF_mul_red_sF hc0 w)
+    rw [map_mul, Valuation.map_one, ← xF_G, hu, mul_one] at h
+    exact h
+  · intro w' Q _ hu
+    rcases ext_cases' hc0 hc1 w' with ⟨w, rfl⟩ | ⟨w, rfl⟩
+    · exfalso
+      have hlt : (ιU hc0 hc1 w).1 (toTwoV c (cxF (F := F) c)) < 1 := by
+        rw [ιU_apply, val_cxF_out]; exact hc1'
+      rw [(red_eq_zero_iff hlt.le).2 hlt, map_zero] at hu
+      exact zero_ne_one hu
+    · refine ⟨⟨w, rfl⟩, ?_⟩
+      have h1 : (ιD hc0 hc1 w).1 (toTwoV c (cxF (F := F) c)) = 1 := by
+        rw [ιD_toTwoV, val_cxF_in]
+      have h2 : (ιD hc0 hc1 w).1 (φG hc0 (xF C (Aff (0 : C) c hc0 F))) = 1 := by
+        rw [ιD_apply, valuation_xF]
+      have h : red C (toTwoV c (cxF (F := F) c)) (ιD hc0 hc1 w) *
+          red C (φG hc0 (xF C (Aff (0 : C) c hc0 F))) (ιD hc0 hc1 w) = 1 := by
+        rw [← red_mul h1.le h2.le]
+        have e : toTwoV c (cxF (F := F) c) * φG hc0 (xF C (Aff (0 : C) c hc0 F)) = 1 := by
+          rw [xF_G]
+          change toTwoV c (cxF (F := F) c * sF c) = 1
+          rw [cxF_mul_sF hc0, map_one]
+        rw [e, red_one]
+      have h' := congrArg Q.valuation h
+      rw [map_mul, Valuation.map_one, hu, one_mul] at h'
+      exact h'
+
 end Inner
 
 end TwoVertexCharts
