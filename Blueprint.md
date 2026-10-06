@@ -754,7 +754,9 @@ Statement.StrongA` is **proved** (`W10Main.lean`, standard axioms only). Files:
   `W10Dom` (RT lifting, M10 ⇒ `hdom`), `W10Stable` (Galois stability of the points of the
   normalized tree model; note: `ratFuncMap σ` does not map the Segre charts onto charts, only
   locally), `W10Gal`, `W10Root`, `W10Component` (M9c + root chart);
-* E-level and C-level glue `W10MainE`, `W10MainC`, `W10Main`.
+* E-level and C-level glue `W10MainE`, `W10MainC`, `W10Main`; the hypothesis `DefinedOverDVR` of
+  W7 for `C = K̄` (`W10DefinedOver.definedOverDVR`: base `K`, exhausted by the complete discretely
+  valued `K(S)`).
 
 The remaining input is **G4** `W10.TreeChartsSemistable` (`W10TreeStatement.lean`): for every
 complete discretely valued `E ⊆ C` (perfect residue field, `C/E` algebraic) containing a finite
