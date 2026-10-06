@@ -436,7 +436,10 @@ set_option maxHeartbeats 1000000 in
 /-- **The map of vertex charts `BD E F₀ → BD E' F₀'` is étale**: `BD E' F₀'` is
 `BD[X] ⧸ (g₁)` (`g₁` has coefficients in `BD` and `g₁' p₁ + g₁ p₂` is a unit at the root), and
 this étale `BD`-algebra is integrally closed in `F₀'`. -/
-theorem etale_j (hχ : IsCompat φ χ) : (j D hχ).Etale := by
+theorem etale_j_and_adjoin (hχ : IsCompat φ χ) : (j D hχ).Etale ∧
+    letI := algRat D hχ
+    letI : Algebra (BD E F₀) (BD' D hχ) := (j D hχ).toAlgebra
+    ∀ z : BD' D hχ, z ∈ Algebra.adjoin (BD E F₀) {rr D hχ} := by
   letI := algRat D hχ
   letI := bdAlgebra (E := E) (F₀ := F₀)
   letI := bdAlgebra (E := D.F) (F₀ := F₀' D χ)
@@ -610,8 +613,18 @@ theorem etale_j (hχ : IsCompat φ χ) : (j D hχ).Etale := by
   let e : T ≃ₐ[R] S' := (Subalgebra.equivOfEq T ⊤ htop).trans Subalgebra.topEquiv
   have hTR := (RingHom.etale_algebraMap (R := R) (S := T)).mpr hTet
   have hj : j D hχ = e.toRingHom.comp (algebraMap R T) := RingHom.ext fun r ↦ rfl
+  refine ⟨?_, hTall⟩
   rw [hj]
   exact RingHom.Etale.stableUnderComposition _ _ hTR (RingHom.Etale.of_bijective e.bijective)
+
+/-- **The map of vertex charts `BD E F₀ → BD E' F₀'` is étale.** -/
+theorem etale_j (hχ : IsCompat φ χ) : (j D hχ).Etale := (etale_j_and_adjoin D hχ).1
+
+/-- `BD E' F₀' = BD[root]`. -/
+theorem mem_adjoin_rr (hχ : IsCompat φ χ) :
+    letI := algRat D hχ
+    letI : Algebra (BD E F₀) (BD' D hχ) := (j D hχ).toAlgebra
+    ∀ z : BD' D hχ, z ∈ Algebra.adjoin (BD E F₀) {rr D hχ} := (etale_j_and_adjoin D hχ).2
 
 
 end Etale

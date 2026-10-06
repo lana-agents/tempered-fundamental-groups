@@ -47,7 +47,7 @@ open GaussTube DiscCount SmoothVertex FundamentalInequality GaussStability Gauss
 universe u w
 
 /-- The residue map of a place, as a ring homomorphism on its valuation ring. -/
-noncomputable def resHom {k κ : Type*} [Field k] [Field κ] [Algebra k κ] [IsAlgClosed k]
+noncomputable def curveResHom {k κ : Type*} [Field k] [Field κ] [Algebra k κ] [IsAlgClosed k]
     [IsCurveFunctionField k κ] (Q : CurvePlace k κ) : Q.V.toSubring →+* k where
   toFun y := Q.res y
   map_one' := Q.res_one
@@ -218,7 +218,7 @@ theorem isSemistableAt_of_isDiscSmooth [IsDiscreteValuationRing (HenselComplete.
   have hmemP : ∀ y, y ∈ P' ↔ Q.valuation (ρ y) < 1 := fun y ↦ by
     rw [← hPQ, mem_placeIdealD_iff, CurvePlace.res_eq_zero_iff Q (hV y)]
   have hle1 : ∀ y, Q.valuation (ρ y) ≤ 1 := fun y ↦ Q.valuation_le_one_iff.2 (hV y)
-  have hr0 : ∀ y, resHom Q ⟨ρ y, hV y⟩ ≠ 0 ↔ y ∉ P' := fun y ↦ by
+  have hr0 : ∀ y, curveResHom Q ⟨ρ y, hV y⟩ ≠ 0 ↔ y ∉ P' := fun y ↦ by
     rw [hmemP, ← CurvePlace.res_eq_zero_iff Q (hV y)]
     rfl
   -- the uniformizer of `O_E`
@@ -326,7 +326,8 @@ theorem isSemistableAt_of_isDiscSmooth [IsDiscreteValuationRing (HenselComplete.
       rw [hb] at this
       exact congrArg Sigma.fst (Set.mem_singleton_iff.1 this)))
     obtain ⟨y'', ⟨T, rfl⟩, s'', -, hs'', hT₁, hT₂⟩ := exists_fp_descent (ρ₁ := ρ)
-      (ρ₂ := redD v') (hM v) (hM v') (hLD v) (hLD v') (hconstB v v') Q.V.toSubring (resHom Q) hV
+      (ρ₂ := redD v') (hM v) (hM v') (hLD v) (hLD v') (hconstB v v') Q.V.toSubring
+      (curveResHom Q) hV
       Q.algebraMap_mem (a := 1) (b := 0) (one_mem _) (zero_mem _) (hspan v v' t) (hspan v v' t)
       ((hr0 t).2 htP) (by rw [one_mul]) (by rw [ht0, zero_mul])
     refine ⟨T, ?_, by rw [hT₂, zero_mul]⟩
@@ -374,7 +375,7 @@ theorem isSemistableAt_of_isDiscSmooth [IsDiscreteValuationRing (HenselComplete.
       exact this.symm
     obtain ⟨y, s, hs, hys⟩ := hloc α hαV
     obtain ⟨y', ⟨Y, rfl⟩, s', ⟨S, rfl⟩, hS, hY₁, -⟩ := exists_fp_descent (ρ₁ := ρ) (ρ₂ := ρ)
-      (hM v) (hM v) (hLD v) (hLD v) (hconstB v v) Q.V.toSubring (resHom Q) hV Q.algebraMap_mem
+      (hM v) (hM v) (hLD v) (hLD v) (hconstB v v) Q.V.toSubring (curveResHom Q) hV Q.algebraMap_mem
       hαM hαM (hspan v v y) (hspan v v s) ((hr0 s).2 hs) hys hys
     have hSP : ι S ∉ P' := (hr0 _).1 hS
     obtain ⟨w₀, hw₀def⟩ : ∃ w : BD E F₀, w = S * zz - Y * u := ⟨_, rfl⟩
