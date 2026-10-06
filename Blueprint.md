@@ -740,7 +740,28 @@ Open points (decision by the lead):
   made rational by unramified extensions `E'/E`, and semistability descends along the étale
   `B_E → B_E ⊗ O_{E'}` (normalization commutes with smooth base change). Imperfect residue
   fields: untargeted extension (§9.12, E2).
-* (C) The normed structures on `K` and `K̄` from the complete DVR `O`.
+* (C) **Resolved:** `Setup/DVRNorm.lean` (norm of `K`, spectral norm of `K̄`, Galois isometric).
+
+**Status (2026-10).** `W10Assembly.strongA_of_W7_of_tree : W7.Statement → W10.TreeChartsSemistable →
+Statement.StrongA` is **proved** (`W10Main.lean`, standard axioms only). Files:
+* x-line `W10Line`; fields and components `W10Fields`, `W10Action`, `W10Compare`, `W10Gen`;
+  smooth ⇒ normal/reduced `Setup/SmoothNormal`;
+* scheme layer `W10Scheme`, `W10Sigma`, `W10Union`, `W10Local` (local domination: morphisms are
+  glued on basic opens, the chart-level `Dominates` is not needed), `W10SigmaLocal`, `W10Points`,
+  `W10Code` (multi-θ base change, closed immersion into `c₀`), `W10Coords`, `W10Assembly`,
+  `W10Final`;
+* valuations `W10Discs` (type-2 subrings of `C(X)` are Gauss, RT transport, `exists_V0`),
+  `W10Dom` (RT lifting, M10 ⇒ `hdom`), `W10Stable` (Galois stability of the points of the
+  normalized tree model; note: `ratFuncMap σ` does not map the Segre charts onto charts, only
+  locally), `W10Gal`, `W10Root`, `W10Component` (M9c + root chart);
+* E-level and C-level glue `W10MainE`, `W10MainC`, `W10Main`.
+
+The remaining input is **G4** `W10.TreeChartsSemistable` (`W10TreeStatement.lean`): for every
+complete discretely valued `E ⊆ C` (perfect residue field, `C/E` algebraic) containing a finite
+`S`, the charts of the normalized `E`-tree model in every `E`-form of `F'` are semistable. It is
+reduced by the routing (G4(ii), branch `wp-tempered-g4`) to the pointwise statements
+`SmoothDescentStatement` (smooth points, uniform in the residue direction `β`) and
+`NodeDescentStatement` (`W10RouteStatements.lean`).
 
 ### 9.6 W5: models and vertex sets
 
