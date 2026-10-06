@@ -466,6 +466,28 @@ theorem residue_sheet_mem_adjoin (v : Ext C (Aff a (l * c) (mul_ne_zero hl0 hc) 
       ← IsScalarTower.algebraMap_apply]
 
 omit [FiniteDimensional (RatFunc C) F'] in
+/-- **The residue field at a vertex over a sheet is purely inseparable of exponent one over
+`k(x̄)`** (purely inseparable case, general form). -/
+theorem pow_mem_adjoin_of [Fact p.Prime] {E : Type*} [Field E] [Algebra (RatFunc C) E]
+    [Algebra C E] [IsScalarTower C (RatFunc C) E] [FiniteDimensional (RatFunc C) E] [Algebra L E]
+    [FiniteDimensional L E] {l' : C} (hl0' : l' ≠ 0) (hl1' : ‖l'‖ < 1)
+    (τ : RatFunc C → RatFunc C)
+    (hτ : ∀ φ, GaussFibre.gauss1 C (τ φ) =
+      (sheetExt hc ν₀ P' h1 hl0' hl1').1 (algebraMap (RatFunc C) L φ))
+    (hτ' : ∀ φ, algebraMap L E (algebraMap (RatFunc C) L φ) = algebraMap (RatFunc C) E (τ φ))
+    (hp1 : ‖(p : C)‖ < 1) (hγ : γ ^ (p - 1) = -(p : C)) {θE : E}
+    (hθ : θE ^ p = algebraMap L E f)
+    (hspan : Submodule.span L (Set.range fun i : Fin p ↦ θE ^ (i : ℕ)) = ⊤)
+    (D : InsepData hc ν₀ P' h1 hl0' hl1' p γ f) (v : Ext C E)
+    (hvS : v.1.comap (algebraMap L E) = (sheetExt hc ν₀ P' h1 hl0' hl1').1)
+    (z : ResidueField v.1.valuationSubring) : z ^ p ∈ 𝓀⟮red C (xF C E) v⟯ := by
+  haveI := DenseCompletion.hasExtension_of_comap_eq hvS
+  obtain ⟨y, hy⟩ := insep_residue_pow_mem hc ν₀ P' h1 hl0' hl1' p hp1 hγ hvS hθ hspan D.hh'
+    D.hγl D.hl1' D.hGle D.hGm D.hpm D.hf z
+  rw [← hy]
+  exact residue_mem_adjoin_of hc ν₀ P' h1 hl0' hl1' τ hτ hτ' v hvS y
+
+omit [FiniteDimensional (RatFunc C) F'] in
 /-- **A unique branch at a vertex over a sheet** (purely inseparable case, general form): the
 residue field `κ(v)` is purely inseparable of exponent one over `k(x̄)`, so `x̄` has at most one
 zero. -/
@@ -484,17 +506,31 @@ theorem zero_unique_of [Fact p.Prime] {E : Type*} [Field E] [Algebra (RatFunc C)
     {Q₁ Q₂ : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
     (h₁ : Q₁ ∈ zeros 𝓀 (red C (xF C E) v)) (h₂ : Q₂ ∈ zeros 𝓀 (red C (xF C E) v)) :
     Q₁ = Q₂ := by
-  haveI := DenseCompletion.hasExtension_of_comap_eq hvS
-  have hpow : ∀ z : ResidueField v.1.valuationSubring, z ^ p ∈ 𝓀⟮red C (xF C E) v⟯ := by
-    intro z
-    obtain ⟨y, hy⟩ := insep_residue_pow_mem hc ν₀ P' h1 hl0' hl1' p hp1 hγ hvS hθ hspan D.hh'
-      D.hγl D.hl1' D.hGle D.hGm D.hpm D.hf z
-    rw [← hy]
-    exact residue_mem_adjoin_of hc ν₀ P' h1 hl0' hl1' τ hτ hτ' v hvS y
   have hx0 : red C (xF C E) v ≠ 0 := fun h0 ↦ transcendental_red_x v (by
     rw [h0]; exact isAlgebraic_zero)
   exact eq_of_mem_zeros (k := 𝓀) (κ := ResidueField v.1.valuationSubring)
-    (Fact.out : p.Prime).ne_zero hx0 hpow h₁ h₂
+    (Fact.out : p.Prime).ne_zero hx0
+    (pow_mem_adjoin_of hc ν₀ P' h1 p γ f hl0' hl1' τ hτ hτ' hp1 hγ hθ hspan D v hvS) h₁ h₂
+
+/-- **The outer residue field is purely inseparable of exponent one over `k(x̄)`**. -/
+theorem outer_pow_mem_adjoin [Fact p.Prime] [FiniteDimensional L F'] (hp1 : ‖(p : C)‖ < 1)
+    (hγ : γ ^ (p - 1) = -(p : C)) (hθ : θ ^ p = algebraMap L F' f)
+    (hspan : Submodule.span L (Set.range fun i : Fin p ↦ θ ^ (i : ℕ)) = ⊤)
+    (D : InsepData hc ν₀ P' h1 hl0 hl1 p γ f)
+    (v : Ext C (Aff a (l * c) (mul_ne_zero hl0 hc) F'))
+    (hvS : v.1.comap ((toAff (a := a) (mul_ne_zero hl0 hc) (F' := F')).toRingHom.comp
+      (algebraMap L F')) = (sheetExt hc ν₀ P' h1 hl0 hl1).1)
+    (z : ResidueField v.1.valuationSubring) :
+    z ^ p ∈ 𝓀⟮red C (xF C (Aff a (l * c) (mul_ne_zero hl0 hc) F')) v⟯ := by
+  set F₁ := Aff a (l * c) (mul_ne_zero hl0 hc) F'
+  letI : FiniteDimensional L F₁ := inferInstanceAs (FiniteDimensional L F')
+  have hθ₁ : toAff (mul_ne_zero hl0 hc) θ ^ p = algebraMap L F₁ f := by
+    rw [← map_pow, hθ]; rfl
+  refine pow_mem_adjoin_of hc ν₀ P' h1 p γ f hl0 hl1 (aff a (l * c) (mul_ne_zero hl0 hc)).symm
+    (fun φ ↦ ?_) (fun φ ↦ ?_) hp1 hγ hθ₁ hspan D v hvS z
+  · rw [gauss1_aff_symm, ← sheet_algebraMap hc ν₀ P' h1 hl0 hl1]
+  · rw [algebraMap_aff_apply, AlgEquiv.apply_symm_apply, algebraMap_aff_L,
+      ← IsScalarTower.algebraMap_apply]
 
 /-- **A unique outer branch at an outer vertex over the sheet** (purely inseparable case). -/
 theorem outer_zero_unique [Fact p.Prime] [FiniteDimensional L F'] (hp1 : ‖(p : C)‖ < 1)

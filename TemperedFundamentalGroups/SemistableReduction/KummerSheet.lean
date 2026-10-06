@@ -632,6 +632,49 @@ theorem insep_value {γ : C} (hγ : γ ^ (p - 1) = -(p : C))
   · rw [hSx, hxv, map_div₀, hG, map_pow, hv, div_self (pow_ne_zero _
       (nnnorm_ne_zero_iff.2 hlam0))]
 
+omit [FiniteDimensional L F'] hp in
+/-- **Strict dominance at the sheet**: if the index `m` strictly dominates `G = f̃ - h̃^p` at the
+radius `‖l‖`, then `G(t)/λ^p ≡ (G_m/λ^p) t^m` at the sheet. -/
+theorem kumX_dominant {f' h' : C[X]} {lam : C} (hlam : lam ≠ 0) {m : ℕ}
+    (hstrict : ∀ i, i ≠ m → ‖(f' - h' ^ p).coeff i‖ * ‖l‖ ^ i < ‖lam‖ ^ p) :
+    (sheetExt hc ν₀ P' h1 hl0 hl1).1 (kumX p a c f' h' lam - algebraMap (RatFunc C) L
+      (algebraMap C (RatFunc C) ((f' - h' ^ p).coeff m / lam ^ p) * gaussCoord a c ^ m)) < 1 := by
+  set G := f' - h' ^ p
+  set Q : C[X] := Polynomial.C (lam ^ p)⁻¹ * (G - Polynomial.C (G.coeff m) * X ^ m)
+  have hQ : ∀ i, ‖Q.coeff i‖₊ * ‖l‖₊ ^ i =
+      if i = m then 0 else ‖G.coeff i‖₊ * ‖l‖₊ ^ i / ‖lam‖₊ ^ p := by
+    intro i
+    simp only [Q, coeff_C_mul, coeff_sub]
+    split_ifs with h
+    · subst h; simp
+    · simp [h, nnnorm_mul, nnnorm_inv, nnnorm_pow, div_eq_mul_inv, mul_comm, mul_left_comm]
+  have hlt : ∀ i, ‖Q.coeff i‖₊ * ‖l‖₊ ^ i < 1 := by
+    intro i
+    rw [hQ]
+    split_ifs with h
+    · exact zero_lt_one
+    · have hl : 0 < ‖lam‖₊ ^ p := pow_pos (nnnorm_pos.2 hlam) _
+      rw [div_lt_one hl]
+      have := hstrict i h
+      rw [← NNReal.coe_lt_coe]; push_cast; exact this
+  set r : ℝ≥0 := (Finset.range (Q.natDegree + 1)).sup fun i ↦ ‖Q.coeff i‖₊ * ‖l‖₊ ^ i
+  have hr : r < 1 := (Finset.sup_lt_iff zero_lt_one).2 fun i _ ↦ hlt i
+  have hle : ∀ i, ‖Q.coeff i‖₊ * ‖l‖₊ ^ i ≤ r := by
+    intro i
+    by_cases hi : i ≤ Q.natDegree
+    · exact Finset.le_sup (f := fun i ↦ ‖Q.coeff i‖₊ * ‖l‖₊ ^ i)
+        (Finset.mem_range.2 (Nat.lt_succ_of_le hi))
+    · rw [coeff_eq_zero_of_natDegree_lt (not_le.1 hi)]; simp
+  have heq : kumX p a c f' h' lam - algebraMap (RatFunc C) L
+      (algebraMap C (RatFunc C) (G.coeff m / lam ^ p) * gaussCoord a c ^ m) =
+      algebraMap (RatFunc C) L (aeval (gaussCoord a c) Q) := by
+    rw [kumX, ← map_sub]
+    congr 1
+    simp only [Q, G, map_mul, map_sub, aeval_C, map_pow, aeval_X, div_eq_mul_inv, map_inv₀]
+    ring
+  rw [heq]
+  exact (sheet_aeval_le hc ν₀ P' h1 hl0 hl1 hle).trans_lt hr
+
 /-- **The purely inseparable case at the sheet**: the residue extension has degree `≥ p`. -/
 theorem le_inertiaDeg_insep [IsAlgClosed C] (hp1 : ‖(p : C)‖ < 1) {γ : C}
     (hγ : γ ^ (p - 1) = -(p : C)) (v : Valuation F' ℝ≥0)
