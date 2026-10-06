@@ -6,6 +6,7 @@ Authors: Christian Merten
 import TemperedFundamentalGroups.SemistableReduction.TreeBridge
 import TemperedFundamentalGroups.SemistableReduction.Exhausting
 import TemperedFundamentalGroups.SemistableReduction.GaussDescent
+import TemperedFundamentalGroups.SemistableReduction.DefinedOverDVR
 
 /-!
 # The statement of W7 (semistable Gauss trees), as consumed by W10
@@ -113,7 +114,9 @@ end W7
 /-- **W7: semistable Gauss trees** (the form consumed by the W10 assembly, Blueprint §9.12 O7).
 
 For every algebraically closed non-archimedean `C` of characteristic `0` with `‖p‖ < 1` (not
-necessarily complete), every finite family of finite extensions `F' k / C(x)` and every finite
+necessarily complete), every finite family of finite extensions `F' k / C(x)`, each defined over a
+complete discretely valued subfield of `C` (`DefinedOverDVR`, needed by the node data O1), and
+every finite
 family of discs `V₀ = (a₀, c₀)`, there is a convex reduced nonempty finite family of discs
 `V = (a, c) ⊇ V₀` such that
 * `V` is semistable for every `F' k` (`W7.IsSemistableTree`);
@@ -127,6 +130,7 @@ def W7.Statement : Prop :=
     (κ : Type) [Fintype κ] (F' : κ → Type v) [∀ k, Field (F' k)]
     [∀ k, Algebra (RatFunc C) (F' k)] [∀ k, Algebra C (F' k)]
     [∀ k, IsScalarTower C (RatFunc C) (F' k)] [∀ k, FiniteDimensional (RatFunc C) (F' k)]
+    (_ : ∀ k, DefinedOverDVR C (F' k))
     (ι₀ : Type) [Fintype ι₀] (a₀ c₀ : ι₀ → C) (_ : ∀ k, c₀ k ≠ 0),
     ∃ (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a c : ι → C) (hc : ∀ i, c i ≠ 0),
       GaussTree.IsConvex (NormedField.valuation (K := C)) a c ∧

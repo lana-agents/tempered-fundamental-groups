@@ -392,20 +392,31 @@ omit [NontriviallyNormedField C] [IsUltrametricDist C] in
 lemma exists_famDisc {D : Set C} (hD : D ∈ T) : ∃ i, famDisc T i = D :=
   ⟨T.equivFin ⟨D, hD⟩, by simp [famDisc]⟩
 
-/-- The centres of the discs of `T`. -/
-noncomputable def famA (i : Fin T.card) : C := Classical.choose (hT _ (famDisc_mem i))
+/-- A disc has a representation centred at `0` if it contains `0`. -/
+lemma IsDisc.exists_centre {D : Set C} (hD : IsDisc D) :
+    ∃ a c : C, (c ≠ 0 ∧ D = closedBall a ‖c‖) ∧ ((0 : C) ∈ D → a = 0) := by
+  obtain ⟨a, c, hc, rfl⟩ := hD
+  by_cases h0 : (0 : C) ∈ closedBall a ‖c‖
+  · exact ⟨0, c, ⟨hc, IsUltrametricDist.closedBall_eq_of_mem h0⟩, fun _ ↦ rfl⟩
+  · exact ⟨a, c, ⟨hc, rfl⟩, fun h ↦ absurd h h0⟩
+
+/-- The centres of the discs of `T` (`0` for discs containing `0`). -/
+noncomputable def famA (i : Fin T.card) : C :=
+  Classical.choose ((hT _ (famDisc_mem i)).exists_centre)
 
 /-- The radius parameters of the discs of `T`. -/
 noncomputable def famC (i : Fin T.card) : C :=
-  Classical.choose (Classical.choose_spec (hT _ (famDisc_mem i)))
+  Classical.choose (Classical.choose_spec ((hT _ (famDisc_mem i)).exists_centre))
 
-omit [IsUltrametricDist C] in
 lemma famC_ne_zero (i : Fin T.card) : famC hT i ≠ 0 :=
-  (Classical.choose_spec (Classical.choose_spec (hT _ (famDisc_mem i)))).1
+  (Classical.choose_spec (Classical.choose_spec ((hT _ (famDisc_mem i)).exists_centre))).1.1
 
-omit [IsUltrametricDist C] in
 lemma famDisc_eq (i : Fin T.card) : famDisc T i = closedBall (famA hT i) ‖famC hT i‖ :=
-  (Classical.choose_spec (Classical.choose_spec (hT _ (famDisc_mem i)))).2
+  (Classical.choose_spec (Classical.choose_spec ((hT _ (famDisc_mem i)).exists_centre))).1.2
+
+/-- Discs containing `0` are centred at `0`. -/
+lemma famA_eq_zero {i : Fin T.card} (h : (0 : C) ∈ famDisc T i) : famA hT i = 0 :=
+  (Classical.choose_spec (Classical.choose_spec ((hT _ (famDisc_mem i)).exists_centre))).2 h
 
 lemma discLE_fam_iff {i j : Fin T.card} :
     GaussTree.DiscLE ν (famA hT) (famC hT) i j ↔ famDisc T i ⊆ famDisc T j := by

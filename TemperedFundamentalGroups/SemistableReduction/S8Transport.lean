@@ -3,7 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.SemistableReduction.S8Main
+import TemperedFundamentalGroups.SemistableReduction.S8Equivariance
 import TemperedFundamentalGroups.SemistableReduction.Splitting
 
 /-!
@@ -1167,6 +1167,278 @@ theorem nodeODP_transport_id {c : C} (hc : ‖c‖ < 1) (hc0 : c ≠ 0)
 end Iso
 
 end Representative
+
+/-! ### Semilinear automorphisms -/
+
+section Semilinear
+
+open GaussTube AffineTwist DiscCount
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+lemma ratFuncMap_comp_apply (τ₁ τ₂ : C →+* C) (φ : RatFunc C) :
+    ratFuncMap τ₂ (ratFuncMap τ₁ φ) = ratFuncMap (τ₂.comp τ₁) φ := by
+  induction φ using RatFunc.induction_on with
+  | f p q hq =>
+    simp only [map_div₀, ratFuncMap_algebraMap, Polynomial.map_map]
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+lemma ratFuncMap_id (φ : RatFunc C) : ratFuncMap (RingHom.id C) φ = φ := by
+  induction φ using RatFunc.induction_on with
+  | f p q hq => rw [map_div₀, ratFuncMap_algebraMap, ratFuncMap_algebraMap, Polynomial.map_id,
+      Polynomial.map_id]
+
+/-- The automorphism of `C(x)` acting by `τ` on coefficients. -/
+noncomputable def ratFuncEquiv (τ : C ≃+* C) : RatFunc C ≃+* RatFunc C :=
+  RingEquiv.ofRingHom (ratFuncMap τ.toRingHom) (ratFuncMap τ.symm.toRingHom)
+    (RingHom.ext fun φ ↦ by
+      change ratFuncMap _ (ratFuncMap _ φ) = φ
+      rw [ratFuncMap_comp_apply]
+      convert ratFuncMap_id φ
+      ext; simp)
+    (RingHom.ext fun φ ↦ by
+      change ratFuncMap _ (ratFuncMap _ φ) = φ
+      rw [ratFuncMap_comp_apply]
+      convert ratFuncMap_id φ
+      ext; simp)
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+lemma ratFuncEquiv_apply (τ : C ≃+* C) (φ : RatFunc C) :
+    ratFuncEquiv τ φ = ratFuncMap τ.toRingHom φ := rfl
+
+/-- A ring automorphism of `C(x)` acting by an isometry on `C` and fixing `x` preserves every
+Gauss point `w_{0,s}`. -/
+lemma gaussRat_zero_comp {τ : C ≃+* C} (hτ : ∀ z, ‖τ z‖ = ‖z‖) {ψ : RatFunc C ≃+* RatFunc C}
+    (hψC : ∀ c, ψ (algebraMap C (RatFunc C) c) = algebraMap C (RatFunc C) (τ c))
+    (hψX : ψ RatFunc.X = RatFunc.X) (s : ℝ≥0ˣ) (φ : RatFunc C) :
+    gaussRat (NormedField.valuation (K := C)) 0 s (ψ φ) =
+      gaussRat (NormedField.valuation (K := C)) 0 s φ := by
+  have h := valuation_ratFunc_ext_of_linear
+    (w₁ := (gaussRat (NormedField.valuation (K := C)) 0 s).comap ψ.toRingHom)
+    (w₂ := gaussRat (NormedField.valuation (K := C)) 0 s) (fun e ↦ ?_) (fun b ↦ ?_)
+  · exact congrArg (fun w : Valuation (RatFunc C) ℝ≥0 ↦ w φ) h
+  · rw [Valuation.comap_apply, RingEquiv.toRingHom_eq_coe, RingEquiv.coe_toRingHom, hψC,
+      gaussRat_algebraMap_C, gaussRat_algebraMap_C, NormedField.valuation_apply,
+      NormedField.valuation_apply]
+    exact NNReal.eq (by simpa using hτ e)
+  · rw [Valuation.comap_apply, RingEquiv.toRingHom_eq_coe, RingEquiv.coe_toRingHom]
+    have hXb : ∀ b' : C, algebraMap C[X] (RatFunc C) (Polynomial.X - Polynomial.C b') =
+        RatFunc.X - algebraMap C (RatFunc C) b' := fun b' ↦ by
+      rw [_root_.map_sub, RatFunc.algebraMap_X, ratFunc_algebraMap_C]
+    rw [hXb, _root_.map_sub, hψX, hψC, ← hXb (τ b), ← hXb b, gaussRat_algebraMap,
+      gaussRat_algebraMap, gauss_X_sub_C, gauss_X_sub_C, NormedField.valuation_apply,
+      NormedField.valuation_apply,
+      zero_sub, zero_sub, nnnorm_neg, nnnorm_neg]
+    congr 1
+    exact NNReal.eq (by simpa using hτ b)
+
+/-- Transport data from an automorphism of `C(x)` fixing `x`. -/
+noncomputable def Data.mkX {G₁ G₂ : Type*} [Field G₁] [Field G₂] [Algebra (RatFunc C) G₁]
+    [Algebra (RatFunc C) G₂] (τ : C ≃+* C) (hτ : ∀ z, ‖τ z‖ = ‖z‖) (ψ : RatFunc C ≃+* RatFunc C)
+    (hψC : ∀ c, ψ (algebraMap C (RatFunc C) c) = algebraMap C (RatFunc C) (τ c))
+    (hψX : ψ RatFunc.X = RatFunc.X) (e : G₂ ≃+* G₁)
+    (he : ∀ φ, e (algebraMap (RatFunc C) G₂ φ) = algebraMap (RatFunc C) G₁ (ψ φ)) :
+    Data C G₁ G₂ where
+  τ := τ
+  hτ := hτ
+  ψ := ψ
+  ψC := hψC
+  ψg := gaussRat_zero_comp hτ hψC hψX 1
+  α := 1
+  γ := 0
+  hα := norm_one
+  hγ := by simp
+  ψX := by
+    rw [map_one, one_mul, map_zero, add_zero, RingEquiv.symm_apply_eq, hψX]
+  e := e
+  he := he
+
+lemma Data.mkX_ψ {G₁ G₂ : Type*} [Field G₁] [Field G₂] [Algebra (RatFunc C) G₁]
+    [Algebra (RatFunc C) G₂] (τ : C ≃+* C) (hτ : ∀ z, ‖τ z‖ = ‖z‖) (ψ : RatFunc C ≃+* RatFunc C)
+    (hψC) (hψX) (e : G₂ ≃+* G₁) (he) :
+    (Data.mkX (G₁ := G₁) (G₂ := G₂) τ hτ ψ hψC hψX e he).ψ = ψ := rfl
+
+/-- Node charts are preserved by an automorphism fixing `x`. -/
+lemma mem_nodeRing_iff_of_X {τ : C ≃+* C} (hτ : ∀ z, ‖τ z‖ = ‖z‖) {ψ : RatFunc C ≃+* RatFunc C}
+    (hψC : ∀ c, ψ (algebraMap C (RatFunc C) c) = algebraMap C (RatFunc C) (τ c))
+    (hψX : ψ RatFunc.X = RatFunc.X) (c : C) (φ : RatFunc C) :
+    φ ∈ nodeRing c ↔ ψ φ ∈ nodeRing (τ c) := by
+  set d := Data.mkX (G₁ := RatFunc C) (G₂ := RatFunc C) τ hτ ψ hψC hψX ψ (fun _ ↦ rfl)
+  constructor
+  · refine d.ψ_mem_nodeRing (c₂ := c) ?_ ?_
+    · change ψ RatFunc.X ∈ _
+      rw [hψX]; exact X_mem_nodeRing _
+    · change ψ _ ∈ _
+      rw [map_div₀, hψC, hψX]; exact div_X_mem_nodeRing _
+  · intro h
+    have hψX' : ψ.symm RatFunc.X = RatFunc.X := by rw [RingEquiv.symm_apply_eq, hψX]
+    have := d.symm.ψ_mem_nodeRing (c₂ := τ c) (c₁ := c) ?_ ?_ h
+    · rwa [show d.symm.ψ (ψ φ) = φ from ψ.symm_apply_apply φ] at this
+    · change ψ.symm RatFunc.X ∈ _
+      rw [hψX']; exact X_mem_nodeRing _
+    · change ψ.symm _ ∈ _
+      have : ψ.symm (algebraMap C (RatFunc C) (τ c)) = algebraMap C (RatFunc C) c := by
+        rw [RingEquiv.symm_apply_eq, hψC]
+      rw [map_div₀, this, hψX']; exact div_X_mem_nodeRing _
+
+variable {F : Type*} [Field F] [Algebra (RatFunc C) F] [Algebra C F]
+  [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F]
+  {τ : C ≃+* C} (hτ : ∀ z, ‖τ z‖ = ‖z‖) {σ : F ≃+* F} (hσ : IsSemilinear C F τ σ)
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+lemma τ_ne_zero (τ : C ≃+* C) {c : C} (hc : c ≠ 0) : τ c ≠ 0 := by
+  simpa using hc
+
+/-- The automorphism of `C(x)` induced by `σ` in the coordinates `(x - a)/c` and
+`(x - τ a)/τ c`. -/
+noncomputable def affψ {a c : C} (hc : c ≠ 0) : RatFunc C ≃+* RatFunc C :=
+  (aff a c hc).toRingEquiv.trans ((ratFuncEquiv τ).trans
+    (aff (τ a) (τ c) (τ_ne_zero τ hc)).symm.toRingEquiv)
+
+omit [IsAlgClosed C] in
+lemma affψ_C {a c : C} (hc : c ≠ 0) (b : C) :
+    affψ (τ := τ) (a := a) hc (algebraMap C (RatFunc C) b) = algebraMap C (RatFunc C) (τ b) := by
+  change (aff (τ a) (τ c) (τ_ne_zero τ hc)).symm (ratFuncMap τ.toRingHom (aff a c hc _)) = _
+  rw [AlgEquiv.commutes, ratFuncMap_algebraMap_C, AlgEquiv.symm_apply_eq, AlgEquiv.commutes]
+  rfl
+
+omit [IsAlgClosed C] in
+lemma affψ_X {a c : C} (hc : c ≠ 0) : affψ (τ := τ) (a := a) hc RatFunc.X = RatFunc.X := by
+  change (aff (τ a) (τ c) (τ_ne_zero τ hc)).symm (ratFuncMap τ.toRingHom (aff a c hc RatFunc.X)) = _
+  rw [AlgEquiv.symm_apply_eq, aff_apply, aff_apply, affHom_X, affHom_X, ratFuncMap_gaussCoord]
+  rfl
+
+include hτ hσ in
+/-- **Transport data of a semilinear automorphism** on the twisted vertex charts. -/
+noncomputable def semData {a c : C} (hc : c ≠ 0) :
+    Data C (Aff (τ a) (τ c) (τ_ne_zero τ hc) F) (Aff a c hc F) :=
+  Data.mkX τ hτ (affψ (τ := τ) (a := a) hc) (affψ_C (τ := τ) (a := a) hc)
+    (affψ_X (τ := τ) (a := a) hc)
+    ((toAff hc).symm.trans (σ.trans (toAff (τ_ne_zero τ hc))))
+    (fun φ ↦ by
+      change toAff (τ_ne_zero τ hc) (σ (algebraMap (RatFunc C) F (aff a c hc φ))) =
+        toAff (τ_ne_zero τ hc) (algebraMap (RatFunc C) F (aff (τ a) (τ c) (τ_ne_zero τ hc)
+          ((aff (τ a) (τ c) (τ_ne_zero τ hc)).symm
+          (ratFuncMap τ.toRingHom (aff a c hc φ)))))
+      rw [hσ, AlgEquiv.apply_symm_apply])
+
+include hτ hσ in
+/-- **Smoothness over open discs is transported by semilinear automorphisms.** -/
+theorem discGood_semilinear {a c : C} (hc : c ≠ 0) (h : DiscGood F a hc) :
+    DiscGood F (τ a) (τ_ne_zero τ hc) :=
+  (semData hτ hσ hc).discGoodAt_transport h
+
+/-- The automorphism of `C(x)` induced by `σ` in the inverted coordinates `c'/t`. -/
+noncomputable def invψ {a c c' : C} (hc : c ≠ 0) (hc0' : c' ≠ 0) : RatFunc C ≃+* RatFunc C :=
+  (GaussTube.inv hc0').toRingEquiv.trans ((affψ (τ := τ) (a := a) hc).trans
+    (GaussTube.inv (τ_ne_zero τ hc0')).symm.toRingEquiv)
+
+omit [IsAlgClosed C] in
+lemma invψ_C {a c c' : C} (hc : c ≠ 0) (hc0' : c' ≠ 0) (b : C) :
+    invψ (τ := τ) (a := a) hc hc0' (algebraMap C (RatFunc C) b) =
+      algebraMap C (RatFunc C) (τ b) := by
+  change (GaussTube.inv (τ_ne_zero τ hc0')).symm
+    (affψ (τ := τ) (a := a) hc (GaussTube.inv hc0' _)) = _
+  rw [AlgEquiv.commutes, affψ_C (τ := τ) (a := a), AlgEquiv.symm_apply_eq, AlgEquiv.commutes]
+
+omit [IsAlgClosed C] in
+lemma invψ_X {a c c' : C} (hc : c ≠ 0) (hc0' : c' ≠ 0) :
+    invψ (τ := τ) (a := a) hc hc0' RatFunc.X = RatFunc.X := by
+  change (GaussTube.inv (τ_ne_zero τ hc0')).symm
+    (affψ (τ := τ) (a := a) hc (GaussTube.inv hc0' RatFunc.X)) = _
+  rw [AlgEquiv.symm_apply_eq, GaussTube.inv_apply, GaussTube.inv_apply, GaussTube.invHom_X,
+    GaussTube.invHom_X, map_div₀, affψ_C (τ := τ) (a := a), affψ_X (τ := τ) (a := a)]
+
+include hτ hσ in
+/-- Transport data of a semilinear automorphism on the inverted twisted charts. -/
+noncomputable def semDataInv {a c c' : C} (hc : c ≠ 0) (hc0' : c' ≠ 0) :
+    Data C (GaussTube.Inv (τ c') (τ_ne_zero τ hc0') (Aff (τ a) (τ c) (τ_ne_zero τ hc) F))
+      (GaussTube.Inv c' hc0' (Aff a c hc F)) :=
+  Data.mkX τ hτ (invψ hc hc0') (invψ_C hc hc0') (invψ_X hc hc0')
+    ((toInv hc0').symm.trans ((semData hτ hσ hc).e.trans (toInv (τ_ne_zero τ hc0'))))
+    (fun φ ↦ by
+      change toInv (τ_ne_zero τ hc0') ((semData hτ hσ hc).e (algebraMap (RatFunc C) (Aff a c hc F)
+          (GaussTube.inv hc0' φ))) =
+        toInv (τ_ne_zero τ hc0') (algebraMap (RatFunc C) (Aff (τ a) (τ c) (τ_ne_zero τ hc) F)
+          (GaussTube.inv (τ_ne_zero τ hc0') ((GaussTube.inv (τ_ne_zero τ hc0')).symm
+            (affψ (τ := τ) (a := a) hc (GaussTube.inv hc0' φ)))))
+      rw [(semData hτ hσ hc).he, AlgEquiv.apply_symm_apply]
+      rfl)
+
+include hτ hσ in
+/-- **Exhausting discs are transported by semilinear automorphisms.** -/
+theorem isExhausting_semilinear {a c c' : C} (hc : c ≠ 0) (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0)
+    (h : IsExhausting a hc hc' hc0' F) :
+    IsExhausting (τ a) (τ_ne_zero τ hc) (c' := τ c') (by rw [hτ]; exact hc')
+      (τ_ne_zero τ hc0') F := by
+  obtain ⟨s, hs⟩ : ∃ s : ℝ≥0ˣ, s ∈ segment c' := by
+    have hlt : (‖c'‖₊ : ℝ) < 1 := by simpa using hc'
+    refine ⟨Units.mk0 ((‖c'‖₊ + 1) / 2) (by positivity), ?_, ?_⟩ <;> simp only [Units.val_mk0] <;>
+      rw [← NNReal.coe_lt_coe] <;> push_cast <;> linarith
+  have hs' : s ∈ segment (τ c') := by
+    have : ‖τ c'‖₊ = ‖c'‖₊ := NNReal.eq (by simpa using hτ c')
+    exact ⟨this ▸ hs.1, hs.2⟩
+  exact (semData hτ hσ hc).exhausting_transport hc' (by rw [hτ]; exact hc')
+    (mem_nodeRing_iff_of_X hτ (affψ_C (τ := τ) (a := a) hc) (affψ_X (τ := τ) (a := a) hc) c')
+    (semDataInv hτ hσ hc hc0')
+    (mem_nodeRing_iff_of_X hτ (invψ_C hc hc0') (invψ_X hc hc0') c') (fun _ ↦ rfl) rfl hs hs'
+    (gaussRat_zero_comp hτ (affψ_C (τ := τ) (a := a) hc) (affψ_X (τ := τ) (a := a) hc) s) h
+
+lemma isExhausting_congr' {a₁ a₂ c₁ c₂ c₁' c₂' : C} (h0 : a₁ = a₂) (h1 : c₁ = c₂) (h2 : c₁' = c₂')
+    (hc₁ : c₁ ≠ 0) (hc₂ : c₂ ≠ 0) (hc₁' : ‖c₁'‖ < 1) (hc₂' : ‖c₂'‖ < 1) (hc₁0' : c₁' ≠ 0)
+    (hc₂0' : c₂' ≠ 0) :
+    IsExhausting a₁ hc₁ hc₁' hc₁0' F ↔ IsExhausting a₂ hc₂ hc₂' hc₂0' F := by
+  subst h0 h1 h2
+  rfl
+
+omit [Algebra C F] [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F]
+  [IsUltrametricDist C] [IsAlgClosed C] in
+include hσ in
+lemma isSemilinear_symm : IsSemilinear C F τ.symm σ.symm := fun φ ↦ by
+  rw [RingEquiv.symm_apply_eq, hσ, ratFuncMap_comp_apply]
+  congr 1
+  convert (ratFuncMap_id φ).symm
+  ext; simp
+
+include hτ hσ in
+lemma ballGood_image {B : Set C} (hB : BallGood F B) : BallGood F (τ '' B) := by
+  intro a' c' hc' hB'
+  have hτ' := norm_symm hτ
+  have hBe : B = ball (τ.symm a') ‖c'‖ := by
+    have := congrArg (img τ.symm) hB'
+    rwa [img_ball hτ', show img τ.symm (τ '' B) = B from img_symm_img τ B] at this
+  have h1 := discGood_semilinear hτ hσ hc' (hB _ _ hc' hBe)
+  refine (discGood_iff_of_ball_eq (τ_ne_zero τ hc') hc' ?_).1 h1
+  rw [RingEquiv.apply_symm_apply, hτ]
+
+include hτ hσ in
+lemma edgeGood_image {E G : Set C} (hEG : EdgeGood F E G) : EdgeGood F (τ '' E) (τ '' G) := by
+  intro a c c' hc hc' hc0' hE hG
+  have hτ' := norm_symm hτ
+  have hsym : ∀ (D : Set C) (b r : C), τ '' D = closedBall b ‖r‖ →
+      D = closedBall (τ.symm b) ‖τ.symm r‖ := fun D b r h ↦ by
+    have := congrArg (img τ.symm) h
+    rwa [img_closedBall hτ', show img τ.symm (τ '' D) = D from img_symm_img τ D, ← hτ' r]
+      at this
+  have h1 := hEG (τ.symm a) (τ.symm c) (τ.symm c') (τ_ne_zero τ.symm hc)
+    (by rw [hτ']; exact hc') (τ_ne_zero τ.symm hc0') (by rw [hsym E a _ hE, map_mul])
+    (hsym G a c hG)
+  have h2 := isExhausting_semilinear hτ hσ _ _ _ h1
+  exact (isExhausting_congr' (τ.apply_symm_apply a) (τ.apply_symm_apply c)
+    (τ.apply_symm_apply c') _ _ _ _ _ _).1 h2
+
+/-- **O6.5: `TransportFor`.** -/
+theorem transportFor : TransportFor C F := by
+  intro τ hτ σ hσ
+  have hτ' := norm_symm hτ
+  have hσ' := isSemilinear_symm hσ
+  refine ⟨fun B ↦ ⟨fun h ↦ ?_, ballGood_image hτ hσ⟩, fun E G ↦ ⟨fun h ↦ ?_, edgeGood_image hτ hσ⟩⟩
+  · have := ballGood_image hτ' hσ' h
+    rwa [show τ.symm '' (τ '' B) = B from img_symm_img τ B] at this
+  · have := edgeGood_image hτ' hσ' h
+    rwa [show τ.symm '' (τ '' E) = E from img_symm_img τ E,
+      show τ.symm '' (τ '' G) = G from img_symm_img τ G] at this
+
+end Semilinear
 
 end Transport
 

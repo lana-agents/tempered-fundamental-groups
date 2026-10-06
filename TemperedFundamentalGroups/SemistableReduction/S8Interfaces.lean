@@ -46,8 +46,8 @@ finite extension of `C(x)`.
   is good;
 * `EdgeRepair` (O10, owner R4 agent): the breaks of a segment are finite, and every sub-edge
   containing no break is good;
-* `Transport` (owner S8.A agent): `BallGood` and `EdgeGood` are invariant under isometric
-  automorphisms `τ` of `C` extending to `τ`-semilinear automorphisms of `F`;
+* `TransportFor`: `BallGood` and `EdgeGood` are invariant under isometric automorphisms `τ` of
+  `C` extending to `τ`-semilinear automorphisms of `F` (**proved**, `S8A.Transport.transportFor`);
 * `S8CReduction` (S8.C, [AW Prop 2.1], L1 A1–A6, owner S8.5/L1): a finite family of extensions
   embeds into one Galois extension `F''` of `C(x)` such that semistability of a Gauss tree for
   `F''` implies it for every member, and `τ`-semilinear automorphisms of the family lift to `F''`.
@@ -132,9 +132,9 @@ def R5MeasureFor : Prop :=
 def FiniteBadFor : Prop :=
   ∀ D : Set C, IsDisc D → {B | IsResBall D B ∧ ¬ BallGood F B}.Finite
 
-/-- **The residue class at `∞` of a large disc is good** for `F`. -/
+/-- **The residue class at `∞` of a large disc centred at `0` is good** for `F`. -/
 def InftyGoodFor : Prop :=
-  ∃ R₀ : ℝ, ∀ (a c : C) (hc : c ≠ 0), R₀ ≤ ‖c‖ → ‖a‖ ≤ ‖c‖ → InftyChartGood F a hc
+  ∃ R₀ : ℝ, ∀ (c : C) (hc : c ≠ 0), R₀ ≤ ‖c‖ → InftyChartGood F 0 hc
 
 /-- **EdgeRepair** (O10) for `F`: the breaks of a segment are finite, and every sub-edge of the
 segment containing no break is good. -/
@@ -160,32 +160,32 @@ end Field
 
 /-! ### The interfaces, quantified over all bases and Galois extensions -/
 
-/-- The local inputs for Galois extensions (S8.B, R5, finiteness, `∞`, EdgeRepair, transport). -/
+/-- The local inputs for Galois extensions (S8.B, R5, finiteness, `∞`, EdgeRepair), for fields
+defined over a complete discretely valued subfield of `C` (`DefinedOverDVR`, used by the node
+data O1). -/
 structure GaloisInputs : Prop where
   s8b : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F] [IsGalois (RatFunc C) F], S8BMinFor C F
+    [FiniteDimensional (RatFunc C) F] [IsGalois (RatFunc C) F], DefinedOverDVR C F →
+    S8BMinFor C F
   r5 : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F] [IsGalois (RatFunc C) F], R5MeasureFor C F
+    [FiniteDimensional (RatFunc C) F] [IsGalois (RatFunc C) F], DefinedOverDVR C F →
+    R5MeasureFor C F
   finiteBad : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F], FiniteBadFor C F
+    [FiniteDimensional (RatFunc C) F], DefinedOverDVR C F → FiniteBadFor C F
   infty : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F], InftyGoodFor C F
+    [FiniteDimensional (RatFunc C) F], DefinedOverDVR C F → InftyGoodFor C F
   edgeRepair : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F], EdgeRepairFor C F
-  transport : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
-    [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
-    ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F], TransportFor C F
+    [FiniteDimensional (RatFunc C) F], DefinedOverDVR C F → EdgeRepairFor C F
 
 /-- **S8.C** ([AW Prop 2.1], L1): a finite family of finite extensions of `C(x)` embeds into one
 finite Galois extension `F''` such that every Gauss tree semistable for `F''` is semistable for
@@ -197,9 +197,10 @@ def S8CReduction : Prop :=
     ∀ (κ : Type) [Fintype κ] (F' : κ → Type v) [∀ k, Field (F' k)]
     [∀ k, Algebra (RatFunc C) (F' k)] [∀ k, Algebra C (F' k)]
     [∀ k, IsScalarTower C (RatFunc C) (F' k)] [∀ k, FiniteDimensional (RatFunc C) (F' k)],
+    Nonempty κ → (∀ k, DefinedOverDVR C (F' k)) →
     ∃ (F'' : Type u) (_ : Field F'') (_ : Algebra (RatFunc C) F'') (_ : Algebra C F'')
       (_ : IsScalarTower C (RatFunc C) F'') (_ : FiniteDimensional (RatFunc C) F'')
-      (_ : IsGalois (RatFunc C) F''),
+      (_ : IsGalois (RatFunc C) F''), DefinedOverDVR C F'' ∧
       (∀ (ι : Type) [Fintype ι] (a c : ι → C) (hc : ∀ i, c i ≠ 0),
         W7.IsSemistableTree a c hc F'' → ∀ k, W7.IsSemistableTree a c hc (F' k)) ∧
       ∀ τ : C ≃+* C, (∀ z, ‖τ z‖ = ‖z‖) →
