@@ -52,8 +52,10 @@ include hp hpO in
 /-- **(A) W7 for the geometric components.** For a `Gal(C/K)`-stable finite family of discs
 `(a₀, c₀)` there is a `Gal(C/K)`-stable Gauss tree `(a, c) ⊇ (a₀, c₀)` which is semistable for
 every component `Comp K C A 𝔪` of `C ⊗_K A`. -/
-theorem exists_semistableTree (h7 : W7.Statement.{u, u}) {ι₀ : Type} [Finite ι₀]
-    (a₀ c₀ : ι₀ → C)
+theorem exists_semistableTree (h7 : W7.Statement.{u, u})
+    (hdef : letI := DVRNorm.normedFieldAlgCl O; haveI := DVRNorm.isUltrametricDist_algCl O
+      ∀ 𝔪 : MaximalSpectrum (LX K C A), DefinedOverDVR C (Comp K C A 𝔪))
+    {ι₀ : Type} [Finite ι₀] (a₀ c₀ : ι₀ → C)
     (hc₀ : ∀ k, c₀ k ≠ 0)
     (hstab : ∀ τ : C ≃ₐ[K] C, letI := DVRNorm.normedFieldAlgCl O;
       W7.DiscsLE (fun k ↦ τ (a₀ k)) c₀ a₀ c₀) :
@@ -74,7 +76,7 @@ theorem exists_semistableTree (h7 : W7.Statement.{u, u}) {ι₀ : Type} [Finite 
     (Fintype.equivFin _).symm
   obtain ⟨ι, hι, hne, a, c, hc, hconv, hred, hle, hss, heq⟩ :=
     h7 C p hp (DVRNorm.norm_natCast_lt_one O hpO) (Fin (Fintype.card (MaximalSpectrum (LX K C A))))
-      (fun k ↦ Comp K C A (e k)) ι₀ a₀ c₀ hc₀
+      (fun k ↦ Comp K C A (e k)) (fun k ↦ hdef (e k)) ι₀ a₀ c₀ hc₀
   refine ⟨ι, hι, hne, a, c, hc, hconv, hred, hle, fun 𝔪 ↦ ?_, fun τ ↦ ?_⟩
   · obtain ⟨k, rfl⟩ := e.surjective 𝔪
     exact hss k
