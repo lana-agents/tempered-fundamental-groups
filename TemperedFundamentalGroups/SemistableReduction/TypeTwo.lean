@@ -9,10 +9,10 @@ import TemperedFundamentalGroups.SemistableReduction.AbhyankarInequality
 /-!
 # Type-2 valuations and the genus inequality
 
-Blueprint §9.5, G6.1 and G6.9. Let `C` be complete, algebraically closed of characteristic `0`
-with residue characteristic `p`, and `F / C` a function field of one variable. A **type-2
-valuation** (`TypeTwo C F`) is a real valuation of `F` extending the norm of `C` whose residue
-field is transcendental over the residue field `k` of `C`.
+Blueprint §9.5, G6.1 and G6.9. Let `C` be algebraically closed of characteristic `0` (not
+necessarily complete, e.g. `K̄`; §9.11) with residue characteristic `p`, and `F / C` a function
+field of one variable. A **type-2 valuation** (`TypeTwo C F`) is a real valuation of `F`
+extending the norm of `C` whose residue field is transcendental over the residue field `k` of `C`.
 
 * `valuation_aeval_eq_sup`: if `y` has transcendental residue, then `w(Q(y))` is the Gauss norm of
   `Q` (A1);
@@ -324,7 +324,7 @@ instance TypeTwo.isCurveFunctionField (w : TypeTwo C F) :
   obtain ⟨h, htr⟩ := hx w (Finset.mem_singleton_self w)
   exact GaussFibre.isCurveFunctionField (toExt w h htr)
 
-variable [CharZero C] [CompleteSpace C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+variable [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
 include hp hp1
 
 /-- **The genus reduction inequality** (W6): for finitely many distinct type-2 valuations

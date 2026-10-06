@@ -193,6 +193,7 @@ semistable reduction.
 | D2 | The category `TempObj`, fibre functor `tempFibre`, `temperedPi1 := Aut` | `Tempered/Category.lean` | [L] |
 | D3 | `etalePi1` on `A`-equivariant finite étale algebras; functor `etaleToTemp`; continuous `temperedToEtale` | `pi1`: `Pi1/Orbifold/Etale.lean`; `Tempered/Comparison.lean` | [L] |
 | E1 | `etalePi1` is profinite; for `A = 1` it is `≃ₜ*` to Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` | `pi1`: `Pi1/Orbifold/EtaleProfinite.lean`, `EtaleMathlib.lean` | [L] |
+| E2 | (untargeted extension) imperfect residue fields: smoothness of the E-charts at non-separable closed points (geometrically regular ⇒ smooth, descent of smoothness) | — | not planned |
 | E2 | Step 3 of §4: restriction along a realization (essentially surjective, morphisms realized after refinement) is `≃ₜ*` | `FibreFunctor/Realization.lean` | [L] (abstract lemma; its hypotheses for André's category are steps 1–2, [C]) |
 | E3 | Countable fibres of connected coverings of noetherian spaces (step 4) | `Topology/CountableFibres.lean` | [L] (topological lemma; the resulting equivalence of categories after adding coproducts is argued, not formalized) |
 | E4 | Galois elements: the decomposition group `{σ ∈ Aut_R(Ω) : σV = V}` acts on `temperedPi1` (`[(t,p)] ↦ [(σ∘t, p)]`, specialization is Galois invariant), compatibly with its action on `etalePi1` | `Tempered/Galois.lean`, `Models/Specialization.lean` (`sp_galois`) | [L] |
@@ -519,6 +520,27 @@ only needed for `char C = p`.
 
 ### 9.7 The W10 interface
 
+**Targeted W10 statement: `Statement.StrongA`** (`SemistableReduction/StrongA.lean`). This is the
+exact form that Theorem A (`andreEquiv`, branch `wp-andre`) consumes.
+
+* **Inputs:** `K` complete discretely valued of characteristic `0` and **mixed characteristic**
+  (`(p : O) ∈ 𝔪_O` for a prime `p`) with **perfect residue field**; `R` a smooth **domain** of dimension `1` (without
+  equidimensionality the statement is false: `R = K[t] × K`);
+  `B` finite étale over `R`; a finite group `G` acting `K`-linearly on `B`; finitely many
+  `O`-models `c₀ i` with maps `j₀ i` over `O`.
+* **Outputs:**
+  * a finite Galois `K'/K`, with `O'` a DVR over `O` and a uniformizer `ϖ'`;
+  * a semistable `c' : ModelCode O'`, and `c : ModelCode O` isomorphic to `c'` over `O`;
+  * a scheme-theoretically dominant `j : Spec (K' ⊗ B) ⟶ c` over `O`;
+  * a `G × Gal(K'/K)`-action on `c` over `O`, with `j` equivariant;
+  * domination of the `c₀ i`, compatible with the `j₀ i`.
+* **No x-line input:** the W10 proof builds a finite x-line internally, by Noether
+  normalization (`exists_finite_aeval`, `Setup/NoetherLine.lean`).
+* **`StrongComponent → StrongA`** is proved (`Statement.strongA_of_strongComponent`).
+
+`Statement`, `Strong`, `Simultaneous`, `StrongComponent`, `HarmonicGeneral` and `HarmonicX` are
+**untargeted**: they are kept for Theorem B, which is parked (Blueprint §10.3.7).
+
 `SemistableReduction.Statement : Prop` (`SemistableReduction/Statement.lean`) is the exact form of
 W10 targeted by the W-chain and consumed by §4 (André identification) and §5.1 (non-degeneracy):
 for a henselian discretely valued `K` of characteristic `0`, a smooth affine curve `Spec R` over
@@ -609,6 +631,39 @@ with the B5 consumer):
   `∑ λ(xᵢ) = λ'(y')`; (X2) every such crossing walk has `∑ λ(xᵢ) ≥ λ'(y')`; (X3) a node not over
   a node maps to a point on exactly one component.
 
+**Status: PARKED** (Theorem B is parked; `Statement.HarmonicX` is only needed if B resumes). What is
+proved and what remains is recorded row by row below and in the following summary.
+
+*Done* (wp-tempered-hx; XL1 on wp-w8prime):
+* XL0, the definitions; XL1 `ModelCode.exists_nodeGerm` (W8′, wp-w8prime `WModelGerm.lean`);
+* XL2 interior: uniqueness `NodeGerm.eq_of_isMonomialPt` (`MonomialUnique`), existence
+  `NodeGerm.exists_isMonomialPt` (`MonomialExists`, flatness over the node + Chevalley);
+* XL3/XL4 unfolded, ring level (`XGauss`, `XLengthUnfolded`): Gauss formula over `K̄` from residue
+  transcendence (`valuation_aeval_eq_sup_of_residue`); Gauss centres minimise the distance, so the
+  x-radius is centre independent across constant fields (`valuation_sub_le_of_residue`);
+  `UnfoldedNodeGerm.isXGauss` (radius `(ord β + α + e s)/e₀`), `UnfoldedNodeGerm.isXLength`
+  (`λ = e n / e₀`), `exists_isXLength_pos` (X0 at ring level);
+* XL7 (`XHarmonicGlue`): `germs_map`, `map_genericPoint`;
+* XL8 interior restriction (`XResidue`, `XLift`): `NodeGerm.isMonomialPt_comap` (monomial points
+  of a node over a node restrict to monomial points at `(r + p s) f₂ / f₁`),
+  `IsResidueTranscendental.of_algebraic` / `of_pow` / `comap`, `IsLogValue.comap`;
+* XL6 partial (W8′, wp-w8prime `NodeBranches.lean`): `IsOrdinaryDoublePoint.eq_unit_mul_of_dvd`
+  (the divisor lemma `t = ε ϖ^α w^e`), `dvd_of_branches`, `swap`.
+
+*Remaining* (≈ 3–3.5k lines):
+* XL6: the branch valuation subrings `D_{𝔔ᵢ}` with uniqueness of the endpoint monomial points, the
+  residue conditions of `UnfoldedNodeGerm`, and the base coordinate `t ∈ P` from `IsUnfolded`
+  (Gauss-chart combinatorics), ≈ 0.6k;
+* XL5: invariance of `IsXLength` under `u ↦ ε u^k, n ↦ k n` and under `u ↔ v`, ≈ 0.3k;
+* component glue (C1) (germs at the generic point of a component are a DVR with a `K'`-rational
+  Gauss centre) and (C2) (the branches of a node are its components), ≈ 0.4k;
+* X2 (XL9) scheme assembly: telescoping of radii along the walk (centre independence at the ends),
+  ≈ 0.3k given the above;
+* X1 (XL8) edge lifting: the walk construction (a point of a component over `y'` is a node; zeros
+  of the residue of `u'^D/ϖ^N` on contracted components are nodes with higher position; positions
+  increase strictly), ≈ 1.5–2k;
+* X3 (XL10), ≈ 0.3k.
+
 *Proof plan* (all statements about valuation subrings of `L₁ ⊇ L₂`; scheme ↔ Zariski via H6):
 
 | # | Statement | Inputs | Status |
@@ -643,6 +698,50 @@ conjunct apply `.isWModel`.
 Estimate: ≈ 3.7k lines on top of W7 S5/S6 and H6. Split: XL1, XL5, XL6, XL10 and the H6 glue on the
 W8′ branch (`NodeDeformation.exists_node`, `eq_or_eq_of_isDiscreteValuationRing`, `NodeLemma`);
 XL2–XL4, XL7–XL9 on `wp-tempered-hx`.
+### 9.7a W10 assembly: `W7.Statement → Statement.StrongA` (owner: W10 assembler, O7)
+
+Inputs of StrongA: `K`, `O`, `R`, `B`, `G` acting on `R` and `B`, the models `c₀ i`, `j₀ i`.
+
+1. **x-line.** `exists_finite_aeval_invariant` gives a `G`-invariant `x` with `R` finite over `K[x]`.
+   Then `B` is finite over `K[x]`, and `B ⊗_{K[x]} K(x) = Π F_k` with `F_k / K(x)` finite. This
+   needs `R` equidimensional (open point A below).
+2. **Fields.** `C = K̄` with the spectral norm (`UniqueExtension`). The components `F'_l` of the
+   `F_k ⊗_{K(x)} C(x)` are permuted by `Gal(C/K)`.
+3. **W7.** Apply it to the family `(F'_l)` with `V₀` the union of:
+   * the discs from O9: the restrictions to `C(x)` of the residue-transcendental centres of the
+     models `projModel f_i` attached to the `c₀ i` (`f_i` are the coordinates of `j₀ i`);
+   * their `Gal(C/K)`-orbits.
+
+   Equivariance makes the resulting `V` `Gal`-stable.
+4. **Descent.** Take `E / K` finite Galois containing the tree data, with D3c, D3d and S7.9
+   holding. Over `O_E`:
+   * the node charts are semistable by O1 (`IsNodeODP ⇒ IsOrdinaryDoublePoint ⇒` S9);
+   * smooth, generic-fibre and component-generic points by the W10 descent helper.
+
+   The normalization `𝒳'_{V,E}` of the `E`-tree model in each component of `Π F_k ⊗_K E` is
+   semistable, of finite type (M8b) and projective (M9c, `projModelCode`).
+5. **Scheme.**
+   * `c' := ModelCode.sigma` of the component codes over `O_E`; semistable by
+     `isSemistable_sigma`.
+   * `c` over `O` with `e : c ≅ c'` (`baseChangeIso`, componentwise).
+   * `act` from `actOfDominates`/`actOfGenericPt`: `G` fixes `x`, so it preserves the charts;
+     `Gal(E/K)` preserves `V`.
+   * `dom i` from M10 (`dominates_of_vertexSet_subset`, with `hV` by step 3), `homOfDominates`,
+     and the closed immersion `projModelCode f_i ↪ c₀ i`.
+   * `j`: `B_E` is the integral closure of `E[x]` in `Π F_k ⊗ E`, i.e. the root chart of
+     `𝒳'_{V,E}` with `ϖ` inverted. So `j : Spec(E ⊗ B) → c` is the open immersion of the generic
+     fibre of that chart; it is scheme-theoretically dominant (W10Scheme).
+
+Open points (decision by the lead):
+* (A) **Resolved:** `[IsDomain R]` added to StrongA (and to `andreEquiv`).
+* (B) **Resolved:** StrongA requires mixed characteristic. Equal characteristic `0` is an
+  untargeted extension (§9.12, E1).
+* (D) **Resolved:** StrongA requires a perfect residue field: closed points of special fibres are
+  made rational by unramified extensions `E'/E`, and semistability descends along the étale
+  `B_E → B_E ⊗ O_{E'}` (normalization commutes with smooth base change). Imperfect residue
+  fields: untargeted extension (§9.12, E2).
+* (C) The normed structures on `K` and `K̄` from the complete DVR `O`.
+
 ### 9.6 W5: models and vertex sets
 
 **Formulation (decision).** Models are formalized *birationally*, as Zariski's abstract varieties
@@ -693,7 +792,7 @@ of normalizations) assumes `O` noetherian, i.e. a DVR `O_{K'}` (after the descen
 | M9a | the **projective model** of a finite family of nonzero functions `f : ι → F` (`projModel`, charts `R[f j / f i : j]`, the standard opens of the closure of `Spec F → ℙ^ι_R`): proper, separated, finite type. Lines are `f = (1, y)`, joins of lines are Segre families | **proved** (`SemistableReduction/ProjModel`) | 0.1k |
 | M9b | **scheme realization of `projModel f` as a `ModelCode`** (`f : Fin (m+1) → F` nonzero, `O → F` with image `R`, any ring `O`): `toProj O hf : Spec F ⟶ ℙᵐ_O` (on `D₊(x_i) = Spec (O[x]_{x_i})₀` the map `a/x_iⁿ ↦ a(f)/f_iⁿ`, `awayEval`; independent of `i`, `toProj_eq`; over `Spec O`, `toProj_toSpec`); `projModelCode O hf := ⟨m, (toProj O hf).ker⟩` (scheme-theoretic image = closure); the opens `chartOpen i = D₊(x_i)` cover it (`exists_mem_chartOpen`) and `Γ(chartOpen i) ≃ₐ[O] R[f j / f i]` (`chartEquiv`, from `range_chartHom'`, `chartHom'_injective`, `chartHom'_algebraMap`); `chartι : Spec R[f j/f i] ⟶` model, open immersion over `Spec O` (`chartι_toSpec`), through which the generic point factors (`toImage_eq_SpecMap_comp_chartι`). **Transfer**: charts semistable ⇒ `ModelCode.IsSemistable` (`projModelCode_isSemistable`); **specialization**: `sp` of the `Ω`-point `Spec Ω → Spec F →` model is `chartι` of the center `𝔪_W ∩ R[f/f_i]`, `W = j⁻¹V` (`sp_projModelCode`, with M3 `asIdeal_comap_closedPoint`, `localAt_eq_localSubringOfPrime`). Joins of lines are projective: `lines v y = projModel (segre y)` (`lines_eq_projModel`, Segre family `∏_{σ i} y i`) | **proved** (`SemistableReduction/ProjScheme`, `SegreModel`) | 0.7k |
 | M9c | **normalizations of projective models are projective**: for the normalization `M'` in `F'` of `projModel O f` (`f` finite nonempty, nonzero) of finite type (M8b), explicit homogeneous coordinates `normCoord` (`f k f iᴺ`, `b f i^{N+1}` for generators `b` of the charts `B_i` of `M'`; degree shifting `exists_mul_pow_mem_normChart`: `b (f_i/f_j)^e ∈ B_j`, via `scaleRoots`) with chart at `f_j^{N+1}` *equal* to `B_j` (`projChart_normCoord`); `exists_projModelCode_normalization`: there is `g : Fin (n+1) → F'` with `charts M' ⊆ charts (projModel g)`, the same points (`points_projModel_eq`), and: charts of `M'` semistable ⇒ `projModelCode O g` semistable (`projChart_isSemistable_of_normalization` via M7c's `isSemistableAt_of_localAt_eq`). With `lines_eq_projModel` this applies to `gaussJoinModel` (`gaussJoinModel_eq_projModel`) | **proved** (`SemistableReduction/ProjNormalization`, `ProjNormalizationCode`) | 0.6k |
-| M10 | the paper's full W5 for arbitrary `F`: every finite nonempty set of type-2 valuations is the vertex set of a unique normal model (needs contraction of the extra components of M6 over `V'`; uniqueness: a normal model is determined by its local rings) | not needed downstream (W7 chooses vertex sets as preimages of `ℙ¹` vertex sets, M6); planned only if required | 1k+ |
+| M10 | **domination of models with nested vertex sets** (`ZariskiModel.dominates_of_vertexSet_subset`): over a DVR `O`, `trdeg_K F ≤ 1`, `X` separated, normal, of finite type with charts of fraction field `F`, `Y` proper of finite type (not necessarily normal, e.g. `projModel f`); if every `W` with `W ∩ K = O` whose center on `Y` has transcendental residue (`∃ z ∈ B ⊆ W`, `IsResidueTranscendental O W z`) is a vertex of `X`, then every point of `X` contains a chart of `Y`. Proof: Mathlib's algebraic Zariski main theorem for `A[s] ⊇ A = O_P` (`le_of_quasiFiniteAt`); otherwise a non-maximal prime of the closed fibre (`quasiFiniteAt_of_forall_isMaximal`) gives a generator with transcendental residue (`exists_forall_aeval_notMem_of_not_isMaximal`), hence a vertex valuation of `Y` centered at `P` (special fibre) or a contradiction with `trdeg ≤ 1` (generic fibre, `false_of_trdeg_le_one`). No dimension theory, no normalization of `Y`. Open: finiteness of the set of such `W` (needs Krull–Akizuki-type finiteness). The full W5 (every finite set of type-2 valuations is the vertex set of a unique normal model) remains unplanned | **proved** (`SemistableReduction/ModelDomination`) | 0.5k |
 
 **Downstream API.** W6 (genus formula) sums over `vertexSet` of `normalization` of `gaussJoinModel`
 (= the extensions of the Gauss valuations, M6; W4 counts them). W7 produces a finite set of Gauss
@@ -977,6 +1076,23 @@ Not delivered by S7: S9's (h1) `u' v' = ϖⁿ·unit` is not a special-fibre stat
 `u' v' ∈ ϖ B_𝔭`). Estimate: S7.1–S7.3 ≈ 0.4k, S7.4–S7.6 ≈ 1.2k, S7.7–S7.8 ≈ 0.6k, S7.9 ≈ 0.8k.
 Files: `DeltaCount` (S7.1–S7.3).
 
+**S7 status (wp-tempered-s7).** Proved over `C`: S7.1–S7.6 and S7.8, plus the conductor/closedness
+part of S7.7.
+- Files: `DeltaCount`, `DeltaGenus`, `MultiGauss`, `LatticeReduction`, `NodeMaximum`,
+  `CurveIntegralClosure`, `CurveGenerators`, `ConductorLocal`, `NodeSide`, `NodeDouble`,
+  `NodePoints`, `TreeData`, `TreeDivisor`, `TreeReduction`, `TreeNode`, `TreeCount`, `TreePoints`.
+- The tree instantiation is over `TreeCount.TreeData` (vertices `(aᵢ, cᵢ)`, edges `par`/`chi`,
+  free directions `bᵢ`). The node points of an edge `e` (`TreeData.NP`) are the points of
+  `Rint c_e F` (chart `x_e = (x₀ − a_{χe})/c_{πe}`, `c_e = c_{χe}/c_{πe}`) that have an outer
+  branch. `TreeData.Sp P` collects the outer and inner branches through `P`. The condition space
+  `TreeData.Oc P` holds the fractions `y/s` of `R'_e` with `s ∉ P'`.
+- `TreeData.delta_count`: `Σ_W g(κ(W)) + Σ_P (r_P − 1) ≤ g(F) + #S − 1`.
+- `TreeData.jets_of_le`: under the reverse inequality, `eqRes ≤ Oc ⊔ K_M` at every node point.
+- `TreeData.isNodeODP_of_le`: under the reverse inequality, every point with one outer and one
+  inner branch is `GaussTube.IsNodeODP`. It goes through `GaussTube.isNodeODP_of_jets`, which
+  uses `NodeDouble.exists_fp`.
+- S7.9 (transfer to `O_E`) was reassigned to L3/R4/O1.
+
 **Estimate and status.** Proved: S1, S2 (general and Gauss-point form), S3, S4, S5, S6 (outer
 vertex) (`AnnulusUnit`, `NormFormula`, `GaussNorm`, `TwoDirections`, `TubeCount`, `GaussTube`,
 `TubePoints`, `ResidueNorm`, `PlaceNorm`, `VertexMatch`; ≈ 3.3k lines) and the interface
@@ -1127,10 +1243,20 @@ Below, `x = t`.
 | S7⁺.5 | **lifting of sections** (integral Serre vanishing): there is `m₀` such that for `m ≥ m₀`, `a ∈ 𝓡₀`, `b ∈ 𝓡_∞` with `ā = x̄ᵐ b̄`, some `f ∈ L(m(x)_∞)` with `‖f‖ ≤ 1` has `f̄ = ā` | `d = a − xᵐb = Σχᵢsᵢ` with `χᵢ` regular on the circle (S7⁺.3 for `a`, for `b` in the basis `t`, and for `tⱼ`, `x^{-k}sᵢ`), `|χ| = ‖d‖ < 1`; split `γ⁻¹χ = χ₊ + χ₋` (S7⁺.4), `f = a − γΣχ₊sᵢ = xᵐb + γΣχ₋sᵢ`; `f ∈ A₀` and `x^{-m}f ∈ A_∞` by coprime denominators (roots `|α| > 1` vs `|α| < 1`), and `L(m(x)_∞) = A₀ ∩ xᵐA_∞` |
 | S7⁺.6 | **genus formula with total δ**: for `m ≫ 0`, `g(F) = 1 + Σ_w (g(κ(w)) − 1) + codim_{Π L(m(x̄)_∞)} H_m` with `H_m = Λ₀ ∩ x̄ᵐΛ_∞` | S7⁺.5, `dim ρ(L_m°) = ℓ(L_m)` (G6.4 and independence of lifts), R7 on `F` and on the `κ(w)`, R5 |
 | S7⁺.7 | **localization**: `codim H_m ≤ Σ_y δ_y^{(M)}` for `M ≫ 0` (points `y` = maximal ideals of `Λ₀`, and of `Λ_∞` over `x̄ = ∞`; `O_y = {a : ∃ s ∈ Λ ∖ y, s a ∈ Λ}`), i.e. `W_m ∩ ⋂_y (O_y + K_{M,y}) ⊆ H_m`. With S7.6 this gives the equality `g = 1 + Σ(g_w − 1) + Σ_y δ_y`, and the `δ'` form consumed by `card_le_of_indep` | conductor element `σ ∈ Λ₀` (finiteness of `Π_w Õ_w`, S7.7 `CurveIntegralClosure`); `K_M ⊆ O_y` at the finitely many `y ∋ σ` (CRT in `Λ₀`); `a ∈ O_y ∀ y ⇒ a ∈ Λ₀` |
-| S7⁺.8 | **Gauss trees** (bridge, separate row): for a finite convex Gauss tree `V` of `C(x)`, a `t ∈ C(x)` with `t⁻¹(w_{0,1}) = V`, and the identification of the normalization of `P¹_t` in `F` with `𝒳'_V` (M10-type uniqueness: a normal model is determined by its vertex set) | open; needed by R5 for `V` and `V ∪ {w_D}` |
+| S7⁺.8 | **Gauss trees** (bridge; re-scoped as M10): for a finite convex Gauss tree `V` of `C(x)`, a `t ∈ C(x)` with `t⁻¹(w_{0,1}) = V`, and the identification of the normalization of `P¹_t` in `F` with `𝒳'_V` (M10-type uniqueness: a normal model is determined by its vertex set) | open; needed by R5 for `V` and `V ∪ {w_D}` |
 
-Files: `ChartBasis` (S7⁺.1–.3), `LaurentSplit` (S7⁺.4), `SectionLift` (S7⁺.5–.6), `SectionLocal`
-(S7⁺.7). Estimate: ≈ 1.5–2k lines; S7⁺.8 ≈ 1k (not started).
+**Status (S7⁺.1–S7⁺.7 proved, no S8 input, no completeness of `C`).**
+`ChartBasis` (`IsCoord`, `exists_trace_bound`, `exists_chartBasis`, `exists_disc_coords`),
+`LaurentSplit` (`exists_laurent_split`), `SectionLift` (`exists_lift`), `SectionGenus`
+(`secSpace`, `secSpace_le_piRR`, `exists_finrank_secSpace_eq`, `genus_add_card_sub_one_eq`),
+`ChartLocal` (abstract affine charts `IsChart`: `center_isMaximal`, `exists_center_eq`, `locSpace`,
+local–global principle `mem_of_forall_mem_sup`, `delta`, counting lemmas
+`finrank_le_finrank_add_sum_quot` / `finrank_add_sum_le_of_surj`, twisted jets
+`exists_jet_twist`), `SectionLocal` (`exists_red_eq`, `exists_conductor`, `isChart_x`,
+`isChart_x_inv`, **`exists_genus_eq_sum_delta`**: for `M ≫ 0`,
+`g(F) + #{w} - 1 = Σ_w g(κ(w)) + Σ_y δ_y^{(M)}`, `y` over the closed points of the charts at `0` and
+`∞` containing the conductor; every `y` with `δ_y ≠ 0` is among them). ≈ 3.9k lines.
+S7⁺.8 is re-scoped as M10 (domination of models with nested vertex sets), not started.
 
 ### 9.10 S8.5: local uniformization at type-4 points (Arzdorf–Wewers)
 
@@ -1205,7 +1331,7 @@ limits of exhausting discs do not occur" (T2′).
 | A3 | **decomposition group** (**proved**: `valuation_apply_eq`, `decompositionGroup`, `decompositionField`, `valuation_decompositionField_apply`): `D_{W''} = {σ : σ(W'') = W''}`; for `σ ∈ D_{W''}`, `W''.valuation (σ x) = W''.valuation x` (an order automorphism of finite order of a linearly ordered group is trivial); hence the hypothesis `hσ` of `Inertia` holds for `F''/F''^{D_{W''}}` | `Inertia` (D1) | 0.2k |
 | A4 | **inertia = decomposition at a residually algebraically closed point** (**proved**: `inertia_eq_top`, `exists_pow_eq_of_divisible`, `isPGroup_of_isAlgClosed`, `isPGroup_decompositionGroup`): if `κ(W ∩ F)` is algebraically closed (types 3, 4), `residueHom` has trivial target, so `T = D_{W''}`; with D2 (`isPGroup_inertia`: value group of `W ∩ F''^{D}` divisible — W4 `ramificationIdx_eq_one_of_divisible'` transports divisibility of `v(C^×) = ξ(C(x)^×)` up the finite extension — and `ζ_ℓ ∈ C`) the decomposition group of a type-4 point is a `p`-group | D2, A3 | 0.3k |
 | A5 | **Kummer tower** (**proved** for one step: `exists_kummer_generator`): a D4 chain (`PGroupChain.exists_chain`) from `1` to `D_{W''}` gives `F''^{D} = L₀ ⊆ L₁ ⊆ ⋯ ⊆ L_m = F''` with `L_{i+1}/L_i` Galois cyclic of degree `p`, hence (`ζ_p ∈ C`) `L_{i+1} = L_i(y)`, `y^p = f_i` | D4, Mathlib `FieldTheory/KummerExtension` (`isCyclic_tfae`) | 0.2k |
-| A6 | **smooth points descend to quotients** (needed because S8.5 is proved for the Galois closure `F''` and used for `F' = F''^H`): if every point of `D''` over `y ∈ D_E` is smooth, so is `y`. Proof: `P''` over `y` with stabilizer `H_{P''}`, unique branch `Q''` on the residue curve `κ''` of `w''`; `|H_{w''}| = [κ'' : κ']` (W4: `e = 1`, no defect, A1) and `H_{w''}` permutes the branches over the branch `Q'` of `y` transitively with stabilizer `H_{P''}`, so `e(Q''|Q') = |H_{P''}|`; for `s ∈ D''` a parameter at `P''` and a unit at the other points over `y` (CRT), `t = N_{F''/E}(s) ∈ D_E` has `ord_{Q''} t̄ = |H_{P''}|`, hence `ord_{Q'} t̄ = 1`; one branch + an element reducing to a uniformizer of it ⇒ `δ_y = 0` ([KA Lemma 1.28] in algebraic form: conductor argument). *Wild caveat*: `D_E ⊗ k ≠ (D'' ⊗ k)^H` in general (`s ↦ ζ_p s`), so the naive invariant-of-special-fibre argument is wrong; the norm argument avoids it | A1, W4, R5 (`degree_poleDivisor`: `Σ e = [κ'' : κ']`), S7 (`δ`), finiteness of the residue normalization | 0.6k; **S7(c) input proved**: `SmoothPoint` (abstract one-branch closedness/jets/uniformizer ⇒ `ρ(R)_P = O_Q`), `SmoothVertex` (vertex chart `DRint 0 1`, maximum principle, reduction, span/fractions/τ), `AffineTwist.exists_eq_of_uniformizer` (on `DRint a c F'`: a reduction to a uniformizer at the only zero `Q` of `t̄` with point `P'` ⇒ every `a ∈ O_Q` is `ρ y/ρ s`, `s ∉ P'`) |
+| A6 | **smooth points descend to quotients** (needed because S8.5 is proved for the Galois closure `F''` and used for `F' = F''^H`): if every point of `D''` over `y ∈ D_E` is smooth, so is `y`. Proof: `P''` over `y` with stabilizer `H_{P''}`, unique branch `Q''` on the residue curve `κ''` of `w''`; `|H_{w''}| = [κ'' : κ']` (W4: `e = 1`, no defect, A1) and `H_{w''}` permutes the branches over the branch `Q'` of `y` transitively with stabilizer `H_{P''}`, so `e(Q''|Q') = |H_{P''}|`; for `s ∈ D''` a parameter at `P''` and a unit at the other points over `y` (CRT), `t = N_{F''/E}(s) ∈ D_E` has `ord_{Q''} t̄ = |H_{P''}|`, hence `ord_{Q'} t̄ = 1`; one branch + an element reducing to a uniformizer of it ⇒ `δ_y = 0` ([KA Lemma 1.28] in algebraic form: conductor argument). *Wild caveat*: `D_E ⊗ k ≠ (D'' ⊗ k)^H` in general (`s ↦ ζ_p s`), so the naive invariant-of-special-fibre argument is wrong; the norm argument avoids it | A1, W4, R5 (`degree_poleDivisor`: `Σ e = [κ'' : κ']`), S7 (`δ`), finiteness of the residue normalization | 0.6k; **S7(c) input proved**: `SmoothPoint` (abstract one-branch closedness/jets/uniformizer ⇒ `ρ(R)_P = O_Q`), `SmoothVertex` (vertex chart `DRint 0 1`, maximum principle, reduction, span/fractions/τ), `AffineTwist.exists_eq_of_uniformizer` (on `DRint a c F'`: a reduction to a uniformizer at the only zero `Q` of `t̄` with point `P'` ⇒ every `a ∈ O_Q` is `ρ y/ρ s`, `s ∉ P'`) — **owner: S8.A agent** (`S8Descent.lean`, with the node analogue, as `S8CDescent` O6.6) |
 
 **L2. Splitting at a type-4 point** (replaces Berkovich's "the local ring at `x` is henselian"). **Done**
 (`DiscCount`, `Splitting`, ≈ 0.95k lines).
@@ -1231,7 +1357,8 @@ stabilize).
 | R1 | **recognition of discs**: one branch + `t` with `v_η(t) = (0, 1)` (rank-two boundary valuation `v_η` = Gauss valuation composed with `ord` at the branch) ⇒ disc with parameter `t` [KA Lemma 1.28]; algebraic form = A6's conductor argument | A6 | **proved** in algebraic form (`BranchRecognition.maximalIdeal_eq_span_of_branch`: `D` local noetherian normal over a DVR, one reduced branch `𝔔` with a finite normalization `V` (kernel `𝔔`, residue field that of `D`) in which `t̄` generates the maximal ideal ⇒ `𝔪_D = (ϖ, t)`; via `mem_span_of_forall_mem` (`(ϖ) = ⋂ 𝔔`, Krull) and Nakayama `surjective_of_finite`); consumed by A6 after descent |
 | R2 | **recognition of annuli**: two branches, `N_{B/A}(w) = t^m u`, `gcd(m, n) = 1` ⇒ annulus of thickness `ε/n` [KA Lemmas 1.30, 1.31] | S9 node lemma, R0 | 0.4k; [KA 1.30] **proved** in algebraic form (`BranchRecognition.isOrdinaryDoublePoint_of_branches`: two reduced branches with finite normalizations in which `ū'`, `v̄'` are uniformizers, `u' v' ∈ (ϖ)` ⇒ `IsOrdinaryDoublePoint ϖ u' v' 𝔔₁ 𝔔₂`, the input of `NodeLemma.isAnnulusAt_of_isOrdinaryDoublePoint`); the norm form [KA 1.31] remains (it needs the branch orders of the base parameter, `ord_{Q₁} t̄ = n`, i.e. S6 locally, or R0 on the formal side) |
 | R3 | **exhausting discs / separating boundary domains** as statements about Gauss trees: `D = D(a, ρ) ⊆ U_n` is exhausting iff, in the normalization of `{w_n, w_{a,ρ}}`, all points over the node are ordinary double points (S9 / `IsAnnulusAt`); boundary domains likewise for annuli [AW §3.1, KA Def. 1.26] | M7a/M7b, S9 | 0.3k; **proved over `C` (definitions + recognition)**: `AffineTwist.IsExhausting a hc0 hc' hc0' F'` (every maximal ideal of `Rint c' (Aff a c F')` over `tubeIdeal c'` is `GaussTube.IsNodeODP`: one outer, one inner branch (`outerBranches`, `innerBranches`), local ring reaches the fibre product exactly); recognition `isNodeODP_of_params` from parameters of the two branches ([KA 1.30] over `C`, `NodeRecognition.exists_jet₂` + `NodeDouble.exists_fp`); the twist `AffineTwist` (`x ↦ (x − a)/c`, `drintEquiv`, `extAff`) puts the disc chart `DRint a c` and the node chart in `t` on the standard charts. Upward closure (R4(i)) not done: it needs the local structure of the tube of an ODP (S9 over `C`: the extensions of the Gauss points inside the tube are Gauss points in the node coordinate) |
-| R4 | **BL Lemma 2.4** (as used in [AW Lemma 2.4/`BLlem`, Lemma 2.7]): (i) a disc containing an exhausting disc is exhausting; (ii) there is `ε₀ < 1` such that all discs of radius `≥ ε₀` are exhausting; (iii) over a thickness-0 closed annulus `{|t| = ε}` with `D(0, ε)` exhausting the preimage is a disjoint union of thickness-0 annuli, so residue classes of it pull back to disjoint unions of discs. Valuative proof: (ii) is S8.3 (a type-5 direction at `w_n`: the annulus between `w_n` and a nearby Gauss point carries no hidden genus / has annulus preimage), (i) and (iii) follow from S5/S6 (tube degrees, one branch per side) | S8.3, S5, S6 | 0.4k |
+| R4 | **BL Lemma 2.4** (as used in [AW Lemma 2.4/`BLlem`, Lemma 2.7]): (i) a disc containing an exhausting disc is exhausting; (ii) there is `ε₀ < 1` such that all discs of radius `≥ ε₀` are exhausting; (iii) over a thickness-0 closed annulus `{|t| = ε}` with `D(0, ε)` exhausting the preimage is a disjoint union of thickness-0 annuli, so residue classes of it pull back to disjoint unions of discs. Valuative proof: (ii) is S8.3 (a type-5 direction at `w_n`: the annulus between `w_n` and a nearby Gauss point carries no hidden genus / has annulus preimage), (i) and (iii) follow from S5/S6 (tube degrees, one branch per side) | S8.3, S5, S6 | 0.4k; **(i) proved over `C` modulo the open obligation O1** (`GaussTube.isNodeODP_of_le`, `NodeUpward`/`NodeUpwardMain`): for `|c'| < |c''| < 1`, a point `P''` of `Rint c'' F'` over the node lying over a point `P'` of `Rint c' F'` with one outer branch and exact node data `NodeData` is `IsNodeODP` (outer branches of `P''` ⊆ those of `P'`; every point is a centre, `exists_center_eq`; S6 at both vertices; at an inner branch `(c''/x)‾ = λ v̄₀^d`, so the vertex count `d` forces one inner branch with `v̄₀` a uniformizer; parameters `σ_u u` and `σ σ_v (κ/γ) v`, `κ^d = c''`). **(ii) proved over `C`, unconditionally** (`NearBoundary`: `GaussTube.belowGerm`, `exists_near_isNodeODP`, `exists_near_nodeData`): near the outer boundary the exact node data are constructed directly (germ bridge `isGermLE_of_red`, integrality near the boundary `exists_valuation_le_one_near` via residue norms + Lagrange interpolation, pole clearing `exists_tau_near`, residue lifting `exists_lift_red`, reusable `nonempty_nodeData_of_coord`), so (ii) needs neither O1 nor `DefinedOverDVR`; (iii) open |
+| O1 | **open obligation (interim hypothesis of R4)**: under `DefinedOverDVR C F'` (`DefinedOverDVR.lean`), every `IsNodeODP` point `P'` of `Rint c F'` with outer branch `b₁` admits `GaussTube.NodeData hc P' b₁` (descent to `O_E` (S7.9) + `IsOrdinaryDoublePoint.exists_node`). R4 counts as done for the targeted chain only once O1 is proved | owner: W8′ agent (`ExactNodeData.lean`, branch `wp-tempered-o1`) | — |
 | R5 | **improvements** [AW Def 2.5, Lemma 2.6, Lemma 2.9]: genus formula `g = 1 + Σ(g_V − 1) + Σ δ_y` (S7), the comparison (`improveeq1`) `δ_y = m_y − |S| + Σ_{V ∈ S} g_V + Σ_{y' ∈ U} δ_{y'}` for the modification at an exhausting disc; *not an improvement* ⇒ unique singular point `y'`, rational unibranch components; *minimal exhausting* ⇔ improvement; termination measure `(δ, −m)` with `m ≤ δ + 1` | S7, G6.7 (`δ` as gluing conditions) | 0.6k |
 
 **L4. `p`-cyclic Kummer covers of a disc** ([KA §2], mixed characteristic, `ζ_p ∈ C`).
@@ -1249,11 +1376,11 @@ Kummer generator; statements about the cover are transported back to valuations 
 
 | # | Statement | Inputs | Size |
 |---|---|---|---|
-| K1 | **best approximation** [KA Prop 2.2, Cor 2.4/2.5]: `max_{h ∈ A} v_η(f − h^p) = (μ, m)` exists, `0 ≤ μ < p/(p−1)`, `μ/p ∈ v(E^×)` (after enlarging `E`), `p ∤ m`; `B = A[w]`, `w = (y − h)/λ`, `v(λ) = μ/p`, `w^p + ⋯ + pλ^{1−p}h^{p−1}w = (f − h^p)/λ^p`; one boundary point over `η`; `Y` a disc iff `m = 1` | (revised: no normality of `A[w]`) for `h ∈ A` the bridge puts `f − h^p` into the completions at the Gauss points `w_{a,|lc|}`; the extension of the degree-one point there is `K(φ(f)^{1/p})` and its residue extension is read off by F4 (`KummerNormalForm`) at each radius; `(μ, m)` is the limit behaviour as `|l| → 1` (S1-type monotonicity of `|l| ↦ sup_i |aᵢ||l|^i`) | 0.7k |
+| K1 | **best approximation** [KA Prop 2.2, Cor 2.4/2.5, 2.16, 2.23] (**power-series part proved**, `CriticalRadius.exists_precise`, over any algebraically closed ultrametric `C`, no completeness): at a radius `‖l‖ < 1` (where suprema are attained, `exists_dom`) either `f` is approximable by `p`-th powers up to every bound `> A = ‖γ‖^p` (degenerate: split or Artin–Schreier at the Gauss point), or there is a *precise* `h`: `g = f - h^p`, `g₀ = 0`, `Dom (term g l) M m` (maximum `M > A` first attained at `m`, `p ∤ m`), `p`-indices strictly below the segment `P'₀P_m`; `(M, m)` is independent of the precise `h` (K2 both ways). `pBound_eq`: `pBound = A^(1 - 1/p^(n+1))`. *Over `C` the boundary data of the open disc need not be attained, so the analysis is done at a radius `< 1`*; the cover-side statements (`B = A[w]`, one boundary point, disc iff `m = 1`) are transported in K6 | (revised: no normality of `A[w]`) for `h ∈ A` the bridge puts `f - h^p` into the completions at the Gauss points `w_{a,|lc|}`; the extension of the degree-one point there is `K(φ(f)^{1/p})` and its residue extension is read off by F4 (`KummerNormalForm`) at each radius | 0.7k |
 | K2 | **recognizing best approximations** (**proved**, `KummerDisc.not_better`, over `C` without attained suprema) [KA Lemma 2.7, Rem 2.8]: `p ∤ m̃` ⇒ `v_η(f − h̃^p) = (μ, m)`; stable under algebraic base change | binomial expansion | 0.1k |
 | K3 | **formal `p`-Taylor expansion** (**proved**, `PTaylor.exists_pTaylor`, over the coefficient field `C`; Matignon [Mat03], [KA Def 2.9, Lemma 2.10, Prop 2.12]): for every level `n` there are `h ∈ A^×` with `f − h^p = Σ a'ᵢ tⁱ`, `a'₀ = 0`, `v(a'_{pj}) ≥ ν_n = 1 + 1/p + ⋯ + 1/pⁿ`. *Only this part of Matignon's theory is used* (no equidistant geometry, no global `p`-Taylor polynomials). Over `O_C` it is elementary (`C` perfect: `b_j = a_{pj}^{1/p}`, induction on `n` with the binomial estimate `v(binom(p, j)) ≥ 1`); over `O_E` it needs the explicit finite extensions of [KA Lemma 2.10] (`p`-power roots of a uniformizer) | `PowerSeries` over `O_C`/`O_E` | 0.4k |
-| K4 | **level suffices** [KA Cor 2.16, 2.23, Prop 2.28, Def 2.30]: if `ν_n > p/(p−1) − (p/(p−1) − μ)/m` the modified Newton polygon (start point `(0, p/(p−1))`) of `f − h^p` has critical segment `P_l P_m` with `P_m = (m, μ)`, `p ∤ l` or `P_l = P'₀`; the segment and the **critical radius** `ρ₀ = |slope|` are independent of the sufficiently precise `h` | Newton polygons of power series (finite truncations; Mathlib has none for power series — 0.3k of the estimate) | 0.6k |
-| K5 | **good centre** [KA Prop 2.31]: after a finite extension and a change of centre `t ↦ t − τ`, `l ≠ 1`; proof by the generic expansion of `f(t + T)` over integral extensions `S ⊇ O[[T]]`, `a(T) = N_{S̃/O[[T]]}(A₁^{[n]}(T))`, a zero `τ` of its Weierstrass polynomial (non-constant after the pre-approximation `f₂ = f/h₁^p`) | Mathlib `WeierstrassPreparation`, norms of integral extensions, K3 | 0.6k |
+| K4 | **level suffices** [KA Cor 2.16, 2.23, Prop 2.28, Def 2.30] (**proved**, `CriticalRadius.exists_crit` for sequences, `exists_critRadius` for series): for precise data the modified Newton polygon (virtual start `(0, A)`) has critical radius `θ₀ ∈ |C^×|` (`‖l₀‖`): on `(‖l₀‖, 1)` the index `m` strictly dominates with value `> A`; at `‖l₀‖` all terms are `≤`, `p`-indices `<`, and either value `= A` (Artin–Schreier, `P_l = P'₀`) or value `> A` with smallest dominant index `k`, `0 < k < m`, `p ∤ k` | finite maxima (no Newton polygons of power series needed) | 0.6k |
+| K5 | **good centre** [KA Prop 2.31] (**proved**, `GoodCentre.exists_good_centre`, ≈ 1.2k lines, over algebraically closed `C`, no completeness): for a polynomial `f` (the germ enters through DiscGerm's polynomial approximants, which give the same local Kummer extensions inside `|t| ≤ ‖l‖`) with data `(M, m)`, `m ≥ 2`, `p ∤ m`, `A < M ≤ 1`, there are `‖τ‖ < 1` and `h` with `f(τ + s) − h^p` precise with the same data and **linear coefficient `0`**. Proof replaces KA's integral extensions of `O⟦T⟧` + Weierstrass by: the generic truncated `p`-Taylor algorithm with symbolic roots over `C[T]` (`genH`, `genE`), the iterated `μ_p`-norm of the linear coefficient (`normAll`, a polynomial in the centre), its estimate `‖a(τ) − f'(τ)^(p^N)‖ < M^(p^N)` on the closed disc (all root choices, `conc_inv`), maximum modulus and Gauss's lemma ⇒ `a` has a root `‖τ‖ < 1`; at the root some root choice kills the linear coefficient | finite maxima; no Newton polygons of power series | 0.6k |
 | K6 | **minimal exhausting disc** [KA Prop 2.33 = AW Prop 3.4]: `D = {v(t) ≥ ρ₀}` is exhausting (on `X ∖ D`: `f − h^p = c₁^p t^m u₁`, R2) and minimal: on `D` the reduction is `w̄^p + c̄ w̄ = ḡ` (Artin–Schreier, genus `(p−1)(m−1)/2 > 0`) if `P_l = P'₀`, else `w̄^p = ḡ` with `t̄^l ∣ ḡ`, `1 < l < m`, `p ∤ lm`, singular at ≥ 2 zeros of `dḡ`; R5 ⇒ improvement | K1–K5, R2, R5, W4 F4 (`KummerNormalForm`: the residue extension at the Gauss point of `D`) | 0.6k |
 
 **L5. `p`-cyclic Kummer covers of an annulus** ([KA §4], [AW §3.3] only sketches it: "the
@@ -1355,13 +1482,50 @@ lies in `F ⊗_C Ĉ`, which has no nontrivial idempotents for `C` algebraically 
 points of a finitely generated subalgebra), after which W6 holds over `K̄`; `DiscGerm` with germs in
 `PowerSeries Ĉ` when a consumer needs it over `K̄`.
 
+*Status (2026-10).* **`no_split` over algebraically closed `C` proved**, `CompleteSpace C` removed from
+`Connectedness`, `SharpGenus`, `TypeTwo` (W6 now holds over `K̄`): `SemistableReduction/
+TensorIdempotent` — `eq_zero_or_eq_one_of_isIdempotentElem` (idempotents of `L ⊗[C] F` are `0`, `1`
+for fields `F`, `L` over algebraically closed `C`; points of `C[Xᵢ]/ker` by Mathlib's
+Nullstellensatz `IsPrime.vanishingIdeal_zeroLocus`), `exists_tendsto_of_approx_idempotent`
+(Cauchy coordinates of approximate idempotents in a fixed finite family converge to those of `0` or
+`1`; limit in `Ĉ ⊗[C] F`); `GaussFibre.no_split` truncates the traces at degree `D'`, takes a common
+denominator `h` of the structure constants and applies it. **`DiscGerm` done**: `exists_germ`,
+`exists_germ_gaussNorm` no longer assume `CompleteSpace C` (nor `IsAlgClosed C`); they return the
+approximants `Qₙ ∈ O_C[t]` (converging to `y` at every disc valuation) and the germ
+`G : PowerSeries Ĉ` (`Qₙ → G` uniformly on `|t| ≤ |l| < 1`, value of `y` at `w_{a,|lc|}` = Gauss
+norm of `G`). No `CompleteSpace C` remains in `SemistableReduction`.
+
 ### 9.12 Open obligations (must be discharged before anything downstream is called proved)
 
 | # | Obligation | Discharged by | Status |
 |---|---|---|---|
-| O1 | R4's interim **exact node data** hypothesis (`u v = γ`, `σ x = e u^d`, `ord_{Q₁} ū = 1` at points over the node) | (a1): S7(b)/S7.9 descent to `IsOrdinaryDoublePoint` over `O_E` + `NodeDeformation.exists_node`, under `DefinedOverDVR F'` | open |
+| O1 | R4's interim **exact node data** hypothesis (`u v = γ`, `σ x = e u^d`, `ord_{Q₁} ū = 1` at points over the node) | (a1): S7(b)/S7.9 descent to `IsOrdinaryDoublePoint` over `O_E` + `NodeDeformation.exists_node`, under `DefinedOverDVR F'` — owner: W8′ agent (`wp-tempered-o1`) | open |
 | O2 | `DefinedOverDVR` passes to intermediate fields of the Galois closure | R4 step 3 | open |
-| O5 | S7⁺.8: identification of the normalized `P¹_t`-model with the Gauss-tree model `𝒳'_V` when `t⁻¹(η) = V` (and existence of such `t`), unless R5 is restated on `t`-models | S7⁺ / S8.5 | open |
-| O3 | `IsUnfolded` output of `Statement.StrongComponent` | W9/M9c (`IsWModelOf`) + W7 (c) | open |
-| O4 | §9.11: C0, `no_split` over algebraically closed `C`, `DiscGerm` over `Ĉ`; `CompleteSpace C` removed from the targeted chain | `cbridge` | open |
+| O5 | S7⁺.8: identification of the normalized `P¹_t`-model with the Gauss-tree model `𝒳'_V` when `t⁻¹(η) = V` (and existence of such `t`), unless R5 is restated on `t`-models | S7⁺ (after S7⁺.7); needed by S8.A (global induction: `h(V) > 0 ⇒ δ > 0` somewhere on `𝒳'_V`), **not** by R5 (R5 runs on the two local `t`-models `P¹_s`, `P¹_{s + c'/s}`) | open |
+| O3 | `IsUnfolded` output of `Statement.StrongComponent` | — | **dropped**: the targeted W10 statement is now `Statement.StrongA`, which has no component/W-model clause |
+| O6 | S8.A (AW global improvement induction on Gauss trees) ⇒ **`W7.Statement`** (`SemistableReduction/W7Statement.lean`, agreed with S7 and the W10 assembler, 2026-10): for a finite family `F' k / C(x)` (`C` algebraically closed, char 0, `‖p‖ < 1`, not complete) and discs `V₀`, a convex reduced Gauss tree `V ⊇ V₀` (disc-wise, `W7.DiscsLE`) with `W7.IsSemistableTree` for every `F' k` (node points of edge charts `Rint (c_j/c_m) (Aff a_j c_m F')` are `IsNodeODP`; points of vertex charts off the child directions and over `∞` of the root are `SmoothVertex.IsDiscSmooth`; no fixed `ϖ`), and **equivariance**: `τ V₀ = V₀` ⇒ `τ V = V` for isometric `τ ∈ Aut(C)` extending to a `τ`-semilinear automorphism of `Π F' k`. Replaces the monotone form (`h(V) = 0` does not imply semistability: points with `r ≥ 3` branches and `δ = r − 1`). Proof plan: canonical iteration "add `D_min` at all bad points simultaneously" (AW improvement, `D_min` unique), equivariance by transport invariance of `IsNodeODP`/`IsDiscSmooth`/exhausting | S8.A agent (`wp-tempered-s8a`) | statement fixed; **global argument proved modulo the interfaces**: `W7.statement_of_interfaces : GaloisInputs → S8CReduction → W7.Statement` (`S8Main`; `BallTree`, `S8Global`, `S8Assembly`, `S8Equivariance`; axioms: propext, choice, Quot.sound). Open: O6.1–O6.6, O10 |
+| O6.1 | `S8A.S8BMinFor` (S8.B, [AW Thm 2.6]): for `F/C(x)` finite Galois, a bad open residue ball `ball b ‖c‖` (`¬ BallGood`) contains a smallest exhausting disc (`IsMinExh`: `EdgeGood D (closedBall b ‖c‖)`, contained in every other) | S8.B agent (`wp-tempered-s8b`): limit argument [AW §4] in `S8BLimit` | **reduced** to O6.1a–h (`S8A.s8bMinFor_of_inputs : S8BLimitInputs C F → S8BMinFor C F`; no Galois hypothesis used) |
+| O6.1a | `S8A.R4ExFor`: every residue ball contains an exhausting disc (weakest form of R4(ii)) | R4 agent (`a4a2998`, R4(ii) on `wp-tempered-s81`) | open |
+| O6.1b | `S8A.ExhInterFor` ([AW Lemma 2.7(iii)]): two exhausting discs of a bad residue ball intersect | S8.B agent (via O11g and goodness off an exhausting disc; δ-count route shared with `a89e`) | open |
+| O6.1c | `S8A.L7For` ([AW §4 case (4)], type 4): pairwise intersecting exhausting discs of a bad ball have a common point (`⋂₀ ExhSet ≠ ∅`; includes limits at points of `Ĉ ∖ C`) | S8.5 agent (`ab3ef`, L7 via B4, T0, A4, L6) | open |
+| O6.1d | `S8A.O11For`: the (⇐) direction of O11 verbatim (`ExhaustGluing.isExhausting_iff_of_le`); `S8A.edgeGood_glue` is its `EdgeGood` form | M10/O9 agent (O11) | open |
+| O6.1e | `S8A.GoodGluingFor` (O11g): `closedBall a ‖e‖ ⊊ ball a ‖u‖ ⊆ B`, `closedBall a ‖e‖` exhausting in `B`, `ball a ‖u‖` good ⇒ `B` good. Bridge: single-centre O11g `ExhaustGluing.discSmooth_iff_of_le` (`wp-tempered-m10` 1046e8a, under its named hypotheses) + representation independence `S8A.discGood_iff_of_ball_eq` (O6.5) | M10/O9 agent (O11g) + S8.A agent (O6.5) | open |
+| O6.1f | `S8A.ClassicalGoodFor` (S8.2, type 1): for every `a ∈ C` the residue balls `ball a ‖c‖`, `‖c‖ ≤ s₀`, are good | S8.B agent (SplitDisc + Kummer base change + DiscCount + `exists_eq_of_uniformizer`) | open |
+| O6.1g | `S8A.TypeTwoGermFor` (dual R4(ii), type 2), **chart-wise for a fixed centre** `a₀` (no representation independence of `IsExhausting` needed; the threshold may depend on `a₀`): `∃ ρ' > ‖z‖`, `IsExhausting a₀ d c'` whenever `‖d c'‖ = ‖z‖`, `‖d‖ ≤ ρ'` | S8.B agent (Inv-transport of `IsExhausting` + rescaling (S8.A `isExhausting_iff_of_rescale`) applied to R4(ii)) | **done** (`S8A.typeTwoGermFor`, `TypeTwoGerm.lean`: R4(ii) `GaussTube.belowGerm` for `Inv z (Aff a₀ 1 F)`, rescaling, `nodeGood_of_inv` (`InvSwap`)); needs `[CharZero C]`, `p` with `‖p‖ < 1` |
+| O6.1h | `S8A.TypeThreeGermFor` (S8.4, type 3): for `ρ ∉ |C^×|` some `‖c₁‖ < ρ < ρ₂` with `EdgeGood (closedBall a ‖c₁‖) (closedBall a ‖c₂‖)` for `ρ < ‖c₂‖ ≤ ρ₂` | S8.B agent | open |
+| O6.2 | `S8A.R5MeasureFor` (R5, [AW Lemma 2.6, §2.5]): for `F` Galois, `μ : Set C → ℕ` with `μ B' < μ B` for every bad residue ball `B'` of the smallest exhausting disc of a bad ball `B` (`(δ, −m)` encoded in `ℕ`, `m ≤ δ + 1`) | S8.5 agent (R5 + S7⁺ equality as needed) | open |
+| O6.3 | `S8A.FiniteBadFor`: a disc has only finitely many bad residue balls (finitely many non-smooth points over a vertex component) | S7 (S7.7-type conductor finiteness) | open |
+| O6.4 | `S8A.InftyGoodFor`: for `‖c‖ ≥ R₀`, `‖a‖ ≤ ‖c‖`, every point over the residue class at `∞` of `closedBall a ‖c‖` is smooth (S8.2 at the classical point `∞` + R1 converse) | S8.2 owner (`wp-tempered-s81`) | open |
+| O10 | `S8A.EdgeRepairFor`: for discs `D ⊆ D'`, the breaks `Brk F D D'` (discs strictly between over which no good edge of the segment passes) are finite, and every sub-edge `G₁ ⊊ G₂` of the segment (`D ⊆ G₁`) containing no break is good. Needed because `conv(V₀ ∪ root)` may have bad edges (AW's induction only starts from admissible models; the monotone form is false, example `u² = x`) | M10/O9 agent (`a89e8e036af335e98`), via R4(ii) and dual, type-3 local edges, exhaustion gluing (O11) | open |
+| O6.5 | `S8A.TransportFor`: `BallGood`, `EdgeGood` invariant under isometric `τ ∈ Aut(C)` extending to a `τ`-semilinear automorphism of `F` (and under change of representative) | S8.A agent | **done**: `S8A.Transport.transportFor : TransportFor C F` (`S8Transport`; τ-semilinear `semData`, `discGood_semilinear`, `isExhausting_semilinear`); also representative invariance `discGood_iff_of_ball_eq`, rescaling `isExhausting_iff_of_rescale`, `nodeODP_transport_id`. Removed from `GaloisInputs` |
+| O6.6 | `S8A.S8CDescent` (S8.C descent, [AW Prop 2.1], L1 A6 + node analogue): for the Galois hull `galoisHull C F'` (compositum of the normal closures of the `F' k` in `AlgebraicClosure C(x)`), `IsSemistableTree V (galoisHull C F') ⇒ IsSemistableTree V (F' k)` for all `k` | S8.5/L1 owner (A6, node analogue) | open; **the rest of S8.C is proved** (`S8Galois`: hull finite Galois, embeddings, lift of semilinear automorphisms `exists_lift`; `s8cReduction_of_descent`; `W7.statement_of_interfaces' : GaloisInputs → S8CDescent → W7.Statement`) |
+| O8 | Bridge `TreeData` (S7.5's tree `(a, c, par, chi)` + free directions) ↔ `gaussJoinModel` charts (consumed by W10) | S8.A agent (`TreeBridge`) | **done**: `TreeBridge.treeData` (every convex reduced `(a, c)` over algebraically closed `C` gives tree data with the same `ι, a, c`; edges = minimal strict inclusions `IsEdge`; free points from the infinite residue field); charts as subrings of `F'`: `edgeChart_eq` (S7's `R'_e` = `normChart F' (nodeChart (coord X a_{χe} c_{πe}) c_e)`), `map_rint_aff`, `map_drint_aff`, `drint_eq` (twisted node/vertex charts); vertices: `mem_S_iff`, `valuationSubring_mem_vertexSet` (`S ↪` vertex set of the normalization; surjectivity onto valuation subrings not proved, not needed so far) |
+| O4 | §9.11: C0, `no_split` over algebraically closed `C`, `DiscGerm` over `Ĉ`; `CompleteSpace C` removed from the targeted chain | `cbridge` | **done** (C0, `no_split`/W6 over `K̄`, `DiscGerm` with `G : PowerSeries Ĉ`) |
+| O9 | Finitely many residue-transcendental centres of a finite-type model over `O` of a curve function field (`[IsCurveFunctionField K F]`, any valuation subring `O`, no properness): `ZariskiModel.finite_residueTranscendental_centres`. No dimension theory and no Krull–Akizuki: some chart generator `t` has transcendental residue (`exists_isResidueTranscendental_of_mem`); `W` restricts on `K(t)` to the Gauss valuation of `t` (`valuation_aeval_eq_of_isResidueTranscendental`, `comap_adjoin_eq_of_isResidueTranscendental`); a valuation subring has finitely many extensions to the finite extension `F/K(t)` (`finite_extensions`: centres in the integral closure `D`, Prüfer, `D/𝔪D` finite-dimensional hence Artinian) | M10 agent (`SemistableReduction/ResidueCentres`) | **done** |
+| O10 | **EdgeRepair** in the S8.A form `S8A.EdgeRepairFor` (wp-tempered-s8a 7060859): for a segment `D ⊆ D'` of closed discs the breaks are finite and every sub-edge without a break is good (`EdgeGood`). Needed because the monotone form of W7 is false (S8.A agent: `u² = x`, `V' = {w_{0,1}, w_{b,r}}`, `r < |b| < 1`) and W10 needs `∀ V₀ ∃ V ⊇ V₀` | M10 agent (`SemistableReduction/EdgeRepair`) | **proved modulo named hypotheses**: `EdgeRepair.edgeRepairFor` from (T⇒) `TubeOfExhausting`, (T⇐) `ExhaustingOfTube` (O11/O12), **R4(ii)** `BelowGerm C F` (all `D(a,|cc'|)`, `|e| ≤ |c'| < 1`, exhausting in `|x-a| < |c|`; R4 agent, open), its **dual** `AboveGerm C F` (open; S8.B agent via `Inv`-transport) and the **type-3 germ** `TypeThreeGerm C F` (= `S8A.TypeThreeGermFor`, S8.B agent, open). Under (T⇔) an edge is good iff all radii of its annulus are clean (`Clean`, pointwise in the radius), so the second clause needs no gluing; finiteness by compactness of `[r(D), r(D')]` and density of `|C^×|` |
+| O11 | **Gluing** of exhaustion: `D ⊂ D(a,|ce|) ⊂ U' ⊂ U`, `D(a,|ce|)` exhausting in `U` ⇒ (`D` exhausting in `U` ⇔ in `U'`) (S8.5 K6, S8.B, O10); companion **O11g**: same configuration ⇒ (`U` good ⇔ `U'` good) | M10 agent (`SemistableReduction/ExhaustGluing`) | **proved modulo named hypotheses**: `ExhaustGluing.isExhausting_iff_of_le`, `discSmooth_iff_of_le` are formal gluings over overlapping segments of the valuative conditions `TubeCond a c c'` (every Gauss point of the open annulus `|c'| < |t| < 1`, `t = (x-a)/c`: extensions with rational residue curve and one point over `t̄ = ∞`, plus one over `t̄ = 0` on the skeleton, for every centre of the open disc of that radius) and `DiscCond a c` (every Gauss point of `|t| < 1`: rational, one point over `∞`). Consumed, open: **(T⇒)** `TubeOfExhausting C F'` (exhausting ⇒ `TubeCond`; to be discharged from `NodeData` by counting along the tube, R4 agent) and **(D⇒)** `DiscCondOfSmooth C F'` (good disc ⇒ `DiscCond`); **(T⇐)/(D⇐)** are O12. Also proved: `mem_rint_iff_and` (`Rint c' = Rint e ∩ Rint(c'/u)`) |
+| O12 | **(T⇐)** `ExhaustGluing.ExhaustingOfTube C F'`: `∀ a c c' (hc : c ≠ 0) (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0), TubeCond F' a hc c' → IsExhausting a hc hc' hc0' F'` (an open annulus satisfying the valuative tube condition has only ordinary double points over its node), and **(D⇐)** `SmoothOfDiscCond C F'`: `∀ a c hc, DiscCond F' a hc → DiscSmooth F' a hc`. Not obtainable from S7's global δ-count for the two-vertex model (the reverse inequality is global); expected from the local improvement formula R5 (`δ_y = m_y − |S| + Σ g_V + Σ δ_{y'}`) | S8.A agent (R5) | M10 agent (from S8.A) | open; **plan** (R5 + O12, agreed with the lead): (1) *local δ-formula* (AW 2.3) by subtracting S7⁺ for `ℙ¹_s` and `ℙ¹_t`, `t = s + c/s`: done so far — `TwoVertex` (`ψ : C(t) → C(x)`, the Gauss point of `t` has exactly the extensions `w_{0,1}`, `w_{0,|c|}`, `extU`/`extD`/`ext_cases`; the twist `TwoV c F'` is finite over `C(X)`) and `SectionLocal.genus_eq_sum_delta_of_conductor` (S7⁺ for arbitrary conductors, so conductors of the two models can be chosen with common points: products `σ τ`); to do — (a) transport of places along residue-field isomorphisms (`CurvePlace` comap; `valuation`, `res`), (b) an abstract locality lemma for `ChartLocal.delta` (branches, centres and `δ` agree at points where the two charts agree after inverting a unit `u`, here `u = s̄` resp. `s̄⁻¹`; inputs: `s^N f ∈ intRing s` for `f ∈ intRing t`, `s^M g ∈ intRing t` for `g ∈ intRing s`), (c) assembly `Σ_{x/s̄=0} δ_x = Σ_node δ + Σ_{D-mid} δ + Σ_{D,∞} δ + Σ_{w∣w_D} g(κ_w) − |S_D|`; (2) (D⇐) from DiscCond + `ClassicalGoodFor` (S8.B, type-1 germ); (3) (T⇐): `f(ρ)` = total δ of `M_ρ` over `t̄ = 0` is ℕ-valued and monotone (`f(r) − f(r') = Σ_P (out_P − 1) + Σ_P (δ_P − r_P + 1)` under TubeCond and (D⇐)), locally constant by the germs (BelowGerm, AboveGerm, TypeThreeGerm), hence `δ_P = r_P − 1`, `r_P = 2`, IsNodeODP by the jets route; (4) R5MeasureFor from the formula (AW Lemma 2.6/2.9). Estimate 6–9k lines |
+| O12′ | (lead's note on O12) **(T⇐) valuative tube characterization**: if every intermediate Gauss point of an annulus has extensions with rational residue curves and exactly two branches in the tube directions (plus endpoint branch conditions), every node point of the normalized node chart is `IsNodeODP`. Consumed by O11 (⇐) and O10. The global δ-count does not localize; expected from R5's local formula + S7 jets | S8.A agent (with R5, O6.2) | open |
+| O7 | W10 assembly: `W7.Statement` + W9 descent ⇒ **`Statement.StrongA`** (the targeted W10; D3e, S9 over `O_{K'}`, M9, actions, domination) | André agent (`wp-tempered-w10`) | open |
+| E1 | (untargeted extension) equal characteristic `0`: a tame W7 (all covers tame, Kummer) to extend `StrongA` and Theorem A to residue characteristic `0` | — | not planned |
 
