@@ -104,6 +104,32 @@ theorem exhInterFor_of (hT : TubeOfExhausting C F) (hD : SmoothOfDiscCond C F)
   exact BallTree.mem_ball'.2 ((norm_sub_le_max' z a₂ a₁).trans_lt
     (max_lt ((BallTree.mem_closedBall'.1 hz).trans_lt hsc) hsc))
 
+/-- **O6.1e (O11g in ball form)** from the single-centre gluing `discSmooth_iff_of_le` (M10/O9
+agent, under (T⇒), (D⇒), (D⇐)) and representation independence (`Transport.ballGood_iff`). -/
+theorem goodGluingFor_of (hT : TubeOfExhausting C F) (hD : DiscCondOfSmooth C F)
+    (hD' : SmoothOfDiscCond C F) : GoodGluingFor C F := by
+  intro b c a u e hc hu he heu hsub hE hgood
+  have ha : a ∈ ball b ‖c‖ := hsub (BallTree.mem_closedBall'.2 (by simp))
+  have hball : ball b ‖c‖ = ball a ‖c‖ := IsUltrametricDist.ball_eq_of_mem ha
+  have hcball : closedBall b ‖c‖ = closedBall a ‖c‖ :=
+    IsUltrametricDist.closedBall_eq_of_mem (ball_subset_closedBall ha)
+  have hcpos : 0 < ‖c‖ := norm_pos_iff.2 hc
+  have huc : ‖u‖ < ‖c‖ := ((closedBall_subset_ball_iff').1 (hsub.trans hball.le)).1
+  have hu1 : ‖u / c‖ < 1 := by rw [norm_div, div_lt_one hcpos]; exact huc
+  have heu' : ‖e / c‖ < ‖u / c‖ := by
+    rw [norm_div, norm_div]; exact div_lt_div_of_pos_right heu hcpos
+  have hbig : IsExhausting a hc (heu'.trans hu1) (div_ne_zero he hc) F :=
+    hE a c (e / c) hc (heu'.trans hu1) (div_ne_zero he hc) (by rw [mul_div_cancel₀ _ hc])
+      hcball
+  have hiff := discSmooth_iff_of_le hT hD hD' hc (div_ne_zero hu hc) hu1 (div_ne_zero he hc)
+    heu' hbig
+  have hcu : c * (u / c) = u := mul_div_cancel₀ _ hc
+  have hsmall : DiscSmooth F a (mul_ne_zero hc (div_ne_zero hu hc)) := by
+    have := (Transport.ballGood_iff (mul_ne_zero hc (div_ne_zero hu hc))).1 (by rwa [hcu])
+    exact this
+  rw [hball]
+  exact (Transport.ballGood_iff hc).2 (hiff.2 hsmall)
+
 end S8A
 
 end SemistableReduction
