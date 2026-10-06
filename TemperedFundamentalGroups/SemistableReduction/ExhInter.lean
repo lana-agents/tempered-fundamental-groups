@@ -6,6 +6,7 @@ Authors: Christian Merten
 import TemperedFundamentalGroups.SemistableReduction.S8BLimit
 import TemperedFundamentalGroups.SemistableReduction.ExhaustGluing
 import TemperedFundamentalGroups.SemistableReduction.S8Transport
+import TemperedFundamentalGroups.SemistableReduction.NearBoundary
 
 /-!
 # Exhausting discs of a bad residue ball intersect ([AW Lemma 2.7(iii)], O6.1b)
@@ -135,6 +136,69 @@ theorem goodGluingFor_of (hT : TubeOfExhausting C F) (hD : DiscCondOfSmooth C F)
 theorem o11For_of (hT : TubeOfExhausting C F) (hT' : ExhaustingOfTube C F) : O11For C F :=
   fun hc0 hu0 hu he0 heu hc'0 hc'e _ _ hbig hsmall ↦
     (isExhausting_iff_of_le hT hT' hc0 hu0 hu he0 heu hc'0 hc'e hbig).2 hsmall
+
+/-- **Representation independence of exhaustion** (under (T⇒), (T⇐)): if `closedBall b ‖c e‖` is
+exhausting in `ball b ‖c‖` in the chart `(b, c, e)`, it is so in every chart (`EdgeGood`). -/
+theorem edgeGood_of_isExhausting (hT : TubeOfExhausting C F) (hT' : ExhaustingOfTube C F)
+    {b c e : C} (hc : c ≠ 0) (he : ‖e‖ < 1) (he0 : e ≠ 0) (hE : IsExhausting b hc he he0 F) :
+    EdgeGood F (closedBall b ‖c * e‖) (closedBall b ‖c‖) := by
+  intro a₀ c₀ c₀' hc₀ hc₀' hc0₀' hD0 hG0
+  have hTc := hT _ _ _ _ _ _ hE
+  have hcpos : 0 < ‖c‖ := norm_pos_iff.2 hc
+  obtain ⟨hcc, hab⟩ := (closedBall_eq_closedBall_iff' hc hc₀).1 hG0
+  obtain ⟨hce, hab'⟩ := (closedBall_eq_closedBall_iff' (mul_ne_zero hc he0)
+    (mul_ne_zero hc₀ hc0₀')).1 hD0
+  have hee : ‖c₀'‖ = ‖e‖ := by
+    rw [norm_mul, norm_mul, ← hcc] at hce
+    exact (mul_left_cancel₀ hcpos.ne' hce).symm
+  refine hT' _ _ _ _ _ _ ⟨fun γ hγ h1 h2 ↦ ?_, fun β γ hγ h1 h2 h3 ↦ ?_⟩
+  · -- the circles: centres within `‖c e‖` of `b`
+    have hγ' : ‖e‖ < ‖c₀ * γ / c‖ := by
+      rw [norm_div, norm_mul, ← hcc, mul_div_cancel_left₀ _ hcpos.ne', ← hee]; exact h1
+    have hγ'1 : ‖c₀ * γ / c‖ < 1 := by
+      rw [norm_div, norm_mul, ← hcc, mul_div_cancel_left₀ _ hcpos.ne']; exact h2
+    have hcirc := (isTubeCircle_congr _ (mul_ne_zero hc₀ hγ) rfl (by field_simp)).1
+      (hTc.1 (c₀ * γ / c) (div_ne_zero (mul_ne_zero hc₀ hγ) hc) hγ' hγ'1)
+    intro b' hb'
+    refine hcirc b' ?_
+    have hce' : ‖c * e‖ < ‖c₀ * γ‖ := by
+      rw [norm_mul, norm_mul, ← hcc, ← hee]
+      exact mul_lt_mul_of_pos_left h1 hcpos
+    calc ‖b - b'‖ ≤ max ‖b - a₀‖ ‖a₀ - b'‖ := norm_sub_le_max' b a₀ b'
+      _ < ‖c₀ * γ‖ := max_lt (hab'.trans_lt hce') hb'
+  · -- the discs off the skeleton
+    have hcb : ‖c * e‖ < ‖c₀ * β‖ := by
+      rw [norm_mul, norm_mul, ← hcc, ← hee]
+      exact mul_lt_mul_of_pos_left h1 hcpos
+    have hnorm : ‖a₀ + c₀ * β - b‖ = ‖c₀ * β‖ := by
+      have hlt : ‖a₀ - b‖ < ‖c₀ * β‖ := by rw [norm_sub_rev]; exact hab'.trans_lt hcb
+      rw [show a₀ + c₀ * β - b = c₀ * β + (a₀ - b) by ring]
+      exact (IsUltrametricDist.norm_add_eq_max_of_norm_ne_norm hlt.ne').trans
+        (max_eq_left hlt.le)
+    have hβ' : ‖(a₀ + c₀ * β - b) / c‖ = ‖β‖ := by
+      rw [norm_div, hnorm, norm_mul, ← hcc, mul_div_cancel_left₀ _ hcpos.ne']
+    have hγ' : ‖c₀ * γ / c‖ = ‖γ‖ := by
+      rw [norm_div, norm_mul, ← hcc, mul_div_cancel_left₀ _ hcpos.ne']
+    refine (isTubeDisc_congr _ (mul_ne_zero hc₀ hγ) (by field_simp; ring) (by field_simp)).1
+      (hTc.2 ((a₀ + c₀ * β - b) / c) (c₀ * γ / c) (div_ne_zero (mul_ne_zero hc₀ hγ) hc)
+        (by rw [hβ', ← hee]; exact h1) (by rw [hβ']; exact h2) (by rw [hβ', hγ']; exact h3))
+
+variable [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+
+include hp hp1 in
+/-- **O6.1a** (`R4ExFor`, every residue ball contains an exhausting disc) from R4(ii)
+(`GaussTube.belowGerm`, proved) and the representation independence of exhaustion under (T⇒),
+(T⇐). -/
+theorem r4ExFor_of (hT : TubeOfExhausting C F) (hT' : ExhaustingOfTube C F) : R4ExFor C F := by
+  intro b c hc
+  obtain ⟨e, he0, he1, hgerm⟩ := GaussTube.belowGerm hp hp1 (F' := F) b c hc
+  have hcpos : 0 < ‖c‖ := norm_pos_iff.2 hc
+  refine ⟨closedBall b ‖c * e‖, ⟨b, c * e, mul_ne_zero hc he0, rfl⟩, ?_, ?_⟩
+  · intro z hz
+    refine BallTree.mem_ball'.2 ((BallTree.mem_closedBall'.1 hz).trans_lt ?_)
+    rw [norm_mul]
+    exact mul_lt_of_lt_one_right hcpos he1
+  · exact edgeGood_of_isExhausting hT hT' hc he1 he0 (hgerm e he1 he0 le_rfl)
 
 end S8A
 

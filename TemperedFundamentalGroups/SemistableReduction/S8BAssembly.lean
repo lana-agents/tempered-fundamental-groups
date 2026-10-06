@@ -13,14 +13,14 @@ import TemperedFundamentalGroups.SemistableReduction.TypeTwoGerm
 Blueprint §9.12 O6.1. `S8A.s8bMinFor_of_open` assembles `S8BMinFor C F` from the inputs that are
 still open (each recorded in §9.12 with its owner):
 
-* O6.1a `R4ExFor` (R4 agent);
 * O6.1c `L7For` (S8.5 agent);
 * (T⇒) `TubeOfExhausting`, (T⇐) `ExhaustingOfTube`, (D⇒) `DiscCondOfSmooth`,
   (D⇐) `SmoothOfDiscCond` (M10/O9 agent; give O11, O11g and O6.1b);
 * O6.1f(i) `KummerUnramFor` (R4 agent) and O6.1f(iii) `A6For` (S8.A agent);
 * O6.1h `TypeThreeGermFor` (S8.B agent).
 
-The type-2 germ (O6.1g) is proved (`typeTwoGermFor`).
+The type-2 germ (O6.1g) is proved (`typeTwoGermFor`), and O6.1a `R4ExFor` follows from R4(ii)
+(`GaussTube.belowGerm`, proved) and (T⇒), (T⇐) (`r4ExFor_of`).
 -/
 
 namespace SemistableReduction
@@ -38,7 +38,7 @@ variable {C : Type*} [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClo
 
 include hp hp1 in
 /-- **S8.B** from the open inputs. -/
-theorem s8bMinFor_of_open (hR4 : R4ExFor C F) (hL7 : L7For C F)
+theorem s8bMinFor_of_open (hL7 : L7For C F)
     (hT : TubeOfExhausting C F) (hT' : ExhaustingOfTube C F) (hD : DiscCondOfSmooth C F)
     (hD' : SmoothOfDiscCond C F) (hK : ∀ a : C, KummerUnramFor.{_, _, w} C F a)
     (hA6 : ∀ (L : Type w) [Field L] [Algebra (RatFunc C) L] [Algebra F L]
@@ -46,7 +46,7 @@ theorem s8bMinFor_of_open (hR4 : R4ExFor C F) (hL7 : L7For C F)
       [FiniteDimensional (RatFunc C) L] [IsGalois F L], A6For C F L)
     (h3 : TypeThreeGermFor C F) : S8BMinFor C F :=
   s8bMinFor_of_inputs
-    { r4ex := hR4
+    { r4ex := r4ExFor_of hp hp1 hT hT'
       inter := exhInterFor_of hT hD' (goodGluingFor_of hT hD hD')
       l7 := hL7
       o11 := o11For_of hT hT'
