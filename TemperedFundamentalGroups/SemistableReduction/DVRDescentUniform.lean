@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.DVRDescentChoice
+import TemperedFundamentalGroups.SemistableReduction.DVRDescentSemistable
 
 /-!
 # Uniform descent of node points (O1, the W10-facing form)
@@ -167,7 +168,7 @@ theorem exists_finset_isSemistableAt {T : Finset G}
       (_hTχ : (T : Set G) ⊆ Set.range χ) (c₀ : E) (_hcc : φ c₀ = c)
       (ι : BE F₀ c₀ →+* Rint c G) (_hι : ∀ y, (ι y : G) = χ y)
       {ϖ : HenselComplete.integers E} (_hϖ : Irreducible ϖ),
-      letI := algO F₀ c₀
+      letI := algO (F₀ := F₀) c₀
       IsSemistableAt ϖ (P'.comap ι) := by
   classical
   obtain ⟨b₁, -, hb₁, -⟩ := id hODP
@@ -286,7 +287,7 @@ theorem exists_finset_forall_isSemistableAt {T : Finset G}
       (P' : Ideal (Rint c G)) [P'.IsMaximal]
       (_hP' : P'.comap (algebraMap (nodeRing c) (Rint c G)) = tubeIdeal c)
       (_hODP : IsNodeODP hc hc0 P'),
-      letI := algO F₀ c₀
+      letI := algO (F₀ := F₀) c₀
       IsSemistableAt ϖ (P'.comap ι) := by
   classical
   haveI := finite_ext (F := G) hp hp1
