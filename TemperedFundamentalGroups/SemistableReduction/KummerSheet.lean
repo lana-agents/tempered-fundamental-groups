@@ -696,6 +696,44 @@ theorem insep_linearIndependent [IsAlgClosed C] (hp1 : ‖(p : C)‖ < 1) {γ : 
   simp only [map_pow]
   exact hli
 
+/-- **Orthogonal basis at the sheet** (purely inseparable case): `F'` is spanned over `L` by the
+powers `w^j`, `j < p`, and the value of `Σ cⱼ wʲ` is `max_j v(cⱼ)` for every extension `v`. -/
+theorem insep_span_value [IsAlgClosed C] (hp1 : ‖(p : C)‖ < 1) {γ : C}
+    (hγ : γ ^ (p - 1) = -(p : C)) {v : Valuation F' ℝ≥0}
+    (hv : v.comap (algebraMap L F') = (sheetExt hc ν₀ P' h1 hl0 hl1).1)
+    {θ : F'} {f : L} (hθ : θ ^ p = algebraMap L F' f)
+    (hspan : Submodule.span L (Set.range fun i : Fin p ↦ θ ^ (i : ℕ)) = ⊤) {f' h' : C[X]}
+    (hh' : ∀ i, ‖h'.coeff i‖₊ ≤ 1) {lam : C} (hγl : ‖γ‖₊ < ‖lam‖₊) (hl1' : ‖lam‖₊ ≤ 1)
+    (hGle : ∀ i, ‖(f' - h' ^ p).coeff i‖ * ‖l‖ ^ i ≤ ‖lam‖ ^ p) {m : ℕ}
+    (hGm : ‖(f' - h' ^ p).coeff m‖ * ‖l‖ ^ m = ‖lam‖ ^ p) (hpm : ¬ p ∣ m)
+    (hf : (sheetExt hc ν₀ P' h1 hl0 hl1).1
+      (f - algebraMap (RatFunc C) L (aeval (gaussCoord a c) f')) < ‖lam‖₊ ^ p) :
+    Submodule.span L (Set.range fun j : Fin p ↦ kumW L a c θ h' lam ^ (j : ℕ)) = ⊤ ∧
+      ∀ d : Fin p → L, v (∑ j, d j • kumW L a c θ h' lam ^ (j : ℕ)) =
+        Finset.univ.sup fun j ↦ (sheetExt hc ν₀ P' h1 hl0 hl1).1 (d j) := by
+  set w := kumW L a c θ h' lam
+  -- the dimension is at most `p`
+  have hdim : Module.finrank L F' ≤ p := by
+    have := finrank_range_le_card (R := L) (fun i : Fin p ↦ θ ^ (i : ℕ))
+    rwa [Set.finrank, hspan, finrank_top, Fintype.card_fin] at this
+  haveI := DenseCompletion.hasExtension_of_comap_eq hv
+  obtain ⟨hw, hli⟩ := insep_linearIndependent hc ν₀ P' h1 hl0 hl1 p hp1 hγ v hv hθ hh' hγl hl1'
+    hGle hGm hpm hf
+  have hliL := FundamentalInequality.linearIndependent_of_residue hli
+  simp only [SubmonoidClass.coe_pow] at hliL
+  refine ⟨hliL.span_eq_top_of_card_eq_finrank' ?_, fun d ↦ ?_⟩
+  · have := hliL.fintype_card_le_finrank
+    rw [Fintype.card_fin] at this ⊢
+    exact le_antisymm this hdim
+  · have h := FundamentalInequality.valuation_sum_eq_sup hli Finset.univ d
+    have hsum : (∑ j, d j • w ^ (j : ℕ)) = ∑ j ∈ Finset.univ, algebraMap L F' (d j) *
+        (((⟨w, hw⟩ : v.valuationSubring) ^ (j : ℕ) : v.valuationSubring) : F') := by
+      simp [Algebra.smul_def, w]
+    rw [hsum, h]
+    congr 1
+    ext j
+    rw [← Valuation.comap_apply, hv]
+
 /-- **Uniqueness of the extension at the sheet** (purely inseparable case): `F'` is spanned by the
 powers `θ^i`, `i < p`, so it is spanned by the `w^j`, and the value of `Σ cⱼ wʲ` is
 `max_j v(cⱼ)` for every extension (orthogonality); hence there is exactly one extension. -/
@@ -711,41 +749,76 @@ theorem insep_ext_unique [IsAlgClosed C] (hp1 : ‖(p : C)‖ < 1) {γ : C}
     (hf : (sheetExt hc ν₀ P' h1 hl0 hl1).1
       (f - algebraMap (RatFunc C) L (aeval (gaussCoord a c) f')) < ‖lam‖₊ ^ p) :
     v₁ = v₂ := by
-  set w := kumW L a c θ h' lam
-  -- the dimension is at most `p`
-  have hdim : Module.finrank L F' ≤ p := by
-    have := finrank_range_le_card (R := L) (fun i : Fin p ↦ θ ^ (i : ℕ))
-    rwa [Set.finrank, hspan, finrank_top, Fintype.card_fin] at this
-  -- for each extension: orthogonality of the powers of `w`
-  have key : ∀ (v : Valuation F' ℝ≥0) (hv : v.comap (algebraMap L F') =
-      (sheetExt hc ν₀ P' h1 hl0 hl1).1),
-      Submodule.span L (Set.range fun j : Fin p ↦ w ^ (j : ℕ)) = ⊤ ∧
-      ∀ c : Fin p → L, v (∑ j, c j • w ^ (j : ℕ)) =
-        Finset.univ.sup fun j ↦ (sheetExt hc ν₀ P' h1 hl0 hl1).1 (c j) := by
-    intro v hv
-    haveI := DenseCompletion.hasExtension_of_comap_eq hv
-    obtain ⟨hw, hli⟩ := insep_linearIndependent hc ν₀ P' h1 hl0 hl1 p hp1 hγ v hv hθ hh' hγl hl1'
-      hGle hGm hpm hf
-    have hliL := FundamentalInequality.linearIndependent_of_residue hli
-    simp only [SubmonoidClass.coe_pow] at hliL
-    refine ⟨hliL.span_eq_top_of_card_eq_finrank' ?_, fun c ↦ ?_⟩
-    · have := hliL.fintype_card_le_finrank
-      rw [Fintype.card_fin] at this ⊢
-      exact le_antisymm this hdim
-    · have h := FundamentalInequality.valuation_sum_eq_sup hli Finset.univ c
-      have hsum : (∑ j, c j • w ^ (j : ℕ)) = ∑ j ∈ Finset.univ, algebraMap L F' (c j) *
-          (((⟨w, hw⟩ : v.valuationSubring) ^ (j : ℕ) : v.valuationSubring) : F') := by
-        simp [Algebra.smul_def, w]
-      rw [hsum, h]
-      congr 1
-      ext j
-      rw [← Valuation.comap_apply, hv]
-  obtain ⟨hspan₁, hval₁⟩ := key v₁ hv₁
-  obtain ⟨-, hval₂⟩ := key v₂ hv₂
+  obtain ⟨hspan₁, hval₁⟩ := insep_span_value hc ν₀ P' h1 hl0 hl1 p hp1 hγ hv₁ hθ hspan hh' hγl
+    hl1' hGle hGm hpm hf
+  obtain ⟨-, hval₂⟩ := insep_span_value hc ν₀ P' h1 hl0 hl1 p hp1 hγ hv₂ hθ hspan hh' hγl
+    hl1' hGle hGm hpm hf
   refine Valuation.ext fun y ↦ ?_
-  have hy : y ∈ Submodule.span L (Set.range fun j : Fin p ↦ w ^ (j : ℕ)) := hspan₁ ▸ trivial
-  obtain ⟨c, rfl⟩ := (Submodule.mem_span_range_iff_exists_fun L).1 hy
+  have hy : y ∈ Submodule.span L (Set.range fun j : Fin p ↦ kumW L a c θ h' lam ^ (j : ℕ)) :=
+    hspan₁ ▸ trivial
+  obtain ⟨d, rfl⟩ := (Submodule.mem_span_range_iff_exists_fun L).1 hy
   rw [hval₁, hval₂]
+
+/-- **The residue extension at the sheet is purely inseparable** (exponent one): every `p`-th power
+of a residue of an extension `v` of the sheet comes from the residue field of the sheet. -/
+theorem insep_residue_pow_mem [IsAlgClosed C] (hp1 : ‖(p : C)‖ < 1) {γ : C}
+    (hγ : γ ^ (p - 1) = -(p : C)) {v : Valuation F' ℝ≥0}
+    (hv : v.comap (algebraMap L F') = (sheetExt hc ν₀ P' h1 hl0 hl1).1)
+    {θ : F'} {f : L} (hθ : θ ^ p = algebraMap L F' f)
+    (hspan : Submodule.span L (Set.range fun i : Fin p ↦ θ ^ (i : ℕ)) = ⊤) {f' h' : C[X]}
+    (hh' : ∀ i, ‖h'.coeff i‖₊ ≤ 1) {lam : C} (hγl : ‖γ‖₊ < ‖lam‖₊) (hl1' : ‖lam‖₊ ≤ 1)
+    (hGle : ∀ i, ‖(f' - h' ^ p).coeff i‖ * ‖l‖ ^ i ≤ ‖lam‖ ^ p) {m : ℕ}
+    (hGm : ‖(f' - h' ^ p).coeff m‖ * ‖l‖ ^ m = ‖lam‖ ^ p) (hpm : ¬ p ∣ m)
+    (hf : (sheetExt hc ν₀ P' h1 hl0 hl1).1
+      (f - algebraMap (RatFunc C) L (aeval (gaussCoord a c) f')) < ‖lam‖₊ ^ p)
+    (z : ResidueField v.valuationSubring) :
+    haveI := DenseCompletion.hasExtension_of_comap_eq hv
+    z ^ p ∈ (algebraMap (ResidueField (sheetExt hc ν₀ P' h1 hl0 hl1).1.valuationSubring)
+      (ResidueField v.valuationSubring)).range := by
+  haveI := DenseCompletion.hasExtension_of_comap_eq hv
+  set S := (sheetExt hc ν₀ P' h1 hl0 hl1).1
+  set w := kumW L a c θ h' lam
+  obtain ⟨hspanw, hval⟩ := insep_span_value hc ν₀ P' h1 hl0 hl1 p hp1 hγ hv hθ hspan hh' hγl
+    hl1' hGle hGm hpm hf
+  obtain ⟨hw1, hred, hx1⟩ := insep_value hc ν₀ P' h1 hl0 hl1 p hγ v hv hθ hh' hγl hl1' hGle
+    hGm hf
+  -- the residue characteristic is `p`
+  have hpS : S (p : L) < 1 := by
+    rw [← map_natCast (algebraMap (RatFunc C) L), sheet_algebraMap,
+      ← map_natCast (algebraMap C (RatFunc C)), gaussRat_algebraMap_C]
+    have : ‖(p : C)‖₊ < 1 := by rw [← NNReal.coe_lt_coe]; simpa using hp1
+    simpa using this
+  haveI : CharP (ResidueField v.valuationSubring) p := by
+    rw [CharP.charP_iff_prime_eq_zero hp.out, ← map_natCast (residue v.valuationSubring),
+      residue_eq_zero_iff, Valuation.mem_maximalIdeal_iff]
+    change v (p : F') < 1
+    rw [← map_natCast (algebraMap L F'), ← Valuation.comap_apply, hv]
+    exact hpS
+  obtain ⟨u, rfl⟩ := residue_surjective z
+  have hu : (u : F') ∈ Submodule.span L (Set.range fun j : Fin p ↦ w ^ (j : ℕ)) :=
+    hspanw ▸ trivial
+  obtain ⟨d, hd⟩ := (Submodule.mem_span_range_iff_exists_fun L).1 hu
+  have hdj : ∀ j, S (d j) ≤ 1 := by
+    have h := hval d
+    rw [hd] at h
+    exact fun j ↦ (Finset.le_sup (f := fun j ↦ S (d j)) (Finset.mem_univ j)).trans (h ▸ u.2)
+  set dO : Fin p → S.valuationSubring := fun j ↦ ⟨d j, hdj j⟩
+  set wO : v.valuationSubring := ⟨w, hw1.le⟩
+  have hueq : u = ∑ j, algebraMap S.valuationSubring v.valuationSubring (dO j) * wO ^ (j : ℕ) := by
+    apply Subtype.ext
+    rw [← hd]
+    simp [Algebra.smul_def, Valuation.HasExtension.coe_algebraMap_valuationSubring_eq, dO, wO, w]
+  set a' : S.valuationSubring := ⟨_, hx1.le⟩
+  have hy : residue v.valuationSubring wO ^ p =
+      algebraMap _ (ResidueField v.valuationSubring) (residue S.valuationSubring a') := by
+    rw [Valuation.HasExtension.algebraMap_residue_eq_residue_algebraMap, ← map_pow, ← sub_eq_zero,
+      ← map_sub, residue_eq_zero_iff, Valuation.mem_maximalIdeal_iff]
+    exact hred
+  refine ⟨∑ j, residue S.valuationSubring (dO j) ^ p * residue S.valuationSubring a' ^ (j : ℕ), ?_⟩
+  rw [hueq, map_sum, ← frobenius_def, map_sum, map_sum]
+  refine Finset.sum_congr rfl fun j _ ↦ ?_
+  simp only [frobenius_def, map_mul, map_pow]
+  rw [hy, Valuation.HasExtension.algebraMap_residue_eq_residue_algebraMap]
 
 end KummerSheet
 
