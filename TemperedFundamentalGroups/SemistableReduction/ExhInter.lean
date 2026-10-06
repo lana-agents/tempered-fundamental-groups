@@ -130,6 +130,12 @@ theorem goodGluingFor_of (hT : TubeOfExhausting C F) (hD : DiscCondOfSmooth C F)
   rw [hball]
   exact (Transport.ballGood_iff hc).2 (hiff.2 hsmall)
 
+/-- **O6.1d (O11)** from the M10/O9 agent's `ExhaustGluing.isExhausting_iff_of_le` under (T⇒),
+(T⇐). -/
+theorem o11For_of (hT : TubeOfExhausting C F) (hT' : ExhaustingOfTube C F) : O11For C F :=
+  fun hc0 hu0 hu he0 heu hc'0 hc'e _ _ hbig hsmall ↦
+    (isExhausting_iff_of_le hT hT' hc0 hu0 hu he0 heu hc'0 hc'e hbig).2 hsmall
+
 end S8A
 
 end SemistableReduction
