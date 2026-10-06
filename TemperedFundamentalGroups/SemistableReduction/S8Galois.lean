@@ -245,9 +245,10 @@ def S8CDescent : Prop :=
 
 /-- **S8.C from the descent interface**: the Galois hull and the lift `exists_lift`. -/
 theorem s8cReduction_of_descent (h : S8CDescent.{u, v}) : S8CReduction.{u, v} := by
-  intro C _ _ _ _ p hp hp1 κ _ F' _ _ _ _ _
+  intro C _ _ _ _ p hp hp1 κ _ F' _ _ _ _ _ ⟨k₀⟩ hdef
   refine ⟨galoisHull C F', inferInstance, inferInstance, inferInstance, inferInstance,
-    inferInstance, inferInstance, fun ι _ a c hc hV k ↦ h C p hp hp1 κ F' ι a c hc hV k, ?_⟩
+    inferInstance, inferInstance, (hdef k₀).of_finite _,
+    fun ι _ a c hc hV k ↦ h C p hp hp1 κ F' ι a c hc hV k, ?_⟩
   rintro τ - ⟨σ, hσ⟩
   exact exists_lift τ σ hσ
 

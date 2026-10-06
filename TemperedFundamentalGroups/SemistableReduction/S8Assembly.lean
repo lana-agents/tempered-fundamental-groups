@@ -175,7 +175,7 @@ balls, whose root is `closedBall 0 ‖ρ‖` with good residue class at `∞` (`
 semistable Gauss tree. -/
 theorem isSemistableTree_fam {R : Set C} (hT : Inv F T R) (hbad : badLeaves F T = ∅) {ρ : C}
     (hρ : ρ ≠ 0) (hRρ : R = closedBall 0 ‖ρ‖)
-    (hinf : ∀ (a c : C) (hc : c ≠ 0), ‖ρ‖ ≤ ‖c‖ → ‖a‖ ≤ ‖c‖ → InftyChartGood F a hc) :
+    (hinf : ∀ (c : C) (hc : c ≠ 0), ‖ρ‖ ≤ ‖c‖ → InftyChartGood F 0 hc) :
     W7.IsSemistableTree (famA hT.tree.disc) (famC hT.tree.disc) (famC_ne_zero hT.tree.disc) F := by
   set hTd := hT.tree.disc
   have hred := isReduced_fam hTd
@@ -253,10 +253,16 @@ theorem isSemistableTree_fam {R : Set C} (hT : Inv F T R) (hbad : badLeaves F T 
       obtain ⟨k, hk, -⟩ := TreeBridge.exists_edge_of_lt' hred hle hne
       exact hi k hk
     subst hiρ
+    have h0 : (0 : C) ∈ famDisc T i := by
+      rw [hRρ]; exact BallTree.mem_closedBall'.2 (by simp)
+    have ha := famA_eq_zero hTd h0
     have hR := hRρ
     rw [famDisc_eq hTd] at hR
-    obtain ⟨h1, h2⟩ := (closedBall_eq_closedBall_iff' (famC_ne_zero hTd i) hρ).1 hR
-    exact hinf _ _ (famC_ne_zero hTd i) h1.ge (by simpa using h2) P' hmax hP
+    obtain ⟨h1, -⟩ := (closedBall_eq_closedBall_iff' (famC_ne_zero hTd i) hρ).1 hR
+    have hinf' := hinf _ (famC_ne_zero hTd i) h1.ge
+    revert P'
+    rw [ha]
+    exact hinf'
 
 end Semistable
 

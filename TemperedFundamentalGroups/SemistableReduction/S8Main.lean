@@ -29,16 +29,77 @@ namespace SemistableReduction
 
 open BallTree S8A
 
+/-- **The empty family**: the hull of the given discs and a root. -/
+theorem W7.statement_empty {C : Type u} [NontriviallyNormedField C] [IsUltrametricDist C]
+    {ι₀ : Type} [Finite ι₀] (a₀ c₀ : ι₀ → C) (hc₀ : ∀ k, c₀ k ≠ 0) :
+    ∃ (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a c : ι → C) (_ : ∀ i, c i ≠ 0),
+      GaussTree.IsConvex (NormedField.valuation (K := C)) a c ∧
+      GaussTree.IsReduced (NormedField.valuation (K := C)) a c ∧
+      W7.DiscsLE a₀ c₀ a c ∧
+      ∀ τ : C ≃+* C, (∀ z, ‖τ z‖ = ‖z‖) →
+        W7.DiscsLE (fun k ↦ τ (a₀ k)) c₀ a₀ c₀ → W7.DiscsLE (fun i ↦ τ (a i)) c a c := by
+  classical
+  haveI := Fintype.ofFinite ι₀
+  obtain ⟨ρ, hρ⟩ := NormedField.exists_lt_norm C (∑ k, (‖a₀ k‖ + ‖c₀ k‖))
+  have hρ0 : ρ ≠ 0 := norm_pos_iff.1 ((Finset.sum_nonneg fun k _ ↦ by positivity).trans_lt hρ)
+  set R : Set C := closedBall 0 ‖ρ‖ with hRdef
+  have hRd : IsDisc R := ⟨0, ρ, hρ0, rfl⟩
+  set S₀ : Finset (Set C) := Finset.univ.image fun k ↦ closedBall (a₀ k) ‖c₀ k‖
+  set S : Finset (Set C) := insert R S₀
+  have hSd : ∀ D ∈ S, IsDisc D := fun D hD ↦ by
+    rcases Finset.mem_insert.1 hD with rfl | hD
+    · exact hRd
+    · obtain ⟨k, -, rfl⟩ := Finset.mem_image.1 hD
+      exact ⟨a₀ k, c₀ k, hc₀ k, rfl⟩
+  set T := hull S
+  have hT : IsTree T := isTree_hull hSd ⟨R, Finset.mem_insert_self _ _⟩
+  haveI : Nonempty (Fin T.card) := ⟨⟨0, Finset.card_pos.2 hT.nonempty⟩⟩
+  refine ⟨Fin T.card, inferInstance, inferInstance, famA hT.disc, famC hT.disc,
+    famC_ne_zero hT.disc, isConvex_fam _ hT, isReduced_fam _,
+    discsLE_fam _ hc₀ fun k ↦ subset_hull hSd (Finset.mem_insert_of_mem
+      (Finset.mem_image_of_mem _ (Finset.mem_univ k))), ?_⟩
+  intro τ hτ hV₀
+  have hS : S.image (img τ) = S := by
+    refine Finset.eq_of_subset_of_card_le (fun G hG ↦ ?_) ?_
+    · obtain ⟨D, hD, rfl⟩ := Finset.mem_image.1 hG
+      rcases Finset.mem_insert.1 hD with rfl | hD
+      · rw [hRdef, img_closedBall hτ, map_zero]
+        exact Finset.mem_insert_self _ _
+      · obtain ⟨k, -, rfl⟩ := Finset.mem_image.1 hD
+        obtain ⟨k', h1, h2⟩ := hV₀ k
+        rw [img_closedBall hτ]
+        have : closedBall (τ (a₀ k)) ‖c₀ k‖ = closedBall (a₀ k') ‖c₀ k'‖ := by
+          refine (closedBall_eq_closedBall_iff' (hc₀ k) (hc₀ k')).2 ⟨h1.symm, ?_⟩
+          rw [norm_sub_rev, ← h1]
+          exact h2
+        rw [this]
+        exact Finset.mem_insert_of_mem (Finset.mem_image_of_mem _ (Finset.mem_univ k'))
+    · rw [Finset.card_image_of_injective _ (img_injective τ)]
+  have hT' : T.image (img τ) = T := by
+    rw [← hull_image hτ hSd, hS]
+  intro i
+  have hmem : img τ (famDisc T i) ∈ T := by
+    have := Finset.mem_image_of_mem (img τ) (famDisc_mem (T := T) i)
+    rwa [hT'] at this
+  obtain ⟨j, hj⟩ := exists_famDisc hmem
+  rw [famDisc_eq hT.disc, famDisc_eq hT.disc, img_closedBall hτ] at hj
+  obtain ⟨h1, h2⟩ := (closedBall_eq_closedBall_iff' (famC_ne_zero _ j)
+    (famC_ne_zero _ i)).1 hj
+  exact ⟨j, h1, h2⟩
+
 /-- **W7 from the local interfaces** ([AW §2.5] + S8.C). -/
 theorem W7.statement_of_interfaces (hG : GaloisInputs.{u}) (hC : S8CReduction.{u, v}) :
     W7.Statement.{u, v} := by
-  intro C _ _ _ _ p hp hp1 κ _ F' _ _ _ _ _ ι₀ _ a₀ c₀ hc₀
-  obtain ⟨F, _, _, _, _, _, _, hdesc, hlift⟩ := hC C p hp hp1 κ F'
-  have hmin := hG.s8b C p hp hp1 F
-  have hR5 := hG.r5 C p hp hp1 F
-  have hfin := hG.finiteBad C p hp hp1 F
-  obtain ⟨R₀, hR₀⟩ := hG.infty C p hp hp1 F
-  have hrep := hG.edgeRepair C p hp hp1 F
+  intro C _ _ _ _ p hp hp1 κ _ F' _ _ _ _ _ hdef ι₀ _ a₀ c₀ hc₀
+  rcases isEmpty_or_nonempty κ with hκ | hκ
+  · obtain ⟨ι, h1, h2, a, c, hc, h3, h4, h5, h6⟩ := W7.statement_empty a₀ c₀ hc₀
+    exact ⟨ι, h1, h2, a, c, hc, h3, h4, h5, fun k ↦ isEmptyElim k, fun τ hτ _ ↦ h6 τ hτ⟩
+  obtain ⟨F, _, _, _, _, _, _, hdefF, hdesc, hlift⟩ := hC C p hp hp1 κ F' hκ hdef
+  have hmin := hG.s8b C p hp hp1 F hdefF
+  have hR5 := hG.r5 C p hp hp1 F hdefF
+  have hfin := hG.finiteBad C p hp hp1 F hdefF
+  obtain ⟨R₀, hR₀⟩ := hG.infty C p hp hp1 F hdefF
+  have hrep := hG.edgeRepair C p hp hp1 F hdefF
   have htr : TransportFor C F := Transport.transportFor
   classical
   -- the root
@@ -86,8 +147,8 @@ theorem W7.statement_of_interfaces (hG : GaloisInputs.{u}) (hC : S8CReduction.{u
     discsLE_fam _ hc₀ fun k ↦ hST _ (Finset.mem_insert_of_mem
       (Finset.mem_image_of_mem _ (Finset.mem_univ k))), fun k ↦ ?_, ?_⟩
   · -- semistability for `F`, then for the family
-    refine hdesc _ _ _ _ (isSemistableTree_fam hI hbad hρ0 rfl fun a c hc h1 h2 ↦
-      hR₀ a c hc ?_ h2) k
+    refine hdesc _ _ _ _ (isSemistableTree_fam hI hbad hρ0 rfl fun c hc h1 ↦
+      hR₀ c hc ?_) k
     exact (le_max_left _ _).trans (hρ.le.trans h1)
   · -- equivariance
     intro τ hτ hσ hV₀
