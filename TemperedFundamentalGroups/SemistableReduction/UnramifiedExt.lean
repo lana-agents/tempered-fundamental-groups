@@ -417,31 +417,35 @@ lemma norm_sum_lt_one {ι : Type*} (s : Finset ι) (f : ι → D.F) (h : ∀ i �
   rw [NormedField.valuation_apply] at this
   exact_mod_cast this
 
+omit [IsDiscreteValuationRing (HenselComplete.integers E)] in
+/-- `h = g' p₁ + g p₂ ≡ 1`, so `h(root)` is a unit of `O_{E'}`. -/
+lemma isUnit_aeval_rI : IsUnit (aeval D.rI (derivative D.g * D.p₁ + D.g * D.p₂)) := by
+  rw [HenselComplete.isUnit_iff_norm_eq_one, coe_aeval_rI]
+  set h := derivative D.g * D.p₁ + D.g * D.p₂
+  have hlt : ∀ i, ‖((h - 1).map (algebraMap O_E E)).coeff i‖ < 1 := by
+    intro i
+    rw [coeff_map]
+    refine (HenselComplete.mem_maximalIdeal_iff_norm_lt_one _).1 ((residue_eq_zero_iff _).1 ?_)
+    have := congrArg (fun p ↦ p.coeff i) D.hres
+    simp only [coeff_map] at this
+    rw [coeff_sub, map_sub, this, ← coeff_map, Polynomial.map_one, sub_self]
+  have hsmall : ‖aeval D.r ((h - 1).map (algebraMap O_E E))‖ < 1 := by
+    rw [aeval_eq_sum_range]
+    refine D.norm_sum_lt_one _ _ fun i _ ↦ ?_
+    rw [Algebra.smul_def, norm_mul, norm_algebraMap, norm_pow]
+    exact (mul_le_of_le_one_right (norm_nonneg _)
+      (pow_le_one₀ (norm_nonneg _) D.norm_r_le)).trans_lt (hlt i)
+  have heq : aeval D.r (h.map (algebraMap O_E E)) =
+      1 + aeval D.r ((h - 1).map (algebraMap O_E E)) := by
+    simp [Polynomial.map_sub]
+  rw [heq, IsUltrametricDist.norm_add_eq_max_of_norm_ne_norm (by rw [norm_one]; exact hsmall.ne'),
+    norm_one]
+  exact max_eq_left hsmall.le
+
 /-- **`O_E → O_{E'}` is étale** (standard étale). -/
 theorem etale : Algebra.Etale O_E O_F := by
   refine etale_of_aeval_eq_zero D.monic D.p₁ D.p₂ D.aeval_rI_g ?_ D.adjoin_rI ?_
-  · -- `h = g' p₁ + g p₂ ≡ 1`, so `h(root)` has norm `1`
-    rw [HenselComplete.isUnit_iff_norm_eq_one, coe_aeval_rI]
-    set h := derivative D.g * D.p₁ + D.g * D.p₂
-    have hlt : ∀ i, ‖((h - 1).map (algebraMap O_E E)).coeff i‖ < 1 := by
-      intro i
-      rw [coeff_map]
-      refine (HenselComplete.mem_maximalIdeal_iff_norm_lt_one _).1 ((residue_eq_zero_iff _).1 ?_)
-      have := congrArg (fun p ↦ p.coeff i) D.hres
-      simp only [coeff_map] at this
-      rw [coeff_sub, map_sub, this, ← coeff_map, Polynomial.map_one, sub_self]
-    have hsmall : ‖aeval D.r ((h - 1).map (algebraMap O_E E))‖ < 1 := by
-      rw [aeval_eq_sum_range]
-      refine D.norm_sum_lt_one _ _ fun i _ ↦ ?_
-      rw [Algebra.smul_def, norm_mul, norm_algebraMap, norm_pow]
-      exact (mul_le_of_le_one_right (norm_nonneg _)
-        (pow_le_one₀ (norm_nonneg _) D.norm_r_le)).trans_lt (hlt i)
-    have heq : aeval D.r (h.map (algebraMap O_E E)) =
-        1 + aeval D.r ((h - 1).map (algebraMap O_E E)) := by
-      simp [Polynomial.map_sub]
-    rw [heq, IsUltrametricDist.norm_add_eq_max_of_norm_ne_norm (by rw [norm_one]; exact hsmall.ne'),
-      norm_one]
-    exact max_eq_left hsmall.le
+  · exact D.isUnit_aeval_rI
   · intro q hq h0
     have hqd : q.natDegree < D.g.natDegree := by
       by_cases hq0 : q = 0
