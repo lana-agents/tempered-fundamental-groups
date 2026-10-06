@@ -8,6 +8,7 @@ import TemperedFundamentalGroups.SemistableReduction.W10Gen
 import TemperedFundamentalGroups.SemistableReduction.W10Line
 import TemperedFundamentalGroups.SemistableReduction.W10Apply
 import TemperedFundamentalGroups.SemistableReduction.W10TreeStatement
+import TemperedFundamentalGroups.SemistableReduction.W10DefinedOver
 
 /-!
 # W10: `W7.Statement → Statement.StrongA` (modulo the descent of the tree charts)
@@ -89,7 +90,8 @@ theorem strongA_of_W7_of_tree (h7 : W7.Statement.{u, u})
     simpa only [AlgEquiv.coe_ringEquiv] using h
   -- W7
   obtain ⟨ιt, _, _, a, c, hc, hconv, hred, hle, hss, hstabT⟩ :=
-    W10Apply.exists_semistableTree O hp hpO B h7 a₀ c₀' hc₀' hst
+    W10Apply.exists_semistableTree O hp hpO B h7
+      (fun 𝔪 ↦ W10DefinedOver.definedOverDVR O (Comp K (AlgebraicClosure K) B 𝔪)) a₀ c₀' hc₀' hst
   -- G4 on every component over `C`
   have hT := fun 𝔪' ↦ W10Gen.exists_generators_comp K B (AlgebraicClosure K) 𝔪'
   choose T hTgen hTK using hT
