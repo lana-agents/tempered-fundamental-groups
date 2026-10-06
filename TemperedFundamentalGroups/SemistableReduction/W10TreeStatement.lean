@@ -42,6 +42,7 @@ def TreeChartsSemistable : Prop :=
     (T : Finset F') (_ : Algebra.adjoin (RatFunc C) (T : Set F') = ⊤),
     ∃ S : Finset C, ∀ (E : Type u) [NontriviallyNormedField E] [IsUltrametricDist E]
       [CompleteSpace E] (φ : E →+* C) (_ : ∀ e, ‖φ e‖ = ‖e‖) (_ : (S : Set C) ⊆ Set.range φ)
+      (_ : letI := φ.toAlgebra; Algebra.IsAlgebraic E C)
       [IsDiscreteValuationRing (NormedField.valuation (K := E)).valuationSubring]
       [PerfectField (ResidueField (NormedField.valuation (K := E)).valuationSubring)]
       (aE cE : ι → E) (_ : ∀ i, φ (aE i) = a i) (_ : ∀ i, φ (cE i) = c i)
