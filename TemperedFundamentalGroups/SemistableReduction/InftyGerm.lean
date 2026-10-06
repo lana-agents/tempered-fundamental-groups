@@ -81,6 +81,19 @@ theorem inftyChartGood_of
     algebraMap (RatFunc C) F (aff 0 c hc (GaussTube.inv one_ne_zero φ))
   exact congrArg (algebraMap (RatFunc C) F) (congrArg (fun χ : RatFunc C →ₐ[C] RatFunc C ↦ χ φ) hσ)
 
+include hp hp1 in
+/-- **O6.4** in the S8.A form `S8A.InftyGoodFor`. -/
+theorem inftyGoodFor_of
+    (hK : ∀ a : C, KummerUnramFor.{_, _, w} C (GaussTube.Inv (1 : C) one_ne_zero F) a)
+    (hA6 : ∀ (L : Type w) [Field L] [Algebra (RatFunc C) L]
+      [Algebra (GaussTube.Inv (1 : C) one_ne_zero F) L]
+      [IsScalarTower (RatFunc C) (GaussTube.Inv (1 : C) one_ne_zero F) L] [Algebra C L]
+      [IsScalarTower C (RatFunc C) L] [FiniteDimensional (RatFunc C) L]
+      [IsGalois (GaussTube.Inv (1 : C) one_ne_zero F) L],
+      A6For C (GaussTube.Inv (1 : C) one_ne_zero F) L) :
+    S8A.InftyGoodFor C F :=
+  inftyChartGood_of hp hp1 hK hA6
+
 end ClassicalSmooth
 
 end SemistableReduction
