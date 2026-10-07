@@ -1554,3 +1554,354 @@ norm of `G`). No `CompleteSpace C` remains in `SemistableReduction`.
 | O7 | W10 assembly: `W7.Statement` + W9 descent ⇒ **`Statement.StrongA`** (the targeted W10; D3e, S9 over `O_{K'}`, M9, actions, domination) | André agent (`wp-tempered-w10`) | open |
 | E1 | (untargeted extension) equal characteristic `0`: a tame W7 (all covers tame, Kummer) to extend `StrongA` and Theorem A to residue characteristic `0` | — | not planned |
 
+
+## 10. André's group and the `ℤ`-witness (branch `wp-andre`)
+
+This section turns steps 1–2 of §4 and item G1 of §5 into theorems. The only geometric inputs
+are W10 (`SemistableReduction.Statement`) and two clauses stated in the same file, D and H below.
+They enter only as hypotheses on `wp-andre`.
+
+### 10.1 What "André's group" means here
+
+Berkovich spaces are not available, so André's group is defined as in **Lepage/André
+III.2.1.5**: through tempered coverings read off from *semistable* models of finite étale covers.
+
+* A level with a model is **semistable** (`IsSemistableLevel`) if its model is, over `O`, a
+  semistable projective model over the valuation ring `O'` of a finite extension `K'/K`
+  (`ModelCode.IsSemistable`).
+* `semistableObj ⊆ TempObj` is the full subcategory of tempered coverings presented through
+  semistable levels. **André's group** is
+  `andreGroup := Aut (tempFibre|_semistableObj)`, with the topology of pointwise convergence
+  (`Andre/Defs.lean`).
+
+Via the Raynaud–Berkovich retraction onto the skeleton, the covering spaces of the special fibre
+of a semistable model are the topological coverings of `T^an` (§1). Restricting to semistable
+levels is therefore exactly André's definition, with "topological covering of `T^an`" made
+model-theoretic.
+
+**Theorem A** (`temperedPi1 ≃ₜ* andreGroup`, restriction). Assume W10 in the form
+`Statement.Strong`, that `Ω` is algebraically closed, and that `A` acts `K`-linearly.
+
+### 10.2 Lemma chain for Theorem A
+
+| # | Statement | Status |
+|---|---|---|
+| A1 | Restricting fibre-functor automorphisms to a full subcategory is an isomorphism of topological groups when (S1) every object has an admissible `Φ`-bijective span to the subcategory and (S2) admissible spans refine along morphisms. | `FibreFunctor/SpanRealization.lean`, **[L]** |
+| A2 | Pullback `π*X` of a tempered covering along a morphism of levels with models (`LevelHom`), with the cartesian morphism `π*X ⟶ X` and its universal property. Along a **refinement** (`IsRefinement`: `H'⁰ ↠ H⁰`, the kernel is transitive on the fibres of `F_{L'} → F_L`, `F_{L'} ↠ F_L`, the model map is equivariant), `Φ(π*X) → Φ(X)` is bijective. Equivariance follows from the scheme-theoretic density of `j`. | `Andre/Pullback.lean`, in progress |
+| A3 | Every level has a semistable refinement (W10 base change `B ↦ K' ⊗_K B`, `H ↦ H × Gal(K'/K)`, model `c` dominating the given one). Two refinements over a morphism `u` have a common semistable refinement (W10 applied to `B₁ ⊗ B₂` with two models to dominate). | `Andre/Refinement.lean`, in progress |
+| A4 | Admissible spans are `X ⟵ π*X = π*X` for semistable refinements, so (S1) and (S2) follow from A2 and A3. This proves Theorem A. | next |
+
+The Galois theory of `TempObj` is not needed for Theorem A. It is needed for Theorem B: universal
+coverings of special fibres (N1, `Topology/UniversalCovering.lean`, in progress), the stage groups
+`Π_Lv` (orbifold fundamental groups of `[Z/H]`), and Lepage's limit formula
+`andreGroup ≃ lim_{Galois semistable levels} Π_Lv`.
+
+### 10.3 The `ℤ`-witness (Theorem B)
+
+**Theorem B** (`exists_surjective_temperedPi1_int`). Let `Y = E_q ∖ S` be a Tate curve minus a
+finite Galois-stable set, over a complete discretely valued `K` of characteristic `0`. Under W10,
+D, H and W8′ below, there is a continuous surjective homomorphism `temperedPi1 → ℤ`.
+
+1. **X₀.** A semistable `O`-model `𝒴` of `E_q` whose special fibre is an `n`-gon, and on it the
+   universal `ℤ`-covering of the `n`-gon. This gives an object `X₀` over a good level, together
+   with its deck torsor `ℤ →* Aut X₀`, so `deckCharacter : Aut Φ →* ℤ` is continuous (§5.1). The
+   model is either explicit (the blow-up of the Weierstrass model at the node) or obtained from
+   W10 applied to `Y`; in the second case one also needs that the dual graph has a cycle (the Tate
+   curve does not have potentially good reduction).
+2. **Surjectivity** means some `α` translates by `1`. By G4, `α` is a compatible family
+   `(π_Lv) ∈ lim Π_Lv` with `χ(π_{Lv₀}) = 1`. The index system is uncountable and the kernels are
+   infinite discrete, so compactness is needed. For each good `Lv` over `Lv₀`, let `S_Lv` be the
+   set of `π ∈ Π_Lv` with `χ(π) = 1` whose displacement of the base vertex of the universal tree
+   is at most `ℓ(Tate loop)`, measured in the pulled-back metric: an edge of `Z̃_Lv` has length
+   (thickness) × (local degree over `𝒴`).
+   * `S_Lv` is finite, because the tree is locally finite and lengths are bounded below.
+   * `S_Lv` is nonempty, by path lifting along a harmonic morphism.
+   * `S_Lv` is mapped into `S_Lv'`, because lengths are preserved.
+
+   König's lemma (compactness of `lim` of finite nonempty sets) then gives `α`.
+3. **W8′ (harmonic morphisms)**, to be proved in the W-chain (ABBR, *Lifting harmonic morphisms I*,
+   §4). For compatible semistable models of `T → T'`, the dual graphs carry thicknesses and the
+   map of dual graphs is harmonic: edges go to edges or vertices, with stretching factor equal to
+   the local degree, and every edge at the image of a vertex lifts.
+
+#### 10.3.1 Galois theory needed for Theorem B (scheme case `A = 1`)
+
+| # | Statement |
+|---|---|
+| B1 | **Galois closure of levels.** For a level `(B, H)` there is a Galois level `(B', Gal)`, where `Gal = Aut_R(B')` acts simply transitively on `F_{B'}`, with `B ⊆ B'`. The restriction `(B', H'_res) → (B, H)`, `H'_res = {g : g(B) = B, g|_B ∈ H}`, is a refinement. Proof: finite étale `R`-algebras form a Galois category (pi1, `FEt`); use Mathlib's Galois objects. |
+| B2 | **Induction.** `(B', H'') → (B', H)` for `H'' ≤ H` sends `P` to `H ×^{H''} P`. The resulting morphism is `Φ`-bijective, so every semistable object has an admissible span to an object over a semistable Galois level. |
+| B3 | **Universal objects.** For a pointed semistable Galois level `(Lv, t₀)` with `Z = |𝒯_s|` connected, `U_Lv = (Z̃ × Π)/π₁` is a covering (N1), where `Π` is the group of lifts of `H` to `Z̃`. It pro-represents `Φ` on objects over semistable Galois levels. |
+| B4 | **Lepage's formula.** `andreGroup ≃ₜ* lim_{pointed semistable Galois} Π_Lv`. |
+| B5 | **König.** Given the finite nonempty sets `S_Lv ⊆ Π_Lv` of §10.3 (they need W8′), `lim S_Lv ≠ ∅` (Mathlib `nonempty_sections_of_finite_cofiltered_system`). Any element of the limit translates `X₀` by `1`. |
+| B6 | **X₀.** An explicit flat projective `O`-model of `E : y² + xy = x³ + a₄x + a₆` with `a₄, a₆ ∈ 𝔪²` (split multiplicative reduction of type `I_n`, `n ≥ 2`): the blow-up of the Weierstrass model at the node. Its special fibre is the strict transform together with the exceptional curve, meeting in two points, so it contains a cycle and carries a `ℤ`-covering. `X₀` need not be semistable; Theorem A transports `α` to it. |
+
+#### 10.3.2 What is required of `j`, and transfer to the IUT orbicurves
+
+**`j`.** A level with a model (`Level`, §3.2) requires only three things of `j : Spec B ⟶ 𝒯`: it
+is a morphism, it lies over `Spec O` (`j_toSpec`), and it is `H`-equivariant (`ρ_j`). It does not
+need to be an open immersion or schematically dense. This is intended (§3.2): each such datum
+defines a genuine tempered covering, and Theorem A shows that the extra models do not change
+`Aut Φ`. So `TateObject.X₀` is a legitimate object, and its character
+`temperedPi1 →* ℤ` is well defined and continuous as it stands. Open immersion or density is used
+only in two places: for the semistable models of Theorem A (supplied by W10.Strong), and to get
+equivariance of model maps automatically
+(`LevelHom.isEquivariant_of_isSchemeTheoreticallyDominant`). For the Tate model it is not needed.
+Its generic fibre is still identified with `E` via `[x:y:z] ↦ [x:y:πz]`.
+
+**Transfer to `[Y/A]`**, where `Y = E_q ∖ (E[ℓ]+M)` and `A = M` or `M ⋊ {±1}`.
+`TateOrbicurve.character` is the character for `A = 1`, i.e. on `temperedPi1(Y)`. For the
+orbifold `[Y/A]`:
+
+* (T1) **Restriction to the scheme cover.** The functor `Res : TempObj(R, A) ⥤ TempObj(R, 1)`
+  forgets the `A`-part. A level `(B, H)` goes to `(B, H⁰)`, with the same model and `ρ|_{H⁰}`,
+  and covering spaces are restricted to `H⁰`. The fibre functor is unchanged, since
+  `Φ = (F × P)/H⁰` in both categories. Restriction along `Res` (A2) gives a continuous
+  homomorphism `temperedPi1(Y) → temperedPi1([Y/A])`.
+* (T2) **Induction.** The functor `Ind : TempObj(R, 1) ⥤ TempObj(R, A)` sends
+  `(B, H⁰, 𝒯, P)` to the induced level `(∏_{a∈A} B^{(a)}, H⁰ ≀ A)`, with model `∐_a 𝒯` and
+  covering `∐_a P`. For finite `A` the model is again projective (a disjoint union of `|A|`
+  copies, embedded in one `ℙ^N` by Segre plus a coordinate shift). There are natural bijections
+  `Φ(Ind X) ≅ A × Φ(X)`.
+* (T3) **Open finite-index image.** Using T1 and T2, `temperedPi1(Y) → temperedPi1([Y/A])` is
+  injective with open image of index `|A|`: the image is the stabiliser of the base component
+  of `Φ(Ind 1)`. This is the tempered analogue of `π₁(Y) ⊴ π₁([Y/A])` with quotient `A`.
+* (T4) **Non-degeneracy for `[Y/A]`.** Theorem B for `A = 1` gives a continuous surjection
+  `χ : temperedPi1(Y) ↠ ℤ`. The group `U = temperedPi1(Y)` is an open subgroup of finite index in
+  `Γ = temperedPi1([Y/A])`. Its normal core `N` is again open of finite index, so
+  `χ(N) = kℤ` with `k ≥ 1`. Hence `Γ` has the infinite discrete quotient `Γ ↠ Γ/ker(χ|_N)`, and
+  it is not profinite. This is the non-degeneracy that IUT uses. A surjection `Γ ↠ ℤ` itself is
+  not needed; if wanted, it would come from the transfer map.
+
+**The Tate curve over `K_v`.** A Tate curve `E_q` with `v(q) ≥ 1` over a complete DVR has a
+Weierstrass equation `y² + xy = x³ + a₄(q)x + a₆(q)` with `a₄, a₆ ∈ q·O`. `TateModel` needs
+`a₄, a₆ ∈ π²O`, which holds when `v(q) ≥ 2`. For `v(q) = 1`, pass first to the ramified
+quadratic extension. This is a finite étale cover of `Y ⊗ K_v`, so it is covered by T3 or T4 in
+the form "finite étale covers induce open finite-index maps". IUT's Tate curves have `v(q)` as
+large as needed (they are `ℓ`-th power cusps), so `v(q) ≥ 2` holds as is.
+
+**Status of T1–T4.**
+* T1 is **[L]** (`Andre/Transfer.lean`: `resFunctor`, `resFibreIso`, `restrictHom`,
+  `continuous_restrictHom`).
+* The general T4 group lemma is **[L]** (`exists_open_normal_infinite_quotient`).
+* Non-degeneracy for `[Y/A]` is **[L]**, conditional only on surjectivity of the `A = 1` character
+  (Theorem B). It is `TateOrbicurve.nondegenerate_of_character` in `Andre/TransferTate.lean`, and
+  bypasses T2/T3. The induced object `indObj` is taken over the `A`-torsor level `(R^A, A)`,
+  reusing the Tate model and covering of `X₀`. The stabiliser of finitely many of its fibre
+  points is an open normal subgroup with infinite quotient.
+* T2/T3 are open and are not needed for non-degeneracy: a general induction functor would need a
+  `ModelCode` for `∐_{a ∈ A} 𝒯` inside a single `ℙ^N`.
+
+#### 10.3.3 Theorem B in Lean: the formal reduction (K1–K3)
+
+Because of the transfer (§10.3.2) it suffices to treat `A` trivial (`[Subsingleton A]`). Write
+`C = TempObj O R A` and `Φ = tempFibre`.
+
+* **K1 (formal; Galois objects).** Let `𝒢` be a class of objects with three properties:
+  - Galois: `Aut G` acts simply transitively on `Φ G`;
+  - pointwise domination: for finitely many `(X_k, x_k)` there are `G ∈ 𝒢`, `g ∈ Φ G` and morphisms
+    `f_k : G ⟶ X_k` with `Φ f_k g = x_k`;
+  - rigidity: two morphisms `G ⟶ X` that agree on one fibre element are equal.
+
+  Then automorphisms of `Φ` correspond to compatible families `(γ_{(G,g)})` with
+  `γ_{(G,g)} ∈ Φ G`, indexed by the cofiltered category of pointed objects of `𝒢`. Concretely:
+  every compatible family defines `α ∈ Aut Φ` with `α_G(g) = γ_{(G,g)}`.
+  File: `FibreFunctor/GaloisLimit.lean`.
+* **K2 (formal; König).** If `S_{(G,g)} ⊆ Φ G` are finite and nonempty and are mapped into each
+  other by pointed morphisms, a compatible family through them exists. This is Mathlib's
+  `nonempty_sections_of_finite_cofiltered_system`, applied after `Small`/`ULift`
+  bookkeeping.
+* **K3 (geometry; the Galois objects).**
+  - For a pointed semistable level `(Lv, t₀)` with Galois level (`H⁰` simply transitive on
+    `F_L`) and connected special fibre, `U_Lv = (Z̃ × Π)/π₁(Z)` is a Galois object. Here `Z̃` is
+    the universal covering from N1 and `Π` is the group of lifts of `H` to `Z̃`.
+  - The objects `U_Lv` dominate pointwise. This uses the Galois closure of levels, semistable
+    base change from W10, and lifting through `Z̃`.
+  - File: `Andre/GaloisObject.lean`.
+* **B5** combines K2 with `S_{(G,g)} := {γ : Φ f(γ) = δ(1)·x₀ and Y-length(γ) ≤ ℓ(Tate loop)}`.
+  Finiteness, the maps `S → S` and nonemptiness come from W8′. Then
+  `deckCharacter(α) = 1`.
+
+#### 10.4 Base fields
+
+W10 is stated for **complete** discretely valued `K` of characteristic `0`
+(`[IsAdicComplete (maximalIdeal O) O]`, since the unique extension of valuations used in the
+descent step W9 needs completeness). So Theorem A, the identification with André's group, holds
+for complete base fields such as IUT's `K_v`. For a henselian `K` that is not complete, the
+tempered group is still defined, but it is not identified with André's group.
+
+#### 10.3.4 B5 re-planned: only targeted statements
+
+The geometric input is **`Statement.HarmonicGeneral`**, which is targeted. It concerns any
+`ψ : c ⟶ c'` over `O` between split semistable models that is finite on generic fibres. For each
+node `x'` of thickness `n'`:
+
+* (H1) a crossing walk exists from every non-contracted component over a branch, with
+  `Σ dᵢnᵢ = n'`;
+* (H2) every crossing walk has `Σ dᵢnᵢ ≤ n'`;
+* (H3) a node that does not map to a node maps to a smooth point of a single component.
+
+B5 does not use `Statement.Modification` (an untargeted draft). `Statement.Simultaneous` alone is
+not enough. The index system of K1 contains Galois objects over all split semistable models of
+each level, so its model maps are arbitrary, and they need not factor through a semistable model.
+Simultaneous only produces new models for a tower.
+
+**Length.** Let `U` be a Galois object over the split semistable level `Lv` with model `c`. For
+`γ ∈ Φ U`, let `e(γ)` be the deck element in `Π` taking the base point to `γ`. Its length is
+`len(γ) := Σ dᵢnᵢ` (the `d`'s are degrees over `Y`) over the nodes crossed by the reduced edge path
+in the universal cover of the dual graph from `z̃₀` to `e(γ) z̃₀`.
+
+* **Finite:** for each bound `L`, only finitely many `γ` have length at most `L`. The dual graph is
+  finite, lengths are positive, and the fibres of `Π → H` are deck orbits.
+* **Non-increasing:** `len(Φ f γ) ≤ len(γ)` along pointed morphisms, by (H2) and (H3).
+* **Lifts:** the Tate loop lifts with `len = ℓ₀`, by (H1).
+
+Then `S_p := {γ : Φ f_p γ = δ(1)·x₀, len γ ≤ ℓ₀}` is finite, nonempty, and preserved by pointed
+morphisms, and K2 gives `α` with `deckCharacter α = 1`.
+
+#### 10.5 Status of Theorem A
+
+**[L], modulo W10.** `andreEquiv (V hV) (hW : Statement.StrongA) [IsDomain R] [PerfectField κ_O] (hp : ∃ p, p.Prime ∧ (p : O) ∈ 𝔪_O) (hR : ringKrullDim R = 1) :
+temperedPi1 O R A V hV ≃ₜ* andreGroup O R A V hV` is in `Andre/Refinement.lean`. It uses
+`andreInput` with base-change refinements, together with `pullback_input`. The standing
+hypotheses are:
+
+* `CharZero K` and `IsDiscreteValuationRing O`, mixed characteristic `(p : O) ∈ 𝔪_O` (W7 is proved
+  for residue characteristic `p > 0`), perfect residue field (W10 descent), and `R` a domain (StrongA is false otherwise);
+* `IsAdicComplete (maximalIdeal O) O`;
+* `Algebra.Smooth K R`;
+* `SMulCommClass A K R` and `Finite A`;
+* `IsAlgClosed Ω`.
+
+`#print axioms` gives only `propext`, `Classical.choice`, `Quot.sound`.
+
+#### 10.3.5 Domination re-planned (Galois objects over levels with trivial `H`)
+
+The first Galois class did not work (`Andre/GaloisClass.lean`, branch `wp-andre-d`): Galois
+levels in the sense "`H⁰` acts simply transitively" fail (dom). An object `X` over `(B, 1)` with
+`deg B ≥ 2` receives no morphism from an object over a level whose `H⁰` acts transitively
+(`comp_eq_of_subsingleton`). The reason is that morphisms of levels must intertwine the groups.
+
+**New Galois class.** We stay in the scheme case `A = 1`. Take objects over levels `(B*, H = 1)`,
+where:
+
+* `B*` is a connected Galois finite étale `R`-algebra;
+* the model `c` carries an action of `G = Aut_R(B*)` over `O`, and `j` is `G`-equivariant and
+  scheme-theoretically dominant;
+* `c` is semistable and its special fibre `Z` is connected;
+* the covering is `P = Z̃`, the universal covering from N1.
+
+The automorphisms are **level automorphisms** `(f = σ ∈ G, r = id_1)`, combined with the model
+action `ρ(σ)` and a lift of `ρ_s(σ)` to `Z̃`. Together they form the group `Π` (as in K3, with
+`G` in place of `H`), and `Φ(U) = {(t, p)}` is a `Π`-torsor.
+
+* **Rigidity.** If two morphisms out of `U` agree at one fibre point, then their `f`'s agree
+  (`B*` connected, `algHom_eq_of_comp_eq`). Their model maps agree because `j` is dominant, and
+  their covering maps agree by lift uniqueness. So rigidity holds on the nose.
+* **Domination.** Let `X` be over `(B, H)`. A level morphism `(B*, 1) → (B, H)` only needs an
+  `R`-algebra map `B → B*`; equivariance is vacuous because the source group is trivial. The
+  covering map is a lift through `P_X`, using the universal property of `Z̃`. Finitely many
+  points are handled by `isDominating_of_forall_exists`.
+* **Models.** Apply W10.Strong to `B*` with `G = Aut_R(B*)`. It acts `K`-linearly only if `B*` is
+  geometrically connected over `K`; in general `G` acts semilinearly over the constant field
+  `K'' = B*^{...} ∩ K̄`. So:
+  1. Replace `B*` by a Galois closure containing the Galois extension `K'` that W10 produces.
+     Concretely, take `B* := ` a connected component of `K' ⊗_K B*`, Galois over `R`.
+  2. Take as model the **closure of that component** in the W10 model. Distinct generic
+     components have disjoint closures, because the local rings `O[u,v]/(uv − ϖⁿ)` and `O[u]`
+     are domains. So the closure is open and closed in `c`, and it is again a semistable
+     `ModelCode` (cut out by an idempotent ideal sheaf).
+  3. **Connected special fibre.** This is Zariski connectedness for normal proper models. It is
+     requested from the W-chain as an output clause of `Statement.Strong`: *the special fibre
+     of `c` has at most as many connected components as `Spec (K' ⊗_K B)`*.
+
+**Update (x-line).** `StrongComponent` now takes a finite x-line `x ∈ R`, i.e. a finite map
+`K[x] → R`. So Theorem A carries the hypothesis
+`hxR : ∃ x : R, (Polynomial.aeval (R := K) x).toRingHom.Finite`. It follows from Noether
+normalization (Mathlib `exists_finite_inj_algHom_of_fg`) once one knows that the number of
+variables equals `ringKrullDim R = 1`. This is now proved as `exists_finite_aeval` (`Setup/NoetherLine.lean`), so `hxR` is discharged.
+
+#### 10.3.6 B5 in Lean: the plan
+
+Status: K1 and K2 (`GaloisLimit`) are done, as are `galClass₂` with gal, rig and dom
+(`galoisLimitData₂`, from `StrongComponent`) and `exists_finite_aeval`.
+
+1. **Fixed base model.** Fix the x-line `x` from `exists_finite_aeval`. Apply `StrongComponent`
+   to `B = R` with `c₀ = ` the Tate model of `X₀` (`Andre/TateModel.lean`). This gives a W-model
+   `𝒴` of `Y` over some `O₀'`, together with a map `𝒴 → 𝒯_Tate`.
+2. **Model predicate.** Set `M c := (c is a W-model on x) ∧ (c has a map to 𝒴 compatible with
+   the generic points)`. Restrict to `galClass₂ M`. Domination with `M` comes from `dom_core`,
+   adding `𝒴` to the list of `c₀` and threading the `IsWModel` conjunct of `StrongComponent`.
+   Morphisms between members commute with the maps to `𝒴`, because `j` is dominant.
+3. **Y-length.** For a member `U` with model `c₁` over `O''`, an edge (node) `x` of `Z(c₁)` has
+   `len_Y(x) = d_{x/𝒴} · n_x / e(O''/O)`. Here `d_{x/𝒴}` is the local degree of `c₁ → 𝒴`
+   (`HarmonicW`, `HasLocalDegree`). For `γ ∈ Φ U` with `γ = (t, p)` and base point `(t₀, p₀)`,
+   set `len(γ) := ` the length of the reduced edge path from `p₀` to `p` in the universal cover
+   `Z̃` (a tree).
+   * **Finite:** for every bound, only finitely many `γ` have bounded length (`Z̃` is locally
+     finite and lengths are positive).
+   * **Monotone:** `len(Φ f γ) ≤ len γ` along morphisms `f` of the index, by (H2)/(H3) of
+     `HarmonicW` for `c₁ → c₁'` and multiplicativity of local degrees over `𝒴`.
+4. **The Tate loop.**
+   * Pull `X₀` back to the level of `𝒴` (cartesian, Φ-bijective; `Andre/Pullback.lean`). Its
+     ℤ-covering corresponds to `π₁(Z(𝒴)) → ℤ`.
+   * A loop of `Z(𝒴)` mapping to the generator needs `π₁(Z(𝒴)) → π₁(Z(𝒯_Tate)) = ℤ` to be
+     surjective. This holds if `ψ_s : Z(𝒴) → Z(𝒯_Tate)` is surjective with connected fibres
+     (Zariski, since `𝒯_Tate` is normal). **Possibly missing geometric input;** if so, it is to be
+     requested as a targeted clause.
+   * `ℓ₀` is the `Y`-length of that loop. Path lifting via (H1) in each member gives nonempty
+     `S_p := {γ : Φ f_p γ = δ(1)·x₀, len γ ≤ ℓ₀}`. The index is restricted to the cofinal pointed
+     objects over `(X₀, x₀)`.
+5. **K2** gives `α`, with `deckCharacter α = 1`.
+
+**Status (branch `wp-andre-b5b`).** Items 2–4 are proved from `Statement.HarmonicX` (targeted)
+and the named local input `Statement.NodeOfTwoComponents` (`SemistableReduction/TwoComponents.lean`:
+a point on two components of the special fibre of a semistable model is a node):
+`Topology/CoverLength.lean` (tree lengths `tlen` with near endpoints; finiteness; connectivity;
+monotonicity along maps of tree coverings with harmonic weights, `tlen_map_le`, including the
+shortening of crossing walks to walks with distinct nodes and no backtracking),
+`Topology/UniversalLength.lean` (closed maps of curves: components contracted or mapped onto
+components), `Andre/FracMap.lean` (level maps are injective; finite extension of function
+fields), `Andre/WData.lean` (bundled `Level.IsW`; model maps are x-harmonic, `WData.isHarmonicX`),
+`Andre/WHarmonicWeight.lean` (components of `Lv.Z` vs the dual graph; x-length weights are
+harmonic, `WData.isHarmonicWeight`), `Andre/LengthW.lean` (`lenW`, `lenW_self`,
+`finite_lenW_le`, `lenW_map_le`), `Andre/TheoremBW.lean` (`exists_character_eq_of_lenW`,
+`nondegenerate_of_lenW`, `exists_character_eq_of_lenW_lift`). Lengths are `ℝ≥0∞`-valued
+(`exists_deckCharacter_eq_of_length'`). **Remaining (item 4, Tate loop):** the lifting property
+`hlift` (fibre elements lift along pointed morphisms of members without increasing `lenW`, from
+(X1) by path lifting in the trees, plus surjectivity of level maps on geometric points) and the
+base loop `hbase` (one pointed member over `(X₀, x₀)` has a fibre element over `δ(n) x₀`); the
+reduction of the loop to these is `exists_loop_of_lift`.
+
+#### 10.3.7 B5 status after the length construction: the Tate loop is blocked as designed
+
+`lenW` measures tree distance from the base point's vertex `vtx(g)` (`Andre/LengthW.lean`). It
+is monotone and has finite sublevel sets, but the loop hypotheses fail:
+
+* **`hlift` is false.** Blow up a member at `sp(t₀)`. The base point then specialises onto a
+  contracted component, and every lift of a length-0 element has length at least `μ > 0`.
+* **`hloop` (a uniform bound `ℓ₀`) fails.** Refine with Gauss points centred at `x(t₀)` with
+  radii tending to 0. Elements over `δ(n)·x₀` then need length about `2·log(r₀/r_k)`, which is
+  unbounded.
+
+The base point is a type-I point, and its retraction to the skeleton moves under refinement.
+
+* **`hbase`.** A surjective map with finitely many components per fibre does not force a
+  nonzero stabiliser. Example: a chain of two `P¹`'s mapping onto a 2-gon. What is needed is
+  harmonicity of positive degree of the map onto the Tate `n`-gon, so that `H₁` maps with finite
+  index.
+
+**Options.**
+1. **Core-anchored length.** Use `len_p(πg) = d(a_p, π a_p)` with `a_p = proj_{Core_p} vtx(g)`.
+   It has finite sublevel sets. Monotonicity can fail where hanging trees of `p` map into
+   `Core_q`; the error is `2·d(a_q, proj b)`. This needs an extra argument (e.g. `p` refined so
+   that hanging trees are contracted over `q`) or a different anchor.
+2. **Translation length on the axis.** Use `S_p = {πg : π ↦ δ(1), τ(π) ≤ ℓ₀, axis(π) passes
+   within D of a_p}`. Finiteness and maps need the same anchor compatibility.
+3. **Make the Tate level a W-level** on the chosen x-line, together with harmonicity of
+   positive degree onto it. This gives `hbase`, and `X₀` becomes a member.
+
+**Decision (coordinator).** Theorem B is **parked**. No merged theorem claims it.
+`nondegenerate_of_length` / `nondegenerate_of_lenW` are formal reductions with hypotheses that
+are not satisfiable as designed, as recorded in their docstrings. The genuineness of the
+tempered group rests on Theorem A (`andreEquiv`, modulo the targeted `StrongComponent`);
+non-degeneracy of André's group is a known fact in the literature.
