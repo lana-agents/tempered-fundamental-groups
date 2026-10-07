@@ -1633,6 +1633,12 @@ non-degeneracy of André's group is a known fact in the literature.
 
 #### 10.3.8 Theorem B restarted: the height-corrected length (design)
 
+**Decision (coordinator, 2026-10-07).** Theorem B is **resumed** on `wp-andre-b` with this design.
+`StrongComponent` (as `StrongA` + component clause) and `HarmonicX` are **targeted for Theorem B
+only**. `StrongA`/Theorem A keep priority; the meaning of `StrongA` is unchanged, and the
+strengthened W10 must keep implying `StrongA`. The deliverable is first Theorem B and IUT
+non-degeneracy with hypotheses `StrongComponent` and `HarmonicX`, then the discharge of both.
+
 **Status of the candidate inputs (2026-10-07, `origin/wp-tempered`).** Only `Statement.StrongA` is
 targeted. `Statement`, `Strong`, `Simultaneous`, `StrongComponent`, `HarmonicGeneral`,
 `HarmonicW` and `HarmonicX` are untargeted (§9.7). `HarmonicX` has a proved valuative core
@@ -1695,8 +1701,8 @@ It is `≤ ℓ₀` on some `π` with `χ(π) = 1`: go up to `Σ_Y` (cost `h_T`),
 
 | # | Input | Status / owner | Size |
 |---|---|---|---|
-| I1 | `Statement.StrongComponent` (unfolded W-model members on a finite x-line, connected special fibre, equivariance, domination) | untargeted; **re-target requested** (W-chain) | W-chain |
-| I2 | `Statement.HarmonicX` (X0–X3), for member → member and member → `𝒴` | untargeted; **re-target requested** (W-chain) | ≈ 3–3.5k (W-chain estimate) |
+| I1 | `Statement.StrongComponent` (unfolded W-model members on a finite x-line, connected special fibre, equivariance, domination); to be restated as `StrongA` + a separate component clause under `StrongA`'s hypotheses (mixed characteristic, perfect residue field, domain) | **targeted for Theorem B** (2026-10-07, coordinator); owner: Theorem B agent | ≈ 5–7k beyond `StrongA` (estimate, see below) |
+| I2 | `Statement.HarmonicX` (X0–X3), for member → member and member → `𝒴` | **targeted for Theorem B** (2026-10-07, coordinator); owner: Theorem B agent | ≈ 3–3.5k (W-chain estimate) |
 | I3 | `NodeOfTwoComponents` | **proved** | — |
 | I4 | **G-transitivity**: `Aut_R(B*)` acts transitively on the components of a member's model over a given component of `𝒴`. The DVRs at generic points restrict to the same DVR of `K(Y)`; Galois acts transitively on primes of the integral closure (Mathlib `Algebra.IsInvariant.exists_smul_of_under_eq`); centres move with the model action | provable here | ≈ 1k |
 | I5 | **The base loop** `C_w` in `Z(𝒴)`. `𝒴` comes from `StrongComponent` for `B = R`, `G = ⟨[-1]⟩`, `c₀ = 𝒯_Tate`. `Z(𝒴)` is connected; the component over each of the two Tate components is unique (I4 with trivial group); contracted chains meeting `v₁, v₂` map to a single node, so connectedness gives a crossing over one node. `[-1] : (x, y) ↦ (x, −y−x)` (linear on `ℙ²`) preserves `𝒯` and swaps its two nodes, and dominance makes `dom` equivariant, so there is a crossing over the other node as well. No Zariski connectedness is needed | provable here | ≈ 1.5k |
@@ -1708,3 +1714,33 @@ It is `≤ ℓ₀` on some `π` with `χ(π) = 1`: go up to `Σ_Y` (cost `h_T`),
 else, assuming `[-1]` acts on `R`). They do **not** reach "only `StrongA`": that would require
 `HarmonicGeneral` for `StrongA`'s arbitrary models, which is more expensive than I1 + I2.
 `StrongComponent → StrongA` is proved, so Theorem A is unaffected.
+
+**`StrongComponent − StrongA` (the extra W10 output for Theorem B).** Theorem B (via
+`dom_midW`) uses only these extra outputs: `topologicalKrullDim ≤ 1` of the special fibre, and the
+component clause for a primitive idempotent `ε`:
+
+* a clopen sub-model `c₁ ⊆ c` (closure of the generic component) that is split, semistable and
+  without loops;
+* `j₁` dominant;
+* the stabiliser of `ε` acting on `c₁`;
+* **connected special fibre** of `c₁`;
+* `c₁'` an **unfolded W-model** on the given finite x-line.
+
+It does not use split/no loops of `c` itself, `IsOpenImmersion j`, or the fibre clause. Plan:
+state `Statement.StrongComponentA` with **exactly the inputs of `StrongA`** (mixed
+characteristic, perfect residue field, `IsDomain R`, `G` acting on `R`) plus the x-line input
+`x : R` (`R` finite over `K[x]`). Its output is the `StrongA` output conjunction together with
+`dim ≤ 1` and the component clause. Then `StrongComponentA → StrongA` is a projection,
+`StrongComponent → StrongComponentA` by dropping clauses, and the lead's `StrongA` construction
+(W-models from W7, descent W9) is reused verbatim. The present `StrongComponent` has no
+mixed-characteristic hypothesis, so as stated it is out of reach of the W-chain (W7 is proved for
+residue characteristic `p > 0`); Theorem B only needs it for IUT's `K_v`.
+
+Cost estimate beyond `StrongA` (high uncertainty):
+* unfolded W-model output (W7 (c) node condition, transport of `IsWModelOf` through M9c) ≈ 1–1.5k;
+* split and no loops after a further finite extension and refinement of the Gauss tree ≈ 0.5–1k;
+* the clopen component sub-model (cut out by an idempotent, again a `ModelCode`) ≈ 1k;
+* connectedness of the special fibre of the normal proper model of a geometrically connected
+  component (Zariski connectedness; the hardest part) ≈ 2–4k.
+
+Total ≈ 5–7k.
