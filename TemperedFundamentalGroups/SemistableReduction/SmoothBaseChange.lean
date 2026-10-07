@@ -130,7 +130,8 @@ lemma Node.tensorEquiv_tmul (c : O) (z : Node O c) :
   simp [Node.tensorEquiv]
 
 /-- `T → O' ⊗_O T` is étale if `O → O'` is. -/
-theorem etale_includeRight (hO : (algebraMap O O').Etale) (T : Type u) [CommRing T] [Algebra O T] :
+theorem etale_includeRight_base (hO : (algebraMap O O').Etale) (T : Type u) [CommRing T]
+    [Algebra O T] :
     (Algebra.TensorProduct.includeRight : T →ₐ[O] O' ⊗[O] T).toRingHom.Etale := by
   have h₁ : (Algebra.TensorProduct.includeLeftRingHom : T →+* T ⊗[O] O').Etale :=
     RingHom.Etale.isStableUnderBaseChange.tensorProduct T hO
@@ -152,7 +153,7 @@ theorem etale_of_tensorEquiv (hO : (algebraMap O O').Etale) {T T' : Type u} [Com
     ext z
     exact (he z).symm
   rw [h]
-  exact RingHom.Etale.stableUnderComposition _ _ (etale_includeRight hO T)
+  exact RingHom.Etale.stableUnderComposition _ _ (etale_includeRight_base hO T)
     (RingHom.Etale.of_bijective e.bijective)
 
 /-- `Node O c → Node O' c` is étale if `O → O'` is. -/
