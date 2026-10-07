@@ -1630,3 +1630,81 @@ The base point is a type-I point, and its retraction to the skeleton moves under
 are not satisfiable as designed, as recorded in their docstrings. The genuineness of the
 tempered group rests on Theorem A (`andreEquiv`, modulo the targeted `StrongComponent`);
 non-degeneracy of André's group is a known fact in the literature.
+
+#### 10.3.8 Theorem B restarted: the height-corrected length (design)
+
+**Status of the candidate inputs (2026-10-07, `origin/wp-tempered`).** Only `Statement.StrongA` is
+targeted. `Statement`, `Strong`, `Simultaneous`, `StrongComponent`, `HarmonicGeneral`,
+`HarmonicW` and `HarmonicX` are untargeted (§9.7). `HarmonicX` has a proved valuative core
+(XL0–XL2 interior, XL6 partial, XL7) and about 3–3.5k lines remaining (§9.7, rows XL3–XL10).
+The W10 component clause (`IsUnfolded` output, O3) was dropped together with `StrongComponent`.
+`Statement.NodeOfTwoComponents` is **proved** (`nodeOfTwoComponents`). `HarmonicGeneral` (arbitrary
+semistable models) needs étale-local positions and is the most expensive of all.
+
+**Why no route works from `StrongA` alone.** Every route needs **path lifting with lengths** for the
+model maps between members of the Galois class: a fibre element over `δ(1)·x₀` is produced by
+lifting a loop, and König needs a quantity that is finite, monotone and uniformly bounded on
+those lifts. `StrongA` produces semistable models with no metric or harmonic information. For its
+arbitrary models, lifting is `HarmonicGeneral`, the most expensive input. The cheapest correct
+input is `HarmonicX` on unfolded W-models, which in turn needs W10 to output unfolded W-models
+(`StrongComponent`). Model-independence of the stage groups `Π_Lv` (option 3) only removes the
+model index. It does not supply finite sets: those still need lengths, and the lengths need
+harmonicity.
+
+**The flaw of §10.3.7 is the uniform bound, not the anchor.** In Berkovich terms, let `x_T` be
+the retraction of the lifted base point to the skeleton, `Q_T(π) = d(x_T, π x_T)` (the metric
+pulled back from `Y`), and `h_T = d(image of x_T, Σ_Y)`, the *height* of the anchor. For
+`f : T' → T`, write `e = d(f x_{T'}, x_T)`. Then for `χ(π) ≠ 0`:
+
+* the geodesic `[x', πx']` must leave the hanging tree at `x_T` and re-enter at `fπ x_T`, so
+  `Q_T(fπ) ≤ Q_{T'}(π) − 2e`;
+* the triangle inequality gives `h_{T'} ≤ h_T + e`.
+
+Hence `D_T(π) := Q_T(π) − 2 h_T` is **monotone**. It has finite sublevel sets for each fixed `T`.
+It is `≤ ℓ₀` on some `π` with `χ(π) = 1`: go up to `Σ_Y` (cost `h_T`), lift the Tate loop
+(`ℓ₀`), and come back down to the translate of the anchor (`h_T`). The design of §10.3.6 used
+`Q_T` with a uniform bound, which is false (§10.3.7). The corrected sets are
+`S_p = {γ over δ(1)x₀ : D_p(γ) ≤ ℓ₀}`.
+
+**Combinatorial form (on members, no Berkovich spaces).**
+
+* *Members.* Members are as in `galClassW`: Galois objects over levels `(B*, 1)` whose models are
+  unfolded W-models on a fixed finite x-line. In addition each member's model maps to a fixed
+  W-model `𝒴` of `Y` (model predicate; domination adds `𝒴` to the list `c₀` of `StrongComponent`;
+  the maps are unique by dominance of `j`).
+* *Length data.* `Q` is `tlen` with the x-length weights (`lenW`). Let `N_p` be the set of
+  component vertices of the tree whose component is **not contracted** over `𝒴`. For a near vertex
+  `b` of the anchor, `d(b) := tlen(b, N_p)`.
+* *Corrected length.* `D_p(γ) := min_{b near a, b' near πa} [tlen(b, πb') − d(b) − d(b')]`. Taking
+  the minimum over the near vertices of a node anchor makes the inequalities exact; with a single
+  "near" convention there is an error of the node's weight.
+* *(mono)* `D_q(fγ) ≤ D_p(γ)` for `χ(γ) ≠ 0`. Cut an optimal walk at its first and last component
+  that is not contracted into `c_q` (initial and final costs `e₁`, `e₃`). The image of the middle
+  part has cost at most `tlen − e₁ − e₃` (X2/X3, `exists_walk_img`). Then `d_p ≤ e₁ + d_q` and
+  `d_p ≤ e₃ + d_q`, by lifting the optimal `q`-walk to `N_q` (X1, equal sums; a lift of a
+  vertex of `N_q` lies in `N_p`). If the walk contains no non-contracted component, then
+  `fπ` fixes the anchor and `χ = 0`.
+* *(fin)* `finite_lenW_le` with the bound `ℓ₀ + 2 max d`.
+* *(ne)* Let `n ∈ N_p` be a vertex at distance `d(b)`, over the component `w` of `𝒴`. Lift
+  (X1, member → `𝒴`) a fixed closed walk `C_w` of `Z(𝒴)` at `w` whose image in `Z(𝒯_Tate)` is the
+  generator. It ends at `n'` over `w`, at cost `ℓ(C_w)`. By G-transitivity (below), `n' = σ n`
+  in `Z`, and some `π ∈ Aut U_p` over `σ` has `π ñ = ñ'`. Then `χ(π) = 1`, and
+  `D_p(π) ≤ ℓ₀ := max_w ℓ(C_w)`.
+
+**New inputs.**
+
+| # | Input | Status / owner | Size |
+|---|---|---|---|
+| I1 | `Statement.StrongComponent` (unfolded W-model members on a finite x-line, connected special fibre, equivariance, domination) | untargeted; **re-target requested** (W-chain) | W-chain |
+| I2 | `Statement.HarmonicX` (X0–X3), for member → member and member → `𝒴` | untargeted; **re-target requested** (W-chain) | ≈ 3–3.5k (W-chain estimate) |
+| I3 | `NodeOfTwoComponents` | **proved** | — |
+| I4 | **G-transitivity**: `Aut_R(B*)` acts transitively on the components of a member's model over a given component of `𝒴`. The DVRs at generic points restrict to the same DVR of `K(Y)`; Galois acts transitively on primes of the integral closure (Mathlib `Algebra.IsInvariant.exists_smul_of_under_eq`); centres move with the model action | provable here | ≈ 1k |
+| I5 | **The base loop** `C_w` in `Z(𝒴)`. `𝒴` comes from `StrongComponent` for `B = R`, `G = ⟨[-1]⟩`, `c₀ = 𝒯_Tate`. `Z(𝒴)` is connected; the component over each of the two Tate components is unique (I4 with trivial group); contracted chains meeting `v₁, v₂` map to a single node, so connectedness gives a crossing over one node. `[-1] : (x, y) ↦ (x, −y−x)` (linear on `ℙ²`) preserves `𝒯` and swaps its two nodes, and dominance makes `dom` equivariant, so there is a crossing over the other node as well. No Zariski connectedness is needed | provable here | ≈ 1.5k |
+| I6 | tree combinatorics: the split image lemma, walk lifting from X1, π-lifts of `σ` in `Aut U_p` | provable here | ≈ 1.5k |
+| I7 | assembly: the class with maps to `𝒴`, `D_p`, K2 (`exists_deckCharacter_eq_of_sets`), IUT statement via `nondegenerate_of_character_ne_one` | provable here | ≈ 1k |
+
+**Final statement (target).** `exists_surjective_temperedPi1_int` and
+`TateOrbicurve.nondegenerate` take hypotheses `StrongComponent` and `HarmonicX` (and nothing
+else, assuming `[-1]` acts on `R`). They do **not** reach "only `StrongA`": that would require
+`HarmonicGeneral` for `StrongA`'s arbitrary models, which is more expensive than I1 + I2.
+`StrongComponent → StrongA` is proved, so Theorem A is unaffected.
