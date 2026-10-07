@@ -263,7 +263,7 @@ variable {F : Type*} [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTo
 attribute [local instance] isCurveFunctionField isCurveFunctionField_F
   DiscreteCoefficients.isAlgClosed_residueField
 
-variable (F) in
+variable (C F) in
 /-- The total `δ` of the chart at `0` over a set of closed points. -/
 noncomputable def tot0
     (hΛ : IsChart 𝓀 (fun w : Ext C F ↦ red C (xF C F) w) (redRing C F (xF C F)))
@@ -271,7 +271,7 @@ noncomputable def tot0
   ∑ᶠ (𝔫 : Ideal (redRing C F (xF C F))) (_ : 𝔫 ∈ {𝔫 | 𝔫.IsMaximal ∧ P 𝔫}),
     dinf 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring) hΛ 𝔫
 
-variable (F) in
+variable (C F) in
 /-- The total `δ` of the chart at `∞` over a set of closed points. -/
 noncomputable def totI
     (hΛ : IsChart 𝓀 (fun w : Ext C F ↦ red C (xF C F)⁻¹ w) (redRing C F (xF C F)⁻¹))
@@ -286,8 +286,8 @@ open Classical in
 theorem genus_eq_tot [CharZero C] :
     (genus C F : ℤ) + Fintype.card (Ext C F) - 1 =
       (∑ w : Ext C F, (genus 𝓀 (ResidueField w.1.valuationSubring) : ℤ)) +
-        (tot0 F (isChart_x hb) fun _ ↦ True : ℕ) +
-        (totI F (isChart_x_inv hb) fun 𝔫 ↦
+        (tot0 C F (isChart_x hb) fun _ ↦ True : ℕ) +
+        (totI C F (isChart_x_inv hb) fun 𝔫 ↦
           (⟨_, (isChart_x_inv hb).mem⟩ : redRing C F (xF C F)⁻¹) ∈ 𝔫 : ℕ) := by
   obtain ⟨σ₀, hσ₀, hσ₀0, hσ₀c⟩ := exists_conductor_x hb hsum
   obtain ⟨σi, hσi, hσi0, hσic⟩ := exists_conductor_x_inv hb hsum
@@ -321,13 +321,13 @@ theorem genus_eq_tot [CharZero C] :
   obtain ⟨M₂, hM₂⟩ := exists_forall_dl_eq_dinf hΛi hσi hσi0 hσic Pi hBi
   set M := max (max M₀ M₁) M₂
   have h := hM₀ M ((le_max_left _ _).trans (le_max_left _ _))
-  have e₀ : ∑ y ∈ points hΛ₀ σ₀, delta 𝓀 _ hΛ₀ σ₀ y M = tot0 F hΛ₀ fun _ ↦ True := by
+  have e₀ : ∑ y ∈ points hΛ₀ σ₀, delta 𝓀 _ hΛ₀ σ₀ y M = tot0 C F hΛ₀ fun _ ↦ True := by
     have := sum_delta_eq_finsum hΛ₀ hσ₀ hσ₀0 hσ₀c (fun _ ↦ True) M
     rw [Finset.filter_true_of_mem fun _ _ ↦ trivial] at this
     rw [this, tot0]
     exact finsum_mem_congr rfl fun 𝔫 h𝔫 ↦
       hM₁ M ((le_max_right _ _).trans (le_max_left _ _)) 𝔫 h𝔫.1 trivial
-  have ei : ∑ y ∈ (points hΛi σi).filter Pi, delta 𝓀 _ hΛi σi y M = totI F hΛi Pi := by
+  have ei : ∑ y ∈ (points hΛi σi).filter Pi, delta 𝓀 _ hΛi σi y M = totI C F hΛi Pi := by
     rw [sum_delta_eq_finsum hΛi hσi hσi0 hσic Pi M, totI]
     exact finsum_mem_congr rfl fun 𝔫 h𝔫 ↦ hM₂ M (le_max_right _ _) 𝔫 h𝔫.1 h𝔫.2
   rw [h]

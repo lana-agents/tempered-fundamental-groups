@@ -591,6 +591,16 @@ theorem finsum_eq [Finite J'] (P : Ideal Λ → Prop) (P' : Ideal Λ' → Prop)
       rw [H.trI_eq hmax.ne_top hu𝔫 hb, hbb]; exact hb'
     refine ⟨𝔫, ⟨hmax, hu𝔫, (hP 𝔫 hmax hu𝔫).2 (htr ▸ h3)⟩, htr⟩
 
+/-- `finsum_eq` for the local `δ`-invariants. -/
+theorem finsum_dinf_eq [Finite J'] (P : Ideal Λ → Prop) (P' : Ideal Λ' → Prop)
+    (hP : ∀ 𝔫 : Ideal Λ, 𝔫.IsMaximal → (⟨u, H.mem_u⟩ : Λ) ∉ 𝔫 →
+      (P 𝔫 ↔ P' (trI hΛ hΛ' E 𝔫))) :
+    ∑ᶠ (𝔫 : Ideal Λ) (_ : 𝔫 ∈ {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ (⟨u, H.mem_u⟩ : Λ) ∉ 𝔫 ∧ P 𝔫}),
+        dinf k κ hΛ 𝔫 =
+      ∑ᶠ (𝔫' : Ideal Λ') (_ : 𝔫' ∈ {𝔫' : Ideal Λ' | 𝔫'.IsMaximal ∧
+        (⟨u', H.mem_u'⟩ : Λ') ∉ 𝔫' ∧ P' 𝔫'}), dinf k κ' hΛ' 𝔫' :=
+  H.finsum_eq P P' hP _ _ fun _ h1 h2 ↦ H.dinf_trI h1 h2
+
 end IsLocalIso
 
 end Local
