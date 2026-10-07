@@ -7,6 +7,7 @@ import TemperedFundamentalGroups.SemistableReduction.S8Galois
 import TemperedFundamentalGroups.SemistableReduction.S8BAssembly
 import TemperedFundamentalGroups.SemistableReduction.EdgeRepairGerms
 import TemperedFundamentalGroups.SemistableReduction.TubeSkeleton
+import TemperedFundamentalGroups.SemistableReduction.TypeFourGood
 
 /-!
 # `W7.Statement` from the remaining local leaves
@@ -19,6 +20,7 @@ on the W7 side:
 * (D⇒) `DiscCondOfSmooth`; (T⇐) `ExhaustingOfTube` and (D⇐) `SmoothOfDiscCond` (O12);
 * `L7For` (O6.1c), `A6For` (O6.1f(iii)), the type-3 germ `TypeThreeGermFor` (O6.1h);
 * `R5MeasureFor` (O6.2), `FiniteBadFor` (O6.3);
+* goodness near type-4 points `TypeFourGoodFor` (T4; input of (D⇐), (T⇐));
 * the S8.C descent `S8CDescent` (O6.6).
 
 Everything else (R4(ii) `BelowGerm`, its dual `AboveGerm`, the type-2 germ, `KummerUnramFor`,
@@ -89,6 +91,11 @@ structure Leaves : Prop where
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
     [FiniteDimensional (RatFunc C) F], DefinedOverDVR C F → S8A.FiniteBadFor C F
+  /-- Goodness near type-4 points (leaf T4): input of (D⇐), (T⇐). -/
+  typeFour : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
+    [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
+    ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
+    [FiniteDimensional (RatFunc C) F], DefinedOverDVR C F → S8A.TypeFourGoodFor C F
   /-- The S8.C descent (O6.6). -/
   descent : S8A.S8CDescent.{u, v}
 
