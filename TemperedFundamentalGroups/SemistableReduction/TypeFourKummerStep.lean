@@ -769,7 +769,7 @@ omit [IsAlgClosed C] in
 /-- `ξ'((1 + x)^p - 1) = ξ'(x)^p` if `ξ'(x)` is at least `‖λ‖` with `‖p‖ < ‖λ‖^(p-1)`. -/
 lemma val_one_add_pow_sub_one {ξ' : Valuation F ℝ≥0}
     (hconst : ∀ b : C, ξ' (algebraMap C F b) = ‖b‖₊) {p : ℕ} (hp : p.Prime) {lam : C}
-    (hlam1 : ‖lam‖ ≤ 1) (hA : ‖(p : C)‖ < ‖lam‖ ^ (p - 1)) {x : F} (hx : ‖lam‖₊ ≤ ξ' x) :
+    (hp1 : ‖(p : C)‖ < 1) (hA : ‖(p : C)‖ < ‖lam‖ ^ (p - 1)) {x : F} (hx : ‖lam‖₊ ≤ ξ' x) :
     ξ' ((1 + x) ^ p - 1) = ξ' x ^ p := by
   classical
   have hsum : (1 + x) ^ p - 1 =
@@ -802,8 +802,7 @@ lemma val_one_add_pow_sub_one {ξ' : Valuation F ℝ≥0}
   have hch : ‖(p.choose i : C)‖ ≤ ‖(p : C)‖ := PthPower.norm_choose_le hp hi0.ne' hip
   have key : ‖(p : C)‖ < (ξ' x : ℝ) ^ (p - i) := by
     rcases le_or_gt 1 (ξ' x : ℝ) with h1 | h1
-    · calc ‖(p : C)‖ < ‖lam‖ ^ (p - 1) := hA
-        _ ≤ 1 := pow_le_one₀ (norm_nonneg _) hlam1
+    · calc ‖(p : C)‖ < 1 := hp1
         _ ≤ _ := one_le_pow₀ h1
     · calc ‖(p : C)‖ < ‖lam‖ ^ (p - 1) := hA
         _ ≤ (ξ' x : ℝ) ^ (p - 1) := pow_le_pow_left₀ (norm_nonneg _) ht _
@@ -832,7 +831,7 @@ theorem mem_vClosure_endgame {ξ' : Valuation F ℝ≥0}
     (hG1 : ((Q N₀ - H ^ p).comp (Polynomial.C c * X + Polynomial.C a)).coeff 1 = lam ^ p)
     (hGmax : ∀ i,
       ‖((Q N₀ - H ^ p).comp (Polynomial.C c * X + Polynomial.C a)).coeff i‖ ≤ ‖lam‖ ^ p)
-    (hlam1 : ‖lam‖ ≤ 1) (hA : ‖(p : C)‖ < ‖lam‖ ^ (p - 1))
+    (hp1 : ‖(p : C)‖ < 1) (hA : ‖(p : C)‖ < ‖lam‖ ^ (p - 1))
     (hunif : ∀ n ≥ N₀, ∀ i,
       ‖((Q n - Q N₀).comp (Polynomial.C c * X + Polynomial.C a)).coeff i‖ < ‖lam‖ ^ p)
     (hconv : Tendsto (fun n ↦ (ξ' (θ ^ p - aeval s (Q n)) : ℝ)) atTop (𝓝 0))
@@ -898,7 +897,7 @@ theorem mem_vClosure_endgame {ξ' : Valuation F ℝ≥0}
     push Not at h
     have hx : ‖lam‖₊ ≤ ξ' (algebraMap C F lam * w) := by
       rw [map_mul, hconst]; exact le_mul_of_one_le_right zero_le h
-    have h2 := val_one_add_pow_sub_one hconst hp hlam1 hA hx
+    have h2 := val_one_add_pow_sub_one hconst hp hp1 hA hx
     simp only [D] at hD
     rw [h2, map_mul, hconst, mul_pow] at hD
     exact absurd hD (not_lt.2 (le_mul_of_one_le_right zero_le (one_le_pow₀ h)))
@@ -1028,6 +1027,65 @@ theorem mem_vClosure_endgame {ξ' : Valuation F ℝ≥0}
   exact add_mem (le_vClosure _ _ (hιN a)) (mul_mem (le_vClosure _ _ (hιN c)) hY₀N)
 
 end Endgame
+
+/-! ### Auxiliary estimates -/
+
+section Aux
+
+omit [IsAlgClosed C] in
+/-- Coefficients of `P(t + τ Y)` are bounded by the terms `‖Pᵢ‖ ‖l‖^i` if `‖t‖, ‖τ‖ ≤ ‖l‖`. -/
+lemma norm_coeff_comp_affine_le {P : C[X]} {l τ t : C} (hl : l ≠ 0) (hτ : ‖τ‖ ≤ ‖l‖)
+    (ht : ‖t‖ ≤ ‖l‖) {δ : ℝ} (hδ : 0 ≤ δ) (hP : ∀ i, ‖P.coeff i‖ * ‖l‖ ^ i ≤ δ) (j : ℕ) :
+    ‖(P.comp (Polynomial.C τ * X + Polynomial.C t)).coeff j‖ ≤ δ := by
+  set r : C[X] := Polynomial.C (τ / l) * X + Polynomial.C (t / l)
+  have hr : KummerSheet.IntP r := by
+    intro i
+    simp only [r, coeff_add, coeff_C_mul, coeff_X, coeff_C]
+    have h1 : ‖τ‖ / ‖l‖ ≤ 1 := div_le_one_of_le₀ hτ (norm_nonneg _)
+    have h2 : ‖t‖ / ‖l‖ ≤ 1 := div_le_one_of_le₀ ht (norm_nonneg _)
+    rcases i with _ | _ | i <;> simp [h1, h2]
+  have hq : Polynomial.C τ * X + Polynomial.C t = Polynomial.C l * r := by
+    simp only [r, mul_add, ← mul_assoc, ← map_mul]
+    rw [mul_div_cancel₀ _ hl, mul_div_cancel₀ _ hl]
+  rw [comp_eq_sum_left, Polynomial.sum_def, finsetSum_coeff]
+  refine IsUltrametricDist.norm_sum_le_of_forall_le_of_nonneg hδ fun i _ ↦ ?_
+  rw [hq, mul_pow, ← map_pow, ← mul_assoc, ← map_mul, coeff_C_mul, norm_mul, norm_mul,
+    norm_pow]
+  calc ‖P.coeff i‖ * ‖l‖ ^ i * ‖(r ^ i).coeff j‖ ≤ ‖P.coeff i‖ * ‖l‖ ^ i * 1 :=
+        mul_le_mul_of_nonneg_left ((hr.pow i) j) (by positivity)
+    _ ≤ δ := by rw [mul_one]; exact hP i
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+lemma kummerBound_eq {p : ℕ} (hp : p.Prime) {ζ : C} (hζ1 : ‖1 - ζ‖ ^ (p - 1) = ‖(p : C)‖) :
+    ‖1 - ζ‖ ^ p = kummerBound C p := by
+  have hp1 : (1 : ℝ) < p := by exact_mod_cast hp.one_lt
+  have hpm : ((p - 1 : ℕ) : ℝ) = (p : ℝ) - 1 := by
+    rw [Nat.cast_sub hp.one_lt.le, Nat.cast_one]
+  rw [kummerBound, ← hζ1, ← Real.rpow_natCast, ← Real.rpow_natCast, ← Real.rpow_mul
+    (norm_nonneg _), hpm, mul_div_cancel₀ _ (by linarith)]
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+lemma kummerBound_lt_one {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1) : kummerBound C p < 1 := by
+  have h1 : (1 : ℝ) < p := by exact_mod_cast hp.one_lt
+  exact Real.rpow_lt_one (norm_nonneg _) hp1 (div_pos (by linarith) (by linarith))
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+/-- `‖λ‖^p > A` iff `‖λ‖^(p-1) > ‖p‖`. -/
+lemma norm_natCast_lt_of_kummerBound_lt {p : ℕ} (hp : p.Prime) {lam : C}
+    (h : kummerBound C p < ‖lam‖ ^ p) : ‖(p : C)‖ < ‖lam‖ ^ (p - 1) := by
+  have hp1 : (1 : ℝ) < p := by exact_mod_cast hp.one_lt
+  have hpm : ((p - 1 : ℕ) : ℝ) = (p : ℝ) - 1 := by
+    rw [Nat.cast_sub hp.one_lt.le, Nat.cast_one]
+  have hpos : (0 : ℝ) < (p : ℝ) - 1 := by linarith
+  by_contra hle
+  push Not at hle
+  have key : (‖lam‖ ^ (p - 1)) ^ ((p : ℝ) / (p - 1)) ≤ ‖(p : C)‖ ^ ((p : ℝ) / (p - 1)) :=
+    Real.rpow_le_rpow (pow_nonneg (norm_nonneg _) _) hle (div_pos (by linarith) hpos).le
+  rw [← Real.rpow_natCast, ← Real.rpow_mul (norm_nonneg _), hpm, mul_div_cancel₀ _ hpos.ne',
+    Real.rpow_natCast] at key
+  exact absurd h (not_lt.2 key)
+
+end Aux
 
 end TypeFour
 
