@@ -27,6 +27,7 @@ import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TateWinding
 import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.Andre.TheoremB
+import TemperedFundamentalGroups.Andre.TheoremBFinal
 import TemperedFundamentalGroups.Andre.TheoremBH
 import TemperedFundamentalGroups.Andre.TheoremBHLoop
 import TemperedFundamentalGroups.Andre.TheoremBW
