@@ -5,8 +5,6 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.SmoothDiscBase
 
-open Polynomial IsLocalRing WithZero
-open scoped NNReal IntermediateField
 /-!
 # The disc count at a smooth point
 
@@ -22,6 +20,9 @@ the normalized disc chart `R' = DRint 0 1 G` over `(𝔪_C, x)`, with unique bra
 * **`exists_count`**: some `e ∈ P'` has reduced characteristic polynomial over `O_C[u]` of
   trailing degree `1`.
 -/
+
+open Polynomial IsLocalRing WithZero
+open scoped NNReal IntermediateField
 
 namespace SemistableReduction
 
