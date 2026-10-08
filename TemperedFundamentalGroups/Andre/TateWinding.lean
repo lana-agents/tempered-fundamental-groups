@@ -123,7 +123,8 @@ theorem exists_sheet_ne [Finite ι] (VC VE : ι → Prop)
         (h (gen t')).n = (h (gen t)).n - 1 := by
     intro i t ht
     obtain ⟨hP₁, hP₂, hP₃⟩ := hLP i.1 i.2
-    obtain ⟨T₁, hT₁, hT₁L⟩ := exists_pWalk_labW (LP i.1 i.2) ⟨i.1, ht⟩ (by rw [lab_of ht]; exact hP₁)
+    obtain ⟨T₁, hT₁, hT₁L⟩ := exists_pWalk_labW (LP i.1 i.2) ⟨i.1, ht⟩
+      (by rw [lab_of ht]; exact hP₁)
     have hc₁ : IsComp (pend t T₁) := hT₁.isComp_pend ⟨i.1, ht⟩
     have hlab₁ : lab (pend t T₁) = lastLab i.1 (LP i.1 i.2) := by
       rw [← lastLab_labW, hT₁L, lab_of ht]
