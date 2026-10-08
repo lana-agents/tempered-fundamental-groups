@@ -402,6 +402,327 @@ theorem exists_radius_bound_coord {ξ' : Valuation F ℝ≥0}
 
 end Coordinate
 
+/-! ### Integrality on small discs -/
+
+section Integral
+
+open GaussLimit TubeCount IntermediateField
+
+variable {L : Type*} [Field L] [Algebra (RatFunc C) L] [FiniteDimensional (RatFunc C) L]
+  [Algebra.IsSeparable (RatFunc C) L]
+
+/-- **Integrality on small discs**: an element integral over `C[x]` of value `≤ 1` at every
+extension of a type-4 point `ξ` is integral over the disc chart of every small disc around `ξ`. -/
+theorem exists_isIntegral_discRing {ξ : Valuation (RatFunc C) ℝ≥0} (hξ : Splitting.IsTypeFour ξ)
+    (ν : DiscVal a c) (hν : ν.val = ξ) {z : L}
+    (hzint : ∃ P : C[X][X], P.Monic ∧ aeval z (P.map (algebraMap C[X] (RatFunc C))) = 0)
+    (hval : ∀ g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) L,
+      ‖toLocal g z‖ ≤ 1) :
+    ∃ a₀ : C, ∀ a b : C, radius ξ a ≤ radius ξ a₀ → radius ξ b < radius ξ a →
+      IsIntegral (discRing b (a - b)) z := by
+  classical
+  letI : Algebra C[X] L :=
+    ((algebraMap (RatFunc C) L).comp (algebraMap C[X] (RatFunc C))).toAlgebra
+  haveI : IsScalarTower C[X] (RatFunc C) L := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  obtain ⟨P, hPm, hPz⟩ := hzint
+  have hzint' : IsIntegral C[X] z :=
+    ⟨P, hPm, by rw [← aeval_def, ← aeval_map_algebraMap (RatFunc C)]; exact hPz⟩
+  set P₀ : C[X][X] := minpoly C[X] z ^ Module.finrank (RatFunc C)⟮z⟯ L
+  have hP₀ : P₀.map (algebraMap C[X] (RatFunc C)) = normPoly (RatFunc C) z := by
+    rw [Polynomial.map_pow, normPoly,
+      minpoly.isIntegrallyClosed_eq_field_fractions' (RatFunc C) hzint']
+  have hP₀m : P₀.Monic := (minpoly.monic hzint').pow _
+  have hcoeff (i : ℕ) : ξ (algebraMap C[X] (RatFunc C) (P₀.coeff i)) ≤ 1 := by
+    haveI : Infinite (DiscField ν) :=
+      Infinite.of_injective _ (algebraMap C (DiscField ν)).injective
+    haveI : Infinite (RatFunc C) :=
+      Infinite.of_injective _ (algebraMap C (RatFunc C)).injective
+    have hle := norm_coeff_normPoly_le_one (F := DiscField ν)
+      (K := UniformSpace.Completion (DiscField ν)) (F' := L) (y := z) hval i
+    have hmap := normPoly_map_ringEquiv (WithAbs.equiv ν.val.toAbsoluteValue).symm
+      (F₂ := DiscField ν) (by ext; rfl) z
+    rw [← hmap, coeff_map, ← hP₀, coeff_map, WithAbs.norm_eq_apply_ofAbs] at hle
+    rw [← hν]
+    exact_mod_cast hle
+  choose A hA using fun i : ℕ ↦ exists_forall_eq_gaussRat hξ.map_C (P₀.coeff i)
+  obtain ⟨i₀, -, hi₀⟩ := (Finset.range (P₀.natDegree + 1)).exists_min_image
+    (fun i ↦ radius ξ (A i)) ⟨0, Finset.mem_range.2 (Nat.succ_pos _)⟩
+  refine ⟨A i₀, fun a b ha hb ↦ ?_⟩
+  have hab := Splitting.sub_ne_zero_of_radius_lt hξ hb
+  have hmem (i : ℕ) : algebraMap C[X] (RatFunc C) (P₀.coeff i) ∈ discRing b (a - b) := by
+    by_cases hi : i ≤ P₀.natDegree
+    · refine Splitting.algebraMap_mem_discRing_of_le hab ?_
+      have hrad : radius ξ a ≤ radius ξ (A i) :=
+        ha.trans (hi₀ i (Finset.mem_range.2 (Nat.lt_succ_of_le hi)))
+      have hu : radiusUnit ξ a = Units.mk0 ‖a - b‖₊ (nnnorm_ne_zero_iff.2 hab) := by
+        ext
+        rw [val_radiusUnit, Units.val_mk0, Splitting.radius_eq_nnnorm hξ hb, ← nnnorm_neg,
+          neg_sub]
+      rw [← Splitting.gaussRat_eq_of_le (a := a) (b := b) (r := Units.mk0 ‖a - b‖₊ _) le_rfl,
+        ← hu, ← hA i a hrad]
+      exact hcoeff i
+    · rw [coeff_eq_zero_of_natDegree_lt (not_le.1 hi), map_zero]
+      exact Subring.zero_mem _
+  have hc : (↑(P₀.map (algebraMap C[X] (RatFunc C))).coeffs : Set (RatFunc C)) ⊆
+      discRing b (a - b) := by
+    intro f hf
+    obtain ⟨n, -, rfl⟩ := mem_coeffs_iff.1 hf
+    rw [coeff_map]
+    exact hmem n
+  refine ⟨(P₀.map (algebraMap C[X] (RatFunc C))).toSubring _ hc,
+    (monic_toSubring _ _ _).2 (hP₀m.map _), ?_⟩
+  rw [show algebraMap (discRing b (a - b)) L =
+    (algebraMap (RatFunc C) L).comp (discRing b (a - b)).subtype from rfl, ← eval₂_map,
+    map_toSubring, ← aeval_def, hP₀, normPoly, map_pow]
+  change aeval z (minpoly (RatFunc C) z) ^ _ = 0
+  rw [minpoly.aeval, zero_pow Module.finrank_pos.ne']
+
+omit [IsUltrametricDist C] [IsAlgClosed C] [FiniteDimensional (RatFunc C) L]
+  [Algebra.IsSeparable (RatFunc C) L] in
+lemma exists_monic_of_isIntegral {z : L}
+    (h : letI : Algebra C[X] L :=
+      ((algebraMap (RatFunc C) L).comp (algebraMap C[X] (RatFunc C))).toAlgebra
+      IsIntegral C[X] z) :
+    ∃ P : C[X][X], P.Monic ∧ aeval z (P.map (algebraMap C[X] (RatFunc C))) = 0 := by
+  letI : Algebra C[X] L :=
+    ((algebraMap (RatFunc C) L).comp (algebraMap C[X] (RatFunc C))).toAlgebra
+  haveI : IsScalarTower C[X] (RatFunc C) L := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  obtain ⟨P, hPm, hPz⟩ := h
+  exact ⟨P, hPm, by rw [aeval_map_algebraMap, aeval_def]; exact hPz⟩
+
+omit [FiniteDimensional (RatFunc C) L] in
+/-- Every element becomes integral over `C[x]` after multiplication by a polynomial of value
+one at a type-4 point. -/
+lemma exists_poly_mul_integral {ξ : Valuation (RatFunc C) ℝ≥0} (hξ : Splitting.IsTypeFour ξ)
+    (z : L) : ∃ d : C[X], ξ (algebraMap C[X] (RatFunc C) d) = 1 ∧
+      ∃ P : C[X][X], P.Monic ∧
+        aeval (algebraMap (RatFunc C) L (algebraMap C[X] (RatFunc C) d) * z)
+          (P.map (algebraMap C[X] (RatFunc C))) = 0 := by
+  letI : Algebra C[X] L :=
+    ((algebraMap (RatFunc C) L).comp (algebraMap C[X] (RatFunc C))).toAlgebra
+  haveI : IsScalarTower C[X] (RatFunc C) L := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  haveI := IsLocalization.isAlgebraic (RatFunc C) (nonZeroDivisors C[X])
+  haveI := Algebra.IsAlgebraic.trans C[X] (RatFunc C) L
+  obtain ⟨d, hd0, hdint⟩ := (Algebra.IsAlgebraic.isAlgebraic (R := C[X]) z).exists_integral_multiple
+  obtain ⟨γ, hγ⟩ := Splitting.exists_nnnorm_eq hξ d
+  have hξd : ξ (algebraMap C[X] (RatFunc C) d) ≠ 0 := by
+    rw [Ne, map_eq_zero, IsFractionRing.to_map_eq_zero_iff]; exact hd0
+  have hγ0 : γ ≠ 0 := by
+    rintro rfl; rw [nnnorm_zero] at hγ; exact hξd hγ.symm
+  refine ⟨Polynomial.C γ⁻¹ * d, ?_, ?_⟩
+  · rw [map_mul, ratFunc_algebraMap_C, map_mul, hξ.map_C, ← hγ]
+    change ‖γ⁻¹‖₊ * ‖γ‖₊ = 1
+    rw [nnnorm_inv, inv_mul_cancel₀ (nnnorm_ne_zero_iff.2 hγ0)]
+  · refine exists_monic_of_isIntegral ?_
+    have : algebraMap (RatFunc C) L (algebraMap C[X] (RatFunc C) (Polynomial.C γ⁻¹ * d)) * z =
+        (Polynomial.C γ⁻¹ * d) • z := by rw [Algebra.smul_def]; rfl
+    rw [this, mul_smul]
+    exact hdint.smul _
+
+end Integral
+
+/-! ### Polynomial approximants of an element at a type-4 point -/
+
+section Germ
+
+open GaussLimit Filter Topology DiscGerm
+
+variable {L : Type*} [Field L] [Algebra (RatFunc C) L] [FiniteDimensional (RatFunc C) L]
+  [Algebra.IsSeparable (RatFunc C) L] [Algebra C L] [IsScalarTower C (RatFunc C) L]
+
+/-- **Uniform polynomial approximants at a type-4 point of local degree one.** If `C(x)` is
+dense in `(L, ξL)` over a type-4 point, then for `y ≠ 0` there are `u ≠ 0` (making `y u^p`
+integral, of value one) and polynomials `Qₙ(t)`, `t = (x - b₀)/c₀`, converging to `y u^p` at
+`ξL` and uniformly Cauchy on the disc `|t| ≤ |l|`, which contains `ξL` (DiscGerm on the sheet). -/
+theorem exists_germ_approx {p : ℕ} (hp0 : 0 < p) {ξL : Valuation L ℝ≥0}
+    (hconst : ∀ b : C, ξL (algebraMap C L b) = ‖b‖₊)
+    (hη : Splitting.IsTypeFour (ξL.comap (algebraMap (RatFunc C) L)))
+    (hd : CoordDense C ξL (algebraMap (RatFunc C) L RatFunc.X)) {y : L} (hy : y ≠ 0) :
+    ∃ (u : L) (b₀ c₀ l : C) (Q : ℕ → C[X]) (q : ℝ), u ≠ 0 ∧ c₀ ≠ 0 ∧ l ≠ 0 ∧ ‖l‖ < 1 ∧
+      ξL (algebraMap (RatFunc C) L (RatFunc.X - algebraMap C (RatFunc C) b₀)) < ‖l * c₀‖₊ ∧
+      0 ≤ q ∧ q < 1 ∧ ξL (y * u ^ p) = 1 ∧ (∀ n i, ‖(Q n).coeff i‖ ≤ 1) ∧
+      (∀ m n i, ‖(Q m - Q n).coeff i‖ * ‖l‖ ^ i ≤ max (q ^ (2 ^ m)) (q ^ (2 ^ n))) ∧
+      Tendsto (fun n ↦ (ξL (y * u ^ p -
+        algebraMap (RatFunc C) L (aeval (gaussCoord b₀ c₀) (Q n))) : ℝ)) atTop (𝓝 0) := by
+  classical
+  set η := ξL.comap (algebraMap (RatFunc C) L)
+  obtain ⟨a₁, c₁, ν, hν⟩ := exists_discVal hη
+  obtain ⟨g₀, hg₀⟩ := exists_eq_extValuation' ν (ξ' := ξL) hν.symm
+  -- the value of `y`
+  obtain ⟨b, hb⟩ := exists_const_sub_lt_finite hconst hη hy
+  have hyb : ξL y = ‖b‖₊ := by
+    rw [← hconst]
+    exact (Valuation.map_eq_of_sub_lt ξL (by rwa [← Valuation.map_neg, neg_sub])).symm
+  have hb0 : b ≠ 0 := by
+    rintro rfl; rw [nnnorm_zero, map_eq_zero] at hyb; exact hy hyb
+  obtain ⟨κ, hκ⟩ := IsAlgClosed.exists_pow_nat_eq b⁻¹ hp0
+  have hκ0 : κ ≠ 0 := by rintro rfl; rw [zero_pow hp0.ne'] at hκ; exact inv_ne_zero hb0 hκ.symm
+  have hκb : ‖κ‖ ^ p * ‖b‖ = 1 := by
+    rw [← norm_pow, hκ, norm_inv, inv_mul_cancel₀ (norm_ne_zero_iff.2 hb0)]
+  -- a bound for `y` at all extensions
+  obtain ⟨B, hB⟩ := Finite.exists_le (fun g : Factor (DiscField ν)
+    (UniformSpace.Completion (DiscField ν)) L ↦ ‖toLocal g y‖)
+  set B' := max B 1
+  have hB'0 : 0 < B' := lt_max_of_lt_right zero_lt_one
+  have hκ0' : 0 < ‖κ‖ ^ p := pow_pos (norm_pos_iff.2 hκ0) p
+  set ε : ℝ := min 1 (1 / (‖κ‖ ^ p * B'))
+  have hε : 0 < ε := lt_min zero_lt_one (by positivity)
+  obtain ⟨z, hz1, hzo⟩ := exists_approx (K := UniformSpace.Completion (DiscField ν)) g₀ (1 : L)
+    hε
+  have hz₀ : ‖toLocal g₀ z‖ = 1 := by
+    rw [map_sub, map_one] at hz1
+    exact (norm_eq_of_norm_sub_lt (by rw [norm_one]; exact hz1.trans_le (min_le_left _ _))).trans
+      norm_one
+  -- integrality over `C[x]`
+  obtain ⟨d₁, hd₁, P₁, hP₁m, hP₁⟩ := exists_poly_mul_integral hη z
+  obtain ⟨d₂, hd₂, P₂, hP₂m, hP₂⟩ := exists_poly_mul_integral hη y
+  set D₁ := algebraMap (RatFunc C) L (algebraMap C[X] (RatFunc C) d₁)
+  set D₂ := algebraMap (RatFunc C) L (algebraMap C[X] (RatFunc C) d₂)
+  have hD₁ : ∀ g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) L,
+      ‖toLocal g D₁‖ = 1 := fun g ↦ by
+    rw [norm_toLocal_algebraMap, hν]; exact_mod_cast hd₁
+  have hD₂ : ∀ g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) L,
+      ‖toLocal g D₂‖ = 1 := fun g ↦ by
+    rw [norm_toLocal_algebraMap, hν]; exact_mod_cast hd₂
+  set Kκ := algebraMap (RatFunc C) L (algebraMap C (RatFunc C) κ)
+  have hKκ : ∀ g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) L,
+      ‖toLocal g Kκ‖ = ‖κ‖ := fun g ↦ by
+    rw [norm_toLocal_algebraMap, ν.isDiscVal.map_C]; rfl
+  set u := Kκ * (D₁ * z) * D₂
+  have hnorm : ∀ g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) L,
+      ‖toLocal g (y * u ^ p)‖ = ‖toLocal g y‖ * (‖κ‖ ^ p * ‖toLocal g z‖ ^ p) := fun g ↦ by
+    simp only [u, map_mul, map_pow, norm_mul, norm_pow, hD₁, hD₂, hKκ, one_mul, mul_one]
+    ring
+  have hyg₀ : ‖toLocal g₀ y‖ = ‖b‖ := by
+    rw [← coe_nnnorm, ← extValuation_apply, hg₀, hyb]; rfl
+  have hval1 : ‖toLocal g₀ (y * u ^ p)‖ = 1 := by
+    rw [hnorm, hyg₀, hz₀, one_pow, mul_one, mul_comm, hκb]
+  have hval : ∀ g : Factor (DiscField ν) (UniformSpace.Completion (DiscField ν)) L,
+      ‖toLocal g (y * u ^ p)‖ ≤ 1 := by
+    intro g
+    by_cases hg : g = g₀
+    · rw [hg, hval1]
+    · rw [hnorm]
+      have hzg := hzo g hg
+      have hz1' : ‖toLocal g z‖ ^ p ≤ ε :=
+        (pow_le_of_le_one (norm_nonneg _) (hzg.le.trans (min_le_left _ _)) hp0.ne').trans hzg.le
+      calc ‖toLocal g y‖ * (‖κ‖ ^ p * ‖toLocal g z‖ ^ p)
+          ≤ B' * (‖κ‖ ^ p * ε) := by
+            gcongr
+            exact (hB g).trans (le_max_left _ _)
+        _ ≤ B' * (‖κ‖ ^ p * (1 / (‖κ‖ ^ p * B'))) := by gcongr; exact min_le_right _ _
+        _ = 1 := by field_simp
+  have hyu1 : ξL (y * u ^ p) = 1 := by
+    rw [← hg₀, extValuation_apply]; exact NNReal.coe_injective (by simpa using hval1)
+  -- integrality over `C[x]`
+  have hint : ∃ P : C[X][X], P.Monic ∧
+      aeval (y * u ^ p) (P.map (algebraMap C[X] (RatFunc C))) = 0 := by
+    refine exists_monic_of_isIntegral ?_
+    letI : Algebra C[X] L :=
+      ((algebraMap (RatFunc C) L).comp (algebraMap C[X] (RatFunc C))).toAlgebra
+    haveI : IsScalarTower C[X] (RatFunc C) L := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+    have h1 : IsIntegral C[X] (D₁ * z) := ⟨P₁, hP₁m, by
+      rw [← aeval_def, ← aeval_map_algebraMap (RatFunc C)]; exact hP₁⟩
+    have h2 : IsIntegral C[X] (D₂ * y) := ⟨P₂, hP₂m, by
+      rw [← aeval_def, ← aeval_map_algebraMap (RatFunc C)]; exact hP₂⟩
+    have hK : IsIntegral C[X] Kκ := by
+      have : Kκ = algebraMap C[X] L (Polynomial.C κ) := by
+        simp [Kκ, RingHom.algebraMap_toAlgebra]
+      rw [this]; exact isIntegral_algebraMap
+    have hD : IsIntegral C[X] D₂ := by
+      have : D₂ = algebraMap C[X] L d₂ := rfl
+      rw [this]; exact isIntegral_algebraMap
+    have e : y * u ^ p = Kκ ^ p * (D₁ * z) ^ p * D₂ ^ (p - 1) * (D₂ * y) := by
+      simp only [u]
+      obtain ⟨k, rfl⟩ : ∃ k, p = k + 1 := ⟨p - 1, (Nat.succ_pred_eq_of_pos hp0).symm⟩
+      simp only [Nat.add_sub_cancel]
+      ring
+    rw [e]
+    exact (((hK.pow _).mul (h1.pow _)).mul (hD.pow _)).mul h2
+  -- small discs: integrality and separation
+  obtain ⟨a₀, ha₀⟩ := exists_isIntegral_discRing hη ν hν hint hval
+  obtain ⟨a₂, ha₂⟩ := Splitting.exists_center_injective (F' := L) hη
+  obtain ⟨a, ha₀a, ha₂a⟩ : ∃ a : C, radius η a ≤ radius η a₀ ∧ radius η a ≤ radius η a₂ := by
+    rcases le_total (radius η a₀) (radius η a₂) with h | h
+    · exact ⟨a₀, le_rfl, h⟩
+    · exact ⟨a₂, h, le_rfl⟩
+  obtain ⟨b₀, hb₀⟩ := hη.no_min a
+  have hc₀ : a - b₀ ≠ 0 := Splitting.sub_ne_zero_of_radius_lt hη hb₀
+  obtain ⟨ν', hν'⟩ : ∃ ν' : DiscVal b₀ (a - b₀), ν'.val = η :=
+    ⟨⟨η, Splitting.isDiscVal hη hb₀⟩, rfl⟩
+  set y' : DRint b₀ (a - b₀) L := ⟨y * u ^ p, ha₀ a b₀ ha₀a hb₀⟩
+  have hdv := Splitting.isDiscVal_comap (F' := L) hη (ξ' := ξL) rfl hb₀
+  set P' := center hdv
+  haveI : P'.IsMaximal := center_isMaximal hc₀ hdv
+  obtain ⟨g₁, hg₁⟩ := exists_eq_extValuation' ν' (ξ' := ξL) hν'.symm
+  have hcen₁ : center (isDiscVal_comap_extValuation g₁) = P' := by
+    ext w; simp only [mem_center_iff, hg₁, P']
+  have h1 : discDegree ν' P' = 1 := by
+    rw [discDegree, Finset.sum_eq_single_of_mem g₁ (Finset.mem_filter.2 ⟨Finset.mem_univ _, hcen₁⟩)]
+    · rw [← hg₁] at hd
+      exact natDegree_eq_one_of_coordDense ν' g₁ hd
+    · intro g hg hne
+      exfalso
+      refine hne (extValuation_injective ?_)
+      rw [hg₁]
+      exact ha₂ a b₀ ha₂a hb₀ _ _ ((Splitting.comap_extValuation ν' g).trans hν') rfl
+        (Finset.mem_filter.1 hg).2
+  -- the radius
+  have hrad : (0 : ℝ) < radius η b₀ / ‖a - b₀‖ :=
+    div_pos (by exact_mod_cast pos_iff_ne_zero.2 (radius_ne_zero η b₀)) (norm_pos_iff.2 hc₀)
+  have hrad1 : radius η b₀ / ‖a - b₀‖ < 1 := by
+    rw [div_lt_one (norm_pos_iff.2 hc₀), ← coe_nnnorm, NNReal.coe_lt_coe, ← nnnorm_neg,
+      neg_sub, ← Splitting.radius_eq_nnnorm hη hb₀]
+    exact hb₀
+  obtain ⟨l, hl1, hl2⟩ := exists_norm_between (C := C) hrad hrad1
+  have hl0 : l ≠ 0 := by rintro rfl; simp at hl1; linarith
+  -- the germ
+  obtain ⟨G, Q, -, hQ1, hunif, hconv⟩ := exists_germ hc₀ ν' P' h1 y'
+  obtain ⟨q, hq0, hq1, hql⟩ := hunif l hl0 hl2
+  have hu0 : u ≠ 0 := by
+    have hz0 : z ≠ 0 := by rintro rfl; rw [map_zero, norm_zero] at hz₀; exact zero_ne_one hz₀
+    have hd0 : ∀ {d : C[X]}, η (algebraMap C[X] (RatFunc C) d) = 1 →
+        algebraMap (RatFunc C) L (algebraMap C[X] (RatFunc C) d) ≠ 0 := by
+      intro d hd h0
+      rw [map_eq_zero_iff _ (algebraMap (RatFunc C) L).injective] at h0
+      rw [h0, map_zero] at hd; exact zero_ne_one hd
+    refine mul_ne_zero (mul_ne_zero ?_ (mul_ne_zero (hd0 hd₁) hz0)) (hd0 hd₂)
+    simpa [Kκ] using hκ0
+  refine ⟨u, b₀, a - b₀, l, Q, q, hu0, hc₀, hl0, hl2, ?_, hq0, hq1, hyu1,
+    fun n i ↦ by exact_mod_cast hQ1 n i, fun m n i ↦ ?_, ?_⟩
+  · rw [← NNReal.coe_lt_coe, nnnorm_mul, NNReal.coe_mul, coe_nnnorm, coe_nnnorm]
+    have : (ξL (algebraMap (RatFunc C) L (RatFunc.X - algebraMap C (RatFunc C) b₀)) : ℝ) =
+        radius η b₀ := by
+      simp only [radius, η, Valuation.comap_apply]
+      congr 2
+      simp only [map_sub, RatFunc.algebraMap_X, ratFunc_algebraMap_C]
+    rw [this]
+    rwa [div_lt_iff₀ (norm_pos_iff.2 hc₀)] at hl1
+  · have hcoe : ‖(Q m - Q n).coeff i‖ =
+        ‖(PowerSeries.coeff i G - ((Q n).coeff i : UniformSpace.Completion C)) -
+          (PowerSeries.coeff i G - ((Q m).coeff i : UniformSpace.Completion C))‖ := by
+      rw [sub_sub_sub_cancel_left, ← UniformSpace.Completion.coe_sub,
+        UniformSpace.Completion.norm_coe, coeff_sub]
+    rw [hcoe]
+    calc _ ≤ max ‖PowerSeries.coeff i G - ((Q n).coeff i : UniformSpace.Completion C)‖
+          ‖PowerSeries.coeff i G - ((Q m).coeff i : UniformSpace.Completion C)‖ * ‖l‖ ^ i :=
+          mul_le_mul_of_nonneg_right (Idem.norm_sub_le_max' _ _) (pow_nonneg (norm_nonneg _) _)
+      _ = max (‖PowerSeries.coeff i G - ((Q n).coeff i : UniformSpace.Completion C)‖ * ‖l‖ ^ i)
+          (‖PowerSeries.coeff i G - ((Q m).coeff i : UniformSpace.Completion C)‖ * ‖l‖ ^ i) :=
+          max_mul_of_nonneg _ _ (pow_nonneg (norm_nonneg _) _)
+      _ ≤ max (q ^ (2 ^ m)) (q ^ (2 ^ n)) := by
+          rw [max_comm (q ^ (2 ^ m))]
+          exact max_le_max (hql n i) (hql m i)
+  · have h2 := tendsto_iff_norm_sub_tendsto_zero.1 (hconv ν' g₁ hcen₁)
+    refine h2.congr fun n ↦ ?_
+    set w := algebraMap (RatFunc C) L (aeval (gaussCoord b₀ (a - b₀)) (Q n))
+    have e : toLocal g₁ w - toLocal g₁ (y' : L) = -toLocal g₁ ((y' : L) - w) := by
+      rw [show (toLocal g₁) ((y' : L) - w) = toLocal g₁ (y' : L) - toLocal g₁ w from
+        map_sub (toLocal g₁) _ _, neg_sub]
+    rw [e, norm_neg, ← coe_nnnorm, ← extValuation_apply, hg₁]
+
+end Germ
+
 end TypeFour
 
 end SemistableReduction
