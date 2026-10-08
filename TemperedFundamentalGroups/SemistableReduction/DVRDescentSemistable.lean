@@ -10,7 +10,7 @@ import TemperedFundamentalGroups.SemistableReduction.DVRDescentNodeData
 
 Blueprint §9.12, O1. `isSemistableAt_of_descentData`: under the descent data of
 `DVRDescentAssembly`, the integral closure `B_E` of the node chart over `O_E` is semistable at
-`P' ∩ B_E`: it is étale-locally the node (`isAnnulusAt_of_branches`, S9).
+`P' ∩ B_E`: it is étale-locally the node (`BranchData.isAnnulusAt`, S9).
 
 * `isSemistableAt_of_descentData`: the semistability (`BranchData.isAnnulusAt` applied to
   `branchData`).
