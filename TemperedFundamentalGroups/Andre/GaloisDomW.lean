@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Andre.GaloisDom2
+import TemperedFundamentalGroups.SemistableReduction.StrongComponentA
 
 /-!
 # Galois objects over W-model levels (Blueprint §10.3.6, items 1–2)
@@ -23,7 +24,7 @@ W-model structure is recorded **on the level** (`Level.IsW x`), tied to `j`:
 * `coreLevel`: the level with trivial `H` of the core of domination (`dom_core`), and
   `dom_coreW`, the core of domination for a predicate on levels.
 * `dom_midW`, `isDominating_galClassW`, `galoisLimitDataW`: **(gal), (dom), (rig) for the Galois
-  objects over W-model levels**, from `Statement.StrongComponent` (whose component clause
+  objects over W-model levels**, from `Statement.StrongComponentA` (whose component clause
   produces the W-model data), on the x-line `x = (exists_finite_aeval (K := K) hR).choose`.
 
 A fixed member `(G₀, g₀)` of `galClassW` over the pointed Tate object `(X₀, x₀)` then serves as the
@@ -260,12 +261,13 @@ variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscret
   (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
 
 /-- **Domination by Galois objects over W-model levels** (`dom_mid` with the W-model data of the
-component clause of `StrongComponent` recorded on the level): if a connected Galois finite étale
+component clause of `StrongComponentA` recorded on the level): if a connected Galois finite étale
 `B` with a point `t₀` receives maps `f_k` from the levels of finitely many pointed objects
 `(X_k, x_k)`, then a member of `galClassW (Level.IsW x)` (`x` the x-line of
 `exists_finite_aeval`) dominates every `(X_k, x_k)`. -/
-theorem dom_midW (hW : SemistableReduction.Statement.StrongComponent.{u})
-    (hR : ringKrullDim R = 1) {n : ℕ}
+theorem dom_midW (hW : SemistableReduction.Statement.StrongComponentA.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1) {n : ℕ}
     (P : Fin n → Σ X : TempObj O R A, (tempFibre O R A V hV).obj X)
     (B : Type u) [CommRing B] [Algebra R B] [Algebra.Etale R B] [Module.Finite R B]
     (hBc : ∀ e : B, IsIdempotentElem e → e = 0 ∨ e = 1)
@@ -299,10 +301,13 @@ theorem dom_midW (hW : SemistableReduction.Statement.StrongComponent.{u})
     ext o
     simp only [levelStructureMap, RingHom.comp_apply, AlgHom.coe_toRingHom]
     exact (f i.down).commutes _
-  obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, -, hjS,
-    hact, hactj, hdomj, hdomS, -, hdim, hcomp⟩ :=
-    hW K O R hR (exists_finite_aeval (K := K) hR).choose
-      (exists_finite_aeval (K := K) hR).choose_spec B G
+  -- `G` acts trivially on `R`
+  letI : MulSemiringAction G R := MulSemiringAction.compHom R (1 : G →* RingAut R)
+  haveI : SMulCommClass G K R := ⟨fun _ _ _ => rfl⟩
+  obtain ⟨K', _, _, _, _, O', hO', _, ϖ', hϖ', c', c, e, j, act, dom, hss, he, -, hjS,
+    hact, hactj, hdomj, hdomS, hdim, hcomp⟩ :=
+    hW K O p hp hpm R hR (exists_finite_aeval (K := K) hR).choose
+      (exists_finite_aeval (K := K) hR).choose_spec B G (fun g r => (g : B ≃ₐ[R] B).commutes r)
       (ULift.{u} (Fin n)) c₀ j₀ hj₀
   haveI hK' : Algebra.Etale K K' :=
     ⟨Algebra.FormallyEtale.of_isSeparable K K',
@@ -492,8 +497,9 @@ theorem dom_midW (hW : SemistableReduction.Statement.StrongComponent.{u})
       congr 3)
 
 /-- **(dom)** The Galois objects over W-model levels dominate. -/
-theorem isDominating_galClassW (hW : SemistableReduction.Statement.StrongComponent.{u})
-    (hR : ringKrullDim R = 1) :
+theorem isDominating_galClassW (hW : SemistableReduction.Statement.StrongComponentA.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1) :
     IsDominating (tempFibre O R A V hV)
       (galClassW O R A Ω (Level.IsW (exists_finite_aeval (K := K) hR).choose)) := by
   classical
@@ -503,7 +509,7 @@ theorem isDominating_galClassW (hW : SemistableReduction.Statement.StrongCompone
   · subst hn
     haveI : Nonempty (R →ₐ[R] Ω) := ⟨Algebra.ofId R Ω⟩
     obtain ⟨B, _, _, _, _, t₀, -, hBc, hBg⟩ := exists_galoisClosure (R := R) (Ω := Ω) (B₀ := R)
-    obtain ⟨G, hG, hne, -⟩ := dom_midW V hV hW hR P B hBc hBg t₀ (fun k => k.elim0)
+    obtain ⟨G, hG, hne, -⟩ := dom_midW V hV hW p hp hpm hR P B hBc hBg t₀ (fun k => k.elim0)
       (fun k => k.elim0)
     exact ⟨G, hG, hne, fun k => k.elim0⟩
   · haveI : ∀ k, Algebra.Etale R ((P k).1.Lv.L.B) := fun k => (P k).1.Lv.L.etale
@@ -517,20 +523,22 @@ theorem isDominating_galClassW (hW : SemistableReduction.Statement.StrongCompone
       obtain ⟨g, hg⟩ := hpts ((q k).1.1.comp (Pi.evalAlgHom R (fun k => (P k).1.Lv.L.B) k))
       exact exists_algHom_of_pi hBc g t₀ k _ hg
     choose f hf using hf
-    obtain ⟨G, hG, hne, hdom⟩ := dom_midW V hV hW hR P B hBc hBg t₀ f hf
+    obtain ⟨G, hG, hne, hdom⟩ := dom_midW V hV hW p hp hpm hR P B hBc hBg t₀ f hf
     exact ⟨G, hG, hne, fun k => let ⟨m, u, h⟩ := hdom k; ⟨m, u, h⟩⟩
 
 /-- **(gal), (dom), (rig)** for the Galois objects over W-model levels (scheme case), from W10
 with components. -/
-theorem galoisLimitDataW (hW : SemistableReduction.Statement.StrongComponent.{u})
-    (hR : ringKrullDim R = 1) :
+theorem galoisLimitDataW (hW : SemistableReduction.Statement.StrongComponentA.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1) :
     IsGaloisClass (tempFibre O R A V hV)
         (galClassW O R A Ω (Level.IsW (exists_finite_aeval (K := K) hR).choose)) ∧
       IsDominating (tempFibre O R A V hV)
         (galClassW O R A Ω (Level.IsW (exists_finite_aeval (K := K) hR).choose)) ∧
       IsRigid (tempFibre O R A V hV)
         (galClassW O R A Ω (Level.IsW (exists_finite_aeval (K := K) hR).choose)) :=
-  ⟨isGaloisClass_galClassW V hV _, isDominating_galClassW V hV hW hR, isRigid_galClassW V hV _⟩
+  ⟨isGaloisClass_galClassW V hV _, isDominating_galClassW V hV hW p hp hpm hR,
+    isRigid_galClassW V hV _⟩
 
 end Mid
 

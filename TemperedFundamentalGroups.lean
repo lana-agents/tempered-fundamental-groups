@@ -21,6 +21,7 @@ import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.Andre.TheoremB
+import TemperedFundamentalGroups.Andre.TheoremBH
 import TemperedFundamentalGroups.Andre.TheoremBW
 import TemperedFundamentalGroups.Andre.Transfer
 import TemperedFundamentalGroups.Andre.TransferTate
@@ -191,6 +192,7 @@ import TemperedFundamentalGroups.Topology.CoverLength
 import TemperedFundamentalGroups.Topology.CoveringCode
 import TemperedFundamentalGroups.Topology.CurveCovering
 import TemperedFundamentalGroups.Topology.GenericLift
+import TemperedFundamentalGroups.Topology.HeightBound
 import TemperedFundamentalGroups.Topology.HeightLength
 import TemperedFundamentalGroups.Topology.TreeLength
 import TemperedFundamentalGroups.Topology.UniversalCovering

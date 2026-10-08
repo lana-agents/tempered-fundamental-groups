@@ -10,7 +10,7 @@ import TemperedFundamentalGroups.Andre.TheoremB
 # Theorem B from x-lengths (Blueprint §10.3.6, items 1–5)
 
 Scheme case. The Galois class is `galClassW O R A Ω (Level.IsW x)` (`x` the x-line of
-`exists_finite_aeval`), with (gal), (dom), (rig) from `Statement.StrongComponent`
+`exists_finite_aeval`), with (gal), (dom), (rig) from `Statement.StrongComponentA`
 (`galoisLimitDataW`). Its pointed members carry the length `lenW` (`Andre/LengthW.lean`): the
 length in the tree of the universal covering of the special fibre, with the x-lengths of the
 nodes as weights. From `Statement.HarmonicX` and `Statement.NodeOfTwoComponents`:
@@ -47,12 +47,15 @@ variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscret
   {Ω : Type u} [Field Ω] [IsAlgClosed Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
   (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
 
-/-- **Theorem B from the x-length function**: given the targeted `StrongComponent` and
+/-- **Theorem B from the x-length function**: given the targeted `StrongComponentA` (mixed
+characteristic) and
 `HarmonicX`, `NodeOfTwoComponents`, and the Tate loop for the length `lenW` (a fibre element of
 length `≤ ℓ₀ < ⊤` over `δ(d) x₀` in every pointed member over `(X₀, x₀)`), some element of
 `temperedPi1` has character `d`. -/
 theorem exists_character_eq_of_lenW
-    (hW : SemistableReduction.Statement.StrongComponent.{u})
+    (hW : SemistableReduction.Statement.StrongComponentA.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O)
     (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u})
     (hR : ringKrullDim R = 1) (ϖ : O) (hϖ : Irreducible ϖ) (d : Multiplicative ℤ)
@@ -63,7 +66,7 @@ theorem exists_character_eq_of_lenW
       ∃ γ, lenW V hV (exists_finite_aeval (K := K) hR).choose ϖ p γ ≤ ℓ₀ ∧
         (tempFibre O R A V hV).map f γ = FibreAut.deckAct (X₀ D) (deck D) d (basePoint D V hV)) :
     ∃ τ : temperedPi1 O R A V hV, character D V hV τ = d := by
-  obtain ⟨hgal, hdom, hrig⟩ := galoisLimitDataW (A := A) V hV hW hR
+  obtain ⟨hgal, hdom, hrig⟩ := galoisLimitDataW (A := A) V hV hW p hp hpm hR
   obtain ⟨α, hα⟩ := exists_deckCharacter_eq_of_length' hgal hdom hrig (X₀ D) (deck D)
     (basePoint D V hV) (isDeckTorsor D V hV) d (lenW V hV _ ϖ) ℓ₀
     (fun p => (lenW_self V hV ϖ p).trans_le zero_le)
@@ -76,7 +79,9 @@ in every pointed member, it suffices that fibre elements lift along pointed morp
 without increasing `lenW` (`hlift`, path lifting from (X1) of `HarmonicX`), and that one pointed
 member over `(X₀, x₀)` has an element over `δ(d) x₀` (`hbase`). -/
 theorem exists_character_eq_of_lenW_lift
-    (hW : SemistableReduction.Statement.StrongComponent.{u})
+    (hW : SemistableReduction.Statement.StrongComponentA.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O)
     (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u})
     (hR : ringKrullDim R = 1) (ϖ : O) (hϖ : Irreducible ϖ) (d : Multiplicative ℤ)
@@ -91,12 +96,12 @@ theorem exists_character_eq_of_lenW_lift
       (tempFibre O R A V hV).map f₀ p₀.g = basePoint D V hV ∧
       (tempFibre O R A V hV).map f₀ γ₀ = FibreAut.deckAct (X₀ D) (deck D) d (basePoint D V hV)) :
     ∃ τ : temperedPi1 O R A V hV, character D V hV τ = d := by
-  obtain ⟨-, hdom, hrig⟩ := galoisLimitDataW (A := A) V hV hW hR
+  obtain ⟨-, hdom, hrig⟩ := galoisLimitDataW (A := A) V hV hW p hp hpm hR
   obtain ⟨p₀, f₀, γ₀, hf₀, hγ₀⟩ := hbase
   have hfin : lenW V hV (exists_finite_aeval (K := K) hR).choose ϖ p₀ γ₀ ≠ ⊤ :=
     CurveConfig.tlen_ne_top (fun _ => by
       unfold WData.weight; split_ifs <;> simp) _ _
-  exact exists_character_eq_of_lenW D V hV hW hX hN hR ϖ hϖ d _ hfin
+  exact exists_character_eq_of_lenW D V hV hW p hp hpm hX hN hR ϖ hϖ d _ hfin
     (exists_loop_of_lift hdom hrig (X₀ D) (deck D) (basePoint D V hV) d _
       (fun f γ => lenW_map_le V hV hX hN ϖ hϖ f γ) hlift p₀ f₀ hf₀ γ₀ hγ₀)
 
@@ -118,12 +123,15 @@ variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscret
   (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
 
 /-- **Non-degeneracy of `temperedPi1 [Y/A]` from x-lengths** (Theorem B): for
-`Y = E_q ∖ (E[ℓ] + M)`, given `StrongComponent`, `HarmonicX`, `NodeOfTwoComponents` and the Tate
+`Y = E_q ∖ (E[ℓ] + M)`, given `StrongComponentA` (mixed characteristic), `HarmonicX`,
+`NodeOfTwoComponents` and the Tate
 loop of translation `n ≠ 0` for `lenW`, `temperedPi1 [Y/A]` has an open normal subgroup with
 infinite quotient. -/
 theorem nondegenerate_of_lenW {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) (hπ : π ≠ 0)
     (hπm : π ∈ IsLocalRing.maximalIdeal O)
-    (hSC : SemistableReduction.Statement.StrongComponent.{u})
+    (hSC : SemistableReduction.Statement.StrongComponentA.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O)
     (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u})
     (hR : ringKrullDim (geomOrbicurveRing W ℓ M) = 1) (ϖ : O) (hϖ : Irreducible ϖ)
@@ -139,8 +147,8 @@ theorem nondegenerate_of_lenW {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) (h
     ∃ N : Subgroup (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV),
       IsOpen (N : Set (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV)) ∧ N.Normal ∧
         Infinite (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV ⧸ N) := by
-  obtain ⟨τ, hτ⟩ := TateObject.exists_character_eq_of_lenW (data hW hπ hπm ℓ M) V hV hSC hX hN
-    hR ϖ hϖ (Multiplicative.ofAdd n) ℓ₀ hℓ₀ hloop
+  obtain ⟨τ, hτ⟩ := TateObject.exists_character_eq_of_lenW (data hW hπ hπm ℓ M) V hV hSC p hp hpm
+    hX hN hR ϖ hϖ (Multiplicative.ofAdd n) ℓ₀ hℓ₀ hloop
   refine nondegenerate_of_character_ne_one A A' V hV hW hπ hπm ⟨τ, ?_⟩
   change TateObject.character _ V hV τ ≠ 1
   rw [hτ]

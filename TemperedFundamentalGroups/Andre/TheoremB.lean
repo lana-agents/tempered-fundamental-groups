@@ -12,7 +12,7 @@ import TemperedFundamentalGroups.FibreFunctor.LengthLimit
 
 Scheme case (`A'` trivial). Let `𝒢` be a class of Galois objects of the tempered category with
 (gal), (dom), (rig) — e.g. `galClassW O R A' Ω (Level.IsW x)` (`galoisLimitDataW`, from
-`Statement.StrongComponent`). If the pointed members of `𝒢` carry a length function with
+`Statement.StrongComponentA`). If the pointed members of `𝒢` carry a length function with
 
 * base points of length `0`,
 * finitely many fibre elements of bounded length,
