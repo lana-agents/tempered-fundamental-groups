@@ -3,7 +3,7 @@ Copyright (c) 2026 The tempered-fundamental-groups contributors. All rights rese
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.SemistableReduction.DVRDescentAssembly
+import TemperedFundamentalGroups.SemistableReduction.DVRDescentNodeData
 import TemperedFundamentalGroups.SemistableReduction.VertexDescent
 import TemperedFundamentalGroups.SemistableReduction.ResidueDescent
 

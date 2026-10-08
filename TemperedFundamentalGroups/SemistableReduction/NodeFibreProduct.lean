@@ -12,7 +12,7 @@ Blueprint §9.12, O1 (S7.9, the algebraic end). Let `D` be a local ring over a r
 `ϖ ∈ O`, and `ψᵢ : D → Vᵢ` (`i = 1, 2`) maps to local domains whose residue maps
 `rᵢ : Vᵢ → k` agree on `D`. Suppose that the special fibre `D / ϖ D` *is* the fibre product of the
 branches: `ker ψ₁ ∩ ker ψ₂ = ϖ D`, and every `(a, b)` with `r₁ a = r₂ b` is `(ψ₁ z, ψ₂ z)`; that
-the residue field `k` comes from `O`, and that `u', v' ∈ D` map to `(t₁, 0)`, `(0, t₂)` with
+the residues of the `Vᵢ` come from `O`, and that `u', v' ∈ D` map to `(t₁, 0)`, `(0, t₂)` with
 `tᵢ` generating the maximal ideal of `Vᵢ`. Then the closed point of `D` is an ordinary double
 point with coordinates `u', v'` and branches `ker ψ₁`, `ker ψ₂`
 (`isOrdinaryDoublePoint_of_fibreProduct`). No normality or noetherianity is needed.
@@ -34,7 +34,8 @@ theorem isOrdinaryDoublePoint_of_fibreProduct {ϖ : O} (ψ₁ : D →+* V₁) (�
     (hker : ∀ z, ψ₁ z = 0 → ψ₂ z = 0 → z ∈ Ideal.span {algebraMap O D ϖ})
     (hϖ₁ : ψ₁ (algebraMap O D ϖ) = 0) (hϖ₂ : ψ₂ (algebraMap O D ϖ) = 0)
     (hfp : ∀ a b, r₁ a = r₂ b → ∃ z, ψ₁ z = a ∧ ψ₂ z = b)
-    (hO : ∀ κ : k, ∃ o : O, r₁ (ψ₁ (algebraMap O D o)) = κ)
+    (hO₁ : ∀ a : V₁, ∃ o : O, r₁ (ψ₁ (algebraMap O D o)) = r₁ a)
+    (hO₂ : ∀ b : V₂, ∃ o : O, r₁ (ψ₁ (algebraMap O D o)) = r₂ b)
     {u' v' : D} (hu₁ : maximalIdeal V₁ = Ideal.span {ψ₁ u'}) (hu₂ : ψ₂ u' = 0)
     (hv₂ : maximalIdeal V₂ = Ideal.span {ψ₂ v'}) (hv₁ : ψ₁ v' = 0)
     (hu0 : ψ₁ u' ≠ 0) (hv0 : ψ₂ v' ≠ 0) :
@@ -78,12 +79,12 @@ theorem isOrdinaryDoublePoint_of_fibreProduct {ϖ : O} (ψ₁ : D →+* V₁) (�
   -- lifts of elements of one branch
   have hlift₁ : ∀ a : V₁, ∃ z, ψ₁ z = a ∧ ∃ o : O, ψ₂ z = ψ₂ (algebraMap O D o) := by
     intro a
-    obtain ⟨o, ho⟩ := hO (r₁ a)
+    obtain ⟨o, ho⟩ := hO₁ a
     obtain ⟨z, hz₁, hz₂⟩ := hfp a (ψ₂ (algebraMap O D o)) (by rw [← hcomp, ho])
     exact ⟨z, hz₁, o, hz₂⟩
   have hlift₂ : ∀ b : V₂, ∃ z, ψ₂ z = b ∧ ∃ o : O, ψ₁ z = ψ₁ (algebraMap O D o) := by
     intro b
-    obtain ⟨o, ho⟩ := hO (r₂ b)
+    obtain ⟨o, ho⟩ := hO₂ b
     obtain ⟨z, hz₁, hz₂⟩ := hfp (ψ₁ (algebraMap O D o)) b ho
     exact ⟨z, hz₂, o, hz₁⟩
   refine
@@ -124,7 +125,7 @@ theorem isOrdinaryDoublePoint_of_fibreProduct {ϖ : O} (ψ₁ : D →+* V₁) (�
     · exact hpm
     · exact (hunit _).mpr ((hr₁ _).mpr hu'₁)
     · exact (hunit _).mpr (by rw [hv₁, map_zero])
-  · obtain ⟨o, ho⟩ := hO (r₁ (ψ₁ z))
+  · obtain ⟨o, ho⟩ := hO₁ (ψ₁ z)
     exact ⟨o, (hunit _).mpr (by rw [map_sub, map_sub, ho, sub_self])⟩
   · have hle : RingHom.ker ψ₁ * RingHom.ker ψ₂ ≤ 𝔔 := by
       rw [Ideal.mul_le]
