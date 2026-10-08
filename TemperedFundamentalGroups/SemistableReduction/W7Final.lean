@@ -11,6 +11,7 @@ import TemperedFundamentalGroups.SemistableReduction.S8DescentA6
 import TemperedFundamentalGroups.SemistableReduction.S8DescentTree
 import TemperedFundamentalGroups.SemistableReduction.S8FiniteBad
 import TemperedFundamentalGroups.SemistableReduction.DiscCondSmooth
+import TemperedFundamentalGroups.SemistableReduction.TypeFourKummerAssembly
 
 /-!
 # `StrongA` from the still open leaves
@@ -25,7 +26,9 @@ Blueprint §9.12 (final glue). Of the leaves of `W7.Leaves`, the following are p
 * (D⇒) `DiscCondOfSmooth` (O11): `ExhaustGluing.discCondOfSmooth`.
 
 `W7.OpenLeaves` collects the remaining ones: the off-skeleton clause of (T⇒) (lemma (L)),
-(T⇐), (D⇐), the type-3 germ, R5 and the type-4 leaf. **`W10Assembly.strongA_of_openLeaves`**.
+(T⇐), (D⇐), the type-3 germ, R5 and the two parts of the type-4
+leaf (`TypeFour.DegreeReductionFor`, `TypeFour.CoreGFor`, assembled by
+`TypeFour.typeFourGoodFor_of_degreeReduction`). **`W10Assembly.strongA_of_openLeaves`**.
 -/
 
 universe u
@@ -64,11 +67,14 @@ structure OpenLeaves : Prop where
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
     [FiniteDimensional (RatFunc C) F] [IsGalois (RatFunc C) F], DefinedOverDVR C F →
     S8A.R5MeasureFor C F
-  /-- Goodness near type-4 points (leaf T4). -/
-  typeFour : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
+  /-- Type-4 leaf, part (d): the degree reduction at type-4 points (Temkin §6.3). -/
+  degreeReduction : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C]
+    [IsAlgClosed C] [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 → TypeFour.DegreeReductionFor C p
+  /-- Type-4 leaf, part (G): smoothness from a topological generator, for Galois `F`. -/
+  coreG : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F], DefinedOverDVR C F → S8A.TypeFourGoodFor C F
+    [FiniteDimensional (RatFunc C) F] [IsGalois (RatFunc C) F], TypeFour.CoreGFor C F
 
 /-- The leaves of `W7.Statement` from the still open ones. -/
 theorem leaves_of_open (h : OpenLeaves.{u}) : Leaves.{u, u} where
@@ -93,7 +99,10 @@ theorem leaves_of_open (h : OpenLeaves.{u}) : Leaves.{u, u} where
   finiteBad := by
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _
     exact S8A.finiteBadFor hp hp1 F
-  typeFour := h.typeFour
+  typeFour := by
+    intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _
+    exact TypeFour.typeFourGoodFor_of_degreeReduction hp hp1 (h.degreeReduction C p hp hp1)
+      (fun L _ _ _ _ _ _ ↦ h.coreG C p hp hp1 L) (fun L _ _ _ _ _ _ _ _ ↦ a6For hp hp1)
   descent := S8A.s8cDescent_of h.offSkeleton h.exhOfTube
 
 /-- **`W7.Statement` from the still open leaves.** -/
