@@ -29,7 +29,7 @@ namespace SemistableReduction
 namespace Type3
 
 variable {C K : Type*} [NontriviallyNormedField C] [IsUltrametricDist C]
-  [NontriviallyNormedField K] [IsUltrametricDist K] [NormedAlgebra C K]
+  [NormedField K] [IsUltrametricDist K] [NormedAlgebra C K]
 
 variable (C) in
 /-- `y` is **value-transcendental** over `C`: its norm is not a norm of `C`. -/
