@@ -1744,3 +1744,45 @@ Cost estimate beyond `StrongA` (high uncertainty):
   component (Zariski connectedness; the hardest part) ≈ 2–4k.
 
 Total ≈ 5–7k.
+
+**Update (2026-10-08): route of §10.3.8 as implemented.**
+
+* *I7 assembly* (`Andre/TheoremBH.lean`, `TateObject.exists_character_eq_of_hcw`) is proved. Its
+  inputs are:
+  * gal/dom/rig of `galClassW`; domination now comes from `StrongComponentA` (mixed
+    characteristic, perfect residue field);
+  * `HarmonicX` + `NodeOfTwoComponents`;
+  * a pointed member `(Y₀, y₀)` over `(X₀, x₀)`;
+  * `hfin` (the sets `HCW ≤ ℓ₀` are finite) and `hne` (a loop element exists in every member over
+    `Y₀`).
+
+  The sets are `S_p = {γ | ∃ a : G ⟶ X₀, a g = x₀, a γ = δ(d) x₀, HCW(g, γ) ≤ ℓ₀}` over the
+  members admitting a map to `Y₀` (`GaloisLimit.overY`).
+* *The base loop `C_w` and the base model `𝒴` are dropped.* `hne` for every `p` over
+  `(Y₀, y₀)` comes from **one** loop element `γ₀` of `Y₀` (`a₀ γ₀ = δ(d) x₀`), by transport:
+  1. Conjugate the automorphism `κ` of `Y₀` (`κ y₀ = γ₀`) by tree deck transformations `τ`.
+     The character is unchanged, and the displacement at any component vertex is at most
+     `ℓ₀ = max` over the finitely many component labels of `Y₀`.
+  2. Lift the `Y₀`-walk via (X1).
+  3. Realise the end by `π ∈ End(U_p)`, a σ-lift (`liftHom`, `exists_lift`, `hom_ext`). Here `σ`
+     comes from I4 in **relative** form: `Aut_{B₀}(B)` is transitive on the components over a
+     given component of `Y₀`.
+* *Remaining geometric inputs:*
+  * (G1) Some component of each member is not contracted over the Tate model `𝒯`.
+  * (hbase) Some member `Y₀` has an element over `δ(d) x₀` with `d ≠ 0`, i.e. a winding
+    crossing at both nodes of the Tate 2-gon. This uses the predecessor's `[-1]`-symmetry. The
+    automorphism `[-1]` of `R = geomOrbicurveRing W ℓ M` is `⟨-1, 0⟩ ∈ affGroup W M true`
+    (`Orbicurve/GeomStable.lean`), for every IUT orbicurve; `±1 ⊆ A` is not needed.
+* **Non-degeneracy condition `T.x` transcendental (counterexample without it).**
+  `TateObject.Data` allows constant data `x, y ∈ K` (a `K`-rational point of the Tate curve).
+  Then:
+  * `j : Spec R → 𝒯` factors through the closure of one point of the generic fibre;
+  * every member's model map to `𝒯` sends its special fibre into the specialization of that
+    point;
+  * the covering maps to `X₀` land in a single sheet, so the deck character of every element of
+    `temperedPi1` is trivial.
+
+  Theorem B for `X₀` is therefore **false** for constant data. The final TateObject-level
+  theorem carries the explicit named hypothesis `hx : Transcendental K T.x`. It holds for the
+  IUT data `data hW hπ hπm ℓ M`, where `x` is the coordinate function. G1 uses it, through the
+  dominance of `j_𝒯` (`TateNormal.closure_range_toProj`).
