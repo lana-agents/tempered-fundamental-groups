@@ -6,6 +6,7 @@ import TemperedFundamentalGroups.Andre.GaloisClass2
 import TemperedFundamentalGroups.Andre.GaloisDom2
 import TemperedFundamentalGroups.Andre.GaloisDomW
 import TemperedFundamentalGroups.Andre.GaloisObject
+import TemperedFundamentalGroups.Andre.HeightW
 import TemperedFundamentalGroups.Andre.LengthW
 import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.ProjPoints
@@ -154,6 +155,7 @@ import TemperedFundamentalGroups.SemistableReduction.SplitDisc
 import TemperedFundamentalGroups.SemistableReduction.Splitting
 import TemperedFundamentalGroups.SemistableReduction.Statement
 import TemperedFundamentalGroups.SemistableReduction.StrongA
+import TemperedFundamentalGroups.SemistableReduction.StrongComponentA
 import TemperedFundamentalGroups.SemistableReduction.StrongComponent
 import TemperedFundamentalGroups.SemistableReduction.TameLocal
 import TemperedFundamentalGroups.SemistableReduction.TrdegOne

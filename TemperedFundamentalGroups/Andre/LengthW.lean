@@ -84,8 +84,18 @@ structure Pres (x : R) (X : TempObj O R A) where
   D : WData x Lv
   /-- The identification with the Galois object. -/
   iso : X ≅ universalObj Lv hdim z₀
+  /-- `B` is connected. -/
+  idem : ∀ e : Lv.L.B, IsIdempotentElem e → e = 0 ∨ e = 1
+  /-- `Aut_R(B)` acts on the model. -/
+  act : ∀ σ : Lv.L.B ≃ₐ[R] Lv.L.B, ∃ ψ : Lv.c.scheme ⟶ Lv.c.scheme,
+    ψ ≫ Lv.c.toSpec = Lv.c.toSpec ∧
+    Lv.j ≫ ψ = Spec.map (CommRingCat.ofHom (σ : Lv.L.B →+* Lv.L.B)) ≫ Lv.j
+  /-- The level is semistable. -/
+  ss : IsSemistableLevel Lv
+  /-- `j` is scheme-theoretically dominant. -/
+  [dom : IsSchemeTheoreticallyDominant Lv.j]
 
-attribute [instance] Pres.sub Pres.noeth Pres.t0 Pres.qs Pres.conn
+attribute [instance] Pres.sub Pres.noeth Pres.t0 Pres.qs Pres.conn Pres.dom
 
 namespace Pres
 
@@ -93,9 +103,9 @@ variable {X : TempObj O R A}
 
 omit [Algebra K Ω] [IsScalarTower K R Ω] in
 lemma nonempty (hX : galClassW O R A Ω (Level.IsW x) X) : Nonempty (Pres x X) := by
-  obtain ⟨Lv, _, _, _, _, _, hdim, z₀, hP, -, -, -, -, -, -, ⟨iso⟩⟩ := hX
+  obtain ⟨Lv, _, _, _, _, _, hdim, z₀, hP, -, -, hidem, hact, hss, hdom, ⟨iso⟩⟩ := hX
   obtain ⟨D⟩ := WData.nonempty_of_isW hP
-  exact ⟨⟨Lv, hdim, z₀, D, iso⟩⟩
+  exact ⟨⟨Lv, hdim, z₀, D, iso, hidem, hact, hss⟩⟩
 
 variable (P : Pres x X)
 
