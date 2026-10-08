@@ -20,9 +20,10 @@ Let `X` be a scheme, `F` a field and `g : Spec F ⟶ X` (a "generic point"). A v
   unique (valuative criterion); in particular the centre of `V` is unique;
 * `exists_lift`: on a scheme universally closed over `Spec A`, `g` extends to `Spec V` as soon as
   the composite `Spec F ⟶ Spec A` does (valuative criterion);
-* `CentreDetermines g x`: at most one valuation subring of `F` has centre `x` (true at the generic
-  points of the components of the special fibre of a model whose local rings there are valuation
-  rings of `F`, e.g. DVRs with fraction field `F`).
+* `CentreDetermines g x`: at most one valuation subring of `F` has centre `x`;
+  `centreDetermines_of_isValuation`: this holds if the image of `𝒪_{X,x} → F` is a valuation
+  subring of `F` (e.g. at the generic points of the components of the special fibre of a model
+  whose local rings there are DVRs with fraction field `F`).
 -/
 
 universe u
@@ -112,6 +113,54 @@ theorem exists_lift {A : CommRingCat.{u}} (f : X ⟶ Spec A) [UniversallyClosed 
     { R := V, K := F, i₁ := g, i₂ := Spec.map a, commSq := ⟨hg⟩ }
   obtain ⟨l, hl₁, hl₂⟩ := (hE S).exists_lift
   exact ⟨l, hl₁, hl₂⟩
+
+/-- **The centre determines the valuation where the local ring is a valuation ring**: if `x`
+specializes from the image of `g` and the image of the local ring `𝒪_{X,x} → 𝒪_{X,g} → F` is a
+valuation subring of `F` (e.g. `𝒪_{X,x}` a DVR with fraction field `F` through `g`), then this
+image is the only valuation subring of `F` with centre `x`. -/
+theorem centreDetermines_of_isValuation (g : Spec (CommRingCat.of F) ⟶ X) {x : X}
+    (h : g (closedPoint F) ⤳ x)
+    (hval : ∀ y : F,
+      y ∈ (X.presheaf.stalkSpecializes h ≫ Scheme.stalkClosedPointTo g).hom.range ∨
+        y⁻¹ ∈ (X.presheaf.stalkSpecializes h ≫ Scheme.stalkClosedPointTo g).hom.range) :
+    CentreDetermines g x := by
+  let V₀ : ValuationSubring F :=
+    ⟨(X.presheaf.stalkSpecializes h ≫ Scheme.stalkClosedPointTo g).hom.range, hval⟩
+  suffices H : ∀ V, IsCentre g V x → V = V₀ by
+    intro V₁ V₂ h₁ h₂
+    rw [H V₁ h₁, H V₂ h₂]
+  rintro V ⟨l, hl, rfl⟩
+  have key : X.presheaf.stalkSpecializes h ≫ Scheme.stalkClosedPointTo g =
+      Scheme.stalkClosedPointTo l ≫ CommRingCat.ofHom (algebraMap V F) := by
+    apply Spec.map_injective
+    rw [← cancel_mono (X.fromSpecStalk _)]
+    rw [Spec.map_comp, Category.assoc, Scheme.SpecMap_stalkSpecializes_fromSpecStalk,
+      Scheme.Spec_stalkClosedPointTo_fromSpecStalk, Spec.map_comp, Category.assoc,
+      Scheme.Spec_stalkClosedPointTo_fromSpecStalk, hl]
+  have hle : V₀.toLocalSubring ≤ V.toLocalSubring := by
+    have hsub : V₀.toLocalSubring.toSubring ≤ V.toLocalSubring.toSubring := by
+      rintro _ ⟨a, rfl⟩
+      change (X.presheaf.stalkSpecializes h ≫ Scheme.stalkClosedPointTo g).hom a ∈ V
+      rw [key]
+      exact ((Scheme.stalkClosedPointTo l).hom a).2
+    refine ⟨hsub, ⟨?_⟩⟩
+    · intro y hu
+      obtain ⟨a, ha⟩ := y.2
+      have he : Subring.inclusion hsub y = (Scheme.stalkClosedPointTo l).hom a := by
+        apply Subtype.ext
+        change y.1 = _
+        rw [← ha]
+        change (X.presheaf.stalkSpecializes h ≫ Scheme.stalkClosedPointTo g).hom a = _
+        rw [key]
+        rfl
+      rw [he] at hu
+      have hau : IsUnit a := isUnit_of_map_unit (Scheme.stalkClosedPointTo l).hom a hu
+      have hy : (X.presheaf.stalkSpecializes h ≫ Scheme.stalkClosedPointTo g).hom.rangeRestrict a =
+          y := Subtype.ext ha
+      rw [← hy]
+      exact hau.map _
+  exact ValuationSubring.toLocalSubring_injective
+    (le_antisymm (V₀.isMax_toLocalSubring hle) hle)
 
 end ValuativeCentre
 
