@@ -19,6 +19,8 @@ discharged by a separate helper; nothing here is assumed as an axiom):
   proof: `discDegree ν P' = Σ_{branches (v, Q) at P'} ord_Q x̄` (B1 with a separating element and
   the norm reduction `map_lift_eq_prod` of `VertexMatch`, for the disc chart), so there is one
   branch with `ord_Q x̄ = 1`, and `SmoothVertex.exists_eq_of_uniformizer` with `t = x`.
+* **`DiscDegreeSum G`** (step (1′)): `discDegree ν P' = Σ_{branches (v, Q) at P'} ord_Q x̄`, the
+  first step of the expected proof of `SheetSmooth`, stated separately for other consumers.
 * **`ChartTransfer e`** (step (4), change of coordinate): `e : G₂ ≃+* G₁` is an isomorphism of
   fields over `C` between two finite extensions of `C(x)`, i.e. one field with two coordinates
   `x` (on `G₁`) and `σ = e x` (the coordinate of `G₂`, read in `G₁`). If `σ` is integral over
@@ -58,6 +60,16 @@ def SheetSmooth : Prop :=
   ∀ (ν : DiscVal (0 : C) 1) (P' : Ideal (DRint (0 : C) 1 G)) [P'.IsMaximal],
     P'.comap (algebraMap (discRing (0 : C) 1) (DRint (0 : C) 1 G)) = discIdeal (0 : C) 1 →
     discDegree ν P' = 1 → IsDiscSmooth P'
+
+/-- **(1′) Disc degree = sum of branch orders** (the disc-chart analogue of S6, the expected first
+step of `SheetSmooth`; shared with the proof of `TypeFour.CoreGFor`): for a point `P'` of
+`DRint 0 1 G` over the residue point, the disc degree (at any disc valuation of the open unit disc)
+is the sum over the branches `(v, Q)` through `P'` of `ord_Q x̄`. -/
+def DiscDegreeSum : Prop :=
+  ∀ (ν : DiscVal (0 : C) 1) (P' : Ideal (DRint (0 : C) 1 G)) [P'.IsMaximal],
+    P'.comap (algebraMap (discRing (0 : C) 1) (DRint (0 : C) 1 G)) = discIdeal (0 : C) 1 →
+    discDegree ν P' = ∑ᶠ (b : OuterBranch C G) (_ : b ∈ discBranches P'),
+      ord (red C (xF C G) b.1) b.2.1
 
 variable {G}
 
