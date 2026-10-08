@@ -13,6 +13,7 @@ import TemperedFundamentalGroups.Andre.HeightW
 import TemperedFundamentalGroups.Andre.LengthW
 import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.ProjPoints
+import TemperedFundamentalGroups.Andre.PointLift
 import TemperedFundamentalGroups.Andre.Pullback
 import TemperedFundamentalGroups.Andre.Refinement
 import TemperedFundamentalGroups.Andre.TateCovering

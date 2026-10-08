@@ -120,4 +120,22 @@ lemma curveConfig_not_contr_of_injective (hdim : topologicalKrullDim Z ≤ 1) {�
   rw [hy] at h₁ h₂
   exact hψ (h₁.trans h₂.symm)
 
+
+omit [NoetherianSpace Z'] [T0Space Z'] [QuasiSober Z'] in
+/-- The image of a component under a continuous closed map is the closure of the image of its
+generic point. -/
+lemma curveConfig_image_eq_closure (hdim : topologicalKrullDim Z ≤ 1) {ψ : Z → Z'}
+    (hψ : Continuous ψ) (hψc : IsClosedMap ψ) (i : irreducibleComponents Z) :
+    ψ '' (curveConfig Z hdim).C i = closure {ψ ((curveConfig Z hdim).η i)} := by
+  rw [curveConfig_C, curveConfig_η]
+  set η := i.2.1.genericPoint
+  have hcl : IsClosed i.1 := isClosed_of_mem_irreducibleComponents i.1 i.2
+  have hgen : closure {η} = i.1 := i.2.1.isGenericPoint_genericPoint hcl
+  have hηi : η ∈ i.1 := hgen ▸ subset_closure (mem_singleton η)
+  refine subset_antisymm ?_ ((hψc _ hcl).closure_subset_iff.2
+    (singleton_subset_iff.2 (mem_image_of_mem ψ hηi)))
+  calc ψ '' i.1 = ψ '' closure {η} := by rw [hgen]
+    _ ⊆ closure (ψ '' {η}) := image_closure_subset_closure_image hψ
+    _ = closure {ψ η} := by rw [image_singleton]
+
 end TemperedFundamentalGroups

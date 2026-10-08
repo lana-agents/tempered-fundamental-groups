@@ -5,6 +5,8 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Andre.TheoremBH
 import TemperedFundamentalGroups.Topology.CurveGeneric
+import TemperedFundamentalGroups.Andre.PointLift
+import TemperedFundamentalGroups.Andre.GTransitive
 
 /-!
 # Transport of loop elements between members (Blueprint §10.3.8, transport)
@@ -198,6 +200,217 @@ theorem exists_conj (hX : SemistableReduction.Statement.HarmonicX.{u})
   rw [covMap_comp, covMap_comp, hinv, hκ, Q.covMap_gen Q D.hom hj (hDc j), hend, hY'eq]
 
 end Conj
+
+section Lift
+
+/-- **Rigidity**: two morphisms out of `U` with the same map of rings which agree at one point of
+the universal covering are equal. -/
+lemma hom_eq_of (f g : P.U ⟶ Q.U) (hf : f.φ.f = g.φ.f) (e : P.E)
+    (he : covMap P Q f e = covMap P Q g e) : f = g := by
+  haveI : Subsingleton Q.U.Lv.L.H := Q.sub
+  haveI : IsSchemeTheoreticallyDominant P.U.Lv.j := P.dom
+  have hφ : f.φ = g.φ :=
+    FiniteLevel.Hom.ext hf (MonoidHom.ext fun _ => Subsingleton.elim _ _)
+  have hψ : f.ψ = g.ψ := by
+    refine ext_of_isSchemeTheoreticallyDominant_of_isSeparated Q.U.Lv.c.toSpec
+      (by rw [f.ψ_toSpec, g.ψ_toSpec]) P.U.Lv.j ?_
+    rw [f.j_ψ, g.j_ψ, hφ]
+  refine hom_ext hφ hψ (P.Θ' ⟨1, e⟩) ?_
+  rw [← Q.Θ'_ecov (f.h _), ← Q.Θ'_ecov (g.h _)]
+  exact congrArg (fun e => Q.Θ' ⟨1, e⟩) he
+
+/-- Morphisms out of `U` with the same map of rings have the same model map. -/
+lemma ψ_eq_of_φ (f g : P.U ⟶ Q.U) (hf : f.φ.f = g.φ.f) : f.ψ = g.ψ := by
+  haveI : Subsingleton Q.U.Lv.L.H := Q.sub
+  haveI : IsSchemeTheoreticallyDominant P.U.Lv.j := P.dom
+  have hφ : f.φ = g.φ :=
+    FiniteLevel.Hom.ext hf (MonoidHom.ext fun _ => Subsingleton.elim _ _)
+  refine ext_of_isSchemeTheoreticallyDominant_of_isSeparated Q.U.Lv.c.toSpec
+    (by rw [f.ψ_toSpec, g.ψ_toSpec]) P.U.Lv.j ?_
+  rw [f.j_ψ, g.j_ψ, hφ]
+
+/-- **Endomorphisms of `U` over a model automorphism, through prescribed points.** -/
+lemma exists_endo (σ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B) (ψσ : P.Lv.c.scheme ⟶ P.Lv.c.scheme)
+    (hψ : ψσ ≫ P.Lv.c.toSpec = P.Lv.c.toSpec)
+    (hj : P.Lv.j ≫ ψσ = Spec.map (CommRingCat.ofHom (σ : P.Lv.L.B →+* P.Lv.L.B)) ≫ P.Lv.j)
+    (e₁ e₂ : P.E) (h : e₂.1.1 = specialFibreMap ψσ hψ e₁.1.1) :
+    ∃ f : P.U ⟶ P.U, f.φ.f = (σ : P.Lv.L.B →ₐ[R] P.Lv.L.B) ∧ f.ψ = ψσ ∧
+      covMap P P f e₁ = e₂ := by
+  haveI : IsSchemeTheoreticallyDominant P.Lv.j := P.dom
+  let ℓ := P.Lv.autHom σ ψσ hψ hj
+  let hp := universalCovering.isUniversalCovering.{u, u, u} P.hdim P.z₀
+  obtain ⟨s, hs, hps, hse⟩ := hp.exists_lift P.Lv.Z P.U.P.carrier (fun x => x.1.1)
+    P.U.P.isCoveringMap (ℓ.ψs ∘ universalCovering.proj P.hdim P.z₀)
+    (ℓ.continuous_ψs.comp hp.isCoveringMap.continuous) e₁ (P.Θ' ⟨1, e₂⟩) (by
+      change (P.Θ' ⟨1, e₂⟩).1.1 = specialFibreMap ψσ hψ e₁.1.1
+      rw [← h]
+      exact (Θ_fst _).trans (indProj_one _ _))
+  have hps' : ∀ e, (s e).1.1 = ℓ.ψs (universalCovering.proj P.hdim P.z₀ e) := congrFun hps
+  have key := liftHom_h_one (hp := hp) (hc := hp.countable_fibre) ℓ
+    (LevelHom.isEquivariant_of_isSchemeTheoreticallyDominant ℓ) hs hps' e₁
+  exact ⟨liftHom hp hp.countable_fibre ℓ
+    (LevelHom.isEquivariant_of_isSchemeTheoreticallyDominant ℓ) hs hps', rfl, rfl,
+    (congrArg P.ecov key).trans (by rw [hse, P.ecov_Θ'])⟩
+
+/-- The model maps of `σ` and `σ⁻¹` are inverse (by dominance of `j`). -/
+lemma model_inv (σ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B) {ψ ψ' : P.Lv.c.scheme ⟶ P.Lv.c.scheme}
+    (hψ' : ψ' ≫ P.Lv.c.toSpec = P.Lv.c.toSpec)
+    (hψ : ψ ≫ P.Lv.c.toSpec = P.Lv.c.toSpec)
+    (hj : P.Lv.j ≫ ψ = Spec.map (CommRingCat.ofHom (σ : P.Lv.L.B →+* P.Lv.L.B)) ≫ P.Lv.j)
+    (hj' : P.Lv.j ≫ ψ' =
+      Spec.map (CommRingCat.ofHom (σ.symm : P.Lv.L.B →+* P.Lv.L.B)) ≫ P.Lv.j) :
+    ψ ≫ ψ' = 𝟙 _ := by
+  haveI := P.dom
+  refine ext_of_isSchemeTheoreticallyDominant_of_isSeparated P.Lv.c.toSpec
+    (by rw [Category.assoc, hψ', hψ, Category.id_comp]) P.Lv.j ?_
+  rw [← Category.assoc, hj, Category.assoc, hj', ← Category.assoc, ← Spec.map_comp,
+    ← CommRingCat.ofHom_comp, Category.comp_id]
+  have : (σ : P.Lv.L.B →+* P.Lv.L.B).comp (σ.symm : P.Lv.L.B →+* P.Lv.L.B) = RingHom.id _ :=
+    RingHom.ext fun b => σ.apply_symm_apply b
+  rw [this]
+  erw [Spec.map_id, Category.id_comp]
+
+lemma sfm_comp_eq (σ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B) {ψ ψ' : P.Lv.c.scheme ⟶ P.Lv.c.scheme}
+    (hψ' : ψ' ≫ P.Lv.c.toSpec = P.Lv.c.toSpec)
+    (hψ : ψ ≫ P.Lv.c.toSpec = P.Lv.c.toSpec)
+    (hj : P.Lv.j ≫ ψ = Spec.map (CommRingCat.ofHom (σ : P.Lv.L.B →+* P.Lv.L.B)) ≫ P.Lv.j)
+    (hj' : P.Lv.j ≫ ψ' =
+      Spec.map (CommRingCat.ofHom (σ.symm : P.Lv.L.B →+* P.Lv.L.B)) ≫ P.Lv.j) (z : P.Lv.Z) :
+    specialFibreMap ψ' hψ' (specialFibreMap ψ hψ z) = z := by
+  apply Subtype.ext
+  change (ψ ≫ ψ') z.1 = z.1
+  rw [P.model_inv σ hψ' hψ hj hj']
+  rfl
+
+/-- **I4 for a morphism of members** (relative G-transitivity), as used by the transport: two
+components of the source with the same (non-point) image are conjugate under an automorphism of
+`B` fixing `B₀`. -/
+def HasI4 (m : P.U ⟶ Q.U) : Prop :=
+  ∀ a b : irreducibleComponents P.Lv.Z,
+    ¬ Contr (K := curveConfig P.Lv.Z P.hdim) (sfm P Q m) a →
+    sfm P Q m '' (curveConfig P.Lv.Z P.hdim).C a = sfm P Q m '' (curveConfig P.Lv.Z P.hdim).C b →
+    ∃ τ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B, (τ : P.Lv.L.B →ₐ[R] P.Lv.L.B).comp m.φ.f = m.φ.f ∧
+      ∃ (ψτ : P.Lv.c.scheme ⟶ P.Lv.c.scheme) (hψτ : ψτ ≫ P.Lv.c.toSpec = P.Lv.c.toSpec),
+        P.Lv.j ≫ ψτ = Spec.map (CommRingCat.ofHom (τ : P.Lv.L.B →+* P.Lv.L.B)) ≫ P.Lv.j ∧
+        specialFibreMap ψτ hψτ '' (curveConfig P.Lv.Z P.hdim).C a =
+          (curveConfig P.Lv.Z P.hdim).C b
+
+/-- **Lifting an endomorphism of `Y₀` to an automorphism of `U` through prescribed vertices.**
+Let `m : U ⟶ U₀` and `κ` an endomorphism of `U₀`. If `κ m` maps the generic point of a component
+vertex `n` to the image of the generic point of `n''` (non-contracted), there is an automorphism
+`π` of `U` with `π m = m κ` and `π (gen n) = gen n''`. -/
+theorem exists_iso_over {Ω : Type u} [Field Ω] [IsAlgClosed Ω] [Algebra R Ω]
+    (t : P.Lv.L.B →ₐ[R] Ω)
+    (hgal : ∀ t t' : P.Lv.L.B →ₐ[R] Ω, ∃ σ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B,
+      t.comp (σ : P.Lv.L.B →ₐ[R] P.Lv.L.B) = t')
+    (m : P.U ⟶ Q.U) (κ : Q.U ⟶ Q.U) (hns : P.NoPt) (hI4 : P.HasI4 Q m)
+    {n n'' : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀)}
+    {i i'' : irreducibleComponents P.Lv.Z} (hn : n.1.head? = some (.inl i))
+    (hn'' : n''.1.head? = some (.inl i''))
+    (hc'' : ¬ Contr (K := curveConfig P.Lv.Z P.hdim) (sfm P Q m) i'')
+    (hκ : covMap Q Q κ (covMap P Q m (gen n)) = covMap P Q m (gen n'')) :
+    ∃ π : P.U ≅ P.U, π.hom ≫ m = m ≫ κ ∧ covMap P P π.hom (gen n) = gen n'' := by
+  haveI := P.dom
+  haveI := Q.D.isDomain
+  haveI := P.D.isDomain
+  haveI := P.Lv.L.etale
+  haveI := P.Lv.L.finite
+  haveI := Q.Lv.L.etale
+  haveI := Q.Lv.L.finite
+  let φ : Q.Lv.L.B →ₐ[R] P.Lv.L.B := m.φ.f
+  obtain ⟨σ₁, hσ₁⟩ := exists_aut_comp_eq P.idem hgal t φ κ.φ.f
+  obtain ⟨ψ₁, hψ₁, hj₁⟩ := P.act σ₁
+  obtain ⟨ψ₁', hψ₁', hj₁'⟩ := P.act σ₁.symm
+  -- `ψ₁` contracts nothing
+  have hinj₁ : Function.Injective (specialFibreMap ψ₁ hψ₁) := fun a b h => by
+    rw [← P.sfm_comp_eq σ₁ hψ₁' hψ₁ hj₁ hj₁' a, ← P.sfm_comp_eq σ₁ hψ₁' hψ₁ hj₁ hj₁' b, h]
+  have hnc₁ := curveConfig_not_contr_of_injective P.hdim hinj₁ hns i
+  obtain ⟨a, ha, -⟩ := curveConfig_contr_or P.hdim P.hdim (continuous_specialFibreMap _ _)
+    (isClosedMap_specialFibreMap' ψ₁ hψ₁) i hnc₁
+  have hηa := curveConfig_map_η P.hdim P.hdim (continuous_specialFibreMap ψ₁ hψ₁) ha
+  -- `ψ₁ m = m κ` on special fibres
+  have hcomp : ∀ z : P.Lv.Z, sfm P Q m (specialFibreMap ψ₁ hψ₁ z) = sfm Q Q κ (sfm P Q m z) := by
+    let hp := universalCovering.isUniversalCovering.{u, u, u} P.hdim P.z₀
+    haveI := hp.connectedSpace
+    obtain ⟨e₂, he₂⟩ := hp.isCoveringMap.surjective_of_connectedSpace
+      (specialFibreMap ψ₁ hψ₁ (gen n).1.1)
+    obtain ⟨f₁, hf₁φ, hf₁ψ, -⟩ := P.exists_endo σ₁ ψ₁ hψ₁ hj₁ (gen n) e₂ he₂
+    have hψeq := P.ψ_eq_of_φ Q (f₁ ≫ m) (m ≫ κ) (by
+      change f₁.φ.f.comp m.φ.f = m.φ.f.comp κ.φ.f
+      rw [hf₁φ]
+      exact hσ₁)
+    intro z
+    apply Subtype.ext
+    have := congrArg (fun F => F z.1) hψeq
+    simp only [comp_ψ, Scheme.Hom.comp_apply, hf₁ψ] at this
+    exact this
+  -- `C a` and `C i''` have the same image
+  have hgenη : ∀ (e : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀))
+      (j : irreducibleComponents P.Lv.Z), e.1.head? = some (.inl j) →
+      (gen e).1.1 = (curveConfig P.Lv.Z P.hdim).η j := fun e j he => gen_fst_of_inl he
+  have hpt : sfm P Q m ((curveConfig P.Lv.Z P.hdim).η a) =
+      sfm P Q m ((curveConfig P.Lv.Z P.hdim).η i'') := by
+    have h₁ := congrArg (fun e => e.1.1) hκ
+    simp only [covMap_fst] at h₁
+    rw [hgenη n i hn, hgenη n'' i'' hn''] at h₁
+    rw [← hηa, hcomp]
+    exact h₁
+  have himg : sfm P Q m '' (curveConfig P.Lv.Z P.hdim).C a =
+      sfm P Q m '' (curveConfig P.Lv.Z P.hdim).C i'' := by
+    have e₁ := curveConfig_image_eq_closure (Z := P.Lv.Z) P.hdim (ψ := sfm P Q m)
+      (continuous_specialFibreMap _ _) (isClosedMap_specialFibreMap m) a
+    have e₂ := curveConfig_image_eq_closure (Z := P.Lv.Z) P.hdim (ψ := sfm P Q m)
+      (continuous_specialFibreMap _ _) (isClosedMap_specialFibreMap m) i''
+    rw [e₁, e₂, hpt]
+  have hca : ¬ Contr (K := curveConfig P.Lv.Z P.hdim) (sfm P Q m) a := fun ⟨y, hy⟩ =>
+    hc'' ⟨y, himg ▸ hy⟩
+  obtain ⟨τ, hτ, ψτ, hψτ, hjτ, hτC⟩ := hI4 a i'' hca himg
+  have hητ := curveConfig_map_η P.hdim P.hdim (continuous_specialFibreMap ψτ hψτ) hτC
+  -- the automorphism `σ = σ₁ ∘ τ` with model map `ψ₁ ≫ ψτ`
+  let σ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B := τ.trans σ₁
+  have hψσ : (ψ₁ ≫ ψτ) ≫ P.Lv.c.toSpec = P.Lv.c.toSpec := by
+    rw [Category.assoc, hψτ, hψ₁]
+  have hjσ : P.Lv.j ≫ ψ₁ ≫ ψτ =
+      Spec.map (CommRingCat.ofHom (σ : P.Lv.L.B →+* P.Lv.L.B)) ≫ P.Lv.j := by
+    rw [← Category.assoc, hj₁, Category.assoc, hjτ, ← Category.assoc, ← Spec.map_comp,
+      ← CommRingCat.ofHom_comp]
+    rfl
+  have hσφ : (σ : P.Lv.L.B →ₐ[R] P.Lv.L.B).comp φ = φ.comp κ.φ.f := by
+    refine AlgHom.ext fun b => ?_
+    have h1 := congrArg (fun F => F b) hτ
+    have h2 := congrArg (fun F => F b) hσ₁
+    simp only [AlgHom.comp_apply, AlgEquiv.coe_toAlgHom] at h1 h2
+    exact (congrArg σ₁ h1).trans h2
+  obtain ⟨ψi, hψi, hji⟩ := P.act σ.symm
+  have hηi'' : specialFibreMap (ψ₁ ≫ ψτ) hψσ ((curveConfig P.Lv.Z P.hdim).η i) =
+      (curveConfig P.Lv.Z P.hdim).η i'' := by
+    rw [← hητ, ← hηa]
+    rfl
+  obtain ⟨f, hff, -, hfe⟩ := P.exists_endo σ (ψ₁ ≫ ψτ) hψσ hjσ (gen n) (gen n'')
+    (by rw [hgenη n i hn, hgenη n'' i'' hn'', hηi''])
+  obtain ⟨g, hgf, -, hge⟩ := P.exists_endo σ.symm ψi hψi hji (gen n'') (gen n)
+    (by rw [hgenη n i hn, hgenη n'' i'' hn'', ← hηi'',
+      P.sfm_comp_eq σ hψi hψσ hjσ hji])
+  have hfg : f ≫ g = 𝟙 _ := P.hom_eq_of P _ _ (by
+      change f.φ.f.comp g.φ.f = AlgHom.id R _
+      rw [hff, hgf]
+      ext b
+      exact σ.apply_symm_apply b) (gen n)
+    (by rw [covMap_comp, hfe, hge, covMap_id])
+  have hgf' : g ≫ f = 𝟙 _ := P.hom_eq_of P _ _ (by
+      change g.φ.f.comp f.φ.f = AlgHom.id R _
+      rw [hff, hgf]
+      ext b
+      exact σ.symm_apply_apply b) (gen n'')
+    (by rw [covMap_comp, hge, hfe, covMap_id])
+  refine ⟨⟨f, g, hfg, hgf'⟩, P.hom_eq_of Q _ _ ?_ (gen n) ?_, hfe⟩
+  · change f.φ.f.comp m.φ.f = m.φ.f.comp κ.φ.f
+    rw [hff]
+    exact hσφ
+  · change covMap P Q (f ≫ m) (gen n) = covMap P Q (m ≫ κ) (gen n)
+    rw [covMap_comp, covMap_comp, hfe, hκ]
+
+end Lift
 
 end Pres
 
