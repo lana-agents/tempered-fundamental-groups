@@ -30,6 +30,8 @@ import TemperedFundamentalGroups.Andre.Transport
 import TemperedFundamentalGroups.Andre.Transfer
 import TemperedFundamentalGroups.Andre.TransferTate
 import TemperedFundamentalGroups.Andre.ValuativeCentre
+import TemperedFundamentalGroups.Andre.WCentre
+import TemperedFundamentalGroups.Andre.WCentreLocal
 import TemperedFundamentalGroups.Andre.WData
 import TemperedFundamentalGroups.Andre.WEdgeLifting
 import TemperedFundamentalGroups.Andre.WHarmonicWeight
