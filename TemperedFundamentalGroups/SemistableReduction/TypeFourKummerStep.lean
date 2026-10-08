@@ -326,6 +326,82 @@ lemma denseOn_iff {S : Set F} {w : F} :
 
 end DenseClosure
 
+/-! ### The coordinate `s` -/
+
+section Coordinate
+
+open GaussFibre
+
+variable {F : Type*} [Field F] [Algebra (RatFunc C) F] [Algebra C F]
+  [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F]
+
+omit [IsUltrametricDist C] [IsAlgClosed C] [FiniteDimensional (RatFunc C) F]
+  [Algebra (RatFunc C) F] [IsScalarTower C (RatFunc C) F] in
+lemma coordAlgHom_X_sub_C {s : F} (hs : Transcendental C s) (b : C) :
+    coordAlgHom hs (algebraMap C[X] (RatFunc C) (X - Polynomial.C b)) = s - algebraMap C F b := by
+  rw [coordAlgHom_algebraMap]; simp
+
+/-- **The point in the coordinate `s` is of type 4.** -/
+theorem isTypeFour_coord {ξ' : Valuation F ℝ≥0} (hconst : ∀ b : C, ξ' (algebraMap C F b) = ‖b‖₊)
+    (hξ : Splitting.IsTypeFour (ξ'.comap (algebraMap (RatFunc C) F))) {s : F}
+    (hs : Transcendental C s) :
+    Splitting.IsTypeFour (ξ'.comap (coordAlgHom hs).toRingHom) where
+  map_C b := by
+    simp only [Valuation.comap_apply]
+    change ξ' (coordAlgHom hs (algebraMap C (RatFunc C) b)) = _
+    rw [AlgHom.commutes, hconst, NormedField.valuation_apply]
+  no_min b := by
+    have hs0 : s - algebraMap C F b ≠ 0 := by
+      intro h
+      apply hs
+      exact ⟨X - Polynomial.C b, X_sub_C_ne_zero b, by simpa [sub_eq_zero] using h⟩
+    obtain ⟨b', hb'⟩ := exists_const_sub_lt_finite hconst hξ hs0
+    refine ⟨b + b', ?_⟩
+    simp only [GaussLimit.radius, Valuation.comap_apply]
+    change ξ' (coordAlgHom hs _) < ξ' (coordAlgHom hs _)
+    rw [coordAlgHom_X_sub_C, coordAlgHom_X_sub_C, map_add, ← sub_sub]
+    exact hb'
+
+omit [IsUltrametricDist C] [IsAlgClosed C] [FiniteDimensional (RatFunc C) F]
+  [Algebra (RatFunc C) F] [IsScalarTower C (RatFunc C) F] in
+/-- Polynomials in `s` lie in the closure of the constants if `s` does. -/
+lemma aeval_mem_vClosure {v : Valuation F ℝ≥0} {s : F}
+    (hs : s ∈ vClosure v (algebraMap C F).fieldRange) (P : C[X]) :
+    aeval s P ∈ vClosure v (algebraMap C F).fieldRange := by
+  rw [aeval_eq_sum_range]
+  refine sum_mem fun i _ ↦ ?_
+  rw [Algebra.smul_def]
+  exact mul_mem (le_vClosure v _ ⟨_, rfl⟩) (pow_mem hs i)
+
+omit [IsUltrametricDist C] [IsAlgClosed C] [FiniteDimensional (RatFunc C) F] in
+/-- **The point in the coordinate `s` is not a point of `Ĉ ∖ C`**: if `C(s)` is dense in an
+intermediate field `K` and the radius of `ξ` in the coordinate `x` is bounded below, so is the
+radius in `s`. -/
+theorem exists_radius_bound_coord {ξ' : Valuation F ℝ≥0}
+    (hr : ∃ r : ℝ≥0, 0 < r ∧ ∀ b : C,
+      r ≤ ξ' (algebraMap (RatFunc C) F (RatFunc.X - algebraMap C (RatFunc C) b)))
+    {K : IntermediateField (RatFunc C) F} {s : F} (hd : DenseOn C ξ' K s) :
+    ∃ r : ℝ≥0, 0 < r ∧ ∀ b : C, r ≤ ξ' (s - algebraMap C F b) := by
+  obtain ⟨r, hr0, hr⟩ := hr
+  by_contra! h
+  set Cr := (algebraMap C F).fieldRange
+  have hs : s ∈ vClosure ξ' Cr := fun ε hε ↦ by
+    obtain ⟨b, hb⟩ := h ε hε
+    exact ⟨algebraMap C F b, ⟨b, rfl⟩, hb⟩
+  have hCs : (IntermediateField.adjoin C {s}).toSubfield ≤ vClosure ξ' Cr := by
+    intro y hy
+    obtain ⟨P, Q, rfl⟩ := (IntermediateField.mem_adjoin_simple_iff C y).1 hy
+    exact div_mem (aeval_mem_vClosure hs P) (aeval_mem_vClosure hs Q)
+  have hK : (K : Set F) ⊆ vClosure ξ' Cr :=
+    ((denseOn_iff ξ').1 hd).trans (vClosure_le_of_le ξ' hCs)
+  have hx : algebraMap (RatFunc C) F RatFunc.X ∈ K := IntermediateField.algebraMap_mem _ _
+  obtain ⟨z, ⟨b, rfl⟩, hz⟩ := hK hx r hr0
+  have := hr b
+  rw [map_sub, ← IsScalarTower.algebraMap_apply] at this
+  exact absurd hz (not_lt.2 this)
+
+end Coordinate
+
 end TypeFour
 
 end SemistableReduction
