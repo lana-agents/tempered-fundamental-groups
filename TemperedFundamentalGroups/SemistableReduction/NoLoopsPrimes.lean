@@ -9,10 +9,10 @@ import TemperedFundamentalGroups.SemistableReduction.SplitChart
 # Components through a point as minimal primes (W8′, XL1, H6 glue)
 
 Blueprint §9.7 (XL1). For a model `c` over a DVR `O` with uniformizer `ϖ`, an affine open `U` and
-`x ∈ U`, `x` lies in the special fibre iff `ϖ` lies in the prime of `x` (`mem_Z_iff`). If the node
-`y` lies on two distinct components (`NoLoops`), their generic points give two distinct primes of
-`Γ(U)` inside the prime of `y`, minimal among the primes containing `ϖ`
-(`exists_minimal_primes_of_noLoops`).
+`x ∈ U`, `x` lies in the special fibre iff `ϖ` lies in the prime of `x` (`mem_Z_iff`). If a point
+`y` lies on two distinct components, their generic points give two distinct primes of `Γ(U)`
+inside the prime of `y`, minimal among the primes containing `ϖ` (`exists_minimal_primes_of_mem`;
+for node points under `NoLoops`: `exists_minimal_primes_of_noLoops`).
 -/
 
 universe u
@@ -66,11 +66,12 @@ lemma isClosed_of_mem_components {v : Set c.scheme} (hv : v ∈ components c) : 
   have h2 := hv.2.2 (closure v) hv.1.closure h1 subset_closure
   rw [← h2]; exact isClosed_closure
 
-/-- **No loops gives two minimal primes.** If the node point `y` lies on two distinct components,
-their generic points give two distinct primes of `Γ(U)` (`U` affine, `y ∈ U`) contained in the
-prime of `y`, each minimal among the primes containing `ϖ`. -/
-theorem exists_minimal_primes_of_noLoops {ϖ : O} (hϖ : Irreducible ϖ) (hc : NoLoops c)
-    {y : c.scheme} (hy : IsNodePt c y) {U : c.scheme.Opens} (hU : IsAffineOpen U) (hyU : y ∈ U) :
+/-- **Two components give two minimal primes.** If the point `y` lies on two distinct
+components `v ≠ w`, their generic points give two distinct primes of `Γ(U)` (`U` affine, `y ∈ U`)
+contained in the prime of `y`, each minimal among the primes containing `ϖ`. -/
+theorem exists_minimal_primes_of_mem {ϖ : O} (hϖ : Irreducible ϖ) {y : c.scheme}
+    {v w : Set c.scheme} (hv : v ∈ components c) (hw : w ∈ components c) (hvw : v ≠ w)
+    (hyv : y ∈ v) (hyw : y ∈ w) {U : c.scheme.Opens} (hU : IsAffineOpen U) (hyU : y ∈ U) :
     letI := sectionsAlgebra c U
     ∃ P₁ P₂ : Ideal Γ(c.scheme, U), P₁.IsPrime ∧ P₂.IsPrime ∧
       algebraMap O _ ϖ ∈ P₁ ∧ algebraMap O _ ϖ ∈ P₂ ∧
@@ -79,7 +80,6 @@ theorem exists_minimal_primes_of_noLoops {ϖ : O} (hϖ : Irreducible ϖ) (hc : N
       (∀ Q : Ideal Γ(c.scheme, U), Q.IsPrime → algebraMap O _ ϖ ∈ Q → Q ≤ P₂ → Q = P₂) ∧
       P₁ ≠ P₂ := by
   letI := sectionsAlgebra c U
-  obtain ⟨v, hv, w, hw, hvw, hyv, hyw⟩ := hc y hy
   have hind : Topology.IsInducing hU.fromSpec := hU.fromSpec.isOpenEmbedding.isInducing
   -- the prime of a component through `y`
   have key : ∀ v ∈ components c, y ∈ v → ∃ η ∈ U, closure {η} = v ∧
@@ -141,5 +141,20 @@ theorem exists_minimal_primes_of_noLoops {ϖ : O} (hϖ : Irreducible ϖ) (hc : N
     rw [e3] at e1
     exact e1.symm.trans e2
   rw [← hgen₁, ← hgen₂, this]
+
+/-- **No loops gives two minimal primes.** If the node point `y` lies on two distinct components,
+their generic points give two distinct primes of `Γ(U)` (`U` affine, `y ∈ U`) contained in the
+prime of `y`, each minimal among the primes containing `ϖ`. -/
+theorem exists_minimal_primes_of_noLoops {ϖ : O} (hϖ : Irreducible ϖ) (hc : NoLoops c)
+    {y : c.scheme} (hy : IsNodePt c y) {U : c.scheme.Opens} (hU : IsAffineOpen U) (hyU : y ∈ U) :
+    letI := sectionsAlgebra c U
+    ∃ P₁ P₂ : Ideal Γ(c.scheme, U), P₁.IsPrime ∧ P₂.IsPrime ∧
+      algebraMap O _ ϖ ∈ P₁ ∧ algebraMap O _ ϖ ∈ P₂ ∧
+      P₁ ≤ (hU.primeIdealOf ⟨y, hyU⟩).asIdeal ∧ P₂ ≤ (hU.primeIdealOf ⟨y, hyU⟩).asIdeal ∧
+      (∀ Q : Ideal Γ(c.scheme, U), Q.IsPrime → algebraMap O _ ϖ ∈ Q → Q ≤ P₁ → Q = P₁) ∧
+      (∀ Q : Ideal Γ(c.scheme, U), Q.IsPrime → algebraMap O _ ϖ ∈ Q → Q ≤ P₂ → Q = P₂) ∧
+      P₁ ≠ P₂ := by
+  obtain ⟨v, hv, w, hw, hvw, hyv, hyw⟩ := hc y hy
+  exact exists_minimal_primes_of_mem hϖ hv hw hvw hyv hyw hU hyU
 
 end TemperedFundamentalGroups.SemistableReduction.ModelCode
