@@ -23,6 +23,7 @@ import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.Andre.TheoremB
 import TemperedFundamentalGroups.Andre.TheoremBH
 import TemperedFundamentalGroups.Andre.TheoremBW
+import TemperedFundamentalGroups.Andre.Transport
 import TemperedFundamentalGroups.Andre.Transfer
 import TemperedFundamentalGroups.Andre.TransferTate
 import TemperedFundamentalGroups.Andre.WData
