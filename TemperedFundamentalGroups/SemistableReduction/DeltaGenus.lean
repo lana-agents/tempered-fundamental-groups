@@ -243,6 +243,86 @@ theorem card_le_of_indep
   simp only [A, if_pos rfl] at h1
   linarith
 
+include hp hp1 in
+/-- **The jets are reached at every point** (S7.6 with S8): under the reverse inequality, at every
+point `p₀` and jet order `M ≥ 1`, every element regular at the branches of `p₀` with equal
+residues there lies in `Oc p₀ + K_{M, p₀}`. -/
+theorem eqRes_le_sup_jetKer
+    {I : Type*} [Finite I] [Nonempty I] (x : I → F)
+    (hx : ∀ i, Transcendental C (x i)) (S : Finset (TypeTwo C F))
+    (hS : ∀ W, W ∈ S ↔ ∃ i, IsOver (hx i) W)
+    (D : ℕ → CurveDivisor C F) (Db : ℕ → ∀ W : S, CurveDivisor 𝓀 (Kappa S W))
+    (hdeg : ∀ m, ∑ W, (Db m W).degree = (D m).degree)
+    (hlarge : ∀ (m : ℕ) W, (m : ℤ) ≤ (Db m W).degree)
+    (hred : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → redVec S f ∈ piRR 𝓀 (Kappa S) (Db m))
+    {ι : Type*} [Fintype ι] (Sp : ι → Finset (Branch 𝓀 (Kappa S)))
+    (hdisj : ∀ p q, p ≠ q → Disjoint (Sp p) (Sp q)) (hzero : ∀ m p, ∀ b ∈ Sp p, Db m b.1 b.2 = 0)
+    (Oc : ι → Submodule 𝓀 (Π W : S, Kappa S W))
+    (hO : ∀ m f, f ∈ rrSpace (D m) → mnorm S f ≤ 1 → ∀ p, redVec S f ∈ Oc p)
+    (hOeq : ∀ p, Oc p ≤ eqRes 𝓀 (Kappa S) (Sp p)) (hne : ∀ p, (Sp p).Nonempty)
+    (hS8 : genus C F + S.card - 1 ≤
+      (∑ W : S, (genus 𝓀 (Kappa S W) : ℤ)) + ∑ p, (((Sp p).card : ℤ) - 1))
+    (p₀ : ι) {M : ℕ} (hM : 1 ≤ M) :
+    eqRes 𝓀 (Kappa S) (Sp p₀) ≤ Oc p₀ ⊔ jetKer 𝓀 (Kappa S) M (Sp p₀) := by
+  classical
+  intro z hz
+  by_contra hzU
+  set U := Oc p₀ ⊔ jetKer 𝓀 (Kappa S) M (Sp p₀)
+  have hUle : U ≤ eqRes 𝓀 (Kappa S) (Sp p₀) := sup_le (hOeq p₀) (jetKer_le_eqRes hM _)
+  set N := U ⊔ Submodule.span 𝓀 {z}
+  have hNle : N ≤ eqRes 𝓀 (Kappa S) (Sp p₀) :=
+    sup_le hUle ((Submodule.span_singleton_le_iff_mem _ _).2 hz)
+  obtain ⟨b₀, hb₀⟩ := hne p₀
+  obtain ⟨A, hAcard, hA, hAind⟩ := exists_finset_indep_of_le_eqRes (Sp p₀) hb₀
+  have hzA : z ∉ A := by
+    intro hzA
+    have := hAind N hNle (fun i ↦ if (i : Π W : S, Kappa S W) = z then 1 else 0) (by
+      rw [Finset.sum_eq_single ⟨z, hzA⟩ (fun i _ hi ↦ by
+        rw [if_neg fun h ↦ hi (Subtype.ext h), zero_smul]) (by simp)]
+      rw [if_pos rfl, one_smul]
+      exact Submodule.mem_sup_right (Submodule.mem_span_singleton_self z))
+    have h1 := congrFun this ⟨z, hzA⟩
+    simp at h1
+  have hcard := card_le_of_indep hp hp1 x hx S hS D Db hdeg hlarge hred Sp hdisj hzero Oc hO hOeq
+    hne hS8 p₀ hM (insert z A) (fun y hy ↦ by
+      rcases Finset.mem_insert.1 hy with rfl | hy
+      · exact hz.1
+      · exact hA y hy) (fun a ha ↦ by
+      set a' : (Π W : S, Kappa S W) → 𝓀 := fun y ↦ if h : y ∈ insert z A then a ⟨y, h⟩ else 0
+      have hsum : ∑ i, a i • (i : Π W : S, Kappa S W) = ∑ y ∈ insert z A, a' y • y := by
+        rw [← Finset.sum_coe_sort (insert z A)]
+        exact Finset.sum_congr rfl fun i _ ↦ by simp only [a', dif_pos i.2]
+      rw [hsum, Finset.sum_insert hzA] at ha
+      have hA0 : ∑ y ∈ A, a' y • y ∈ N := by
+        have : ∑ y ∈ A, a' y • y = (∑ y ∈ insert z A, a' y • y) - a' z • z := by
+          rw [Finset.sum_insert hzA]; abel
+        rw [this, Finset.sum_insert hzA]
+        exact sub_mem (Submodule.mem_sup_left ha)
+          (Submodule.mem_sup_right (Submodule.smul_mem _ _ (Submodule.mem_span_singleton_self z)))
+      have hAz := hAind N hNle (fun i ↦ a' i) (by
+        rw [Finset.sum_coe_sort A (fun y ↦ a' y • y)]
+        exact hA0)
+      have hA0' : ∀ y ∈ A, a' y = 0 := fun y hy ↦ congrFun hAz ⟨y, hy⟩
+      have hzero' : ∑ y ∈ A, a' y • y = 0 :=
+        Finset.sum_eq_zero fun y hy ↦ by rw [hA0' y hy, zero_smul]
+      rw [hzero', add_zero] at ha
+      have haz : a' z = 0 := by
+        by_contra h
+        apply hzU
+        have := Submodule.smul_mem U (a' z)⁻¹ ha
+        rwa [smul_smul, inv_mul_cancel₀ h, one_smul] at this
+      funext i
+      obtain ⟨y, hy⟩ := i
+      have h0 : a' y = 0 := by
+        rcases Finset.mem_insert.1 hy with rfl | hyA
+        · exact haz
+        · exact hA0' y hyA
+      rw [Pi.zero_apply, ← h0]
+      simp only [a', dif_pos hy])
+  rw [Finset.card_insert_of_notMem hzA, hAcard,
+    Nat.sub_add_cancel (Finset.card_pos.2 ⟨b₀, hb₀⟩)] at hcard
+  linarith
+
 end Corollaries
 
 end SemistableReduction
