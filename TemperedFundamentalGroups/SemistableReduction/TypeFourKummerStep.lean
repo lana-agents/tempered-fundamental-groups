@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.TypeFourKummer
 import TemperedFundamentalGroups.SemistableReduction.TypeFourDescent
+import TemperedFundamentalGroups.SemistableReduction.KummerSheet
 
 /-!
 # The Kummer step at a type-4 point
@@ -722,6 +723,311 @@ theorem exists_germ_approx {p : ℕ} (hp0 : 0 < p) {ξL : Valuation L ℝ≥0}
     rw [e, norm_neg, ← coe_nnnorm, ← extValuation_apply, hg₁]
 
 end Germ
+
+/-! ### Values of polynomials with constant coefficients -/
+
+section PolyVal
+
+variable {F : Type*} [Field F] [Algebra C F] {ξ' : Valuation F ℝ≥0}
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+lemma val_aeval_le (hconst : ∀ b : C, ξ' (algebraMap C F b) = ‖b‖₊) {Y : F} (hY : ξ' Y ≤ 1)
+    {P : C[X]} {B : ℝ≥0} (hP : ∀ i, ‖P.coeff i‖₊ ≤ B) : ξ' (aeval Y P) ≤ B := by
+  rw [aeval_eq_sum_range]
+  refine Valuation.map_sum_le _ fun i _ ↦ ?_
+  rw [Algebra.smul_def, map_mul, map_pow, hconst]
+  exact mul_le_of_le_one_right' (pow_le_one₀ zero_le hY) |>.trans (hP i)
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+/-- `P(Y) - P(0)` is bounded by the higher coefficients times `ξ'(Y)`. -/
+lemma val_aeval_sub_le (hconst : ∀ b : C, ξ' (algebraMap C F b) = ‖b‖₊) {Y : F}
+    (hY : ξ' Y ≤ 1) {P : C[X]} {B : ℝ≥0} (hP : ∀ i, 1 ≤ i → ‖P.coeff i‖₊ ≤ B) :
+    ξ' (aeval Y P - algebraMap C F (P.coeff 0)) ≤ B * ξ' Y := by
+  have hP' : aeval Y P = aeval Y (divX P) * Y + algebraMap C F (P.coeff 0) := by
+    have := congrArg (aeval Y) (divX_mul_X_add P)
+    rw [map_add, map_mul, aeval_C, aeval_X] at this
+    exact this.symm
+  have e : aeval Y P - algebraMap C F (P.coeff 0) = Y * aeval Y (divX P) := by
+    rw [hP']; ring
+  rw [e, map_mul, mul_comm]
+  gcongr
+  refine val_aeval_le hconst hY fun i ↦ ?_
+  rw [coeff_divX]
+  exact hP _ (Nat.succ_pos i)
+
+end PolyVal
+
+/-! ### The endgame: Hensel in the closure of `C(w)` -/
+
+section Endgame
+
+open Filter Topology
+
+variable {F : Type*} [Field F] [Algebra C F]
+
+omit [IsAlgClosed C] in
+/-- `ξ'((1 + x)^p - 1) = ξ'(x)^p` if `ξ'(x)` is at least `‖λ‖` with `‖p‖ < ‖λ‖^(p-1)`. -/
+lemma val_one_add_pow_sub_one {ξ' : Valuation F ℝ≥0}
+    (hconst : ∀ b : C, ξ' (algebraMap C F b) = ‖b‖₊) {p : ℕ} (hp : p.Prime) {lam : C}
+    (hlam1 : ‖lam‖ ≤ 1) (hA : ‖(p : C)‖ < ‖lam‖ ^ (p - 1)) {x : F} (hx : ‖lam‖₊ ≤ ξ' x) :
+    ξ' ((1 + x) ^ p - 1) = ξ' x ^ p := by
+  classical
+  have hsum : (1 + x) ^ p - 1 =
+      x ^ p + ∑ i ∈ (Finset.range (p + 1)).filter (fun i ↦ 0 < i ∧ i < p),
+        (p.choose i : F) * x ^ i := by
+    have h := add_pow x 1 p
+    simp only [one_pow, mul_one] at h
+    rw [add_comm, h, ← Finset.sum_filter_add_sum_filter_not (Finset.range (p + 1))
+      (fun i ↦ 0 < i ∧ i < p)]
+    have hnot : (Finset.range (p + 1)).filter (fun i ↦ ¬ (0 < i ∧ i < p)) = {0, p} := by
+      ext m; simp only [Finset.mem_filter, Finset.mem_range, Finset.mem_insert,
+        Finset.mem_singleton]; omega
+    rw [hnot, Finset.sum_pair hp.ne_zero.symm, pow_zero, Nat.choose_zero_right,
+      Nat.choose_self]
+    simp only [Nat.cast_one, mul_one]
+    rw [Finset.sum_congr rfl fun i _ ↦ mul_comm (x ^ i) (p.choose i : F)]
+    ring
+  rw [hsum, Valuation.map_add_eq_of_lt_left _ ?_, map_pow]
+  have hlam0 : 0 < ‖lam‖ := by
+    by_contra h
+    have h0 : ‖lam‖ = 0 := le_antisymm (not_lt.1 h) (norm_nonneg _)
+    rw [h0, zero_pow (Nat.sub_pos_of_lt hp.one_lt).ne'] at hA
+    exact absurd hA (not_lt.2 (norm_nonneg _))
+  have ht : ‖lam‖ ≤ (ξ' x : ℝ) := by exact_mod_cast hx
+  have hpos : 0 < ξ' x ^ p := pow_pos (lt_of_lt_of_le (by exact_mod_cast hlam0) hx) p
+  rw [map_pow]
+  refine Valuation.map_sum_lt _ hpos.ne' fun i hi ↦ ?_
+  obtain ⟨hi0, hip⟩ := (Finset.mem_filter.1 hi).2
+  rw [map_mul, map_pow, ← map_natCast (algebraMap C F), hconst]
+  have hch : ‖(p.choose i : C)‖ ≤ ‖(p : C)‖ := PthPower.norm_choose_le hp hi0.ne' hip
+  have key : ‖(p : C)‖ < (ξ' x : ℝ) ^ (p - i) := by
+    rcases le_or_gt 1 (ξ' x : ℝ) with h1 | h1
+    · calc ‖(p : C)‖ < ‖lam‖ ^ (p - 1) := hA
+        _ ≤ 1 := pow_le_one₀ (norm_nonneg _) hlam1
+        _ ≤ _ := one_le_pow₀ h1
+    · calc ‖(p : C)‖ < ‖lam‖ ^ (p - 1) := hA
+        _ ≤ (ξ' x : ℝ) ^ (p - 1) := pow_le_pow_left₀ (norm_nonneg _) ht _
+        _ ≤ (ξ' x : ℝ) ^ (p - i) := pow_le_pow_of_le_one (NNReal.coe_nonneg _) h1.le (by omega)
+  rw [← NNReal.coe_lt_coe]
+  push_cast
+  calc ‖(p.choose i : C)‖ * (ξ' x : ℝ) ^ i ≤ ‖(p : C)‖ * (ξ' x : ℝ) ^ i :=
+        mul_le_mul_of_nonneg_right hch (pow_nonneg (NNReal.coe_nonneg _) _)
+    _ < (ξ' x : ℝ) ^ (p - i) * (ξ' x : ℝ) ^ i :=
+        mul_lt_mul_of_pos_right key (pow_pos (lt_of_lt_of_le hlam0 ht) _)
+    _ = (ξ' x : ℝ) ^ p := by rw [← pow_add, Nat.sub_add_cancel hip.le]
+
+omit [IsAlgClosed C] in
+/-- **The endgame** (Hensel/Newton in the closure of `C(w)`). Let `Qₙ` be polynomials in `s`
+converging to `θ^p` at `ξ'`, uniformly Cauchy on the disc `E = D(a, |c|) ∋ ξ'` (coordinate
+`Y = (s - a)/c`), and let `Q_{N₀} - H^p` be linear-dominant on `E` with linear coefficient `λ^p`,
+`‖p‖ < ‖λ‖^(p-1)`, `Q_{N₀}(a) = H(a)^p`, `H` a unit on `E`. Then `s` lies in the closure of
+`C(w)`, `w = (θ/H(s) - 1)/λ`. -/
+theorem mem_vClosure_endgame {ξ' : Valuation F ℝ≥0}
+    (hconst : ∀ b : C, ξ' (algebraMap C F b) = ‖b‖₊) {p : ℕ} (hp : p.Prime) {s θ : F}
+    (Q : ℕ → C[X]) (H : C[X]) {a c lam : C} (hc0 : c ≠ 0)
+    (hY : ξ' (s - algebraMap C F a) < ‖c‖₊)
+    (hHa : ‖H.eval a‖ = 1)
+    (hH : ∀ i, 1 ≤ i → ‖(H.comp (Polynomial.C c * X + Polynomial.C a)).coeff i‖ < 1)
+    (N₀ : ℕ) (hQa : (Q N₀).eval a = H.eval a ^ p)
+    (hG1 : ((Q N₀ - H ^ p).comp (Polynomial.C c * X + Polynomial.C a)).coeff 1 = lam ^ p)
+    (hGmax : ∀ i,
+      ‖((Q N₀ - H ^ p).comp (Polynomial.C c * X + Polynomial.C a)).coeff i‖ ≤ ‖lam‖ ^ p)
+    (hlam1 : ‖lam‖ ≤ 1) (hA : ‖(p : C)‖ < ‖lam‖ ^ (p - 1))
+    (hunif : ∀ n ≥ N₀, ∀ i,
+      ‖((Q n - Q N₀).comp (Polynomial.C c * X + Polynomial.C a)).coeff i‖ < ‖lam‖ ^ p)
+    (hconv : Tendsto (fun n ↦ (ξ' (θ ^ p - aeval s (Q n)) : ℝ)) atTop (𝓝 0))
+    (hN₀ : ξ' (θ ^ p - aeval s (Q N₀)) < ‖lam‖₊ ^ p) :
+    s ∈ vClosure ξ'
+      (IntermediateField.adjoin C {(θ / aeval s H - 1) / algebraMap C F lam}).toSubfield := by
+  classical
+  set ℓ : C[X] := Polynomial.C c * X + Polynomial.C a
+  have hcF : algebraMap C F c ≠ 0 := by simpa using hc0
+  set Y₀ := (s - algebraMap C F a) / algebraMap C F c
+  have hY₀ : ξ' Y₀ < 1 := by
+    rw [map_div₀, hconst, div_lt_one (nnnorm_pos.2 hc0)]; exact hY
+  have hsY : aeval Y₀ ℓ = s := by
+    simp only [ℓ, Y₀, map_add, map_mul, aeval_C, aeval_X]
+    field_simp
+    ring
+  have hcomp : ∀ P : C[X], aeval s P = aeval Y₀ (P.comp ℓ) := fun P ↦ by
+    rw [aeval_comp, hsY]
+  have hc0ℓ : ∀ P : C[X], (P.comp ℓ).coeff 0 = P.eval a := fun P ↦ by
+    rw [coeff_zero_eq_eval_zero, eval_comp]; simp [ℓ]
+  -- `H(s)` is a unit
+  set Hs := aeval s H
+  have hHs : ξ' Hs = 1 := by
+    have h1 := val_aeval_sub_le hconst hY₀.le (P := H.comp ℓ) (B := 1)
+      (fun i hi ↦ by exact_mod_cast (hH i hi).le)
+    rw [← hcomp, hc0ℓ, one_mul] at h1
+    have h2 : ξ' (algebraMap C F (H.eval a)) = 1 := by
+      rw [hconst]; exact NNReal.coe_injective (by simpa using hHa)
+    have := Valuation.map_eq_of_sub_lt ξ' (h1.trans_lt (h2 ▸ hY₀))
+    rwa [h2] at this
+  have hHs0 : Hs ≠ 0 := by intro h; rw [h, map_zero] at hHs; exact zero_ne_one hHs
+  have hlam0 : lam ≠ 0 := by
+    rintro rfl
+    rw [norm_zero, zero_pow (Nat.sub_pos_of_lt hp.one_lt).ne'] at hA
+    exact absurd hA (not_lt.2 (norm_nonneg _))
+  have hlamF : algebraMap C F lam ≠ 0 := by simpa using hlam0
+  set w := (θ / Hs - 1) / algebraMap C F lam
+  have hθ : θ = Hs * (1 + algebraMap C F lam * w) := by
+    simp only [w]; field_simp; ring
+  set Λ : ℝ≥0 := ‖lam‖₊ ^ p
+  have hΛ0 : 0 < Λ := pow_pos (nnnorm_pos.2 hlam0) p
+  set G := (Q N₀ - H ^ p).comp ℓ
+  have hG0 : G.coeff 0 = 0 := by rw [hc0ℓ, eval_sub, eval_pow, hQa, sub_self]
+  have hGmax' : ∀ i, ‖G.coeff i‖₊ ≤ Λ := fun i ↦ by
+    have := hGmax i; rw [← coe_nnnorm] at this; exact_mod_cast this
+  -- `(1 + λ w)^p - 1` is small
+  set D := (1 + algebraMap C F lam * w) ^ p - 1
+  have hD : ξ' D < Λ := by
+    have e : Hs ^ p * D = (θ ^ p - aeval s (Q N₀)) + aeval Y₀ G := by
+      rw [show aeval Y₀ G = aeval s (Q N₀ - H ^ p) from (hcomp _).symm, map_sub, map_pow]
+      simp only [D]
+      rw [hθ, mul_pow]
+      ring
+    have h1 : ξ' (aeval Y₀ G) < Λ := by
+      have := val_aeval_sub_le hconst hY₀.le (P := G) (B := Λ) (fun i _ ↦ hGmax' i)
+      rw [hG0, map_zero, sub_zero] at this
+      exact this.trans_lt (mul_lt_of_lt_one_right hΛ0 hY₀)
+    have := (Valuation.map_add _ _ _).trans_lt (max_lt hN₀ h1)
+    rwa [← e, map_mul, map_pow, hHs, one_pow, one_mul] at this
+  -- `ξ'(w) < 1`
+  have hw : ξ' w < 1 := by
+    by_contra h
+    push Not at h
+    have hx : ‖lam‖₊ ≤ ξ' (algebraMap C F lam * w) := by
+      rw [map_mul, hconst]; exact le_mul_of_one_le_right zero_le h
+    have h2 := val_one_add_pow_sub_one hconst hp hlam1 hA hx
+    simp only [D] at hD
+    rw [h2, map_mul, hconst, mul_pow] at hD
+    exact absurd hD (not_lt.2 (le_mul_of_one_le_right zero_le (one_le_pow₀ h)))
+  -- the polynomials `Φₙ`
+  set ι := algebraMap C F
+  set Φ : ℕ → F[X] := fun n ↦ Polynomial.C (ι (lam ^ p))⁻¹ *
+    (((Q n - H ^ p).comp ℓ).map ι - ((H.comp ℓ) ^ p).map ι * Polynomial.C D)
+  have hΦcoeff : ∀ n i, (Φ n).coeff i = (ι (lam ^ p))⁻¹ *
+      (ι (((Q n - H ^ p).comp ℓ).coeff i) - ι (((H.comp ℓ) ^ p).coeff i) * D) := by
+    intro n i
+    simp only [Φ, coeff_C_mul, coeff_sub, coeff_mul_C, coeff_map]
+  have hΦeval : ∀ n, (Φ n).eval Y₀ = (ι (lam ^ p))⁻¹ * (aeval s (Q n) - θ ^ p) := by
+    intro n
+    have e1 : (((Q n - H ^ p).comp ℓ).map ι).eval Y₀ = aeval s (Q n) - Hs ^ p := by
+      rw [eval_map_algebraMap, ← hcomp, map_sub, map_pow]
+    have e2 : (((H.comp ℓ) ^ p).map ι).eval Y₀ = Hs ^ p := by
+      rw [eval_map_algebraMap, map_pow, ← hcomp]
+    simp only [Φ, eval_mul, eval_C, eval_sub, e1, e2]
+    rw [hθ, mul_pow]
+    simp only [D]
+    ring
+  have hιΛ : ξ' (ι (lam ^ p))⁻¹ = Λ⁻¹ := by
+    rw [map_inv₀, hconst, nnnorm_pow]
+  have hsplit : ∀ n i, ((Q n - H ^ p).comp ℓ).coeff i =
+      ((Q n - Q N₀).comp ℓ).coeff i + G.coeff i := fun n i ↦ by
+    rw [← coeff_add, ← add_comp]; congr 2; ring
+  have hHint : ∀ i, ‖((H.comp ℓ) ^ p).coeff i‖₊ ≤ 1 := by
+    have : KummerSheet.IntP (H.comp ℓ) := fun i ↦ by
+      by_cases hi : i = 0
+      · rw [hi, hc0ℓ, hHa]
+      · exact (hH i (Nat.pos_of_ne_zero hi)).le
+    exact fun i ↦ by exact_mod_cast (this.pow p) i
+  have hsecond : ∀ i, ξ' (ι (((H.comp ℓ) ^ p).coeff i) * D) < Λ := fun i ↦ by
+    rw [map_mul, hconst]
+    exact (mul_le_of_le_one_left' (hHint i)).trans_lt hD
+  have hfirst : ∀ n ≥ N₀, ∀ i, ξ' (ι (((Q n - H ^ p).comp ℓ).coeff i)) ≤ Λ := by
+    intro n hn i
+    rw [hsplit, map_add]
+    refine (Valuation.map_add _ _ _).trans (max_le ?_ ?_)
+    · rw [hconst]; have := hunif n hn i; rw [← coe_nnnorm] at this
+      exact (by exact_mod_cast this : _ < Λ).le
+    · rw [hconst]; exact hGmax' i
+  have hint : ∀ n ≥ N₀, ∀ i, ξ' ((Φ n).coeff i) ≤ 1 := by
+    intro n hn i
+    rw [hΦcoeff, map_mul, hιΛ, inv_mul_le_iff₀ hΛ0, mul_one]
+    exact (Valuation.map_sub _ _ _).trans (max_le (hfirst n hn i) (hsecond i).le)
+  have hcoeff0 : ∀ n ≥ N₀, ξ' ((Φ n).coeff 0) < 1 := by
+    intro n hn
+    rw [hΦcoeff, map_mul, hιΛ, inv_mul_lt_iff₀ hΛ0, mul_one]
+    refine (Valuation.map_sub _ _ _).trans_lt (max_lt ?_ (hsecond 0))
+    rw [hsplit, hG0, add_zero, hconst]
+    have := hunif n hn 0; rw [← coe_nnnorm] at this
+    exact_mod_cast this
+  have hcoeff1 : ∀ n ≥ N₀, ξ' ((Φ n).coeff 1) = 1 := by
+    intro n hn
+    have e : (Φ n).coeff 1 = 1 + (ι (lam ^ p))⁻¹ *
+        (ι (((Q n - Q N₀).comp ℓ).coeff 1) - ι (((H.comp ℓ) ^ p).coeff 1) * D) := by
+      rw [hΦcoeff, hsplit, map_add, show G.coeff 1 = lam ^ p from hG1]
+      have : ι (lam ^ p) ≠ 0 := by simpa using pow_ne_zero p hlam0
+      field_simp
+      ring
+    rw [e]
+    refine Valuation.map_one_add_of_lt _ ?_
+    rw [map_mul, hιΛ, inv_mul_lt_iff₀ hΛ0, mul_one]
+    refine (Valuation.map_sub _ _ _).trans_lt (max_lt ?_ (hsecond 1))
+    rw [hconst]
+    have := hunif n hn 1; rw [← coe_nnnorm] at this
+    exact_mod_cast this
+  -- the closure of `C(w)`
+  set N := (IntermediateField.adjoin C {w}).toSubfield
+  have hwN : w ∈ N := IntermediateField.subset_adjoin C {w} (Set.mem_singleton w)
+  have hιN : ∀ b, ι b ∈ N := fun b ↦ (IntermediateField.adjoin C {w}).algebraMap_mem b
+  have hDN : D ∈ N :=
+    sub_mem (pow_mem (add_mem (one_mem _) (mul_mem (hιN _) hwN)) _) (one_mem _)
+  have hΦN : ∀ n i, (Φ n).coeff i ∈ N := fun n i ↦ by
+    rw [hΦcoeff]
+    exact mul_mem (inv_mem (hιN _)) (sub_mem (hιN _) (mul_mem (hιN _) hDN))
+  have hY₀N : Y₀ ∈ vClosure ξ' N := by
+    intro ε hε
+    have hε2 : 0 < ε / 2 := half_pos hε
+    obtain ⟨n, hnε, hn⟩ := ((hconv.eventually (gt_mem_nhds (show (0 : ℝ) < ((ε / 2) * Λ : ℝ≥0)
+      from by exact_mod_cast mul_pos hε2 hΛ0))).and (eventually_ge_atTop N₀)).exists
+    set P := Φ n
+    let PO : (ξ'.valuationSubring)[X] := ∑ i ∈ Finset.range (P.natDegree + 1),
+      monomial i ⟨P.coeff i, (Valuation.mem_valuationSubring_iff _ _).2 (hint n hn i)⟩
+    have hPO : ∀ i, ((PO.coeff i : ξ'.valuationSubring) : F) = P.coeff i := by
+      intro i
+      simp only [PO, finsetSum_coeff, coeff_monomial]
+      by_cases hi : i < P.natDegree + 1
+      · rw [Finset.sum_eq_single_of_mem i (Finset.mem_range.2 hi) (fun j _ hj ↦ if_neg hj),
+          if_pos rfl]
+      · rw [Finset.sum_eq_zero fun j hj ↦ if_neg (by
+          rintro rfl; exact hi (Finset.mem_range.1 hj)),
+          coeff_eq_zero_of_natDegree_lt (by omega)]
+        rfl
+    have hmap : PO.map ξ'.valuationSubring.subtype = P := by
+      ext i; rw [coeff_map]; exact hPO i
+    have hev : ∀ y : ξ'.valuationSubring, ((PO.eval y : ξ'.valuationSubring) : F) =
+        P.eval (y : F) := fun y ↦ by
+      rw [← hmap, eval_map]; exact (eval₂_at_apply (p := PO) ξ'.valuationSubring.subtype y).symm
+    have hder : ∀ y : ξ'.valuationSubring,
+        ((PO.derivative.eval y : ξ'.valuationSubring) : F) = P.derivative.eval (y : F) :=
+      fun y ↦ by
+        rw [← hmap, derivative_map, eval_map]
+        exact (eval₂_at_apply (p := PO.derivative) ξ'.valuationSubring.subtype y).symm
+    have hu : IsUnit (PO.derivative.eval 0) := by
+      rw [isUnit_iff_val_eq_one, hder]
+      push_cast
+      rw [← coeff_zero_eq_eval_zero, coeff_derivative]
+      simpa using hcoeff1 n hn
+    have hlt : ξ' ((PO.eval 0 : ξ'.valuationSubring) : F) < 1 := by
+      rw [hev]; push_cast; rw [← coeff_zero_eq_eval_zero]; exact hcoeff0 n hn
+    set Yo : ξ'.valuationSubring := ⟨Y₀, (Valuation.mem_valuationSubring_iff _ _).2 hY₀.le⟩
+    have hYo : ξ' ((Yo : F) - ((0 : ξ'.valuationSubring) : F)) < 1 := by simpa [Yo] using hY₀
+    obtain ⟨k, hk⟩ := exists_vNewton_approx ξ' PO hu hlt hYo hε2
+    refine ⟨((vNewton ξ' PO)^[k] 0 : ξ'.valuationSubring),
+      vNewton_iterate_mem ξ' PO N (fun i ↦ by rw [hPO]; exact hΦN n i) (by simp) k, ?_⟩
+    refine hk.trans_lt (max_lt ?_ (half_lt_self hε))
+    rw [hev, hΦeval n, map_mul, hιΛ, inv_mul_lt_iff₀ hΛ0, ← Valuation.map_neg, neg_sub]
+    have : ξ' (θ ^ p - aeval s (Q n)) < ε / 2 * Λ := by exact_mod_cast hnε
+    calc ξ' (θ ^ p - aeval s (Q n)) < ε / 2 * Λ := this
+      _ = Λ * (ε / 2) := mul_comm _ _
+      _ < Λ * ε := mul_lt_mul_of_pos_left (half_lt_self hε) hΛ0
+  have hs : s = ι a + ι c * Y₀ := by
+    simp only [Y₀]; rw [mul_div_cancel₀ _ hcF]; ring
+  rw [hs]
+  exact add_mem (le_vClosure _ _ (hιN a)) (mul_mem (le_vClosure _ _ (hιN c)) hY₀N)
+
+end Endgame
 
 end TypeFour
 
