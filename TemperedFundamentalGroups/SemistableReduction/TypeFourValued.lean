@@ -116,7 +116,8 @@ lemma nearConst_X_sub_C (hξ : IsTypeFour ξ) (α : C) :
   exact hb
 
 /-- **Every nonzero rational function is a constant up to a small error** at a type-4 point. -/
-theorem _root_.SemistableReduction.Splitting.IsTypeFour.nearConst (hξ : IsTypeFour ξ) {φ : RatFunc C} (hφ : φ ≠ 0) :
+theorem _root_.SemistableReduction.Splitting.IsTypeFour.nearConst (hξ : IsTypeFour ξ)
+    {φ : RatFunc C} (hφ : φ ≠ 0) :
     NearConst ξ φ := by
   have hpoly : ∀ P : C[X], P ≠ 0 → NearConst ξ (algebraMap C[X] (RatFunc C) P) := by
     intro P hP
@@ -133,14 +134,16 @@ theorem _root_.SemistableReduction.Splitting.IsTypeFour.nearConst (hξ : IsTypeF
     (NearConst.inv hξ (hpoly _ (RatFunc.denom_ne_zero φ)))
 
 /-- The values of a type-4 point are norms of `C`. -/
-theorem _root_.SemistableReduction.Splitting.IsTypeFour.exists_eq_nnnorm (hξ : IsTypeFour ξ) {φ : RatFunc C} (hφ : φ ≠ 0) :
+theorem _root_.SemistableReduction.Splitting.IsTypeFour.exists_eq_nnnorm (hξ : IsTypeFour ξ)
+    {φ : RatFunc C} (hφ : φ ≠ 0) :
     ∃ γ : C, γ ≠ 0 ∧ ξ φ = ‖γ‖₊ := by
   obtain ⟨γ, hγ, h⟩ := hξ.nearConst hφ
   exact ⟨γ, hγ, NearConst.val_eq hξ h⟩
 
 /-- The residue field of a type-4 point is `k`: an element of value `≤ 1` is a constant modulo
 the maximal ideal. -/
-theorem _root_.SemistableReduction.Splitting.IsTypeFour.exists_sub_lt_one (hξ : IsTypeFour ξ) {φ : RatFunc C} (hφ : ξ φ ≤ 1) :
+theorem _root_.SemistableReduction.Splitting.IsTypeFour.exists_sub_lt_one (hξ : IsTypeFour ξ)
+    {φ : RatFunc C} (hφ : ξ φ ≤ 1) :
     ∃ c : C, ‖c‖ ≤ 1 ∧ ξ (φ - algebraMap C (RatFunc C) c) < 1 := by
   by_cases h1 : ξ φ < 1
   · exact ⟨0, by simp, by rwa [map_zero, sub_zero]⟩
