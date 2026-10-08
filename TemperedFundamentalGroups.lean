@@ -12,8 +12,8 @@ import TemperedFundamentalGroups.Andre.GaloisObject
 import TemperedFundamentalGroups.Andre.HeightW
 import TemperedFundamentalGroups.Andre.LengthW
 import TemperedFundamentalGroups.Andre.NonzeroCharacter
-import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.PointLift
+import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
 import TemperedFundamentalGroups.Andre.Refinement
 import TemperedFundamentalGroups.Andre.TateCovering
@@ -28,9 +28,9 @@ import TemperedFundamentalGroups.Andre.TheoremB
 import TemperedFundamentalGroups.Andre.TheoremBH
 import TemperedFundamentalGroups.Andre.TheoremBHLoop
 import TemperedFundamentalGroups.Andre.TheoremBW
-import TemperedFundamentalGroups.Andre.Transport
 import TemperedFundamentalGroups.Andre.Transfer
 import TemperedFundamentalGroups.Andre.TransferTate
+import TemperedFundamentalGroups.Andre.Transport
 import TemperedFundamentalGroups.Andre.ValuativeCentre
 import TemperedFundamentalGroups.Andre.WCentre
 import TemperedFundamentalGroups.Andre.WCentreLocal
@@ -178,6 +178,7 @@ import TemperedFundamentalGroups.SemistableReduction.NoImmediate
 import TemperedFundamentalGroups.SemistableReduction.NoLoopsPrimes
 import TemperedFundamentalGroups.SemistableReduction.Node
 import TemperedFundamentalGroups.SemistableReduction.NodeBranches
+import TemperedFundamentalGroups.SemistableReduction.NodeBridge
 import TemperedFundamentalGroups.SemistableReduction.NodeDataODP
 import TemperedFundamentalGroups.SemistableReduction.NodeDeformation
 import TemperedFundamentalGroups.SemistableReduction.NodeDescent
@@ -253,8 +254,8 @@ import TemperedFundamentalGroups.SemistableReduction.SplitDisc
 import TemperedFundamentalGroups.SemistableReduction.Splitting
 import TemperedFundamentalGroups.SemistableReduction.Statement
 import TemperedFundamentalGroups.SemistableReduction.StrongA
-import TemperedFundamentalGroups.SemistableReduction.StrongComponentA
 import TemperedFundamentalGroups.SemistableReduction.StrongComponent
+import TemperedFundamentalGroups.SemistableReduction.StrongComponentA
 import TemperedFundamentalGroups.SemistableReduction.TameLocal
 import TemperedFundamentalGroups.SemistableReduction.TensorIdempotent
 import TemperedFundamentalGroups.SemistableReduction.TrdegOne
@@ -361,8 +362,8 @@ import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Topology.CountableFibres
 import TemperedFundamentalGroups.Topology.CoverLength
 import TemperedFundamentalGroups.Topology.CoveringCode
-import TemperedFundamentalGroups.Topology.CurveGeneric
 import TemperedFundamentalGroups.Topology.CurveCovering
+import TemperedFundamentalGroups.Topology.CurveGeneric
 import TemperedFundamentalGroups.Topology.GenericLift
 import TemperedFundamentalGroups.Topology.HeightBound
 import TemperedFundamentalGroups.Topology.HeightLength
