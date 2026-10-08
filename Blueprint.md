@@ -1471,6 +1471,70 @@ lines** for S8.5 (previous estimate 4–6k was based on Temkin §6 alone and did
 disc/annulus infrastructure). With the structural remark above, S8.1, S8.2, S8.4 and S8.6 shrink
 to ≈ 1k together (AW §2.5, §4 cases (1)–(3)), so S8 as a whole: **≈ 13–15k**.
 
+#### 9.10a The type-3 germ (O6.1h) and STAB3 (O13): route (T3, 2026-10-08)
+
+Notation: `ρ ∉ |C^×|`, `w_ρ = w_{a,ρ}`, `K = \hat{C(x)}_{w_ρ}`, `ξ'_1, …, ξ'_r` the extensions of
+`w_ρ` to `F`, `A = |p|^{p/(p-1)}`, `π` with `π^{p-1} = -p` (so `(1 + πX)^p = 1 + π^p (X^p - X) + E(X)`,
+`|E(X)| ≤ |π|^{p+1} max(1, |X|)^{p-1}`, `E = 0` for `p = 2`). A complete `M ⊇ C` is **type 3**
+(`IsType3 C y`, from `Type3Basic`) if `M` is the closure of `C(y)`, `|y| ∉ |C^×|`: Laurent
+polynomials in `y` over `C` are dense, every `m ≠ 0` is `c yⁿ (1 + ε)`, `|ε| < 1`, residue field `k`.
+
+**Part I: local stability at type 3 (STAB3), no Kuhlmann, no defect theory.**
+* (I.1) *Approximation lemma*: a closed subgroup `V` of a complete `E` with `∀ x, ∃ v ∈ V,
+  |x - v| ≤ δ |x|` (`δ < 1` fixed) is `E`.
+* (I.2) *Generator lemma*: `M` type 3 (`y`), `E = M(η)` of prime degree `q`, `η^q = a y^m (1 + ε)`,
+  `q ∤ m`, `|ε| < 1`. Then `e(E/M) = q` and `E` is type 3 with `z = η^α y^β`, `α m + β q = 1`:
+  `y = c₁ z^q (1 + ε₁)`, `η = c₂ z^m (1 + ε₂)`, the basis `ηⁱ` (`i < q`) is orthogonal, so Laurent
+  approximations `Σ fᵢ(n) yⁿ ηⁱ` are Laurent polynomials in `z` up to relative error
+  `max |εᵢ| < 1`; (I.1) for `V` = closure of `C(z)`.
+* (I.3) *Kummer step of prime degree `q`* (`ζ_q ∈ C`): `E = M(θ)`, `θ^q = c y^j (1 + ε)`. If `q ∤ j`:
+  (I.2). If `q | j` and `q ≠ p`: `1 + ε` is a `q`-th power (contraction), contradiction. If `q = p`,
+  `u = 1 + ε` (a `1`-unit, not a `p`-th power) — **the dichotomy "e = p or a p-th power"**:
+  - *Phase 1 (additive `p`-Taylor, K3 at the real radius):* `u - h^p = G_{p'} + r` with `G_{p'}` a
+    Laurent polynomial with exponents prime to `p` and `|r| ≤ B`; one step (Frobenius root of the
+    `p`-indexed part of a Laurent approximation of `r`, multinomial estimate
+    `|(Σ xᵢ)^p - Σ xᵢ^p| ≤ |p| max |xᵢ|^p`) gives `B' = |p| B^{1/p}`, so `B → A`. If ever
+    `|G_{p'}| > B`, the dominant monomial of `u/h^p - 1` has exponent prime to `p` and value `> A`,
+    and `η = θ/h - 1` satisfies (I.2) (`e = p`). Otherwise reach `|u/h^p - 1| ≤ A T`, `T = |π|^{-1/2}`.
+  - *Phase 2 (Artin–Schreier regime, termination):* `u/h^p = 1 + π^p c`, `|c| ≤ T`. Approximate `c`
+    by a Laurent polynomial `Φ` (`|c - Φ| ≤ ε₀ = max(|π|^{1/2}, |π|^{p-1}) < 1`). For a term of `Φ`
+    at an exponent `i` with `p | i` replace `h` by `h (1 + π b)`, `b = β y^{i/p}` (`β^p = Φᵢ`;
+    for `i = 0` instead `b ∈ C` with `b^p - b = Φ₀`): `c ↦ c - (b^p - b) + r`, `|r| ≤ ε₀`, and
+    `Φ ↦ Φ - Φᵢ yⁱ + β y^{i/p}`. The measure `Σ_{i ∈ supp Φ} (v_p(i) + 1)` (`v_p(0) := 0`)
+    drops by `≥ 1`, so the process terminates with `Φ` supported on exponents prime to `p`
+    (none `0`). Then either `|c| < 1`, so `1 + π^p c` is a `p`-th power (contraction) and `u` is a
+    `p`-th power — contradiction; or `|c| > 1` (`|c| = 1` is impossible, `ρ` irrational), the
+    dominant exponent of `c` is prime to `p`, and `X = (θ/h - 1)/π` has `X^p = c (1 + ε')`, (I.2).
+  So the termination of the critical-radius iteration comes from the exactness of the `p`-th roots
+  of monomials (`(β y^{i/p})^p = Φᵢ yⁱ`) and the finiteness of `v_p` of the exponents.
+* (I.4) *Galois induction* (as G3 `LocalStability`): `N/M` Galois, `G = Gal(N/M)`; residue field
+  of `N` is `k` (so `G` acts trivially on residues), `Γ_N = |C^×| |z|^ℤ`; `χ(σ) = res(σ z / z)` is
+  a homomorphism `G → k^×` whose kernel is a `p`-group (eigenvector argument of D2). Hence `G ≠ 1`
+  has a normal subgroup `H` of prime index (`ker χ^{m/ℓ}` or, for `χ = 1`, a `p`-group); (I.3) for
+  `N^H/M`, induction for `N/N^H`. Result: every finite `L/K` has `e = [L : K]`, `f = 1`.
+* (I.5) STAB3: `Σ_{w' | w_ρ} e(w') f(w') = [F : C(x)]` by B4 (`finsum_ramificationIdx_mul_inertiaDeg_completion`).
+
+**Part II: the germ.** For `|a - b| ≤ r₁ < ρ` the annulus `{r₁ < |x - b| < R}` equals
+`{r₁ < |x - a| < R}`, so all choices below are uniform in the centre `b` of `EdgeGood`.
+* (II.1) S5/S6 at `ρ`: with STAB3 the tube count (`sum_ramificationIdx_mul_inertiaDeg_eq`,
+  `tubeDegree_eq`, `exists_center_eq`) holds at the irrational radius `ρ`.
+* (II.2) Thin annuli: for finitely many `y ∈ F` integral at all `ξ'ᵢ` there is a neighbourhood of
+  `ρ` (no poles of the coefficients of the characteristic polynomials, `near_valuation_le_one`) on
+  which `τ y ∈ R'` for some `τ ∈ O_C[x, c/x] ∖` node ideal; separating elements make the centres
+  of the `ξ'ᵢ` distinct, so every node point `P'` is the centre of exactly one `ξ'ᵢ`, and
+  `vertexDegree P' = tubeDegree_ρ P' = eᵢ` (STAB3, `f = 1`).
+* (II.3) Node data: `zᵢ ∈ F` with `ξ'ᵢ(zᵢ)^{eᵢ} = ρ` (`Γ_{ξ'ᵢ} = |C^×| ρ^{ℤ/eᵢ}`), `zᵢ ≡ 1` at
+  `ξ'ⱼ`, `j ≠ i` (weak approximation); then `σ x = e zᵢ^{eᵢ}` with `σ, e ∈ R' ∖ P'`, and at every
+  outer branch of `P'` the order of `x̄` is `eᵢ · ord z̄ᵢ ≥ eᵢ`; the branch orders sum to
+  `vertexDegree P' = eᵢ`, so `P'` has one outer branch and `z̄ᵢ` is a uniformizer there:
+  `nonempty_nodeData_of_coord`.
+* (II.4) NodeData on the inverted chart of `{r₁ < |x - b| < R}` + R4(i) `isNodeODP_of_le` +
+  `nodeGood_of_inv` give `IsExhausting` for `{r₁ < |x - b| < |c₂|}`, `ρ < |c₂| ≤ ρ₂ < R`.
+
+**Hypotheses:** none beyond `p` prime, `‖p‖ < 1` (`DefinedOverDVR` is not used). Not used:
+(D⇐), (T⇐), (T⇒), `aboveGerm_of`, `S8BMinFor`, `TypeFourGoodFor`, `NodeDataOfODP`.
+Estimate: Part I ≈ 2–2.5k lines, Part II ≈ 1.5–2k lines.
+
 ### 9.11 The field `C`: algebraic closure vs. its completion (open, found 2026-10)
 
 *Finding.* Two settings for the coefficient field `C` coexist on the targeted chain:
@@ -1546,7 +1610,7 @@ norm of `G`). No `CompleteSpace C` remains in `SemistableReduction`.
 | O6.1e | `S8A.GoodGluingFor` (O11g): `closedBall a ‖e‖ ⊊ ball a ‖u‖ ⊆ B`, `closedBall a ‖e‖` exhausting in `B`, `ball a ‖u‖` good ⇒ `B` good. Bridge: single-centre O11g `ExhaustGluing.discSmooth_iff_of_le` (`wp-tempered-m10` 1046e8a, under its named hypotheses) + representation independence `S8A.discGood_iff_of_ball_eq` (O6.5) | M10/O9 agent (O11g) + S8.A agent (O6.5) | **reduced** (`S8A.goodGluingFor_of`, `ExhInter`) to (T⇒), (D⇒), (D⇐) via `ExhaustGluing.discSmooth_iff_of_le` and `Transport.ballGood_iff` |
 | O6.1f | `S8A.ClassicalGoodFor` (S8.2, type 1): for every `a ∈ C` the residue balls `ball a ‖c‖`, `‖c‖ ≤ s₀`, are good | S8.B agent (SplitDisc + Kummer base change + DiscCount + `exists_eq_of_uniformizer`) | **reduced** (`ClassicalSmooth.classicalGoodFor_of`, `TypeOneGerm`) to O6.1f(i) `KummerUnramFor` (Kummer base change; **proved**: `ClassicalSmooth.kummerUnramFor` in `KummerUnram`, for `L` in the universe of `F`: Abhyankar's local step on place valuation rings, `y` a uniformizer at every zero of `y`, unramified datum via Riemann–Roch separating functions) and O6.1f(iii) `A6For` (A6 in its owner's form; owner S8.A agent (`S8Descent`)); unramified case (`ballGood_of_unramDatum`) and chart comparison (`PowTransport`) proved |
 | O6.1g | `S8A.TypeTwoGermFor` (dual R4(ii), type 2), **chart-wise for a fixed centre** `a₀` (no representation independence of `IsExhausting` needed; the threshold may depend on `a₀`): `∃ ρ' > ‖z‖`, `IsExhausting a₀ d c'` whenever `‖d c'‖ = ‖z‖`, `‖d‖ ≤ ρ'` | S8.B agent (Inv-transport of `IsExhausting` + rescaling (S8.A `isExhausting_iff_of_rescale`) applied to R4(ii)) | **done** (`S8A.typeTwoGermFor`, `TypeTwoGerm.lean`: R4(ii) `GaussTube.belowGerm` for `Inv z (Aff a₀ 1 F)`, rescaling, `nodeGood_of_inv` (`InvSwap`)); needs `[CharZero C]`, `p` with `‖p‖ < 1` |
-| O6.1h | `S8A.TypeThreeGermFor` (S8.4, type 3): for `ρ ∉ |C^×|` some `‖c₁‖ < ρ < ρ₂` with `EdgeGood (closedBall a ‖c₁‖) (closedBall a ‖c₂‖)` for `ρ < ‖c₂‖ ≤ ρ₂` | S8.B agent | in progress: reduced (plan) to **O13** + (T⇒)/(T⇐); see O13 |
+| O6.1h | `S8A.TypeThreeGermFor` (S8.4, type 3): for `ρ ∉ |C^×|` some `‖c₁‖ < ρ < ρ₂` with `EdgeGood (closedBall a ‖c₁‖) (closedBall a ‖c₂‖)` for `ρ < ‖c₂‖ ≤ ρ₂` | S8.B agent | in progress (T3 helper, branch `wp-tempered-s8b`): **route §9.10a** (STAB3 by a Kummer tower with the `p`-Taylor/Artin–Schreier dichotomy; node data at the type-3 point; hypothesis-free, no (T⇐)/(D⇐)) |
 | O6.2 | `S8A.R5MeasureFor` (R5, [AW Lemma 2.6, §2.5]): for `F` Galois, `μ : Set C → ℕ` with `μ B' < μ B` for every bad residue ball `B'` of the smallest exhausting disc of a bad ball `B` (`(δ, −m)` encoded in `ℕ`, `m ≤ δ + 1`) | S8.5 agent (R5 + S7⁺ equality as needed) | open |
 | O6.3 | `S8A.FiniteBadFor`: a disc has only finitely many bad residue balls (finitely many non-smooth points over a vertex component) | S7 (S7.7-type conductor finiteness) | open |
 | O6.4 | `S8A.InftyGoodFor`: for `‖c‖ ≥ R₀`, every point over the residue class at `∞` of `closedBall 0 ‖c‖` is smooth (chart `c/x`; the assembly centres the root at `0`, `BallTree.famA_eq_zero`) | S8.B agent (type-1 germ at `∞`) | **reduced** (`ClassicalSmooth.inftyGoodFor_of`, `InftyGerm`) to S8.2 for `Inv 1 F`, i.e. to O6.1f(i) `KummerUnramFor` and O6.1f(iii) `A6For` for `Inv 1 F` (S8.B agent) |
@@ -1558,7 +1622,7 @@ norm of `G`). No `CompleteSpace C` remains in `SemistableReduction`.
 | O9 | Finitely many residue-transcendental centres of a finite-type model over `O` of a curve function field (`[IsCurveFunctionField K F]`, any valuation subring `O`, no properness): `ZariskiModel.finite_residueTranscendental_centres`. No dimension theory and no Krull–Akizuki: some chart generator `t` has transcendental residue (`exists_isResidueTranscendental_of_mem`); `W` restricts on `K(t)` to the Gauss valuation of `t` (`valuation_aeval_eq_of_isResidueTranscendental`, `comap_adjoin_eq_of_isResidueTranscendental`); a valuation subring has finitely many extensions to the finite extension `F/K(t)` (`finite_extensions`: centres in the integral closure `D`, Prüfer, `D/𝔪D` finite-dimensional hence Artinian) | M10 agent (`SemistableReduction/ResidueCentres`) | **done** |
 | O10 | **EdgeRepair** in the S8.A form `S8A.EdgeRepairFor` (wp-tempered-s8a 7060859): for a segment `D ⊆ D'` of closed discs the breaks are finite and every sub-edge without a break is good (`EdgeGood`). Needed because the monotone form of W7 is false (S8.A agent: `u² = x`, `V' = {w_{0,1}, w_{b,r}}`, `r < |b| < 1`) and W10 needs `∀ V₀ ∃ V ⊇ V₀` | M10 agent (`SemistableReduction/EdgeRepair`) | **reduced (2026-10-07)** to (T⇒), (T⇐) and the type-3 germ: `EdgeRepair.edgeRepairFor_of` (`EdgeRepairGerms`; `BelowGerm` = `GaussTube.belowGerm` (`belowGerm_holds`), `AboveGerm` from `S8A.typeTwoGermFor` + `S8A.edgeGood_of_isExhausting` (`aboveGerm_of`)). Earlier form: `EdgeRepair.edgeRepairFor` from (T⇒) `TubeOfExhausting`, (T⇐) `ExhaustingOfTube` (O11/O12), **R4(ii)** `BelowGerm C F` (all `D(a,|cc'|)`, `|e| ≤ |c'| < 1`, exhausting in `|x-a| < |c|`; R4 agent, open), its **dual** `AboveGerm C F` (open; S8.B agent via `Inv`-transport) and the **type-3 germ** `TypeThreeGerm C F` (= `S8A.TypeThreeGermFor`, S8.B agent, open). Under (T⇔) an edge is good iff all radii of its annulus are clean (`Clean`, pointwise in the radius), so the second clause needs no gluing; finiteness by compactness of `[r(D), r(D')]` and density of `|C^×|` |
 | O11 | **Gluing** of exhaustion: `D ⊂ D(a,|ce|) ⊂ U' ⊂ U`, `D(a,|ce|)` exhausting in `U` ⇒ (`D` exhausting in `U` ⇔ in `U'`) (S8.5 K6, S8.B, O10); companion **O11g**: same configuration ⇒ (`U` good ⇔ `U'` good) | M10 agent (`SemistableReduction/ExhaustGluing`) | **proved modulo named hypotheses**: `ExhaustGluing.isExhausting_iff_of_le`, `discSmooth_iff_of_le` are formal gluings over overlapping segments of the valuative conditions `TubeCond a c c'` (every Gauss point of the open annulus `|c'| < |t| < 1`, `t = (x-a)/c`: extensions with rational residue curve and one point over `t̄ = ∞`, plus one over `t̄ = 0` on the skeleton, for every centre of the open disc of that radius) and `DiscCond a c` (every Gauss point of `|t| < 1`: rational, one point over `∞`). Consumed: **(T⇒)** `TubeOfExhausting C F'` (exhausting ⇒ `TubeCond`) — **skeleton clause proved** (`TubeSkeleton`: `ExhaustGluing.isTubeCircle_of_exhausting`, `tube_of_ext`; `tubeOfExhausting` assembles (T⇒) from the named hypotheses `NodeDataOfODP C F'` (exact node data at `IsNodeODP` node points of every twist; to be discharged by O1 under `DefinedOverDVR`) and `OffSkeletonOfExhausting C F'` (off-skeleton clause; open, needs the local lemma (L): the residue class of a smooth point is an open disc); open and **(D⇒)** `DiscCondOfSmooth C F'` (good disc ⇒ `DiscCond`); **(T⇐)/(D⇐)** are O12. Also proved: `mem_rint_iff_and` (`Rint c' = Rint e ∩ Rint(c'/u)`) |
-| O13 | **Stability at type-3 points (STAB3)** `TypeThree.Stab3For`: for `F / C(x)` finite separable, `a ∈ C` and `ρ ∉ |C^×|`, `Σ_{ν′ ∣ w_{a,ρ}} e(ν′ | w_{a,ρ}) = [F : C(x)]` (`f = 1` automatically; no defect). The exact analogue of W4 for value-transcendental Gauss points (Temkin, *Stable modification of relative curves*: type 3 points are stable; Kuhlmann's stability theorem). Expected route: adapt W4's proof (G1–G4: `NoImmediate`, `InertiallyGenerated`, `LocalStability`, `GaussStability`, residue-transcendental) to a value-transcendental generator. Not deducible from the Abhyankar equality case; algebraic maximality of the completion (AM) plus the Galois-tower argument gives STAB3, but proving AM directly needs convergence of algebraic pseudo-Cauchy sequences (C not spherically complete). Consumed by O6.1h (S8.B agent: `TypeThreeGermFor` from STAB3 + (T⇒)/(T⇐)) | open (owner open) |
+| O13 | **Stability at type-3 points (STAB3)** `TypeThree.Stab3For`: for `F / C(x)` finite separable, `a ∈ C` and `ρ ∉ |C^×|`, `Σ_{ν′ ∣ w_{a,ρ}} e(ν′ | w_{a,ρ}) = [F : C(x)]` (`f = 1` automatically; no defect). The exact analogue of W4 for value-transcendental Gauss points (Temkin, *Stable modification of relative curves*: type 3 points are stable; Kuhlmann's stability theorem). Expected route: adapt W4's proof (G1–G4: `NoImmediate`, `InertiallyGenerated`, `LocalStability`, `GaussStability`, residue-transcendental) to a value-transcendental generator. Not deducible from the Abhyankar equality case; algebraic maximality of the completion (AM) plus the Galois-tower argument gives STAB3, but proving AM directly needs convergence of algebraic pseudo-Cauchy sequences (C not spherically complete). Consumed by O6.1h | in progress (T3 helper): route §9.10a Part I (no Kuhlmann/AM: the dichotomy "e = p or a p-th power" terminates by an Artin–Schreier measure on exponents) |
 | O12 | **(T⇐)** `ExhaustGluing.ExhaustingOfTube C F'`: `∀ a c c' (hc : c ≠ 0) (hc' : ‖c'‖ < 1) (hc0' : c' ≠ 0), TubeCond F' a hc c' → IsExhausting a hc hc' hc0' F'` (an open annulus satisfying the valuative tube condition has only ordinary double points over its node), and **(D⇐)** `SmoothOfDiscCond C F'`: `∀ a c hc, DiscCond F' a hc → DiscSmooth F' a hc`. Not obtainable from S7's global δ-count for the two-vertex model (the reverse inequality is global); expected from the local improvement formula R5 (`δ_y = m_y − |S| + Σ g_V + Σ δ_{y'}`) | S8.A agent (R5) | M10 agent (from S8.A) | open; **plan** (R5 + O12, agreed with the lead): (1) *local δ-formula* (AW 2.3) by subtracting S7⁺ for `ℙ¹_s` and `ℙ¹_t`, `t = s + c/s`: done so far — `TwoVertex` (`ψ : C(t) → C(x)`, the Gauss point of `t` has exactly the extensions `w_{0,1}`, `w_{0,|c|}`, `extU`/`extD`/`ext_cases`; the twist `TwoV c F'` is finite over `C(X)`) and `SectionLocal.genus_eq_sum_delta_of_conductor` (S7⁺ for arbitrary conductors, so conductors of the two models can be chosen with common points: products `σ τ`); to do — (a) transport of places along residue-field isomorphisms (`CurvePlace` comap; `valuation`, `res`), (b) an abstract locality lemma for `ChartLocal.delta` (branches, centres and `δ` agree at points where the two charts agree after inverting a unit `u`, here `u = s̄` resp. `s̄⁻¹`; inputs: `s^N f ∈ intRing s` for `f ∈ intRing t`, `s^M g ∈ intRing t` for `g ∈ intRing s`), (c) assembly `Σ_{x/s̄=0} δ_x = Σ_node δ + Σ_{D-mid} δ + Σ_{D,∞} δ + Σ_{w∣w_D} g(κ_w) − |S_D|`; (2) (D⇐) from DiscCond + `ClassicalGoodFor` (S8.B, type-1 germ); (3) (T⇐): `f(ρ)` = total δ of `M_ρ` over `t̄ = 0` is ℕ-valued and monotone (`f(r) − f(r') = Σ_P (out_P − 1) + Σ_P (δ_P − r_P + 1)` under TubeCond and (D⇐)), locally constant by the germs (BelowGerm, AboveGerm, TypeThreeGerm), hence `δ_P = r_P − 1`, `r_P = 2`, IsNodeODP by the jets route; (4) R5MeasureFor from the formula (AW Lemma 2.6/2.9). Estimate 6–9k lines |
 | O12′ | (lead's note on O12) **(T⇐) valuative tube characterization**: if every intermediate Gauss point of an annulus has extensions with rational residue curves and exactly two branches in the tube directions (plus endpoint branch conditions), every node point of the normalized node chart is `IsNodeODP`. Consumed by O11 (⇐) and O10. The global δ-count does not localize; expected from R5's local formula + S7 jets | S8.A agent (with R5, O6.2) | open |
 | W7L | **Leaves of W7** (2026-10-07): `W7.statement_of_leaves : W7.Leaves → W7.Statement` (`W7Leaves.lean`, standard axioms). `W7.Leaves` collects exactly the open W7-side inputs: `NodeDataOfODP` (O1), `OffSkeletonOfExhausting` (lemma (L)), `DiscCondOfSmooth` (D⇒), `ExhaustingOfTube` (T⇐), `SmoothOfDiscCond` (D⇐), `L7For` (O6.1c), `A6For` (O6.1f(iii)), `TypeThreeGermFor` (O6.1h), `R5MeasureFor` (O6.2), `FiniteBadFor` (O6.3), `S8CDescent` (O6.6); O6.1a/b/d/e/f/g, O6.4, O6.5, O10 are assembled from these | tempered lead | glue proved; leaves open |
