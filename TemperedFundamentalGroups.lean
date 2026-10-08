@@ -1,6 +1,9 @@
 import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.Defs
+import TemperedFundamentalGroups.Andre.FracGalois
 import TemperedFundamentalGroups.Andre.FracMap
+import TemperedFundamentalGroups.Andre.GTransitive
+import TemperedFundamentalGroups.Andre.GTransitiveAux
 import TemperedFundamentalGroups.Andre.GaloisClass
 import TemperedFundamentalGroups.Andre.GaloisClass2
 import TemperedFundamentalGroups.Andre.GaloisDom2
@@ -26,6 +29,7 @@ import TemperedFundamentalGroups.Andre.TheoremBW
 import TemperedFundamentalGroups.Andre.Transport
 import TemperedFundamentalGroups.Andre.Transfer
 import TemperedFundamentalGroups.Andre.TransferTate
+import TemperedFundamentalGroups.Andre.ValuativeCentre
 import TemperedFundamentalGroups.Andre.WData
 import TemperedFundamentalGroups.Andre.WEdgeLifting
 import TemperedFundamentalGroups.Andre.WHarmonicWeight
