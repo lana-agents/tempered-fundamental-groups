@@ -108,11 +108,28 @@ theorem Pres.finite_hcw [CharZero K] [IsDiscreteValuationRing O]
     (ENNReal.add_ne_top.2 ⟨hℓ₀, ENNReal.add_ne_top.2 ⟨hM, hM⟩⟩)).subset fun γ hγ => ?_
   exact tlen_le_of_hc_of_le hγ hdN
 
+/-- A component not contracted over the Tate model (G1) excludes components which are points. -/
+lemma Pres.noPt_of {X : TempObj O R A} (P : Pres x X) (a : X ⟶ TateObject.X₀ (A := A) T)
+    {t₁ : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀)}
+    (hν₁ : P.tateNu T a (lab t₁)) : P.NoPt := by
+  intro j z hj
+  have hu := curveConfig_eq_univ_of_singleton P.hdim hj
+  refine hν₁ ⟨P.tateMap T a z, ?_⟩
+  have hall : ∀ w : P.Lv.Z, w = z := fun w => by
+    have h : w ∈ (Set.univ : Set P.Lv.Z) := trivial
+    rw [hu] at h
+    exact h
+  have hC : (curveConfig P.Lv.Z P.hdim).C (lab t₁) = {z} :=
+    Set.eq_singleton_iff_unique_mem.2
+      ⟨hall ((curveConfig P.Lv.Z P.hdim).η (lab t₁)) ▸ (curveConfig P.Lv.Z P.hdim).η_mem _,
+        fun w _ => hall w⟩
+  rw [hC, Set.image_singleton]
+
 namespace TateObject
 
 variable [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
 
-/-- **The loop hypothesis `hne` from one loop of `Y₀`** (modulo `NoPt`, G1 and I4). -/
+/-- **The loop hypothesis `hne` from one loop of `Y₀`** (modulo G1 and I4). -/
 theorem hne_of_loop [IsAlgClosed Ω] (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {Y₀ : TempObj O R A} (Q : Pres x Y₀) (y₀ : (tempFibre O R A V hV).obj Y₀)
@@ -120,7 +137,6 @@ theorem hne_of_loop [IsAlgClosed Ω] (hX : SemistableReduction.Statement.Harmoni
     (d : Multiplicative ℤ) (κ : Q.U ≅ Q.U)
     (hκ : ∀ z, (tempFibre O R A V hV).map (κ.hom ≫ Q.iso.inv ≫ a₀) z =
       FibreAut.deckAct (X₀ T) (deck T) d ((tempFibre O R A V hV).map (Q.iso.inv ≫ a₀) z))
-    (hnsQ : Q.NoPt) (hNoPt : ∀ (X : TempObj O R A) (P : Pres x X), P.NoPt)
     (hG1 : ∀ (X : TempObj O R A) (P : Pres x X) (a : X ⟶ X₀ (A := A) T),
       ∃ t₁ : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀),
         IsComp t₁ ∧ P.tateNu T a (lab t₁))
@@ -131,7 +147,11 @@ theorem hne_of_loop [IsAlgClosed Ω] (hX : SemistableReduction.Statement.Harmoni
       (tempFibre O R A V hV).map m g = y₀ → ∃ γ, (tempFibre O R A V hV).map (m ≫ a₀) γ =
         FibreAut.deckAct (X₀ T) (deck T) d (basePoint T V hV) ∧
         P.HCW V hV T (m ≫ a₀) ϖ g γ ℓ₀ := by
-  obtain ⟨ℓ₀, hℓ₀, hconj⟩ := Q.exists_conj hX hN ϖ hϖ hnsQ κ
+  have hNoPt : ∀ (X : TempObj O R A) (P : Pres x X) (a : X ⟶ X₀ (A := A) T), P.NoPt :=
+    fun X P a => by
+      obtain ⟨t₁, -, hν₁⟩ := hG1 X P a
+      exact Pres.noPt_of T P a hν₁
+  obtain ⟨ℓ₀, hℓ₀, hconj⟩ := Q.exists_conj hX hN ϖ hϖ (hNoPt Y₀ Q a₀) κ
   refine ⟨ℓ₀, hℓ₀, fun X P hgal m g hg => ?_⟩
   let Φ := tempFibre O R A V hV
   let mm : P.U ⟶ Q.U := P.iso.inv ≫ m ≫ Q.iso.hom
@@ -157,7 +177,7 @@ theorem hne_of_loop [IsAlgClosed Ω] (hX : SemistableReduction.Statement.Harmoni
       change (P.iso.inv ≫ m ≫ a₀).ψ (π.hom.ψ z.1) = (P.iso.inv ≫ m ≫ a₀).ψ z.1
       rw [← Scheme.Hom.comp_apply, ← comp_ψ, P.ψ_eq T (π.hom ≫ P.iso.inv ≫ m ≫ a₀)]
     rw [← hy, ← h, ← Set.image_comp, hinv]
-  obtain ⟨π, D, -, hπm, hHC⟩ := P.exists_hc_loop Q hX hN ϖ hϖ V hV hgal mm κ (hNoPt X P)
+  obtain ⟨π, D, -, hπm, hHC⟩ := P.exists_hc_loop Q hX hN ϖ hϖ V hV hgal mm κ (hNoPt X P (m ≫ a₀))
     (hI4 X P mm) (P.tateNu T (m ≫ a₀)) hνnc hνπ ht₁ hν₁ hconj (Φ.map P.iso.hom g)
   refine ⟨Φ.map (P.iso.hom ≫ π.hom ≫ P.iso.inv) g, ?_, ?_⟩
   · have hm : m ≫ a₀ = P.iso.hom ≫ mm ≫ Q.iso.inv ≫ a₀ := by simp [mm]
@@ -181,7 +201,7 @@ theorem hne_of_loop [IsAlgClosed Ω] (hX : SemistableReduction.Statement.Harmoni
 
 /-- **Theorem B, reduced to its geometric inputs**: from (gal), (dom), (rig) of `galClassW`,
 `HarmonicX`, `NodeOfTwoComponents`, one pointed member `(Y₀, y₀)` over `(X₀, x₀)` with an
-automorphism `κ` acting through `δ(d)` (hbase), and the inputs `NoPt`, G1, I4, some element of
+automorphism `κ` acting through `δ(d)` (hbase), and the inputs G1, I4, some element of
 `temperedPi1` has character `d`. -/
 theorem exists_character_eq_of_loop [IsAlgClosed Ω]
     (hgal : IsGaloisClass (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
@@ -195,14 +215,12 @@ theorem exists_character_eq_of_loop [IsAlgClosed Ω]
     (d : Multiplicative ℤ) (κ : Q.U ≅ Q.U)
     (hκ : ∀ z, (tempFibre O R A V hV).map (κ.hom ≫ Q.iso.inv ≫ a₀) z =
       FibreAut.deckAct (X₀ T) (deck T) d ((tempFibre O R A V hV).map (Q.iso.inv ≫ a₀) z))
-    (hNoPt : ∀ (X : TempObj O R A) (P : Pres x X), P.NoPt)
     (hG1 : ∀ (X : TempObj O R A) (P : Pres x X) (a : X ⟶ X₀ (A := A) T),
       ∃ t₁ : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀),
         IsComp t₁ ∧ P.tateNu T a (lab t₁))
     (hI4 : ∀ (X : TempObj O R A) (P : Pres x X) (mm : P.U ⟶ Q.U), P.HasI4 Q mm) :
     ∃ τ : temperedPi1 O R A V hV, character T V hV τ = d := by
-  obtain ⟨ℓ₀, hℓ₀, hne⟩ := hne_of_loop V hV T hX hN ϖ hϖ Q y₀ a₀ ha₀ d κ hκ (hNoPt Y₀ Q)
-    hNoPt hG1 hI4
+  obtain ⟨ℓ₀, hℓ₀, hne⟩ := hne_of_loop V hV T hX hN ϖ hϖ Q y₀ a₀ ha₀ d κ hκ hG1 hI4
   refine exists_character_eq_of_hcw V hV T hgal hdom hrig hX hN ϖ hϖ Y₀ hY₀ y₀ a₀ ha₀ d ℓ₀
     (fun X P a g => ?_) hne
   obtain ⟨t₁, ht₁, hν₁⟩ := hG1 X P a
