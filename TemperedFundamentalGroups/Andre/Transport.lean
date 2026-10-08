@@ -38,8 +38,9 @@ lemma curveConfig_η_notMem_S {Z : Type u} [TopologicalSpace Z] [NoetherianSpace
     intro c hc
     have hgen : closure {i.2.1.genericPoint} = i.1 :=
       i.2.1.isGenericPoint_genericPoint (isClosed_of_mem_irreducibleComponents i.1 i.2)
-    have hsub : i.1 ⊆ c.1 := hgen ▸ (isClosed_of_mem_irreducibleComponents c.1 c.2).closure_subset_iff.2
-      (singleton_subset_iff.2 hc)
+    have hsub : i.1 ⊆ c.1 :=
+      hgen ▸ (isClosed_of_mem_irreducibleComponents c.1 c.2).closure_subset_iff.2
+        (singleton_subset_iff.2 hc)
     exact Subtype.ext (subset_antisymm (i.2.2 c.2.1 hsub) hsub)
   exact hab ((hcl a ha).trans (hcl b hb).symm)
 
