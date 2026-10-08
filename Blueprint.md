@@ -1783,6 +1783,8 @@ Total ≈ 5–7k.
     `temperedPi1` is trivial.
 
   Theorem B for `X₀` is therefore **false** for constant data. The final TateObject-level
-  theorem carries the explicit named hypothesis `hx : Transcendental K T.x`. It holds for the
-  IUT data `data hW hπ hπm ℓ M`, where `x` is the coordinate function. G1 uses it, through the
+  theorem carries the explicit named hypothesis `hx : Transcendental K T.x`. It is
+  **discharged for the IUT data** `data hW hπ hπm ℓ M`, where `x` is the coordinate function
+  (`TateOrbicurve.transcendental_data_x`, `Andre/TateOrbicurve.lean`). The IUT-level corollary
+  will therefore carry no such hypothesis. G1 uses it, through the
   dominance of `j_𝒯` (`TateNormal.closure_range_toProj`).

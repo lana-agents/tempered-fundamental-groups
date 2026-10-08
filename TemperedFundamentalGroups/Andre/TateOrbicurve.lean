@@ -97,4 +97,30 @@ end
 
 end TateOrbicurve
 
+namespace Orbicurve
+
+/-- Transcendence passes to any subalgebra containing the element. -/
+lemma transcendental_subalgebra {K : Type u} [Field K] {A : Type u} [CommRing A] [Algebra K A]
+    (S : Subalgebra K A) {a : A} (ha : a ∈ S) (h : Transcendental K a) :
+    Transcendental K (⟨a, ha⟩ : S) := by
+  rw [transcendental_iff_injective] at h ⊢
+  have : S.val.comp (Polynomial.aeval (⟨a, ha⟩ : S)) = Polynomial.aeval a :=
+    Polynomial.algHom_ext (by simp)
+  exact fun p q hpq ↦ h (by rw [← this]; simp [hpq])
+
+end Orbicurve
+
+namespace TateOrbicurve
+
+variable {K : Type u} [Field K] {O : ValuationSubring K} {W : WeierstrassCurve K} [DecidableEq K]
+
+/-- **For the IUT data, `T.x` is transcendental over `K`** (the non-degeneracy condition of
+Blueprint §10.3.8). -/
+theorem transcendental_data_x {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) (hπ : π ≠ 0)
+    (hπm : π ∈ IsLocalRing.maximalIdeal O) (ℓ : ℕ) (M : AddSubgroup W.toAffine.Point) :
+    Transcendental K (data hW hπ hπm ℓ M).x :=
+  Orbicurve.transcendental_subalgebra _ _ (transcendental_xGen W)
+
+end TateOrbicurve
+
 end TemperedFundamentalGroups

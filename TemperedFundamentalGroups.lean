@@ -190,6 +190,7 @@ import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Topology.CountableFibres
 import TemperedFundamentalGroups.Topology.CoverLength
 import TemperedFundamentalGroups.Topology.CoveringCode
+import TemperedFundamentalGroups.Topology.CurveGeneric
 import TemperedFundamentalGroups.Topology.CurveCovering
 import TemperedFundamentalGroups.Topology.GenericLift
 import TemperedFundamentalGroups.Topology.HeightBound
