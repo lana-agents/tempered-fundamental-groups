@@ -232,15 +232,17 @@ namespace SemistableReduction
 namespace S8A
 
 /-- **S8.C, descent** ([AW Prop 2.1], L1 A6 and its node analogue; open interface, Blueprint §9.12
-O6.6): a Gauss tree semistable for the Galois hull of a finite family is semistable for every
-member. -/
+O6.6): a Gauss tree semistable for the Galois hull of a finite family of fields defined over
+complete discretely valued subfields (`DefinedOverDVR`) is semistable for every member. Proved
+as `S8A.s8cDescent_of` (`S8DescentTree`) modulo lemma (L) and (T⇐). -/
 def S8CDescent : Prop :=
   ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C] [CharZero C]
     (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
     ∀ (κ : Type) [Fintype κ] (F' : κ → Type v) [∀ k, Field (F' k)]
     [∀ k, Algebra (RatFunc C) (F' k)] [∀ k, Algebra C (F' k)]
-    [∀ k, IsScalarTower C (RatFunc C) (F' k)] [∀ k, FiniteDimensional (RatFunc C) (F' k)]
-    (ι : Type) [Fintype ι] (a c : ι → C) (hc : ∀ i, c i ≠ 0),
+    [∀ k, IsScalarTower C (RatFunc C) (F' k)] [∀ k, FiniteDimensional (RatFunc C) (F' k)],
+    (∀ k, DefinedOverDVR C (F' k)) →
+    ∀ (ι : Type) [Fintype ι] (a c : ι → C) (hc : ∀ i, c i ≠ 0),
     W7.IsSemistableTree a c hc (galoisHull C F') → ∀ k, W7.IsSemistableTree a c hc (F' k)
 
 /-- **S8.C from the descent interface**: the Galois hull and the lift `exists_lift`. -/
@@ -248,7 +250,7 @@ theorem s8cReduction_of_descent (h : S8CDescent.{u, v}) : S8CReduction.{u, v} :=
   intro C _ _ _ _ p hp hp1 κ _ F' _ _ _ _ _ ⟨k₀⟩ hdef
   refine ⟨galoisHull C F', inferInstance, inferInstance, inferInstance, inferInstance,
     inferInstance, inferInstance, (hdef k₀).of_finite _,
-    fun ι _ a c hc hV k ↦ h C p hp hp1 κ F' ι a c hc hV k, ?_⟩
+    fun ι _ a c hc hV k ↦ h C p hp hp1 κ F' hdef ι a c hc hV k, ?_⟩
   rintro τ - ⟨σ, hσ⟩
   exact exists_lift τ σ hσ
 
