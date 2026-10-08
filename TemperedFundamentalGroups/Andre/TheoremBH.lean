@@ -80,6 +80,15 @@ lemma hcw_congr (a a' : X ⟶ TateObject.X₀ (A := A) T) (ϖ : O)
   unfold HCW
   rw [P.tateNu_eq T a a']
 
+omit [IsReduced R] [Subsingleton A] [Algebra K Ω] [IsScalarTower K R Ω] in
+/-- A presentation of a member of `galClassW`, with the Galois property of its level. -/
+lemma exists_gal {X : TempObj O R A} (hX : galClassW O R A Ω (Level.IsW x) X) :
+    ∃ P : Pres x X, ∀ t t' : P.Lv.L.B →ₐ[R] Ω, ∃ σ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B,
+      t.comp (σ : P.Lv.L.B →ₐ[R] P.Lv.L.B) = t' := by
+  obtain ⟨Lv, _, _, _, _, _, hdim, z₀, hP, -, hgal, hidem, hact, hss, hdom, ⟨iso⟩⟩ := hX
+  obtain ⟨D⟩ := WData.nonempty_of_isW hP
+  exact ⟨⟨Lv, hdim, z₀, D, iso, hidem, hact, hss⟩, fun t t' => (hgal t t').exists⟩
+
 end Pres
 
 namespace TateObject
@@ -102,7 +111,9 @@ theorem exists_character_eq_of_hcw
     (ℓ₀ : ℝ≥0∞)
     (hfin : ∀ (X : TempObj O R A) (P : Pres x X) (a : X ⟶ X₀ (A := A) T)
       (g : (tempFibre O R A V hV).obj X), {γ | P.HCW V hV T a ϖ g γ ℓ₀}.Finite)
-    (hne : ∀ (X : TempObj O R A) (P : Pres x X) (m : X ⟶ Y₀) (g : (tempFibre O R A V hV).obj X),
+    (hne : ∀ (X : TempObj O R A) (P : Pres x X), (∀ t t' : P.Lv.L.B →ₐ[R] Ω,
+      ∃ σ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B, t.comp (σ : P.Lv.L.B →ₐ[R] P.Lv.L.B) = t') →
+      ∀ (m : X ⟶ Y₀) (g : (tempFibre O R A V hV).obj X),
       (tempFibre O R A V hV).map m g = y₀ → ∃ γ, (tempFibre O R A V hV).map (m ≫ a₀) γ =
         FibreAut.deckAct (X₀ T) (deck T) d (basePoint T V hV) ∧
         P.HCW V hV T (m ≫ a₀) ϖ g γ ℓ₀) :
@@ -110,7 +121,7 @@ theorem exists_character_eq_of_hcw
   classical
   let Φ := tempFibre O R A V hV
   let 𝒢₀ := overY (galClassW O R A Ω (Level.IsW x)) Y₀
-  let pres : ∀ p : PtGal Φ 𝒢₀, Pres x p.G := fun p => Classical.choice (Pres.nonempty p.mem.1)
+  let pres : ∀ p : PtGal Φ 𝒢₀, Pres x p.G := fun p => (Pres.exists_gal p.mem.1).choose
   have hpt : ∀ p : PtGal Φ 𝒢₀, ∃ m : p.G ⟶ Y₀, Φ.map m p.g = y₀ := fun p => by
     obtain ⟨m₁⟩ := p.mem.2
     obtain ⟨σ, hσ⟩ := hgal Y₀ hY₀ (Φ.map m₁ p.g) y₀
@@ -143,7 +154,7 @@ theorem exists_character_eq_of_hcw
   · -- nonemptiness: the loop
     intro p
     obtain ⟨m, hm⟩ := hpt p
-    obtain ⟨γ, hγ, hH⟩ := hne p.G (pres p) m p.g hm
+    obtain ⟨γ, hγ, hH⟩ := hne p.G (pres p) (Pres.exists_gal p.mem.1).choose_spec m p.g hm
     exact ⟨γ, m ≫ a₀, by rw [Functor.map_comp_apply, hm, ha₀], hγ, hH⟩
   · -- elements of `S` lie over `δ(d) x₀`
     rintro p γ ⟨a, ha, hγ, -⟩ f hf
