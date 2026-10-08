@@ -2074,3 +2074,71 @@ Total ≈ 5–7k.
   (`TateOrbicurve.transcendental_data_x`, `Andre/TateOrbicurve.lean`). The IUT-level corollary
   will therefore carry no such hypothesis. G1 uses it, through the
   dominance of `j_𝒯` (`TateNormal.closure_range_toProj`).
+
+**hbase via HarmonicTate (decision 2026-10-08).**
+
+* *The old I5 (`[-1]`-symmetry) is unsound.* A crossing over `p` and one over `q` do not force a
+  non-trivial winding. Counterexample (dual graph): components `a` (over `C`), `b` (over `E`),
+  `c` (over `C`) with `a —p— b —q— c`, and the involution `ι` swapping `a ↔ c` and fixing `b`.
+  * Both nodes are crossed and the configuration is `ι`-symmetric.
+  * The dual graph is a tree, so every deck element has character `0`.
+
+  Only harmonicity (positive degree onto the 2-gon) excludes it. **Do not revive I5.**
+* *What forces winding:* crossing from **every** component. Suppose every component over `C`
+  (resp. `E`) has, at each node `y' ∈ {p, q}`, a crossing chain to a component over the other
+  branch: special points over `y'`, inner components contracted to `y'`. Then alternate the
+  crossings `C →p→ E →q→ C →p→ …`. Finitely many components give a closed walk.
+
+  Sheet calculus on `X₀ = ℤ`-cover:
+  * a `p`-crossing keeps the sheet;
+  * a `q`-crossing `E → C` lowers it by `1`.
+
+  The closed walk lifts to a deck transformation of character `−(number of rounds) ≠ 0`.
+* *`Statement.HarmonicTate`* (targeted, internal, owned by the Theorem B agent). It is (X1) for
+  the model map `ψ : c → 𝒯` of a member over `X₀`, at the two nodes `p, q` of the Tate model,
+  stated only for these members.
+
+  **Proof (record of truth, via Zariski's main theorem):**
+  1. Let `v` be a component over `C` and `z ∈ v` with `ψ(z) = p`.
+  2. Let `Ñ` be the normalization of `𝒯` in `Frac B`, and `n ∈ Ñ` the image of `z`. The map
+     `c → 𝒯` factors through `Ñ` because `c` is normal.
+  3. `𝒯` is normal (`TateModelNormal`) and `Ñ` is a domain integral over `O_{𝒯,p}`, so
+     going-down gives generalizations of `n` in the special fibre of `Ñ` over both `η_C` and
+     `η_E`. These are components of `Ñ_s` through `n` over both branches.
+  4. `c → Ñ` is proper and birational with normal target, so its fibre over `n` is connected
+     (Zariski).
+  5. That fibre is contained in `ψ⁻¹(p)`. It meets `v` and the strict transform of a component
+     over `E`. Hence a chain of components contracted to `p` joins `v` to a component over `E`.
+
+  *Degenerate check:* if some component is contracted to `p`, the chain simply passes through
+  it, so the statement is unaffected. Zariski connectedness via coherent cohomology / formal
+  functions is out of scope.
+* *Lean route of record:* generalise the target of `HarmonicX` from "unfolded W-model on `x`" to
+  "a normal model through which the W-models factor". Then `HarmonicX` and `HarmonicTate` come
+  from one valuative W-chain argument (path lifting on skeleta). This is subject to a bounded
+  feasibility check. Fallback: prove `HarmonicTate` directly by skeleton path lifting.
+
+**`Statement.CrossingX1` (shared core of `HarmonicX` (X1) and `HarmonicTate`; approved 2026-10-08).**
+
+* *Statement.*
+  * `c` is an unfolded split semistable W-model without loops: the model of a member, the
+    source.
+  * `c'` is a normal projective `O₂`-model with generic point `j'`, and `y'` is a point of `c'`
+    on two components `w₁' ≠ w₂'` such that the germ ring at `y'` is a `NodeGerm`
+    (`MonomialUnique.lean`).
+  * `ψ : c ⟶ c'` is compatible with the generic points.
+
+  Conclusion: every component `v` of `c` with `ψ '' v = w₁'` has a walk crossing `y'` (special
+  points over `y'`, inner components contracted to `y'`) to a component over `w₂'`.
+* *Proof:* XL8 (lifting the monomial path of `y'` by tube degree, S5, applied to
+  `L₁ / K₂'(u')`), XL2 (monomial points of a `NodeGerm`), and XL7. The x-line of the target is
+  used only for lengths (XL3, XL6, XL9). Then:
+  * `HarmonicX` (X1) is `CrossingX1` plus the length equality;
+  * `HarmonicTate` is `CrossingX1` with `c' = 𝒯` and `y' ∈ {p, q}`.
+* *`NodeGerm` at the nodes of `𝒯` (checked on paper).* Work in the chart `X₀ = 1` with
+  `s = X₁/X₀` and `w = X₂/X₀`. There `F / X₀³ = w (s (1 + s) − b₆ w²) − π (1 + b₄ w²)`.
+  * At `p = (s, w) = (0, 0)` take `u = w` and `v = (s(1 + s) − b₆ w²) / ((1 + b₄ w²) ε)`, where
+    `π = ε ϖᵉ` and `ε ∈ Oˣ`. Then `u v = ϖᵉ` exactly, with `1 + b₄ w²` a unit at `p`.
+  * The maximal ideal is `(ϖ, u, v)`, since `s ≡ v · unit mod (w, ϖ)`. The residue field is `k`,
+    the fraction field is `TateField`, and it is algebraic over `K(u)`.
+  * At `q = (−1, 0)` the same argument applies with `1 + s` and `s` exchanged.
