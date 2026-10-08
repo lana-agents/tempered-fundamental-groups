@@ -221,7 +221,8 @@ theorem exists_sub_lt_one (hξ : IsTypeFour ξ) {w : Valuation L ℝ≥0}
   simp only [IsResidueTranscendental, not_and, not_forall] at hnot
   obtain ⟨P, hP0, hPv⟩ := hnot hyV
   -- replace the coefficients by constants
-  have hcoef : ∀ i, ∃ c : C, ‖c‖ ≤ 1 ∧ ξ ((P.coeff i : RatFunc C) - algebraMap C (RatFunc C) c) < 1 ∧
+  have hcoef : ∀ i, ∃ c : C, ‖c‖ ≤ 1 ∧
+      ξ ((P.coeff i : RatFunc C) - algebraMap C (RatFunc C) c) < 1 ∧
       (ξ (P.coeff i : RatFunc C) = 1 → ‖c‖ = 1) := by
     intro i
     obtain ⟨c, hc1, hc⟩ := hξ.exists_sub_lt_one (P.coeff i).2
