@@ -92,6 +92,22 @@ lemma conj_char (a₀ : P.U ⟶ TateObject.X₀ (A := A) T) (κ D : P.U ≅ P.U)
 end Pres
 
 
+/-- **Finiteness** of the sets `HCW ≤ ℓ₀`, given a component not contracted over the Tate
+model (G1). -/
+theorem Pres.finite_hcw [CharZero K] [IsDiscreteValuationRing O]
+    [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    {X : TempObj O R A} (P : Pres x X) (a : X ⟶ TateObject.X₀ (A := A) T)
+    (g : (tempFibre O R A V hV).obj X)
+    {t₁ : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀)}
+    (ht₁ : IsComp t₁) (hν₁ : P.tateNu T a (lab t₁)) {ℓ₀ : ℝ≥0∞} (hℓ₀ : ℓ₀ ≠ ⊤) :
+    {γ | P.HCW V hV T a ϖ g γ ℓ₀}.Finite := by
+  obtain ⟨M, hM, hdN⟩ := exists_dN_le (WData.weight_ne_top P.D ϖ) (P.tateNu T a) ht₁ hν₁
+  refine (P.finite_len_le V hV hX hN ϖ hϖ g (ℓ₀ := ℓ₀ + (M + M))
+    (ENNReal.add_ne_top.2 ⟨hℓ₀, ENNReal.add_ne_top.2 ⟨hM, hM⟩⟩)).subset fun γ hγ => ?_
+  exact tlen_le_of_hc_of_le hγ hdN
+
 namespace TateObject
 
 variable [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
@@ -162,6 +178,35 @@ theorem hne_of_loop [IsAlgClosed Ω] (hX : SemistableReduction.Statement.Harmoni
       simp
     rw [h₂]
     exact hHC
+
+/-- **Theorem B, reduced to its geometric inputs**: from (gal), (dom), (rig) of `galClassW`,
+`HarmonicX`, `NodeOfTwoComponents`, one pointed member `(Y₀, y₀)` over `(X₀, x₀)` with an
+automorphism `κ` acting through `δ(d)` (hbase), and the inputs `NoPt`, G1, I4, some element of
+`temperedPi1` has character `d`. -/
+theorem exists_character_eq_of_loop [IsAlgClosed Ω]
+    (hgal : IsGaloisClass (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
+    (hdom : IsDominating (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
+    (hrig : IsRigid (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
+    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    {Y₀ : TempObj O R A} (hY₀ : galClassW O R A Ω (Level.IsW x) Y₀) (Q : Pres x Y₀)
+    (y₀ : (tempFibre O R A V hV).obj Y₀)
+    (a₀ : Y₀ ⟶ X₀ (A := A) T) (ha₀ : (tempFibre O R A V hV).map a₀ y₀ = basePoint T V hV)
+    (d : Multiplicative ℤ) (κ : Q.U ≅ Q.U)
+    (hκ : ∀ z, (tempFibre O R A V hV).map (κ.hom ≫ Q.iso.inv ≫ a₀) z =
+      FibreAut.deckAct (X₀ T) (deck T) d ((tempFibre O R A V hV).map (Q.iso.inv ≫ a₀) z))
+    (hNoPt : ∀ (X : TempObj O R A) (P : Pres x X), P.NoPt)
+    (hG1 : ∀ (X : TempObj O R A) (P : Pres x X) (a : X ⟶ X₀ (A := A) T),
+      ∃ t₁ : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀),
+        IsComp t₁ ∧ P.tateNu T a (lab t₁))
+    (hI4 : ∀ (X : TempObj O R A) (P : Pres x X) (mm : P.U ⟶ Q.U), P.HasI4 Q mm) :
+    ∃ τ : temperedPi1 O R A V hV, character T V hV τ = d := by
+  obtain ⟨ℓ₀, hℓ₀, hne⟩ := hne_of_loop V hV T hX hN ϖ hϖ Q y₀ a₀ ha₀ d κ hκ (hNoPt Y₀ Q)
+    hNoPt hG1 hI4
+  refine exists_character_eq_of_hcw V hV T hgal hdom hrig hX hN ϖ hϖ Y₀ hY₀ y₀ a₀ ha₀ d ℓ₀
+    (fun X P a g => ?_) hne
+  obtain ⟨t₁, ht₁, hν₁⟩ := hG1 X P a
+  exact P.finite_hcw V hV T hX hN ϖ hϖ a g ht₁ hν₁ hℓ₀
 
 end TateObject
 
