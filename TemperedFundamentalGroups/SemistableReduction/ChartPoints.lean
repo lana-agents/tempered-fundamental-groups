@@ -448,6 +448,83 @@ theorem exists_forall_dl_eq_dinf [Fintype J] {σ : Π j, κ j} (hσ : σ ∈ Λ)
     rw [h0, dinf]
     simp [h0]
 
+/-- `dinf` vanishes where a conductor element is a unit. -/
+theorem dinf_eq_zero_of_conductor [Finite J] {σ : Π j, κ j} (hσ : σ ∈ Λ)
+    (hcond : ∀ v ∈ regRing k κ z, σ * v ∈ Λ) {𝔫 : Ideal Λ} (h𝔫 : 𝔫 ≠ ⊤)
+    (hσ𝔫 : (⟨σ, hσ⟩ : Λ) ∉ 𝔫) : dinf k κ hΛ 𝔫 = 0 := by
+  rw [dinf]
+  simp [dl_eq_zero_of_conductor hΛ hσ hcond h𝔫 hσ𝔫]
+
+/-- **Finitely many closed points carry `δ`.** -/
+theorem finite_dinf_ne_zero [Finite J] {σ : Π j, κ j} (hσ : σ ∈ Λ) (hσ0 : ∀ j, σ j ≠ 0)
+    (hcond : ∀ v ∈ regRing k κ z, σ * v ∈ Λ) :
+    {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ dinf k κ hΛ 𝔫 ≠ 0}.Finite := by
+  classical
+  haveI := Fintype.ofFinite J
+  refine (points hΛ σ).finite_toSet.subset fun 𝔫 ⟨hmax, hne⟩ ↦ ?_
+  by_contra hp
+  exact hne (dinf_eq_zero_of_conductor hΛ hσ hcond hmax.ne_top
+    fun h ↦ hp (mem_points_of_mem hΛ hσ hσ0 hmax h))
+
+/-- Additivity of sums of `dinf` over disjoint sets of closed points. -/
+theorem finsum_dinf_or {P Q : Ideal Λ → Prop}
+    (hfin : {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ dinf k κ hΛ 𝔫 ≠ 0}.Finite)
+    (hdisj : ∀ 𝔫 : Ideal Λ, 𝔫.IsMaximal → P 𝔫 → Q 𝔫 → False) :
+    ∑ᶠ (𝔫 : Ideal Λ) (_ : 𝔫 ∈ {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ (P 𝔫 ∨ Q 𝔫)}), dinf k κ hΛ 𝔫 =
+      ∑ᶠ (𝔫 : Ideal Λ) (_ : 𝔫 ∈ {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ P 𝔫}), dinf k κ hΛ 𝔫 +
+      ∑ᶠ (𝔫 : Ideal Λ) (_ : 𝔫 ∈ {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ Q 𝔫}), dinf k κ hΛ 𝔫 := by
+  have hset : {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ (P 𝔫 ∨ Q 𝔫)} =
+      {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ P 𝔫} ∪ {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ Q 𝔫} := by
+    ext 𝔫; simp only [Set.mem_setOf_eq, Set.mem_union]; tauto
+  rw [hset]
+  refine finsum_mem_union' ?_ (hfin.subset ?_) (hfin.subset ?_)
+  · exact Set.disjoint_left.2 fun 𝔫 h₁ h₂ ↦ hdisj 𝔫 h₁.1 h₁.2 h₂.2
+  · rintro 𝔫 ⟨⟨h, -⟩, hne⟩; exact ⟨h, hne⟩
+  · rintro 𝔫 ⟨⟨h, -⟩, hne⟩; exact ⟨h, hne⟩
+
+/-- **Splitting along two complementary components**: if `d = a + b` and `a b = 0` in `Λ`, the
+closed points are those containing `d` (then also `a` and `b`), those not containing `a`, and
+those not containing `b`. -/
+theorem finsum_dinf_split3
+    (hfin : {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ dinf k κ hΛ 𝔫 ≠ 0}.Finite) {a b d : Λ}
+    (hd : d = a + b) (hab : a * b = 0) (Q : Ideal Λ → Prop) :
+    ∑ᶠ (𝔫 : Ideal Λ) (_ : 𝔫 ∈ {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ Q 𝔫}), dinf k κ hΛ 𝔫 =
+      ∑ᶠ (𝔫 : Ideal Λ) (_ : 𝔫 ∈ {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ (d ∈ 𝔫 ∧ Q 𝔫)}), dinf k κ hΛ 𝔫 +
+      (∑ᶠ (𝔫 : Ideal Λ) (_ : 𝔫 ∈ {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ (a ∉ 𝔫 ∧ Q 𝔫)}), dinf k κ hΛ 𝔫 +
+      ∑ᶠ (𝔫 : Ideal Λ) (_ : 𝔫 ∈ {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ (b ∉ 𝔫 ∧ Q 𝔫)}), dinf k κ hΛ 𝔫) := by
+  have hor (𝔫 : Ideal Λ) (h : 𝔫.IsMaximal) : a ∈ 𝔫 ∨ b ∈ 𝔫 :=
+    h.isPrime.mem_or_mem (by rw [hab]; exact zero_mem _)
+  have hda (𝔫 : Ideal Λ) (h : 𝔫.IsMaximal) (hd𝔫 : d ∈ 𝔫) : a ∈ 𝔫 ∧ b ∈ 𝔫 := by
+    rcases hor 𝔫 h with ha | hb
+    · refine ⟨ha, ?_⟩
+      have : b = d - a := by rw [hd]; ring
+      rw [this]; exact sub_mem hd𝔫 ha
+    · refine ⟨?_, hb⟩
+      have : a = d - b := by rw [hd]; ring
+      rw [this]; exact sub_mem hd𝔫 hb
+  have hset : {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧ Q 𝔫} = {𝔫 : Ideal Λ | 𝔫.IsMaximal ∧
+      ((d ∈ 𝔫 ∧ Q 𝔫) ∨ ((a ∉ 𝔫 ∧ Q 𝔫) ∨ (b ∉ 𝔫 ∧ Q 𝔫)))} := by
+    ext 𝔫
+    simp only [Set.mem_setOf_eq]
+    constructor
+    · rintro ⟨h, hQ⟩
+      refine ⟨h, ?_⟩
+      by_cases hd𝔫 : d ∈ 𝔫
+      · exact Or.inl ⟨hd𝔫, hQ⟩
+      · by_cases ha : a ∈ 𝔫
+        · refine Or.inr (Or.inr ⟨fun hb ↦ hd𝔫 ?_, hQ⟩)
+          rw [hd]; exact add_mem ha hb
+        · exact Or.inr (Or.inl ⟨ha, hQ⟩)
+    · rintro ⟨h, ⟨-, hQ⟩ | ⟨-, hQ⟩ | ⟨-, hQ⟩⟩ <;> exact ⟨h, hQ⟩
+  rw [hset, finsum_dinf_or hΛ hfin, finsum_dinf_or hΛ hfin]
+  · rintro 𝔫 h ⟨ha, -⟩ ⟨hb, -⟩
+    rcases hor 𝔫 h with h' | h'
+    · exact ha h'
+    · exact hb h'
+  · rintro 𝔫 h ⟨hd𝔫, -⟩ (⟨ha, -⟩ | ⟨hb, -⟩)
+    · exact ha (hda 𝔫 h hd𝔫).1
+    · exact hb (hda 𝔫 h hd𝔫).2
+
 end ChartLocal
 
 end SemistableReduction
