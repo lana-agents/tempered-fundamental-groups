@@ -227,6 +227,105 @@ lemma vNewton_iterate_mem (Φ : 𝒪[X]) (N : Subfield F) (hΦ : ∀ i, ((Φ.coe
 
 end Newton
 
+/-! ### Closures of subfields for a valuation -/
+
+section Closure
+
+variable {F : Type*} [Field F] (v : Valuation F ℝ≥0)
+
+/-- The closure `{y | ∀ ε > 0, ∃ z ∈ N, v(y - z) < ε}` of a subfield. -/
+def vClosure (N : Subfield F) : Subfield F where
+  carrier := {y | ∀ ε : ℝ≥0, 0 < ε → ∃ z ∈ N, v (y - z) < ε}
+  zero_mem' ε hε := ⟨0, zero_mem _, by simpa using hε⟩
+  one_mem' ε hε := ⟨1, one_mem _, by simpa using hε⟩
+  add_mem' {y y'} hy hy' ε hε := by
+    obtain ⟨z, hz, h⟩ := hy ε hε
+    obtain ⟨z', hz', h'⟩ := hy' ε hε
+    refine ⟨z + z', add_mem hz hz', ?_⟩
+    rw [show y + y' - (z + z') = (y - z) + (y' - z') by ring]
+    exact (Valuation.map_add _ _ _).trans_lt (max_lt h h')
+  neg_mem' {y} hy ε hε := by
+    obtain ⟨z, hz, h⟩ := hy ε hε
+    exact ⟨-z, neg_mem hz, by rwa [neg_sub_neg, ← Valuation.map_neg, neg_sub]⟩
+  mul_mem' {y y'} hy hy' ε hε := by
+    -- bounds
+    set B := max (v y) (max (v y') 1)
+    have hB : 0 < B := lt_max_of_lt_right (lt_max_of_lt_right zero_lt_one)
+    set δ := min (ε / B) 1
+    have hδ : 0 < δ := lt_min (div_pos hε hB) zero_lt_one
+    obtain ⟨z, hz, h⟩ := hy δ hδ
+    obtain ⟨z', hz', h'⟩ := hy' δ hδ
+    refine ⟨z * z', mul_mem hz hz', ?_⟩
+    have hz'B : v z' ≤ B := by
+      have : z' = y' - (y' - z') := by ring
+      rw [this]
+      exact (Valuation.map_sub _ _ _).trans (max_le (le_max_of_le_right (le_max_left _ _))
+        (h'.le.trans ((min_le_right _ _).trans (le_max_of_le_right (le_max_right _ _)))))
+    rw [show y * y' - z * z' = y * (y' - z') + (y - z) * z' by ring]
+    refine (Valuation.map_add _ _ _).trans_lt (max_lt ?_ ?_)
+    · rw [map_mul]
+      calc v y * v (y' - z') ≤ B * v (y' - z') := by gcongr; exact le_max_left _ _
+        _ < B * (ε / B) := mul_lt_mul_of_pos_left (h'.trans_le (min_le_left _ _)) hB
+        _ = ε := mul_div_cancel₀ _ hB.ne'
+    · rw [map_mul]
+      calc v (y - z) * v z' ≤ v (y - z) * B := by gcongr
+        _ < (ε / B) * B := mul_lt_mul_of_pos_right (h.trans_le (min_le_left _ _)) hB
+        _ = ε := div_mul_cancel₀ _ hB.ne'
+  inv_mem' {y} hy ε hε := by
+    by_cases hy0 : y = 0
+    · exact ⟨0, zero_mem _, by simpa [hy0] using hε⟩
+    have hv : 0 < v y := zero_le.lt_of_ne (Ne.symm ((map_ne_zero v).2 hy0))
+    set δ := min (v y) (ε * v y ^ 2)
+    have hδ : 0 < δ := lt_min hv (mul_pos hε (pow_pos hv 2))
+    obtain ⟨z, hz, h⟩ := hy δ hδ
+    have hyz : v (z - y) < v y := by
+      rw [← Valuation.map_neg, neg_sub]
+      exact h.trans_le (min_le_left _ _)
+    have hzy : v z = v y := Valuation.map_eq_of_sub_lt v hyz
+    have hz0 : z ≠ 0 := by
+      intro h0; rw [h0, map_zero] at hzy; exact hv.ne hzy
+    refine ⟨z⁻¹, inv_mem hz, ?_⟩
+    rw [show y⁻¹ - z⁻¹ = (z - y) / (y * z) by field_simp, map_div₀, map_mul, hzy,
+      ← Valuation.map_neg, neg_sub, ← pow_two, div_lt_iff₀ (pow_pos hv 2)]
+    exact h.trans_le (min_le_right _ _)
+
+lemma le_vClosure (N : Subfield F) : N ≤ vClosure v N := fun y hy ε hε ↦
+  ⟨y, hy, by simpa using hε⟩
+
+lemma vClosure_le_of_le {N N' : Subfield F} (h : N' ≤ vClosure v N) :
+    vClosure v N' ≤ vClosure v N := by
+  intro y hy ε hε
+  obtain ⟨z, hz, h1⟩ := hy ε hε
+  obtain ⟨z', hz', h2⟩ := h hz ε hε
+  refine ⟨z', hz', ?_⟩
+  rw [show y - z' = (y - z) + (z - z') by ring]
+  exact (Valuation.map_add _ _ _).trans_lt (max_lt h1 h2)
+
+end Closure
+
+section DenseClosure
+
+variable {F : Type*} [Field F] [Algebra C F] (v : Valuation F ℝ≥0)
+
+omit [IsUltrametricDist C] [IsAlgClosed C] in
+lemma denseOn_iff {S : Set F} {w : F} :
+    DenseOn C v S w ↔ S ⊆ vClosure v (IntermediateField.adjoin C {w}).toSubfield := by
+  constructor
+  · intro h y hy ε hε
+    obtain ⟨P, Q, -, hPQ⟩ := h y hy ε hε
+    refine ⟨aeval w P / aeval w Q, ?_, hPQ⟩
+    exact (IntermediateField.mem_adjoin_simple_iff C _).2 ⟨P, Q, rfl⟩
+  · intro h y hy ε hε
+    obtain ⟨z, hz, hyz⟩ := h hy ε hε
+    obtain ⟨P, Q, rfl⟩ := (IntermediateField.mem_adjoin_simple_iff C _).1 hz
+    by_cases hQ : aeval w Q = 0
+    · refine ⟨0, 1, by simp, ?_⟩
+      rw [hQ, div_zero] at hyz
+      simpa using hyz
+    · exact ⟨P, Q, hQ, hyz⟩
+
+end DenseClosure
+
 end TypeFour
 
 end SemistableReduction
