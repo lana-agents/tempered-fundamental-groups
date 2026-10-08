@@ -30,7 +30,7 @@ open IsLocalRing
 namespace SemistableReduction
 
 /-- **Branch data at `𝔭`**: the hypotheses of `exists_node_of_branches` and
-`isAnnulusAt_of_branches`, bundled. -/
+`isAnnulusAt_of_branches_alg`, bundled. -/
 structure BranchData {O B V₁ V₂ k : Type*} [CommRing O] [CommRing B] [Algebra O B]
     [CommRing V₁] [IsLocalRing V₁] [CommRing V₂] [IsLocalRing V₂] [Field k] (𝔭 : Ideal B)
     (φ₁ : B →+* V₁) (φ₂ : B →+* V₂) (r₁ : V₁ →+* k) (r₂ : V₂ →+* k) (ϖ : O) (u' v' x y : B)
@@ -232,7 +232,7 @@ variable {O B : Type u} {V₁ V₂ k : Type*} [CommRing O] [IsDomain O]
 
 /-- **The node lemma from branch data on a ring**: under the hypotheses of
 `exists_node_of_branches`, `B` is étale-locally the node at `𝔭` (`IsAnnulusAt`). -/
-theorem isAnnulusAt_of_branches (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B →+* V₁) (φ₂ : B →+* V₂)
+theorem isAnnulusAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B →+* V₁) (φ₂ : B →+* V₂)
     (r₁ : V₁ →+* k) (r₂ : V₂ →+* k) (hr₁ : ∀ a, r₁ a = 0 ↔ a ∈ maximalIdeal V₁)
     (hr₂ : ∀ b, r₂ b = 0 ↔ b ∈ maximalIdeal V₂) (hcomp : ∀ b, r₁ (φ₁ b) = r₂ (φ₂ b))
     (h𝔭 : ∀ b, b ∈ 𝔭 ↔ r₁ (φ₁ b) = 0) {ϖ : O} (hϖ : Irreducible ϖ)
@@ -343,12 +343,12 @@ theorem isAnnulusAt_of_branches (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B →+*
     exact Ideal.mul_mem_right _ _ (Ideal.subset_span (by simp))
   · rw [RingHom.mem_ker, hψ₂]; exact hy
 
-/-- `isAnnulusAt_of_branches` for bundled branch data. -/
+/-- `isAnnulusAt_of_branches_alg` for bundled branch data. -/
 theorem BranchData.isAnnulusAt {𝔭 : Ideal B} [𝔭.IsPrime] {φ₁ : B →+* V₁} {φ₂ : B →+* V₂}
     {r₁ : V₁ →+* k} {r₂ : V₂ →+* k} {ϖ : O} {u' v' x y : B} {c₀ : O} {d : ℕ}
     (h : BranchData 𝔭 φ₁ φ₂ r₁ r₂ ϖ u' v' x y c₀ d) : IsAnnulusAt ϖ x y d 𝔭 := by
   obtain ⟨η, hη, hx₁⟩ := h.hx₁
-  exact isAnnulusAt_of_branches 𝔭 φ₁ φ₂ r₁ r₂ h.hr₁ h.hr₂ h.hcomp h.h𝔭 h.hϖ h.hϖ0 h.hϖ₁ h.hϖ₂
+  exact isAnnulusAt_of_branches_alg 𝔭 φ₁ φ₂ r₁ r₂ h.hr₁ h.hr₂ h.hcomp h.h𝔭 h.hϖ h.hϖ0 h.hϖ₁ h.hϖ₂
     h.hker h.hfp h.hO₁ h.hO₂ h.hu₁ h.hu₂ h.hv₂ h.hv₁ h.hu0 h.hv0 h.hc₀ h.hxy h.hd hη hx₁ h.hx₂
     h.hy
 
