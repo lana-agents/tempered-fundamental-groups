@@ -412,6 +412,152 @@ theorem exists_iso_over {Ω : Type u} [Field Ω] [IsAlgClosed Ω] [Algebra R Ω]
 
 end Lift
 
+section Loop
+
+variable [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+
+/-- Walk lifting along morphisms of members ((X1) of `HarmonicX`). -/
+lemma isWalkLifting (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    (f : P.U ⟶ Q.U) :
+    IsWalkLifting (sfm P Q f) (covMap P Q f) (P.D.weight ϖ) (Q.D.weight ϖ) :=
+  isWalkLifting_of_isEdgeLifting (continuous_covMap P Q f) (covMap_fst P Q f) (P.hNC Q f)
+    (curveConfig_injective_C Q.hdim) (WData.isHarmonicWeight hX hN ϖ hϖ f P.D Q.D P.hdim Q.hdim)
+    (WData.isEdgeLifting hX hN ϖ hϖ f P.D Q.D P.hdim Q.hdim)
+
+/-- **Heights do not increase under automorphisms preserving `ν`.** -/
+lemma dN_img_le (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    (π : P.U ≅ P.U) (hns : P.NoPt) (ν : irreducibleComponents P.Lv.Z → Prop)
+    (hν : ∀ i i', sfm P P π.hom '' (curveConfig P.Lv.Z P.hdim).C i =
+      (curveConfig P.Lv.Z P.hdim).C i' → ν i → ν i')
+    {t : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀)}
+    (ht : IsComp t) :
+    dN (P.D.weight ϖ) ν (img (covMap P P π.hom) t) ≤ dN (P.D.weight ϖ) ν t := by
+  refine le_sInf ?_
+  rintro _ ⟨L, hL, ⟨j, hj⟩, hνL, rfl⟩
+  have hc := P.iso_not_contr P π hns
+  obtain ⟨j', hj', hjj'⟩ := map_gen_of_not_contr (covMap_fst P P π.hom) (P.hNC P π.hom) hj (hc j)
+  obtain ⟨k, hk⟩ := ht
+  obtain ⟨Y', L', hY', hL', hend, hcost⟩ := exists_walk_img (continuous_covMap P P π.hom)
+    (covMap_fst P P π.hom) (P.hNC P π.hom) (curveConfig_injective_C P.hdim)
+    (WData.isHarmonicWeight hX hN ϖ hϖ π.hom P.D P.D P.hdim P.hdim) ⟨k, hk⟩
+    (by rw [lab_of hk]; exact hc k) hL (img (covMap P P π.hom) (pend t L)) (.inl rfl)
+  have hY : Y' = img (covMap P P π.hom) (pend t L) := by
+    rcases hY' with ⟨h, -⟩ | ⟨⟨s, hs⟩, -⟩
+    · exact h
+    · rw [img, hj'] at hs
+      cases hs
+  rw [hY] at hend
+  refine (dN_le _ ν hL' (hend ▸ ⟨j', hj'⟩) ?_).trans hcost
+  rw [hend, img, lab_of hj']
+  rw [lab_of hj] at hνL
+  exact hν j j' hjj' hνL
+
+/-- **The loop element in a member over `Y₀`** (`U`-level form of `hne`). For `mm : U ⟶ U₀`, an
+automorphism `κ` of `U₀` with the conjugation bound `ℓ₀` (`exists_conj`), and a set `ν` of
+components (not contracted by `mm`, preserved by automorphisms, nonempty), every fibre element
+`u` of `U` has an automorphism `π` lifting a deck conjugate of `κ` with `HC(u, π u) ≤ ℓ₀`. -/
+theorem exists_hc_loop (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    {Ω : Type u} [Field Ω] [IsAlgClosed Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+    (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+    (hgal : ∀ t t' : P.Lv.L.B →ₐ[R] Ω, ∃ σ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B,
+      t.comp (σ : P.Lv.L.B →ₐ[R] P.Lv.L.B) = t')
+    (mm : P.U ⟶ Q.U) (κ : Q.U ≅ Q.U) (hnsP : P.NoPt) (hI4 : P.HasI4 Q mm)
+    (ν : irreducibleComponents P.Lv.Z → Prop)
+    (hνnc : ∀ i, ν i → ¬ Contr (K := curveConfig P.Lv.Z P.hdim) (sfm P Q mm) i)
+    (hνπ : ∀ (π : P.U ≅ P.U) i i', sfm P P π.hom '' (curveConfig P.Lv.Z P.hdim).C i =
+      (curveConfig P.Lv.Z P.hdim).C i' → ν i → ν i')
+    {t₁ : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀)}
+    (ht₁ : IsComp t₁) (hν₁ : ν (lab t₁)) {ℓ₀ : ℝ≥0∞}
+    (hconj : ∀ (ŵ : (curveConfig Q.Lv.Z Q.hdim).Tree
+        (universalCovering.root Q.hdim Q.z₀)) (i : irreducibleComponents Q.Lv.Z),
+      ŵ.1.head? = some (.inl i) → ∃ D : Q.U ≅ Q.U, D.hom.ψ = 𝟙 _ ∧
+        ∃ L, PWalk ŵ L ∧ cost (Q.D.weight ϖ) L ≤ ℓ₀ ∧
+          covMap Q Q (D.inv ≫ κ.hom ≫ D.hom) (gen ŵ) = gen (pend ŵ L))
+    (u : (tempFibre O R A V hV).obj P.U) :
+    ∃ (π : P.U ≅ P.U) (D : Q.U ≅ Q.U), D.hom.ψ = 𝟙 _ ∧
+      π.hom ≫ mm = mm ≫ (D.inv ≫ κ.hom ≫ D.hom) ∧
+      HC (P.D.weight ϖ) ν (P.vtx V hV u)
+        (P.vtx V hV ((tempFibre O R A V hV).map π.hom u)) ℓ₀ := by
+  set e := P.ecov (Quotient.out u : PreFibre Ω V hV P.U).1.2 with he
+  obtain ⟨b, hb⟩ := exists_near e.1.2
+  have hbc := hb.isComp
+  obtain ⟨μ, hμ0, hμ'⟩ := WData.exists_weight_pos hX hN ϖ hϖ (X := P.U) P.D P.hdim
+  have hμ : ∀ s ∈ (curveConfig P.Lv.Z P.hdim).S, μ ≤ P.D.weight ϖ s := hμ'
+  obtain ⟨W₁, hW₁, hnc, hνn, hcW₁⟩ := exists_dN_eq (K := curveConfig P.Lv.Z P.hdim)
+    (r := universalCovering.root P.hdim P.z₀) (WData.weight_ne_top P.D ϖ) hμ0 hμ ν hbc
+    (by
+      obtain ⟨L, hL, hLe⟩ := exists_pWalk_of_isComp hbc ht₁
+      exact ⟨L, hL, hLe ▸ ht₁, hLe ▸ hν₁⟩)
+  generalize hndef : pend b W₁ = n at hnc hνn
+  obtain ⟨i, hi⟩ := hnc
+  have hncm : ¬ Contr (K := curveConfig P.Lv.Z P.hdim) (sfm P Q mm) i :=
+    hνnc i (lab_of hi ▸ hνn)
+  obtain ⟨i₀, hŵ, -⟩ := map_gen_of_not_contr (covMap_fst P Q mm) (P.hNC Q mm) hi hncm
+  obtain ⟨D, hDψ, L₀, hL₀, hL₀c, hκD⟩ := hconj _ i₀ hŵ
+  obtain ⟨L, hL, hLc, ⟨i'', hi''⟩, hn''nc, hn''img⟩ :=
+    P.isWalkLifting Q hX hN ϖ hϖ mm n ⟨i, hi⟩ (by rw [lab_of hi]; exact hncm) L₀ hL₀
+  rw [lab_of hi''] at hn''nc
+  generalize hn''def : pend n L = n'' at hi'' hn''nc hn''img
+  have hκ : covMap Q Q (D.inv ≫ κ.hom ≫ D.hom) (covMap P Q mm (gen n)) =
+      covMap P Q mm (gen n'') := by
+    rw [P.covMap_gen Q mm hi hncm]
+    simp only [img] at hn''img ⊢
+    rw [hκD, P.covMap_gen Q mm hi'' hn''nc, img, hn''img]
+  obtain ⟨π, hπm, hπn⟩ := P.exists_iso_over Q (Quotient.out u : PreFibre Ω V hV P.U).1.1 hgal
+    mm (D.inv ≫ κ.hom ≫ D.hom) hnsP hI4 hi hi'' hn''nc hκ
+  refine ⟨π, D, hDψ, hπm, ?_⟩
+  -- the vertex of `π u` is near `b' = π b`
+  have hcπ := P.iso_not_contr P π hnsP
+  obtain ⟨ib, hib⟩ := hbc
+  obtain ⟨ib', hib', -⟩ := map_gen_of_not_contr (covMap_fst P P π.hom) (P.hNC P π.hom) hib
+    (hcπ ib)
+  set b' := img (covMap P P π.hom) b
+  have hvtx : P.vtx V hV ((tempFibre O R A V hV).map π.hom u) = (covMap P P π.hom e).1.2 :=
+    vtx_map V hV P P π.hom u
+  have hnear' : Near (P.vtx V hV ((tempFibre O R A V hV).map π.hom u)) b' := by
+    rw [hvtx]
+    exact (below_map_gen (continuous_covMap P P π.hom) hb).near ⟨ib', hib'⟩
+  -- the image of `W₁` under `π`: a walk from `b'` to `n''`
+  have himgn : img (covMap P P π.hom) n = n'' := by
+    rw [img, hπn, gen_snd_of_inl hi'' (curveConfig_η_notMem_S P.hdim i'')]
+  obtain ⟨Y', L₂, hY', hL₂, hend₂, hcost₂⟩ := exists_walk_img (continuous_covMap P P π.hom)
+    (covMap_fst P P π.hom) (P.hNC P π.hom) (curveConfig_injective_C P.hdim)
+    (WData.isHarmonicWeight hX hN ϖ hϖ π.hom P.D P.D P.hdim P.hdim) ⟨ib, hib⟩
+    (by rw [lab_of hib]; exact hcπ ib) hW₁ n'' (by rw [hndef, himgn]; exact .inl rfl)
+  have hY' : Y' = n'' := by
+    rcases hY' with ⟨h, -⟩ | ⟨⟨s, hs⟩, -⟩
+    · exact h
+    · rw [hi''] at hs
+      cases hs
+  rw [hY'] at hend₂
+  obtain ⟨hrev, hrevend⟩ := PWalk.prev hL₂
+  rw [hend₂] at hrev hrevend
+  -- `dN b ≤ dN b'`
+  have hbb : img (covMap P P π.inv) b' = b := by
+    rw [img, ← P.covMap_gen P π.hom hib (hcπ ib), covMap_inv_hom,
+      gen_snd_of_inl hib (curveConfig_η_notMem_S P.hdim ib)]
+  have hdN : dN (P.D.weight ϖ) ν b ≤ dN (P.D.weight ϖ) ν b' := by
+    have := P.dN_img_le hX hN ϖ hϖ π.symm hnsP ν (hνπ π.symm) (t := b') ⟨ib', hib'⟩
+    rwa [Iso.symm_hom, hbb] at this
+  refine ⟨b, b', W₁ ++ L ++ prev b' L₂, hb, hnear', ?_, ?_, ?_⟩
+  · rw [pWalk_append, pWalk_append, pend_append, hndef, hn''def]
+    exact ⟨⟨hW₁, hndef ▸ hL⟩, hrev⟩
+  · rw [pend_append, pend_append, hndef, hn''def]
+    exact hrevend
+  · rw [cost_append, cost_append, cost_prev, hcW₁]
+    calc dN (P.D.weight ϖ) ν b + cost (P.D.weight ϖ) L + cost (P.D.weight ϖ) L₂
+        ≤ dN (P.D.weight ϖ) ν b + ℓ₀ + dN (P.D.weight ϖ) ν b' := by
+          gcongr
+          · exact hLc.trans hL₀c
+          · exact hcost₂.trans (hcW₁.le.trans hdN)
+      _ = ℓ₀ + dN (P.D.weight ϖ) ν b + dN (P.D.weight ϖ) ν b' := by
+          rw [add_comm (dN _ ν b) ℓ₀]
+
+end Loop
+
 end Pres
 
 end
