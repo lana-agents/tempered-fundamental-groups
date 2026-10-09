@@ -16,6 +16,7 @@ import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.PointLift
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
+import TemperedFundamentalGroups.Andre.RamifiedQuadratic
 import TemperedFundamentalGroups.Andre.Refinement
 import TemperedFundamentalGroups.Andre.TateCovering
 import TemperedFundamentalGroups.Andre.TateCrossing
