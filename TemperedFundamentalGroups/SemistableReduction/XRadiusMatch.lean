@@ -164,7 +164,7 @@ theorem node_slope (hϖ₁ : Irreducible ϖ₁) (hϖ₂ : Irreducible ϖ₂) {ϖ
     (hϖK₂ : algebraMap K K₂ ϖ = (η₂ : K₂) * (ϖ₂ : K₂) ^ e₂)
     {P : Subring L₁} {u v x₁ ε : L₁} {n : ℕ} {a β : K₁} {e α : ℕ}
     {W₁ W₂ : ValuationSubring L₁} (H : UnfoldedNodeGerm O₁ ϖ₁ P u v n x₁ a β e α ε W₁ W₂)
-    (HB : NodeBranches O₁ ϖ₁ P (algebraMap O₁ L₁) u v n W₁ W₂)
+    {ι₁ : O₁ →+* L₁} (HB : NodeBranches O₁ ϖ₁ P ι₁ u v n W₁ W₂)
     (hGs : NodeGerm O₁ ϖ₁ P v u n)
     (hint : ∀ s : ℚ, 0 < s → s < n → ∃ U : ValuationSubring L₁,
       IsMonomialPt O₁ (P : Set L₁) (algebraMap K₁ L₁ (ϖ₁ : K₁)) u s U)
