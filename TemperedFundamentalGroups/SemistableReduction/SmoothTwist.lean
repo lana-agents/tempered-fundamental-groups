@@ -151,7 +151,7 @@ include hp hp1 hφ hχ in
 /-- **(S) at a residue point `b̄`, `b ∈ O_E`**: a smooth `κ_E`-rational point of the twisted chart
 `DRint 0 1 (Aff b 1 G)` over `(𝔪_C, x - b)` restricts to a point of the untwisted vertex chart
 over `O_E` at which it is étale-locally `O_E[u]`. -/
-theorem isSemistableAt_of_isDiscSmooth_aff [IsDiscreteValuationRing (HenselComplete.integers E)]
+theorem isEtaleLocallyAt_of_isDiscSmooth_aff [IsDiscreteValuationRing (HenselComplete.integers E)]
     (hdeg : Module.finrank (RatFunc E) F₀ = Module.finrank (RatFunc C) G)
     {θ₀ : F₀} (hθ : Algebra.adjoin (RatFunc C) {χ θ₀} = ⊤)
     (hinj : ∀ W W' : Ext C G, W.1.comap χ = W'.1.comap χ → W = W')
@@ -167,7 +167,8 @@ theorem isSemistableAt_of_isDiscSmooth_aff [IsDiscreteValuationRing (HenselCompl
     (hrat : ∀ z : BD E F₀, ∃ e : HenselComplete.integers E,
       W10Route.ιβ χ hφ hχ (norm_φ_le hφ b) (z - cstD e) ∈ P') :
     letI := bdAlgebra (E := E) (F₀ := F₀)
-    IsSemistableAt ϖ (P'.comap (W10Route.ιβ χ hφ hχ (norm_φ_le hφ b))) := by
+    IsEtaleLocallyAt (HenselComplete.integers E) (HenselComplete.integers E)[X]
+      (P'.comap (W10Route.ιβ χ hφ hχ (norm_φ_le hφ b))) := by
   letI := bdAlgebra (E := E) (F₀ := F₀)
   have hb := norm_φ_le hφ b
   have hb₀ : ‖(b : E)‖ ≤ 1 := HenselComplete.norm_le_one b
@@ -227,7 +228,7 @@ theorem isSemistableAt_of_isDiscSmooth_aff [IsDiscreteValuationRing (HenselCompl
         (cstD e : BD E F₀)))
     rw [hcst]
     rfl
-  have hS := isSemistableAt_of_isDiscSmooth hp hp1 hφ hχt hdeg_t hθ_t hinj_t hgen_t hspan_t hϖ
+  have hS := isEtaleLocallyAt_of_isDiscSmooth hp hp1 hφ hχt hdeg_t hθ_t hinj_t hgen_t hspan_t hϖ
     P' hP' hsm hrat_t
   -- transport back to the untwisted chart
   letI := bdAlgebra (E := E) (F₀ := Aff (b : E) 1 one_ne_zero F₀)
@@ -246,6 +247,29 @@ theorem isSemistableAt_of_isDiscSmooth_aff [IsDiscreteValuationRing (HenselCompl
   have h := hS.of_etale_of_comap κ hκ
   rw [Ideal.comap_comap] at h
   exact h
+
+include hp hp1 hφ hχ in
+/-- Semistable form of `isEtaleLocallyAt_of_isDiscSmooth_aff`. -/
+theorem isSemistableAt_of_isDiscSmooth_aff [IsDiscreteValuationRing (HenselComplete.integers E)]
+    (hdeg : Module.finrank (RatFunc E) F₀ = Module.finrank (RatFunc C) G)
+    {θ₀ : F₀} (hθ : Algebra.adjoin (RatFunc C) {χ θ₀} = ⊤)
+    (hinj : ∀ W W' : Ext C G, W.1.comap χ = W'.1.comap χ → W = W')
+    (hgen : ∀ W : Ext C G, IntermediateField.adjoin 𝓀
+      (resE χ W : Set (ResidueField W.1.valuationSubring)) = ⊤)
+    (hspan : ∀ v₁ v₂ : Ext C G, ∀ y,
+      IsSpanned 𝓀 (ιD χ hφ hχ (F₀ := F₀)).range (redD v₁) (redD v₂) y)
+    {ϖ : HenselComplete.integers E} (hϖ : Irreducible ϖ) (b : HenselComplete.integers E)
+    (P' : Ideal (DRint (0 : C) 1 (Aff (φ b) 1 one_ne_zero G))) [P'.IsMaximal]
+    (hP' : P'.comap (algebraMap (discRing (0 : C) 1)
+      (DRint (0 : C) 1 (Aff (φ b) 1 one_ne_zero G))) = discIdeal (0 : C) 1)
+    (hsm : IsDiscSmooth P')
+    (hrat : ∀ z : BD E F₀, ∃ e : HenselComplete.integers E,
+      W10Route.ιβ χ hφ hχ (norm_φ_le hφ b) (z - cstD e) ∈ P') :
+    letI := bdAlgebra (E := E) (F₀ := F₀)
+    IsSemistableAt ϖ (P'.comap (W10Route.ιβ χ hφ hχ (norm_φ_le hφ b))) :=
+  letI := bdAlgebra (E := E) (F₀ := F₀)
+  .inr (isEtaleLocallyAt_of_isDiscSmooth_aff hp hp1 hφ hχ hdeg hθ hinj hgen hspan hϖ b P' hP' hsm
+    hrat)
 
 end RationalAff
 

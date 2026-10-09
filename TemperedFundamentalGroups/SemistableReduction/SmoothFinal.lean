@@ -170,7 +170,7 @@ set_option maxHeartbeats 1000000 in
 -- the assembly juggles the charts over `E`, `E'` and two twists of `G`
 include hp hp1 hφ hχ in
 /-- **(S) at an arbitrary residue point** (`κ_E` perfect, `C` algebraic over `E`). -/
-theorem isSemistableAt_of_isDiscSmooth_residue [IsDiscreteValuationRing O_E]
+theorem isEtaleLocallyAt_of_isDiscSmooth_residue [IsDiscreteValuationRing O_E]
     [PerfectField (ResidueField O_E)] (halg : letI := φ.toAlgebra; Algebra.IsAlgebraic E C)
     (hdeg : Module.finrank (RatFunc E) F₀ = Module.finrank (RatFunc C) G)
     {θ₀ : F₀} (hθ : Algebra.adjoin (RatFunc C) {χ θ₀} = ⊤)
@@ -185,7 +185,7 @@ theorem isSemistableAt_of_isDiscSmooth_residue [IsDiscreteValuationRing O_E]
       (DRint (0 : C) 1 (Aff β 1 one_ne_zero G))) = discIdeal (0 : C) 1)
     (hsm : IsDiscSmooth P') :
     letI := bdAlgebra (E := E) (F₀ := F₀)
-    IsSemistableAt ϖ (P'.comap (W10Route.ιβ χ hφ hχ hβ)) := by
+    IsEtaleLocallyAt O_E O_E[X] (P'.comap (W10Route.ιβ χ hφ hχ hβ)) := by
   classical
   letI := bdAlgebra (E := E) (F₀ := F₀)
   haveI := finiteType_BD (E := E) (F₀ := F₀)
@@ -323,7 +323,7 @@ theorem isSemistableAt_of_isDiscSmooth_residue [IsDiscreteValuationRing O_E]
     rw [← RingHom.comp_apply, ← hval₁]
     rw [map_sub, hval₁_cst, he, sub_self]
   -- semistability over `O_{E'}`
-  have hS := isSemistableAt_of_isDiscSmooth_aff hp hp1 D.norm_φ' hχ' hdeg' hθ' hinj' hgen'
+  have hS := isEtaleLocallyAt_of_isDiscSmooth_aff hp hp1 D.norm_φ' hχ' hdeg' hθ' hinj' hgen'
     hspan' (D.irreducible_algebraMap hϖ) βE P'' hP''c hsm'' hrat
   -- descent along the étale `BD E F₀ → BD E' F₀'`
   letI := bdAlgebra (E := D.F) (F₀ := Unramified.UnrChart.F₀' D χ)
@@ -341,12 +341,37 @@ theorem isSemistableAt_of_isDiscSmooth_residue [IsDiscreteValuationRing O_E]
             (algebraMap D.F (RatFunc D.F) (algebraMap E D.F e))
         rw [Unramified.UnrChart.algRat_algebraMap_C, Unramified.UnrChart.ιE_algebraMap]
         rfl) }
-  have h := hS.comap_of_baseChange ((RingHom.etale_algebraMap).2 D.etale) ψj
+  have h := hS.poly_comap_of_baseChange ((RingHom.etale_algebraMap).2 D.etale) ψj
     (Unramified.UnrChart.etale_j D hχ)
   convert h using 1
   ext z
   rw [Ideal.mem_comap, Ideal.mem_comap, Ideal.mem_comap]
   exact (hPP _ _ (hχχ' z)).symm
+
+set_option maxHeartbeats 1000000 in
+-- the assembly juggles the charts over `E`, `E'` and two twists of `G`
+include hp hp1 hφ hχ in
+/-- **(S) at an arbitrary residue point**, semistable form of
+`isEtaleLocallyAt_of_isDiscSmooth_residue`. -/
+theorem isSemistableAt_of_isDiscSmooth_residue [IsDiscreteValuationRing O_E]
+    [PerfectField (ResidueField O_E)] (halg : letI := φ.toAlgebra; Algebra.IsAlgebraic E C)
+    (hdeg : Module.finrank (RatFunc E) F₀ = Module.finrank (RatFunc C) G)
+    {θ₀ : F₀} (hθ : Algebra.adjoin (RatFunc C) {χ θ₀} = ⊤)
+    (hinj : ∀ W W' : Ext C G, W.1.comap χ = W'.1.comap χ → W = W')
+    (hgen : ∀ W : Ext C G, IntermediateField.adjoin 𝓀
+      (resE χ W : Set (ResidueField W.1.valuationSubring)) = ⊤)
+    (hspan : ∀ v₁ v₂ : Ext C G, ∀ y,
+      IsSpanned 𝓀 (ιD χ hφ hχ (F₀ := F₀)).range (redD v₁) (redD v₂) y)
+    {ϖ : O_E} (hϖ : Irreducible ϖ) {β : C} (hβ : ‖β‖ ≤ 1)
+    (P' : Ideal (DRint (0 : C) 1 (Aff β 1 one_ne_zero G))) [P'.IsMaximal]
+    (hP' : P'.comap (algebraMap (discRing (0 : C) 1)
+      (DRint (0 : C) 1 (Aff β 1 one_ne_zero G))) = discIdeal (0 : C) 1)
+    (hsm : IsDiscSmooth P') :
+    letI := bdAlgebra (E := E) (F₀ := F₀)
+    IsSemistableAt ϖ (P'.comap (W10Route.ιβ χ hφ hχ hβ)) :=
+  letI := bdAlgebra (E := E) (F₀ := F₀)
+  .inr (isEtaleLocallyAt_of_isDiscSmooth_residue hp hp1 hφ hχ halg hdeg hθ hinj hgen hspan hϖ hβ P'
+    hP' hsm)
 
 end Residue
 

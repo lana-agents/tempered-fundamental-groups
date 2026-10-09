@@ -187,6 +187,23 @@ theorem IsSemistableAt.comap_of_baseChange (hO : (algebraMap O O').Etale) {ϖ : 
     (h : IsSemistableAt (algebraMap O O' ϖ) 𝔭') : IsSemistableAt ϖ (𝔭'.comap ψ.toRingHom) :=
   (h.of_base hO).of_etale_of_comap ψ hψ
 
+/-- Smoothness descends along an étale extension of the base. -/
+theorem IsEtaleLocallyAt.poly_of_base (hO : (algebraMap O O').Etale) {A : Type u} [CommRing A]
+    [Algebra O' A] [Algebra O A] [IsScalarTower O O' A] {𝔭 : Ideal A}
+    (h : IsEtaleLocallyAt O' O'[X] 𝔭) : IsEtaleLocallyAt O O[X] 𝔭 := by
+  letI := Polynomial.algebra (R := O) (A := O')
+  refine h.of_base (algebraMap O[X] O'[X]) ?_ ?_
+  · exact RingHom.Etale.isStableUnderBaseChange O O' O[X] O'[X] hO
+  · rw [← IsScalarTower.algebraMap_eq, ← IsScalarTower.algebraMap_eq]
+
+/-- **Smoothness descends along an étale base change** (smooth form of
+`IsSemistableAt.comap_of_baseChange`). -/
+theorem IsEtaleLocallyAt.poly_comap_of_baseChange (hO : (algebraMap O O').Etale)
+    {B B' : Type u} [CommRing B] [CommRing B'] [Algebra O B] [Algebra O' B'] [Algebra O B']
+    [IsScalarTower O O' B'] (ψ : B →ₐ[O] B') (hψ : ψ.toRingHom.Etale) {𝔭' : Ideal B'}
+    (h : IsEtaleLocallyAt O' O'[X] 𝔭') : IsEtaleLocallyAt O O[X] (𝔭'.comap ψ.toRingHom) :=
+  (h.poly_of_base hO).of_etale_of_comap ψ hψ
+
 end Base
 
 end SemistableReduction
