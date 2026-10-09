@@ -31,17 +31,16 @@ Blueprint §9.12 (final glue). Of the leaves of `W7.Leaves`, the following are p
 * the S8.C descent (O6.6): `S8A.s8cDescent_of` from the off-skeleton clause and (T⇐);
 * (D⇒) `DiscCondOfSmooth` (O11): `ExhaustGluing.discCondOfSmooth`;
 * the off-skeleton clause of (T⇒) (lemma (L)): `ExhaustGluing.offSkeletonOfExhausting`;
-* the type-4 leaf `TypeFourGoodFor` modulo the Artin–Schreier case of the degree reduction:
-  `TypeFour.typeFourGoodFor_of_degreeReductionAS` with part (G) `TypeFour.coreGFor`;
+* the type-4 leaf `TypeFourGoodFor`: `TypeFour.typeFourGoodFor_of_coreG` (degree reduction
+  `TypeFour.DegRed.degreeReductionFor`) with part (G) `TypeFour.coreGFor`;
 * (D⇐) and (T⇐) (O12) modulo the two `δ`-count steps, the two-sided type-3 germ and the type-4
   leaf: `ExhaustGluing.smoothOfDiscCond_and_exhaustingOfTube`;
 * the (one-sided) type-3 germ from the two-sided one: `S8A.typeThreeGermFor_of_two`;
 * the `δ`-count steps `ExhaustDescentFor`, `ExhaustGlueFor`: `ExhaustDescent.exhaustDescentFor`,
   `ExhaustGlue.exhaustGlueFor`.
 
-`W7.OpenLeaves` collects the remaining ones: the two-sided type-3 germ `S8A.TypeThreeGermTwoFor`,
-R5 and the Artin–Schreier case `TypeFour.DegRed.DegreeReductionASFor` of the degree reduction at
-type-4 points.
+`W7.OpenLeaves` collects the remaining ones: the two-sided type-3 germ `S8A.TypeThreeGermTwoFor`
+and R5.
 **`W10Assembly.strongA_of_openLeaves`**.
 -/
 
@@ -66,20 +65,15 @@ structure OpenLeaves : Prop where
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
     [FiniteDimensional (RatFunc C) F] [IsGalois (RatFunc C) F], DefinedOverDVR C F →
     S8A.R5MeasureFor C F
-  /-- Type-4 leaf, part (d), Artin–Schreier case `μ = A` of the degree reduction at type-4 points
-  (Temkin §6.3); the case `μ > A` is `TypeFour.DegRed.degreeReductionFor_of_AS`. -/
-  degreeReductionAS : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C]
-    [IsAlgClosed C] [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
-    TypeFour.DegRed.DegreeReductionASFor C p
 
-/-- The type-4 leaf from the open leaves. -/
-theorem OpenLeaves.typeFour (h : OpenLeaves.{u}) (C : Type u) [NontriviallyNormedField C]
+/-- The type-4 leaf (proved). -/
+theorem typeFourGood (C : Type u) [NontriviallyNormedField C]
     [IsUltrametricDist C] [IsAlgClosed C] [CharZero C] (p : ℕ) (hp : p.Prime)
     (hp1 : ‖(p : C)‖ < 1) (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F]
     [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F] :
     S8A.TypeFourGoodFor C F :=
-  TypeFour.typeFourGoodFor_of_degreeReductionAS hp hp1 (h.degreeReductionAS C p hp hp1)
-    (fun L _ _ _ _ _ _ ↦ TypeFour.coreGFor hp hp1 L) (fun _ _ _ _ _ _ _ _ _ ↦ a6For hp hp1)
+  TypeFour.typeFourGoodFor_of_coreG hp hp1 (fun L _ _ _ _ _ _ ↦ TypeFour.coreGFor hp hp1 L)
+    (fun _ _ _ _ _ _ _ _ _ ↦ a6For hp hp1)
 
 /-- (D⇐) and (T⇐) from the open leaves. -/
 theorem OpenLeaves.smooth_exh (h : OpenLeaves.{u}) (C : Type u) [NontriviallyNormedField C]
@@ -89,7 +83,7 @@ theorem OpenLeaves.smooth_exh (h : OpenLeaves.{u}) (C : Type u) [NontriviallyNor
     (hdef : DefinedOverDVR C F) : SmoothOfDiscCond C F ∧ ExhaustingOfTube C F :=
   smoothOfDiscCond_and_exhaustingOfTube hp hp1 (ExhaustDescent.exhaustDescentFor hp hp1)
     (ExhaustGlue.exhaustGlueFor hp hp1) (h.typeThreeTwo C p hp hp1 F hdef)
-    (h.typeFour C p hp hp1 F)
+    (typeFourGood C p hp hp1 F)
 
 /-- The leaves of `W7.Statement` from the still open ones. -/
 theorem leaves_of_open (h : OpenLeaves.{u}) : Leaves.{u, u} where
@@ -125,7 +119,7 @@ theorem leaves_of_open (h : OpenLeaves.{u}) : Leaves.{u, u} where
     exact S8A.finiteBadFor hp hp1 F
   typeFour := by
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _
-    exact h.typeFour C p hp hp1 F
+    exact typeFourGood C p hp hp1 F
   descent := S8A.s8cDescent_of
     (fun _ _ _ _ _ _ hp hp1 _ _ _ _ _ _ hdef ↦
       offSkeletonOfExhausting hp hp1 (nodeDataOfODP hp hp1 hdef))
