@@ -47,8 +47,8 @@ import TemperedFundamentalGroups.Andre.TateRestrictCrossing
 import TemperedFundamentalGroups.Andre.TateRestrictDeck
 import TemperedFundamentalGroups.Andre.TateRestrictFinal
 import TemperedFundamentalGroups.Andre.TateRestrictG1
-import TemperedFundamentalGroups.Andre.TateRestrictInduced
 import TemperedFundamentalGroups.Andre.TateRestrictIUT
+import TemperedFundamentalGroups.Andre.TateRestrictInduced
 import TemperedFundamentalGroups.Andre.TateRestrictLevel
 import TemperedFundamentalGroups.Andre.TateRestrictLoop
 import TemperedFundamentalGroups.Andre.TateRestrictModel
@@ -64,9 +64,9 @@ import TemperedFundamentalGroups.Andre.TheoremAFinal
 import TemperedFundamentalGroups.Andre.TheoremB
 import TemperedFundamentalGroups.Andre.TheoremBCrossing
 import TemperedFundamentalGroups.Andre.TheoremBFinal
+import TemperedFundamentalGroups.Andre.TheoremBGoodTate
 import TemperedFundamentalGroups.Andre.TheoremBH
 import TemperedFundamentalGroups.Andre.TheoremBHLoop
-import TemperedFundamentalGroups.Andre.TheoremBGoodTate
 import TemperedFundamentalGroups.Andre.TheoremBUnfolded
 import TemperedFundamentalGroups.Andre.TheoremBW
 import TemperedFundamentalGroups.Andre.Transfer
