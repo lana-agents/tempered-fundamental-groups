@@ -308,7 +308,7 @@ theorem dom_midW (hW : SemistableReduction.Statement.StrongComponentA.{u})
     hact, hactj, hdomj, hdomS, hdim, hcomp⟩ :=
     hW K O p hp hpm R hR (exists_finite_aeval (K := K) hR).choose
       (exists_finite_aeval (K := K) hR).choose_spec B G (fun g r => (g : B ≃ₐ[R] B).commutes r)
-      (ULift.{u} (Fin n)) c₀ j₀ hj₀
+      (fun _ => rfl) (ULift.{u} (Fin n)) c₀ j₀ hj₀
   haveI hK' : Algebra.Etale K K' :=
     ⟨Algebra.FormallyEtale.of_isSeparable K K',
       Algebra.FinitePresentation.of_finiteType.1 inferInstance⟩

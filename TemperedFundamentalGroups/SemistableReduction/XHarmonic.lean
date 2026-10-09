@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.WModel
 import TemperedFundamentalGroups.SemistableReduction.XLength
+import TemperedFundamentalGroups.SemistableReduction.GaussTree
 
 /-!
 # Intrinsic x-lengths of nodes of models and the targeted statement `Statement.HarmonicX`
@@ -83,17 +84,23 @@ theorem germs_iso {O : Type u} [CommRing O] {c c' : TemperedFundamentalGroups.Mo
 variable [Algebra K' L]
 
 /-- **`c` is an unfolded W-model** of `L` on the x-line `x` (over `O'`): `c` is the W-model of
-Gauss data `(a, b)` (`ModelCode.IsWModelOf`), and **every node of `c` lies over a node of its
-Gauss tree**: the functions of `K'(x)` regular at a node point `y` of `c` (germs at `y` lying in
-`K'(x)`) lie in two distinct vertices of `gaussJoinModel O' a b`. Equivalently (W7 (c)) the points
-of `c` over smooth points of the Gauss tree are smooth; the two branches of every node then
-restrict to distinct points of the x-line and the x-path of every node is monotone. The models
-produced by the W-chain are unfolded (W7 (c)). -/
+**convex reduced** Gauss data `(a, b)` (`ModelCode.IsWModelOf`, `GaussTree.IsConvex`,
+`GaussTree.IsReduced`), and **every node of `c` lies over a node of its Gauss tree**: the
+functions of `K'(x)` regular at a node point `y` of `c` (germs at `y` lying in `K'(x)`) lie in two
+distinct vertices of `gaussJoinModel O' a b`. Equivalently (W7 (c)) the points of `c` over smooth
+points of the Gauss tree are smooth; with convexity the two branches of every node then restrict
+to the two ends of an edge of the tree and the x-path of every node is monotone. Convexity is
+needed: for the non-convex data `D(0, |ϖ|), D(1, |ϖ|)` on `K(x)` the join model has a node of
+thickness 2 at which both conditions hold, but its x-path turns at `D(0, 1)` (`λ = 2`, position
+difference `0`). The models produced by the W-chain are unfolded (W7 (c); W7's trees are convex
+and reduced). -/
 def IsUnfolded (O' : ValuationSubring K') [Algebra O' L] [IsScalarTower O' K' L] (x : L)
     (c : TemperedFundamentalGroups.ModelCode O') (j : Spec (CommRingCat.of L) ⟶ c.scheme) :
     Prop :=
   ∃ (hx : Transcendental K' x) (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a b : ι → K'),
     ModelCode.IsWModelOf O' L x hx a b c j ∧
+    _root_.SemistableReduction.GaussTree.IsConvex O'.valuation a b ∧
+    _root_.SemistableReduction.GaussTree.IsReduced O'.valuation a b ∧
     letI := xLineAlgebra L hx
     ∀ y : c.scheme, IsNodePt c y →
       ∃ W₁ ∈ (_root_.SemistableReduction.gaussJoinModel O'.valuation a b).vertexSet,
