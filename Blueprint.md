@@ -2149,6 +2149,23 @@ so the special fibre is connected (Zariski). *Routes to discharge it:*
 * (iii) avoid it by working with connected components of special fibres of levels: a refactor
   of the tempered/Galois-object layer.
 
+**Status of `StrongComponentA` (2026-10-09).**
+* *Dimension clause:* proved, with no extra hypothesis. `ModelCode.topologicalKrullDim_le_one_of_iso`
+  (`SemistableFibreDim.lean`) derives it from two existing clauses: `IsSemistable ϖ' c'` and
+  `c.toSpec = e.hom ≫ c'.toSpec ≫ Spec φ`.
+  * Semistable at `𝔭₀` ⇒ no chain `𝔭₂ < 𝔭₁ < 𝔭₀` of primes containing `ϖ`
+    (`IsSemistableAt.not_chain`, `SemistableDim.lean`).
+  * Proof: going down along the flat map `A → C`, then incomparability along the quasi-finite
+    étale map `M → C`, then `dim M/(ϖ) ≤ 1` for `O[X]` and for the node. About 0.25k lines.
+* *Integration:* `strongComponentA_body_of_data` / `_of_tree` (`W10ComponentData.lean`,
+  `W10ComponentTree.lean`) give every clause of `StrongComponentA` with `K' = E`.
+  * Connectedness comes from `Statement.ZariskiConnected`, transported along `eComp`.
+  * Still open, as the hypothesis `hunf` over all component models of the tree: split nodes,
+  no loops and the node clause of `IsUnfolded`. The W-model, convexity and reducedness parts
+  of `IsUnfolded` are proved (`isWModelOf_projModelCode`, `GaussValTransfer.lean`).
+* `Statement.HarmonicX` is proved (`SemistableReduction.harmonicX`). The crossing forms of
+  Theorem B and of the IUT corollary no longer assume it.
+
 **Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
 `∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line
 (`W10Line.exists_invariant_line`) and the `G × Gal`-stability of the Gauss tree needs the line to
