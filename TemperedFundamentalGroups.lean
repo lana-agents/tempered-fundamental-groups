@@ -42,6 +42,7 @@ import TemperedFundamentalGroups.Andre.TateRestrictDeck
 import TemperedFundamentalGroups.Andre.TateRestrictFinal
 import TemperedFundamentalGroups.Andre.TateRestrictG1
 import TemperedFundamentalGroups.Andre.TateRestrictInduced
+import TemperedFundamentalGroups.Andre.TateRestrictIUT
 import TemperedFundamentalGroups.Andre.TateRestrictLevel
 import TemperedFundamentalGroups.Andre.TateRestrictLoop
 import TemperedFundamentalGroups.Andre.TateRestrictModel
