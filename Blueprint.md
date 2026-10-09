@@ -2273,3 +2273,17 @@ Points are seen through their germ rings: `germs = range (stalk → L)`. Centres
 | CX8 | **Walk assembly** (`CrossingX1Proof`): induction on `top − p`, distinct nodes (at most two components per node), `Walk.Crosses` | 0.5k |
 
 Total ≈ 2.7k lines. No closedness of `ψ` is needed: `ψ '' v = w₂'` uses CX2 at each point of `w₂'`.
+
+**Status (2026-10-09): `Statement.CrossingX1` is proved** (`crossingX1`, `CrossingX1Proof.lean`;
+axioms `propext`, `Classical.choice`, `Quot.sound`). About 2.8k lines in 21 files (`Centre*`,
+`Composite*`, `NodeUnitBranch`, `NodeCore`, `NodeDivisors`, `FaithfullyFlatNormal`, `ModelBase`,
+`UniqueExtDVR`, `SmoothPrime`, `WModelPoints`, `Crossing*`). Notes:
+* `exists_nodeGerm` (and `exists_nodeGerm_of_split`, `exists_exact_node_of_split`) gained an
+  output: the germ ring is the image of a noetherian normal ordinary double point (`IsODPGerm`),
+  the input of the divisor lemma. `isIntegrallyClosed_of_faithfullyFlat` moved to
+  `FaithfullyFlatNormal`.
+* `IsSemistable` of the source is not used (non-smooth points of the special fibre are node
+  points by definition, and `node_data` needs only split nodes and no loops).
+* `j'` need not be compatible with the `O₂`-structure of `L₂`. The hypothesis that `ψ` lies over
+  `O` gives the compatibility on `O` (`baseHom_target`). Unique extension over the complete `O`
+  (`eq_of_comap_eq_dvr`) puts `O₁`, `O₂` into the relevant valuation rings.

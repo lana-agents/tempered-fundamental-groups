@@ -89,6 +89,22 @@ lemma valuation_comap_lt_one_iff (V : ValuationSubring F) (x : F') :
   rw [valuation_lt_one_iff_inv, valuation_lt_one_iff_inv, ValuationSubring.mem_comap, map_inv₀,
     map_eq_zero]
 
+lemma valuation_comap_lt_one_iff' {K L : Type*} [Field K] [Field L] (V : ValuationSubring L)
+    (f : K →+* L) (x : K) : (V.comap f).valuation x < 1 ↔ V.valuation (f x) < 1 := by
+  rw [valuation_lt_one_iff_inv, valuation_lt_one_iff_inv, ValuationSubring.mem_comap, map_inv₀,
+    map_eq_zero]
+
+lemma valuation_eq_one_iff' {K : Type*} [Field K] (V : ValuationSubring K) (x : K) :
+    V.valuation x = 1 ↔ x ∈ V ∧ ¬ V.valuation x < 1 := by
+  rw [← V.valuation_le_one_iff]
+  exact ⟨fun h ↦ ⟨h.le, by rw [h]; exact lt_irrefl _⟩, fun ⟨h₁, h₂⟩ ↦
+    le_antisymm h₁ (not_lt.1 h₂)⟩
+
+lemma valuation_comap_eq_one_iff {K L : Type*} [Field K] [Field L] (V : ValuationSubring L)
+    (f : K →+* L) (x : K) : (V.comap f).valuation x = 1 ↔ V.valuation (f x) = 1 := by
+  rw [valuation_eq_one_iff', valuation_eq_one_iff', valuation_comap_lt_one_iff',
+    ValuationSubring.mem_comap]
+
 /-- **Centres map along morphisms.** -/
 theorem IsCentre.comap (g : Spec (CommRingCat.of F) ⟶ X) (g' : Spec (CommRingCat.of F') ⟶ Y)
     (ψ : X ⟶ Y) (hj : g ≫ ψ = Spec.map (CommRingCat.ofHom (algebraMap F' F)) ≫ g')

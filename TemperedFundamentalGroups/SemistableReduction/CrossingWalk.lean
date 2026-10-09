@@ -100,7 +100,7 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
         W.valuation t = W.valuation (algebraMap O L ϖ) ^ p → p ≤ N)
     (hcontr : ∀ (v : Set c.scheme) (hv : v ∈ components c) (W : ValuationSubring L),
       IsCentre j W (gp hv) → ∀ z ∈ v, ψ z = y' → ∀ p : ℕ,
-        W.valuation t = W.valuation (algebraMap O L ϖ) ^ p → p < N → ψ '' v = {y'})
+        W.valuation t = W.valuation (algebraMap O L ϖ) ^ p → 0 < p → p < N → ψ '' v = {y'})
     (hend : ∀ (v : Set c.scheme) (hv : v ∈ components c) (W : ValuationSubring L),
       IsCentre j W (gp hv) → ∀ z ∈ v, ψ z = y' →
         W.valuation t = W.valuation (algebraMap O L ϖ) ^ N → ψ '' v = w₂')
@@ -177,8 +177,8 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
           rw [hinj hab]
     have hnodes' : ∀ i, ψ (w'.x i) = y' := fun i ↦ by
       induction i using Fin.lastCases with
-      | last => change ψ (w'.x (Fin.last w.k)) = y'; rw [snoc_x_last]; exact hψz
-      | cast i => change ψ (w'.x i.castSucc) = y'; rw [snoc_x_castSucc]; exact hnodes i
+      | last => rw [snoc_x_last]; exact hψz
+      | cast i => rw [snoc_x_castSucc]; exact hnodes i
     have hstart'' : w'.v 0 = v₀ := by rw [snoc_v_zero]; exact hstart'
     have hold : ∀ i : Fin (w.k + 1), i ≠ 0 → ψ '' w'.v i.castSucc = {y'} := fun i hi ↦ by
       rw [snoc_v_castSucc]; exact hinner i hi
@@ -189,7 +189,7 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
       rintro u hu rfl; exact hW't
     rcases hp'N.lt_or_eq with hlt | heq
     · -- `v'` is contracted: continue
-      have hcon := hcontr v' hv' _ (Wc_spec hW hv') z hzv' hψz p' hW't hlt
+      have hcon := hcontr v' hv' _ (Wc_spec hW hv') z hzv' hψz p' hW't (by omega) hlt
       obtain ⟨z'', hz'', R'', hR''z, hR''⟩ :=
         exists_zero hW hϖ hv' (Wc_spec hW hv') hg hzv' hpole
       have hψz'' : ψ z'' = y' := by
@@ -235,7 +235,8 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
   -- the start
   obtain ⟨R₀, hR₀z⟩ := exists_isCentre j (specializes_of_isWModel hW z₀)
   refine key (N - 0) (single v₀ hv₀) 0 ⟨rfl, fun a ↦ a.elim0, fun a ↦ a.elim0, fun i hi ↦
-    (hi (Fin.ext (by have := i.2; change i.1 < 1 at this; change i.1 = 0; omega))).elim, fun a ↦ a.elim0, fun i ↦ ⟨0, le_rfl, ?_⟩, ?_,
+    (hi (Fin.ext (by have := i.2; change i.1 < 1 at this; change i.1 = 0; omega))).elim,
+    fun a ↦ a.elim0, fun i ↦ ⟨0, le_rfl, ?_⟩, ?_,
     ⟨z₀, hz₀, hψz₀, R₀, hR₀z, ?_⟩, hN⟩ rfl
   · rw [pow_zero]; exact hstart
   · rw [pow_zero]; exact hstart
