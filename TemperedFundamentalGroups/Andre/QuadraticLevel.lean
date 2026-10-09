@@ -153,6 +153,25 @@ def level : FiniteLevel R A where
   H := Subgroup.zpowers (σS (c := c) (A := A))
   surjective _ := ⟨1, Subgroup.one_mem _, Subsingleton.elim _ _⟩
 
+variable (c) in
+lemma σS_mul_self : σS c A * σS c A = 1 := by
+  refine SemilinearAut.ext (Subsingleton.elim _ _) ?_
+  ext b
+  exact σ_σ c b
+
+variable (c) in
+/-- The elements of `⟨σ⟩` are `1` and `σ`. -/
+lemma eq_one_or_eq_σS {g : SemilinearAut R A (B c)} (hg : g ∈ Subgroup.zpowers (σS c A)) :
+    g = 1 ∨ g = σS c A := by
+  obtain ⟨n, rfl⟩ := hg
+  obtain ⟨k, rfl | rfl⟩ := Int.even_or_odd' n
+  · left
+    change σS c A ^ (2 * k) = 1
+    rw [zpow_mul, zpow_two, σS_mul_self, one_zpow]
+  · right
+    change σS c A ^ (2 * k + 1) = σS c A
+    rw [zpow_add, zpow_mul, zpow_two, σS_mul_self, one_zpow, one_mul, zpow_one]
+
 end
 
 end TemperedFundamentalGroups.QuadraticLevel
