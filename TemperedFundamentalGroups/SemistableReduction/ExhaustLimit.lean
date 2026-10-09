@@ -10,9 +10,11 @@ import TemperedFundamentalGroups.SemistableReduction.TypeOneGerm
 import TemperedFundamentalGroups.SemistableReduction.TypeTwoGerm
 import TemperedFundamentalGroups.SemistableReduction.KummerUnram
 import TemperedFundamentalGroups.SemistableReduction.S8DescentA6
+import TemperedFundamentalGroups.SemistableReduction.TypeThreeGermTwo
+import TemperedFundamentalGroups.SemistableReduction.TypeFourUnif
 
 /-!
-# (D⇐) from the descent of singularities (O12)
+# (D⇐) and (T⇐) from the two `δ`-count steps (O12)
 
 Blueprint §9.12, O12. **`ExhaustGluing.smoothOfDiscCond_of`**: an open disc satisfying the
 valuative disc condition is good, from the `δ`-count step `ExhaustDescentFor` (R5), the type-3 germ
@@ -29,6 +31,11 @@ sub-discs of `B_n`, and let `ρ` be the limit of the radii.
   bad disc of radius `< ρ` inside all `B_n`.
 
 In the last two cases the infimum property of the sequence forces `ρ ≤` that radius `< ρ`.
+
+**`ExhaustGluing.exhaustingOfTube_of`**: (T⇐) from the gluing step `ExhaustGlueFor` (R5), (D⇐)
+and the two-sided type-3 germ `S8A.TypeThreeGermTwoFor` (an infimum argument over the radii below
+which all discs are exhausting; the one-sided germ does not suffice for this argument).
+`smoothOfDiscCond_and_exhaustingOfTube` combines the two.
 
 * `ExhaustGluing.isTubeDisc_of_discCond`, `discCond_mono`: the disc condition for sub-discs.
 -/
@@ -259,6 +266,146 @@ theorem smoothOfDiscCond_of (hED : ExhaustDescentFor C F) (h3 : S8A.TypeThreeGer
     obtain ⟨b', hb'b, hb'bad⟩ := exists_bad_of_exhausting hED (hd n) hc' hc0' hE hcondb (hnsb n)
     rw [hcc] at hb'b
     exact hbad_of (b', _) (hb'b.trans hc₁ρ.le) (by simp only; rw [hcc]; exact hc₁ρ) _ hb'bad
+
+include hp hp1 in
+/-- **(T⇐)** `ExhaustingOfTube` (Blueprint §9.12 O12), from the gluing of exhaustion through a
+circle of a tube (`ExhaustGlueFor`, R5), (D⇐) and the two-sided type-3 germ. Let `ρ` be the
+infimum of the radii `r ≥ |c'|` such that `D(a, |c v|)` is exhausting in `|x - a| < |c|` for all
+`r ≤ |v| < 1` (R4(ii) starts this set). At a type-2 radius `ρ` the type-2 germ and gluing make
+`ρ` a member, and R4(ii) and gluing go below `ρ` unless `ρ = |c'|`; at a type-3 radius the
+two-sided type-3 germ and gluing go below `ρ`. The residue classes off the centre of the circles
+are good by (D⇐), from the off-skeleton clause of the tube condition. -/
+theorem exhaustingOfTube_of (hGl : ExhaustGlueFor C F) (hD : SmoothOfDiscCond C F)
+    (h3 : S8A.TypeThreeGermTwoFor C F) : ExhaustingOfTube C F := by
+  intro a c c' hc hc' hc0' hT
+  have hcpos : 0 < ‖c‖ := norm_pos_iff.2 hc
+  have hc'pos : 0 < ‖c'‖ := norm_pos_iff.2 hc0'
+  have ultra : ∀ x y z : C, ‖x - z‖ ≤ max ‖x - y‖ ‖y - z‖ := fun x y z ↦ by
+    rw [show x - z = (x - y) + (y - z) by ring]; exact IsUltrametricDist.norm_add_le_max _ _
+  -- the residue classes off the centre of a circle of the annulus are good
+  have hoff : ∀ (u : C) (hu0 : u ≠ 0), ‖c'‖ < ‖u‖ → ‖u‖ < 1 → ∀ β : C, ‖β‖ = 1 →
+      DiscSmooth F (a + c * u * β) (mul_ne_zero hc hu0) := by
+    intro u hu0 hcu hu1 β hβ
+    refine hD _ _ _ (discCond_of_isTubeDisc _ fun x γ hγ hx hγd ↦ ?_)
+    have hcuβ : ‖c * u * β‖ = ‖c * u‖ := by rw [norm_mul _ β, hβ, mul_one]
+    have hge : ‖c * u‖ ≤ ‖x - a‖ := by
+      have h := ultra (c * u * β) (x - a) 0
+      rw [show c * u * β - (x - a) = -(x - (a + c * u * β)) by ring, norm_neg, sub_zero,
+        sub_zero, hcuβ] at h
+      rcases le_max_iff.1 h with h' | h'
+      · exact absurd h' (not_le.2 hx)
+      · exact h'
+    have hlt : ‖x - a‖ < ‖c‖ := by
+      have h := ultra (x - a) (c * u * β) 0
+      rw [show x - a - c * u * β = x - (a + c * u * β) by ring, sub_zero, sub_zero, hcuβ] at h
+      refine h.trans_lt (max_lt (hx.trans ?_) ?_) <;>
+      · rw [norm_mul]; exact mul_lt_of_lt_one_right hcpos hu1
+    have hγ'0 : γ / c ≠ 0 := div_ne_zero hγ hc
+    have hβ'u : ‖u‖ ≤ ‖(x - a) / c‖ := by
+      rw [norm_div, le_div_iff₀ hcpos, mul_comm, ← norm_mul]; exact hge
+    have hγ'u : ‖γ / c‖ < ‖u‖ := by
+      rw [norm_div, div_lt_iff₀ hcpos, mul_comm, ← norm_mul]; exact hγd
+    have hxβ : a + c * ((x - a) / c) = x := by rw [mul_div_cancel₀ _ hc]; ring
+    refine (isTubeDisc_congr _ _ hxβ (mul_div_cancel₀ _ hc)).1
+      (hT.2 _ _ hγ'0 (hcu.trans_le hβ'u) ?_ (hγ'u.trans_le hβ'u))
+    rw [norm_div, div_lt_one hcpos]; exact hlt
+  -- exhaustion in `|x - a| < |c|`
+  let Ex : C → Prop := fun v ↦ ∀ (hv : ‖v‖ < 1) (hv0 : v ≠ 0), IsExhausting a hc hv hv0 F
+  -- gluing through the circle `w_{a,|c u|}`
+  have glue : ∀ (u v : C) (hu0 : u ≠ 0) (hu1 : ‖u‖ < 1), ‖c'‖ < ‖u‖ → Ex u → v ≠ 0 →
+      ‖v‖ < ‖u‖ → (∀ (h : ‖v / u‖ < 1) (h0 : v / u ≠ 0),
+        IsExhausting a (mul_ne_zero hc hu0) h h0 F) → Ex v := by
+    intro u v hu0 hu1 hcu hEu hv0 hvu hE hv hv0'
+    have hvu1 : ‖v / u‖ < 1 := by rw [norm_div, div_lt_one (norm_pos_iff.2 hu0)]; exact hvu
+    have hvu0 : v / u ≠ 0 := div_ne_zero hv0 hu0
+    exact S8A.isExhausting_congr hc (mul_div_cancel₀ v hu0) _ _ hv hv0' F
+      (hGl a c u (v / u) hc hu1 hu0 hvu1 hvu0 (hEu hu1 hu0) (hE hvu1 hvu0)
+        (hT.1 u hu0 hcu hu1) (hoff u hu0 hcu hu1))
+  -- the set of radii from which on all discs are exhausting
+  let E : Set ℝ := {r | ‖c'‖ ≤ r ∧ r < 1 ∧ ∀ u : C, r ≤ ‖u‖ → ‖u‖ < 1 → Ex u}
+  suffices hmem : ‖c'‖ ∈ E from hmem.2.2 c' le_rfl hc' hc' hc0'
+  have hbdd : BddBelow E := ⟨‖c'‖, fun r hr ↦ hr.1⟩
+  obtain ⟨e, he0, he1, He⟩ := GaussTube.belowGerm hp hp1 (F' := F) a c hc
+  have hne : E.Nonempty := ⟨max ‖e‖ ‖c'‖, le_max_right _ _, max_lt he1 hc',
+    fun u hu hu1 hv hv0 ↦ He u hv hv0 ((le_max_left _ _).trans hu)⟩
+  set ρ := sInf E with hρdef
+  have hρc' : ‖c'‖ ≤ ρ := le_csInf hne fun r hr ↦ hr.1
+  have hρpos : 0 < ρ := hc'pos.trans_le hρc'
+  have hρ1 : ρ < 1 := by
+    obtain ⟨r, hr⟩ := hne
+    exact (csInf_le hbdd hr).trans_lt hr.2.1
+  have above : ∀ u : C, ρ < ‖u‖ → ‖u‖ < 1 → Ex u := by
+    intro u hu hu1
+    obtain ⟨r, hr, hru⟩ := exists_lt_of_csInf_lt hne hu
+    exact hr.2.2 u hru.le hu1
+  have notmem : ∀ r ∈ E, r < ρ → False := fun r hr hrρ ↦ (csInf_le hbdd hr).not_gt hrρ
+  by_cases hnorm : ∃ z : C, ‖z‖ = ρ
+  · -- type 2
+    obtain ⟨z, hz⟩ := hnorm
+    have hz0 : z ≠ 0 := norm_pos_iff.1 (hz ▸ hρpos)
+    have hcz0 : c * z ≠ 0 := mul_ne_zero hc hz0
+    obtain ⟨ρ', hρ', H2⟩ := S8A.typeTwoGermFor hp hp1 (F := F) a (c * z) hcz0
+    have hρ'c : ρ < min 1 (ρ' / ‖c‖) := lt_min hρ1 (by
+      rw [lt_div_iff₀ hcpos, mul_comm, ← hz, ← norm_mul]; exact hρ')
+    obtain ⟨u, hρu, hu⟩ := TypeFour.exists_norm_between (C := C) hρpos hρ'c
+    have hu1 : ‖u‖ < 1 := hu.trans_le (min_le_left _ _)
+    have hu0 : u ≠ 0 := norm_pos_iff.1 (hρpos.trans hρu)
+    have at_rho : ∀ v : C, ‖v‖ = ρ → Ex v := by
+      intro v hv
+      refine glue u v hu0 hu1 (hρc'.trans_lt hρu) (above u hρu hu1)
+        (norm_pos_iff.1 (hv ▸ hρpos)) (hv ▸ hρu) fun h h0 ↦ H2 _ _ _ _ _ ?_ ?_
+      · rw [mul_assoc, mul_div_cancel₀ _ hu0, norm_mul, norm_mul, hv, hz]
+      · rw [norm_mul, ← le_div_iff₀' hcpos]; exact (hu.trans_le (min_le_right _ _)).le
+    have hρE : ρ ∈ E := ⟨hρc', hρ1, fun u hu hu1 ↦
+      hu.eq_or_lt.elim (fun h ↦ at_rho u h.symm) (fun h ↦ above u h hu1)⟩
+    rcases hρc'.eq_or_lt with h | hlt
+    · rwa [h]
+    · exfalso
+      obtain ⟨e', he'0, he'1, He'⟩ := GaussTube.belowGerm hp hp1 (F' := F) a (c * z) hcz0
+      have hz1 : ‖z‖ < 1 := hz ▸ hρ1
+      refine notmem (max ‖c'‖ (ρ * ‖e'‖)) ⟨le_max_left _ _, (max_lt hlt
+        (mul_lt_of_lt_one_right hρpos he'1)).trans hρ1, fun u hu hu1 ↦ ?_⟩
+        (max_lt hlt (mul_lt_of_lt_one_right hρpos he'1))
+      rcases le_or_gt ρ ‖u‖ with hρu | hρu
+      · exact hρE.2.2 u hρu hu1
+      have hu0 : u ≠ 0 := norm_pos_iff.1 (hc'pos.trans_le ((le_max_left _ _).trans hu))
+      refine glue z u hz0 hz1 (hz ▸ hlt) (at_rho z hz) hu0 (hz ▸ hρu) fun h h0 ↦ He' _ h h0 ?_
+      rw [norm_div, le_div_iff₀ (norm_pos_iff.2 hz0), hz, mul_comm]
+      exact (le_max_right _ _).trans hu
+  · -- type 3
+    push Not at hnorm
+    have hlt : ‖c'‖ < ρ := hρc'.lt_of_ne (hnorm c')
+    have hnorm' : ∀ w : C, ‖w‖ ≠ ‖c‖ * ρ := fun w hw ↦ hnorm (w / c) (by
+      rw [norm_div, hw, mul_div_cancel_left₀ _ hcpos.ne'])
+    obtain ⟨r₁, hr₁, ρ₂, hρ₂, H3⟩ := h3 a (‖c‖ * ρ) (mul_pos hcpos hρpos) hnorm'
+    have hρ₂c : ρ < min 1 (ρ₂ / ‖c‖) := lt_min hρ1 (by rw [lt_div_iff₀' hcpos]; exact hρ₂)
+    obtain ⟨u, hρu, hu⟩ := TypeFour.exists_norm_between (C := C) hρpos hρ₂c
+    have hu1 : ‖u‖ < 1 := hu.trans_le (min_le_left _ _)
+    have hu0 : u ≠ 0 := norm_pos_iff.1 (hρpos.trans hρu)
+    have hr₁ρ : r₁ / ‖c‖ < ρ := by rw [div_lt_iff₀' hcpos]; exact hr₁
+    refine absurd (notmem (max ‖c'‖ (r₁ / ‖c‖)) ⟨le_max_left _ _, (max_lt hlt hr₁ρ).trans hρ1,
+      fun v hv hv1 ↦ ?_⟩ (max_lt hlt hr₁ρ)) not_false
+    rcases lt_or_ge ρ ‖v‖ with hρv | hvρ
+    · exact above v hρv hv1
+    have hvρ' : ‖v‖ < ρ := hvρ.lt_of_ne (hnorm v)
+    have hv0 : v ≠ 0 := norm_pos_iff.1 (hc'pos.trans_le ((le_max_left _ _).trans hv))
+    refine glue u v hu0 hu1 (hρc'.trans_lt hρu) (above u hρu hu1) hv0 (hvρ'.trans hρu)
+      fun h h0 ↦ H3 (c * v) (c * u) (mul_ne_zero hc hv0) ?_ ?_ ?_ ?_ a (c * u) (v / u)
+        (mul_ne_zero hc hu0) h h0 ?_ rfl
+    · rw [norm_mul, ← div_le_iff₀' hcpos]; exact (le_max_right _ _).trans hv
+    · rw [norm_mul]; exact mul_lt_mul_of_pos_left hvρ' hcpos
+    · rw [norm_mul]; exact mul_lt_mul_of_pos_left hρu hcpos
+    · rw [norm_mul, ← le_div_iff₀' hcpos]; exact (hu.trans_le (min_le_right _ _)).le
+    · rw [mul_assoc, mul_div_cancel₀ _ hu0]
+
+include hp hp1 in
+/-- **(D⇐) and (T⇐)** from the two `δ`-count steps (R5), the two-sided type-3 germ and goodness
+near type-4 points. -/
+theorem smoothOfDiscCond_and_exhaustingOfTube (hED : ExhaustDescentFor C F)
+    (hGl : ExhaustGlueFor C F) (h3 : S8A.TypeThreeGermTwoFor C F)
+    (h4 : S8A.TypeFourGoodFor C F) : SmoothOfDiscCond C F ∧ ExhaustingOfTube C F :=
+  have hD := smoothOfDiscCond_of hp hp1 hED (S8A.typeThreeGermFor_of_two h3) h4
+  ⟨hD, exhaustingOfTube_of hp hp1 hGl hD h3⟩
 
 end Limit
 
