@@ -222,6 +222,42 @@ lemma eq_one_of_fibreAct_eq (h2Ω : (2 : Ω) ≠ 0) (hcΩ : algebraMap R Ω c �
     apply hcΩ
     rw [← AlgHom.commutes t c, ← x_sq, map_pow, h0, zero_pow two_ne_zero]
 
+/-! ### Maps into a connected ring -/
+
+omit [Group A] [MulSemiringAction A R] [Subsingleton A] in
+include h2 hc in
+/-- **Two `R`-algebra maps out of `R[x]/(x² - c)` into a connected ring agree or differ by `σ`**
+(for `2` and `c` units). -/
+lemma eq_or_eq_comp_σ_of_idem {S : Type*} [CommRing S] [Algebra R S]
+    (hidem : ∀ e : S, IsIdempotentElem e → e = 0 ∨ e = 1) (f f' : B c →ₐ[R] S) :
+    f' = f ∨ f' = f.comp (σ c).toAlgHom := by
+  set u := f (x c)
+  set u' := f' (x c)
+  have hu2 : u ^ 2 = algebraMap R S c := by
+    rw [← map_pow, x_sq, AlgHom.commutes]
+  have hsq : u' ^ 2 = u ^ 2 := by
+    rw [hu2, ← map_pow, x_sq, AlgHom.commutes]
+  have hu : IsUnit u := (isUnit_pow_iff two_ne_zero).1 (by rw [hu2]; exact hc.map _)
+  have h2S : IsUnit (2 : S) := by
+    have := h2.map (algebraMap R S)
+    rwa [map_ofNat] at this
+  set v : S := ↑hu.unit⁻¹
+  set w : S := ↑h2S.unit⁻¹
+  have hv : v * u = 1 := hu.val_inv_mul
+  have hw : w * 2 = 1 := h2S.val_inv_mul
+  have hidem' : IsIdempotentElem (w * (1 + v * u')) := by
+    unfold IsIdempotentElem
+    linear_combination (w ^ 2 * v ^ 2) * hsq + (w ^ 2 * (v * u + 1)) * hv +
+      ((1 + v * u') * w) * hw
+  rcases hidem _ hidem' with he | he
+  · refine Or.inr (algHom_ext c ?_)
+    change u' = f (σ c (x c))
+    rw [σ_x, map_neg]
+    linear_combination (2 * u) * he - (u * (1 + v * u')) * hw - u' * hv
+  · refine Or.inl (algHom_ext c ?_)
+    change u' = u
+    linear_combination (2 * u) * he - (u * (1 + v * u')) * hw - u' * hv
+
 end
 
 end TemperedFundamentalGroups.QuadraticLevel
