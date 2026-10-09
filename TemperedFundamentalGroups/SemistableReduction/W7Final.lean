@@ -12,6 +12,7 @@ import TemperedFundamentalGroups.SemistableReduction.S8DescentTree
 import TemperedFundamentalGroups.SemistableReduction.S8FiniteBad
 import TemperedFundamentalGroups.SemistableReduction.DiscCondSmooth
 import TemperedFundamentalGroups.SemistableReduction.TypeFourKummerAssembly
+import TemperedFundamentalGroups.SemistableReduction.OffSkeleton
 
 /-!
 # `StrongA` from the still open leaves
@@ -23,12 +24,13 @@ Blueprint §9.12 (final glue). Of the leaves of `W7.Leaves`, the following are p
 * `A6For` (O6.1f(iii)): `ClassicalSmooth.a6For`;
 * `FiniteBadFor` (O6.3): `S8A.finiteBadFor`;
 * the S8.C descent (O6.6): `S8A.s8cDescent_of` from the off-skeleton clause and (T⇐);
-* (D⇒) `DiscCondOfSmooth` (O11): `ExhaustGluing.discCondOfSmooth`.
+* (D⇒) `DiscCondOfSmooth` (O11): `ExhaustGluing.discCondOfSmooth`;
+* the off-skeleton clause of (T⇒) (lemma (L)): `ExhaustGluing.offSkeletonOfExhausting`.
 
-`W7.OpenLeaves` collects the remaining ones: the off-skeleton clause of (T⇒) (lemma (L)),
-(T⇐), (D⇐), the type-3 germ, R5 and the two parts of the type-4
-leaf (`TypeFour.DegreeReductionFor`, `TypeFour.CoreGFor`, assembled by
-`TypeFour.typeFourGoodFor_of_degreeReduction`). **`W10Assembly.strongA_of_openLeaves`**.
+`W7.OpenLeaves` collects the remaining ones: (T⇐), (D⇐), the type-3 germ, R5 and the two parts
+of the type-4 leaf (the Artin–Schreier case `TypeFour.DegRed.DegreeReductionASFor` of the degree
+reduction and `TypeFour.CoreGFor`, assembled by `TypeFour.typeFourGoodFor_of_degreeReductionAS`).
+**`W10Assembly.strongA_of_openLeaves`**.
 -/
 
 universe u
@@ -41,11 +43,6 @@ namespace W7
 
 /-- The still open local leaves of `W7.Statement` (Blueprint §9.12). -/
 structure OpenLeaves : Prop where
-  /-- Lemma (L): the off-skeleton clause of (T⇒). -/
-  offSkeleton : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
-    [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
-    ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F], DefinedOverDVR C F → OffSkeletonOfExhausting C F
   /-- (T⇐), O12. -/
   exhOfTube : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
@@ -67,9 +64,11 @@ structure OpenLeaves : Prop where
     ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
     [FiniteDimensional (RatFunc C) F] [IsGalois (RatFunc C) F], DefinedOverDVR C F →
     S8A.R5MeasureFor C F
-  /-- Type-4 leaf, part (d): the degree reduction at type-4 points (Temkin §6.3). -/
-  degreeReduction : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C]
-    [IsAlgClosed C] [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 → TypeFour.DegreeReductionFor C p
+  /-- Type-4 leaf, part (d), Artin–Schreier case `μ = A` of the degree reduction at type-4 points
+  (Temkin §6.3); the case `μ > A` is `TypeFour.DegRed.degreeReductionFor_of_AS`. -/
+  degreeReductionAS : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C]
+    [IsAlgClosed C] [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
+    TypeFour.DegRed.DegreeReductionASFor C p
   /-- Type-4 leaf, part (G): smoothness from a topological generator, for Galois `F`. -/
   coreG : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
@@ -81,7 +80,9 @@ theorem leaves_of_open (h : OpenLeaves.{u}) : Leaves.{u, u} where
   nodeData := by
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ hdef
     exact nodeDataOfODP hp hp1 hdef
-  offSkeleton := h.offSkeleton
+  offSkeleton := by
+    intro C _ _ _ _ p hp hp1 F _ _ _ _ _ hdef
+    exact offSkeletonOfExhausting hp hp1 (nodeDataOfODP hp hp1 hdef)
   discCond := by
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _
     exact discCondOfSmooth hp hp1
@@ -90,7 +91,8 @@ theorem leaves_of_open (h : OpenLeaves.{u}) : Leaves.{u, u} where
   l7 := by
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _ hdef
     exact S8A.l7For_of (tubeOfExhausting_of_definedOverDVR hp hp1 hdef
-      (h.offSkeleton C p hp hp1 F hdef)) (h.smoothOfDisc C p hp hp1 F hdef)
+      (offSkeletonOfExhausting hp hp1 (nodeDataOfODP hp hp1 hdef)))
+      (h.smoothOfDisc C p hp hp1 F hdef)
   a6 := by
     intro C _ _ _ _ p hp hp1 E _ _ _ _ _ L _ _ _ _ _ _ _ _
     exact a6For hp hp1
@@ -101,9 +103,12 @@ theorem leaves_of_open (h : OpenLeaves.{u}) : Leaves.{u, u} where
     exact S8A.finiteBadFor hp hp1 F
   typeFour := by
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _
-    exact TypeFour.typeFourGoodFor_of_degreeReduction hp hp1 (h.degreeReduction C p hp hp1)
+    exact TypeFour.typeFourGoodFor_of_degreeReductionAS hp hp1 (h.degreeReductionAS C p hp hp1)
       (fun L _ _ _ _ _ _ ↦ h.coreG C p hp hp1 L) (fun L _ _ _ _ _ _ _ _ ↦ a6For hp hp1)
-  descent := S8A.s8cDescent_of h.offSkeleton h.exhOfTube
+  descent := S8A.s8cDescent_of
+    (fun _ _ _ _ _ _ hp hp1 _ _ _ _ _ _ hdef ↦
+      offSkeletonOfExhausting hp hp1 (nodeDataOfODP hp hp1 hdef))
+    h.exhOfTube
 
 /-- **`W7.Statement` from the still open leaves.** -/
 theorem statement_of_openLeaves (h : OpenLeaves.{u}) : W7.Statement.{u, u} :=
