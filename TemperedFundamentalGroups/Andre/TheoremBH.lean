@@ -95,6 +95,77 @@ namespace TateObject
 
 variable [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
 
+omit [IsReduced R] [Subsingleton A] in
+/-- **Theorem B from the height-corrected length**, for any target `X₀` with a deck torsor and
+model maps unique up to homeomorphism (`Pres.ModelUnique`): given (gal), (dom), (rig) for
+`galClassW`, a
+pointed member `(Y₀, y₀)` over `(X₀, x₀)`, finiteness of the sets `HCW ≤ ℓ₀` and the loop
+(`hne`: every pointed member over `(Y₀, y₀)` has an element over `δ(d) x₀` with `HCW ≤ ℓ₀`),
+some element of `temperedPi1` has character `d`. -/
+theorem exists_character_eq_of_hcwG (X₀ : TempObj O R A) (δ : Multiplicative ℤ →* Aut X₀)
+    (x₀ : (tempFibre O R A V hV).obj X₀)
+    (htors : FibreAut.IsDeckTorsor (F := tempFibre O R A V hV) X₀ δ)
+    (hU : Pres.ModelUnique x X₀)
+    (hgal : IsGaloisClass (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
+    (hdom : IsDominating (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
+    (hrig : IsRigid (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
+    (hX : SemistableReduction.Statement.HarmonicXS.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    (Y₀ : TempObj O R A) (hY₀ : galClassW O R A Ω (Level.IsW x) Y₀)
+    (y₀ : (tempFibre O R A V hV).obj Y₀) (a₀ : Y₀ ⟶ X₀)
+    (ha₀ : (tempFibre O R A V hV).map a₀ y₀ = x₀) (d : Multiplicative ℤ)
+    (ℓ₀ : ℝ≥0∞)
+    (hfin : ∀ (X : TempObj O R A) (P : Pres x X) (a : X ⟶ X₀)
+      (g : (tempFibre O R A V hV).obj X), {γ | P.HCWG V hV a ϖ g γ ℓ₀}.Finite)
+    (hne : ∀ (X : TempObj O R A) (P : Pres x X), (∀ t t' : P.Lv.L.B →ₐ[R] Ω,
+      ∃ σ : P.Lv.L.B ≃ₐ[R] P.Lv.L.B, t.comp (σ : P.Lv.L.B →ₐ[R] P.Lv.L.B) = t') →
+      ∀ (m : X ⟶ Y₀) (g : (tempFibre O R A V hV).obj X),
+      (tempFibre O R A V hV).map m g = y₀ → ∃ γ, (tempFibre O R A V hV).map (m ≫ a₀) γ =
+        FibreAut.deckAct X₀ δ d (x₀) ∧
+        P.HCWG V hV (m ≫ a₀) ϖ g γ ℓ₀) :
+    ∃ τ : temperedPi1 O R A V hV, FibreAut.deckCharacter X₀ δ x₀ htors τ = d := by
+  classical
+  let Φ := tempFibre O R A V hV
+  let 𝒢₀ := overY (galClassW O R A Ω (Level.IsW x)) Y₀
+  let pres : ∀ p : PtGal Φ 𝒢₀, Pres x p.G := fun p => (Pres.exists_gal p.mem.1).choose
+  have hpt : ∀ p : PtGal Φ 𝒢₀, ∃ m : p.G ⟶ Y₀, Φ.map m p.g = y₀ := fun p => by
+    obtain ⟨m₁⟩ := p.mem.2
+    obtain ⟨σ, hσ⟩ := hgal Y₀ hY₀ (Φ.map m₁ p.g) y₀
+    exact ⟨m₁ ≫ σ.hom, by rw [Functor.map_comp_apply]; exact hσ⟩
+  let S : ∀ p : PtGal Φ 𝒢₀, Set (Φ.obj p.G) := fun p =>
+    {γ | ∃ a : p.G ⟶ X₀, Φ.map a p.g = x₀ ∧
+      Φ.map a γ = FibreAut.deckAct X₀ δ d (x₀) ∧
+      (pres p).HCWG V hV a ϖ p.g γ ℓ₀}
+  refine exists_deckCharacter_eq_of_sets (isGaloisClass_over hgal Y₀) (isDominating_over hdom Y₀ y₀)
+    (isRigid_over hrig Y₀) X₀ δ x₀ htors d S
+    ?_ ?_ ?_ ?_
+  · -- the sets are mapped into each other
+    rintro p q f _ ⟨γ, ⟨a, ha, hγ, hH⟩, rfl⟩
+    obtain ⟨mq, hmq⟩ := hpt q
+    obtain ⟨⟨mf, hmf⟩, hfg⟩ := f.2
+    have hrigf : Φ.map (mf ≫ mq ≫ a₀) = Φ.map a := hrig p.G p.mem.1 _ _ p.g (by
+      rw [ha, Functor.map_comp_apply, Functor.map_comp_apply, hmf, hfg, hmq, ha₀])
+    refine ⟨mq ≫ a₀, ?_, ?_, ?_⟩
+    · rw [Functor.map_comp_apply, hmq, ha₀]
+    · rw [← hmf, ← Functor.map_comp_apply, hrigf, hγ]
+    · rw [← hmf, ← hfg, ← hmf]
+      exact Pres.hcwG_map V hV hX hN ϖ hϖ (pres p) (pres q) mf (mq ≫ a₀) p.g γ ℓ₀
+        ((Pres.hcwG_congr V hV (pres p) hU a _ ϖ p.g γ ℓ₀).1 hH)
+  · -- finiteness
+    intro p
+    obtain ⟨m, -⟩ := hpt p
+    refine (hfin p.G (pres p) (m ≫ a₀) p.g).subset ?_
+    rintro γ ⟨a, -, -, hH⟩
+    exact (Pres.hcwG_congr V hV (pres p) hU a _ ϖ p.g γ ℓ₀).1 hH
+  · -- nonemptiness: the loop
+    intro p
+    obtain ⟨m, hm⟩ := hpt p
+    obtain ⟨γ, hγ, hH⟩ := hne p.G (pres p) (Pres.exists_gal p.mem.1).choose_spec m p.g hm
+    exact ⟨γ, m ≫ a₀, by rw [Functor.map_comp_apply, hm, ha₀], hγ, hH⟩
+  · -- elements of `S` lie over `δ(d) x₀`
+    rintro p γ ⟨a, ha, hγ, -⟩ f hf
+    rw [hrig p.G p.mem.1 f a p.g (hf.trans ha.symm), hγ]
+
 /-- **Theorem B from the height-corrected length**: given (gal), (dom), (rig) for `galClassW`, a
 pointed member `(Y₀, y₀)` over `(X₀, x₀)`, finiteness of the sets `HCW ≤ ℓ₀` and the loop
 (`hne`: every pointed member over `(Y₀, y₀)` has an element over `δ(d) x₀` with `HCW ≤ ℓ₀`),
@@ -117,48 +188,9 @@ theorem exists_character_eq_of_hcw
       (tempFibre O R A V hV).map m g = y₀ → ∃ γ, (tempFibre O R A V hV).map (m ≫ a₀) γ =
         FibreAut.deckAct (X₀ T) (deck T) d (basePoint T V hV) ∧
         P.HCW V hV T (m ≫ a₀) ϖ g γ ℓ₀) :
-    ∃ τ : temperedPi1 O R A V hV, character T V hV τ = d := by
-  classical
-  let Φ := tempFibre O R A V hV
-  let 𝒢₀ := overY (galClassW O R A Ω (Level.IsW x)) Y₀
-  let pres : ∀ p : PtGal Φ 𝒢₀, Pres x p.G := fun p => (Pres.exists_gal p.mem.1).choose
-  have hpt : ∀ p : PtGal Φ 𝒢₀, ∃ m : p.G ⟶ Y₀, Φ.map m p.g = y₀ := fun p => by
-    obtain ⟨m₁⟩ := p.mem.2
-    obtain ⟨σ, hσ⟩ := hgal Y₀ hY₀ (Φ.map m₁ p.g) y₀
-    exact ⟨m₁ ≫ σ.hom, by rw [Functor.map_comp_apply]; exact hσ⟩
-  let S : ∀ p : PtGal Φ 𝒢₀, Set (Φ.obj p.G) := fun p =>
-    {γ | ∃ a : p.G ⟶ X₀ (A := A) T, Φ.map a p.g = basePoint T V hV ∧
-      Φ.map a γ = FibreAut.deckAct (X₀ T) (deck T) d (basePoint T V hV) ∧
-      (pres p).HCW V hV T a ϖ p.g γ ℓ₀}
-  refine exists_deckCharacter_eq_of_sets (isGaloisClass_over hgal Y₀) (isDominating_over hdom Y₀ y₀)
-    (isRigid_over hrig Y₀) (X₀ T) (deck T) (basePoint T V hV) (isDeckTorsor T V hV) d S
-    ?_ ?_ ?_ ?_
-  · -- the sets are mapped into each other
-    rintro p q f _ ⟨γ, ⟨a, ha, hγ, hH⟩, rfl⟩
-    obtain ⟨mq, hmq⟩ := hpt q
-    obtain ⟨⟨mf, hmf⟩, hfg⟩ := f.2
-    have hrigf : Φ.map (mf ≫ mq ≫ a₀) = Φ.map a := hrig p.G p.mem.1 _ _ p.g (by
-      rw [ha, Functor.map_comp_apply, Functor.map_comp_apply, hmf, hfg, hmq, ha₀])
-    refine ⟨mq ≫ a₀, ?_, ?_, ?_⟩
-    · rw [Functor.map_comp_apply, hmq, ha₀]
-    · rw [← hmf, ← Functor.map_comp_apply, hrigf, hγ]
-    · rw [← hmf, ← hfg, ← hmf]
-      exact Pres.hcw_map V hV T hX hN ϖ hϖ (pres p) (pres q) mf (mq ≫ a₀) p.g γ ℓ₀
-        ((Pres.hcw_congr V hV T (pres p) a _ ϖ p.g γ ℓ₀).1 hH)
-  · -- finiteness
-    intro p
-    obtain ⟨m, -⟩ := hpt p
-    refine (hfin p.G (pres p) (m ≫ a₀) p.g).subset ?_
-    rintro γ ⟨a, -, -, hH⟩
-    exact (Pres.hcw_congr V hV T (pres p) a _ ϖ p.g γ ℓ₀).1 hH
-  · -- nonemptiness: the loop
-    intro p
-    obtain ⟨m, hm⟩ := hpt p
-    obtain ⟨γ, hγ, hH⟩ := hne p.G (pres p) (Pres.exists_gal p.mem.1).choose_spec m p.g hm
-    exact ⟨γ, m ≫ a₀, by rw [Functor.map_comp_apply, hm, ha₀], hγ, hH⟩
-  · -- elements of `S` lie over `δ(d) x₀`
-    rintro p γ ⟨a, ha, hγ, -⟩ f hf
-    rw [hrig p.G p.mem.1 f a p.g (hf.trans ha.symm), hγ]
+    ∃ τ : temperedPi1 O R A V hV, character T V hV τ = d :=
+  exists_character_eq_of_hcwG V hV (X₀ T) (deck T) (basePoint T V hV) (isDeckTorsor T V hV)
+    (TateObject.modelUnique T) hgal hdom hrig hX hN ϖ hϖ Y₀ hY₀ y₀ a₀ ha₀ d ℓ₀ hfin hne
 
 end TateObject
 

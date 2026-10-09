@@ -42,6 +42,65 @@ variable {K : Type u} [Field K] {O : ValuationSubring K}
 
 namespace Pres
 
+/-! ### For any target object `X₀` -/
+
+section Generic
+
+variable {X₀ X : TempObj O R A} (P : Pres x X)
+
+/-- The map of special fibres to the model of a target object `X₀`. -/
+def tateMapG (a : X ⟶ X₀) : P.Lv.Z → X₀.Lv.Z :=
+  specialFibreMap (P.iso.inv ≫ a).ψ (P.iso.inv ≫ a).ψ_toSpec
+
+/-- The components not contracted over the model of `X₀`. -/
+def tateNuG (a : X ⟶ X₀) : irreducibleComponents P.Lv.Z → Prop :=
+  fun i => ¬ CurveConfig.Contr (K := curveConfig P.Lv.Z P.hdim) (P.tateMapG a) i
+
+/-- The height-corrected length condition, for any target object `X₀`. -/
+def HCWG (a : X ⟶ X₀) (ϖ : O) (g γ : (tempFibre O R A V hV).obj X) (ℓ : ℝ≥0∞) : Prop :=
+  CurveConfig.HC (P.D.weight ϖ) (P.tateNuG a)
+    (P.vtx V hV ((tempFibre O R A V hV).map P.iso.hom g))
+    (P.vtx V hV ((tempFibre O R A V hV).map P.iso.hom γ)) ℓ
+
+omit [Subsingleton A] in
+/-- Contraction is invariant under homeomorphisms of the target. -/
+lemma _root_.TemperedFundamentalGroups.CurveConfig.contr_homeomorph_comp {Z Z' : Type u}
+    [TopologicalSpace Z] [TopologicalSpace Z'] {ι : Type*} {K : CurveConfig Z ι} (ψ : Z → Z')
+    (e : Z' ≃ₜ Z') (i : ι) :
+    CurveConfig.Contr (K := K) (e ∘ ψ) i ↔ CurveConfig.Contr (K := K) ψ i := by
+  constructor
+  · rintro ⟨y, hy⟩
+    refine ⟨e.symm y, ?_⟩
+    rw [← Set.image_singleton, ← hy, Set.image_comp, ← Set.image_comp, e.symm_comp_self,
+      Set.image_id]
+  · rintro ⟨y, hy⟩
+    exact ⟨e y, by rw [Set.image_comp, hy, Set.image_singleton]⟩
+
+/-- **Model maps to `X₀` are unique up to a homeomorphism of the special fibre of `X₀`.** For the
+Tate object `X₀ T` they are unique (`Pres.ψ_eq`); for the restricted Tate object (`v(q) = 1`)
+they are unique up to `ρ(σ)`. -/
+def ModelUnique (x : R) (X₀ : TempObj O R A) : Prop :=
+  ∀ {X : TempObj O R A} (P : Pres x X) (f f' : P.U ⟶ X₀), ∃ e : X₀.Lv.Z ≃ₜ X₀.Lv.Z,
+    ∀ z, specialFibreMap f'.ψ f'.ψ_toSpec z = e (specialFibreMap f.ψ f.ψ_toSpec z)
+
+omit [IsReduced R] [Subsingleton A] in
+lemma tateNuG_congr (hU : ModelUnique x X₀) (a a' : X ⟶ X₀) : P.tateNuG a = P.tateNuG a' := by
+  obtain ⟨e, he⟩ := hU P (P.iso.inv ≫ a) (P.iso.inv ≫ a')
+  have h : P.tateMapG a' = e ∘ P.tateMapG a := funext he
+  funext i
+  unfold tateNuG
+  rw [h, CurveConfig.contr_homeomorph_comp]
+
+omit [IsReduced R] [Subsingleton A] in
+/-- `HCWG` does not depend on the morphism to `X₀`. -/
+lemma hcwG_congr (hU : ModelUnique x X₀) (a a' : X ⟶ X₀) (ϖ : O)
+    (g γ : (tempFibre O R A V hV).obj X) (ℓ : ℝ≥0∞) :
+    P.HCWG V hV a ϖ g γ ℓ ↔ P.HCWG V hV a' ϖ g γ ℓ := by
+  unfold HCWG
+  rw [P.tateNuG_congr hU a a']
+
+end Generic
+
 variable {X : TempObj O R A} (P : Pres x X)
 
 /-- **Model maps to the Tate object are unique.** -/
@@ -74,7 +133,18 @@ def HCW (a : X ⟶ TateObject.X₀ (A := A) T) (ϖ : O) (g γ : (tempFibre O R A
     (P.vtx V hV ((tempFibre O R A V hV).map P.iso.hom g))
     (P.vtx V hV ((tempFibre O R A V hV).map P.iso.hom γ)) ℓ
 
+lemma tateNu_eq_G (a : X ⟶ TateObject.X₀ (A := A) T) : P.tateNu T a = P.tateNuG a := rfl
+
+lemma HCW_eq_G (a : X ⟶ TateObject.X₀ (A := A) T) (ϖ : O) (g γ : (tempFibre O R A V hV).obj X)
+    (ℓ : ℝ≥0∞) : P.HCW V hV T a ϖ g γ ℓ = P.HCWG V hV a ϖ g γ ℓ := rfl
+
 end Pres
+
+/-- Model maps to the Tate object are unique. -/
+lemma TateObject.modelUnique : Pres.ModelUnique (A := A) x (TateObject.X₀ T) :=
+  fun P f f' => ⟨Homeomorph.refl _, fun z => Subtype.ext (by
+    change f'.ψ z.1 = f.ψ z.1
+    rw [Pres.ψ_eq T P f' f])⟩
 
 section Map
 
@@ -87,18 +157,20 @@ lemma WData.weight_ne_top {Lv : Level O R A} (D : WData x Lv) (ϖ : O) (z : Lv.Z
   unfold WData.weight
   split_ifs <;> simp
 
-/-- **Monotonicity of the height-corrected length condition** along morphisms of members. -/
-theorem Pres.hcw_map (hX : SemistableReduction.Statement.HarmonicXS.{u})
+omit [IsReduced R] [Subsingleton A] in
+/-- **Monotonicity of the height-corrected length condition** (any target `X₀`) along morphisms
+of members. -/
+theorem Pres.hcwG_map (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
-    {X Y : TempObj O R A} (P : Pres x X) (Q : Pres x Y) (m : X ⟶ Y)
-    (aY : Y ⟶ TateObject.X₀ (A := A) T) (g γ : (tempFibre O R A V hV).obj X) (ℓ : ℝ≥0∞)
-    (H : P.HCW V hV T (m ≫ aY) ϖ g γ ℓ) :
-    Q.HCW V hV T aY ϖ ((tempFibre O R A V hV).map m g) ((tempFibre O R A V hV).map m γ) ℓ := by
+    {X₀ X Y : TempObj O R A} (P : Pres x X) (Q : Pres x Y) (m : X ⟶ Y)
+    (aY : Y ⟶ X₀) (g γ : (tempFibre O R A V hV).obj X) (ℓ : ℝ≥0∞)
+    (H : P.HCWG V hV (m ≫ aY) ϖ g γ ℓ) :
+    Q.HCWG V hV aY ϖ ((tempFibre O R A V hV).map m g) ((tempFibre O R A V hV).map m γ) ℓ := by
   let mm : P.U ⟶ Q.U := P.iso.inv ≫ m ≫ Q.iso.hom
   have key : ∀ γ, (tempFibre O R A V hV).map Q.iso.hom ((tempFibre O R A V hV).map m γ) =
       (tempFibre O R A V hV).map mm ((tempFibre O R A V hV).map P.iso.hom γ) := fun γ => by
     simp only [mm, Functor.map_comp_apply, Functor.map_hom_inv'_apply]
-  unfold Pres.HCW at H ⊢
+  unfold Pres.HCWG at H ⊢
   rw [key, key, vtx_map, vtx_map]
   have hNC := fun i hi => curveConfig_contr_or P.hdim Q.hdim (continuous_specialFibreMap _ _)
     (isClosedMap_specialFibreMap mm) i hi
@@ -117,7 +189,7 @@ theorem Pres.hcw_map (hX : SemistableReduction.Statement.HarmonicXS.{u})
   apply hνQ
   obtain ⟨y, hy⟩ := hcP
   refine ⟨y, ?_⟩
-  have hcomp : P.tateMap T (m ≫ aY) = Q.tateMap T aY ∘ specialFibreMap mm.ψ mm.ψ_toSpec := by
+  have hcomp : P.tateMapG (m ≫ aY) = Q.tateMapG aY ∘ specialFibreMap mm.ψ mm.ψ_toSpec := by
     funext z
     apply Subtype.ext
     change (P.iso.inv ≫ m ≫ aY).ψ z.1 = (Q.iso.inv ≫ aY).ψ (mm.ψ z.1)
@@ -127,11 +199,20 @@ theorem Pres.hcw_map (hX : SemistableReduction.Statement.HarmonicXS.{u})
     simp only [comp_ψ] at h
     rw [← Scheme.Hom.comp_apply Q.iso.hom.ψ Q.iso.inv.ψ, h]
     rfl
-  have hy' : Q.tateMap T aY '' (specialFibreMap mm.ψ mm.ψ_toSpec ''
+  have hy' : Q.tateMapG aY '' (specialFibreMap mm.ψ mm.ψ_toSpec ''
       (curveConfig P.Lv.Z P.hdim).C i) = {y} := by
     rw [← hy, hcomp]
     exact (Set.image_comp _ _ _).symm
-  exact (congrArg (fun s => Q.tateMap T aY '' s) hii').symm.trans hy'
+  exact (congrArg (fun s => Q.tateMapG aY '' s) hii').symm.trans hy'
+
+/-- **Monotonicity of the height-corrected length condition** along morphisms of members. -/
+theorem Pres.hcw_map (hX : SemistableReduction.Statement.HarmonicXS.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    {X Y : TempObj O R A} (P : Pres x X) (Q : Pres x Y) (m : X ⟶ Y)
+    (aY : Y ⟶ TateObject.X₀ (A := A) T) (g γ : (tempFibre O R A V hV).obj X) (ℓ : ℝ≥0∞)
+    (H : P.HCW V hV T (m ≫ aY) ϖ g γ ℓ) :
+    Q.HCW V hV T aY ϖ ((tempFibre O R A V hV).map m g) ((tempFibre O R A V hV).map m γ) ℓ :=
+  Pres.hcwG_map V hV hX hN ϖ hϖ P Q m aY g γ ℓ H
 
 end Map
 
