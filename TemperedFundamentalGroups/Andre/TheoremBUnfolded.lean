@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Andre.TheoremBCrossing
 import TemperedFundamentalGroups.SemistableReduction.W10MainComponent
+import TemperedFundamentalGroups.SemistableReduction.W10TreeUnfoldedProof
 
 /-!
 # Theorem B with `StrongComponentA` reduced to its targeted inputs
@@ -18,6 +19,8 @@ without loops and unfolded) and `Statement.ZariskiConnected`
 
 `NodeOfTwoComponents` (`SemistableReduction.nodeOfTwoComponents`), `HarmonicX` and `CrossingX1`
 are proved; the only remaining inputs are `TreeComponentsUnfolded` and `ZariskiConnected`.
+`TreeComponentsUnfolded` follows from `W10.TreeComponentsGeomIrred` (geometric irreducibility of the
+components; `W10.treeComponentsUnfolded_of`), giving `nondegenerate_of_geomIrred`.
 -/
 
 universe u
@@ -87,6 +90,22 @@ theorem nondegenerate_of_unfolded
         Infinite (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV ⧸ N) :=
   nondegenerate_of_crossing A A' V hV (SemistableReduction.Statement.strongComponentA_of hU hZ)
     p hp hpm hℓ hM SemistableReduction.nodeOfTwoComponents ϖ hϖ hgood
+
+include A' in
+/-- **Theorem B for IUT's orbicurves** from the geometric irreducibility of the components
+(`W10.TreeComponentsGeomIrred`) and `ZariskiConnected`. -/
+theorem nondegenerate_of_geomIrred
+    (hG : _root_.SemistableReduction.W10.TreeComponentsGeomIrred.{u})
+    (hZ : SemistableReduction.Statement.ZariskiConnected.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hℓ : 1 ≤ ℓ)
+    (hM : (M : Set W.toAffine.Point).Finite) (ϖ : O) (hϖ : Irreducible ϖ)
+    (hgood : HasGoodTatePresentation W O) :
+    ∃ N : Subgroup (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV),
+      IsOpen (N : Set (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV)) ∧ N.Normal ∧
+        Infinite (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV ⧸ N) :=
+  nondegenerate_of_unfolded A A' V hV (_root_.SemistableReduction.W10.treeComponentsUnfolded_of hG)
+    hZ p hp hpm hℓ hM ϖ hϖ hgood
 
 end TateOrbicurve
 
