@@ -184,27 +184,21 @@ theorem tot0_eq_of_exhausting {b d c' : C} (hd : d ≠ 0) (hc' : ‖c'‖ < 1) (
 set_option maxHeartbeats 1000000 in
 -- three successive changes of coordinates of the chart
 include hp hp1 in
-/-- A singular point of the chart of `D` lies over some residue class of `D`. -/
-lemma exists_bad_class {b d c' : C} (hd : d ≠ 0) (hc0' : c' ≠ 0)
+/-- A singular point of the chart of `D` lies over a residue class of `D` which is bad; off the
+centre, the class is not the central one. -/
+lemma bad_class_of_point {b d c' : C} (hd : d ≠ 0) (hc0' : c' ≠ 0)
     [Fintype (Ext C (Aff (0 : C) c' hc0' (Aff b d hd F)))]
     (hΛG : IsChart 𝓀 (fun w : Ext C (Aff (0 : C) c' hc0' (Aff b d hd F)) ↦
       red C (xF C (Aff (0 : C) c' hc0' (Aff b d hd F))) w)
       (redRing C _ (xF C (Aff (0 : C) c' hc0' (Aff b d hd F)))))
-    (hK0 : tot0 C _ hΛG (fun _ ↦ True) ≠ 0) :
-    ∃ β : C, ‖β‖ ≤ 1 ∧ ¬ DiscSmooth F (b + d * c' * β) (mul_ne_zero hd hc0') := by
+    {𝔫 : Ideal (redRing C _ (xF C (Aff (0 : C) c' hc0' (Aff b d hd F))))} (h𝔫 : 𝔫.IsMaximal)
+    (hd𝔫 : dinf 𝓀 (fun w : Ext C (Aff (0 : C) c' hc0' (Aff b d hd F)) ↦
+      ResidueField w.1.valuationSubring) hΛG 𝔫 ≠ 0) :
+    ∃ β : C, ‖β‖ ≤ 1 ∧ (DiscBridge.xbar hΛG ∉ 𝔫 → ‖β‖ = 1) ∧
+      ¬ DiscSmooth F (b + d * c' * β) (mul_ne_zero hd hc0') := by
   classical
   set K := Aff b d hd F
   set G := Aff (0 : C) c' hc0' K
-  -- a point of the chart of `D` with `δ ≠ 0`
-  have hfin := (finite_dinf₀ hp hp1 hΛG).subset
-    (t := {𝔫 : Ideal (redRing C G (xF C G)) | 𝔫.IsMaximal ∧ True} ∩
-    Function.support (dinf 𝓀 (fun w : Ext C G ↦ ResidueField w.1.valuationSubring) hΛG))
-    fun 𝔫 h ↦ ⟨h.1.1, h.2⟩
-  obtain ⟨𝔫, ⟨h𝔫, -⟩, hd𝔫⟩ : ∃ 𝔫, (𝔫.IsMaximal ∧ True) ∧
-      dinf 𝓀 (fun w : Ext C G ↦ ResidueField w.1.valuationSubring) hΛG 𝔫 ≠ 0 := by
-    by_contra hne
-    push Not at hne
-    exact hK0 ((DiscBridge.finsum_mem_eq_zero_iff_nat hfin).2 hne)
   haveI := h𝔫
   obtain ⟨b₀, hb₀⟩ := exists_mem_brs hΛG h𝔫
   have hz := mem_V_of_mem_brs hΛG h𝔫.ne_top hb₀
@@ -265,8 +259,40 @@ lemma exists_bad_class {b d c' : C} (hd : d ≠ 0) (hc0' : c' ≠ 0)
     (mul_ne_zero hc0' one_ne_zero) hΛK₄ hΛK₅
   have hK5 : tot0 C K₅ hΛK₅ (fun 𝔫 ↦ DiscBridge.xbar hΛK₅ ∈ 𝔫) ≠ 0 := by
     rw [h5, h4]; exact hG'
-  refine ⟨β, hβ, fun hs ↦ hK5 ((DiscBridge.tot0_eq_zero_iff hp hp1 hΛK₅).2 ?_)⟩
-  exact (discSmooth_congr (by ring) (by ring) _ _).1 hs
+  refine ⟨β, hβ, fun hx ↦ ?_, fun hs ↦ hK5 ((DiscBridge.tot0_eq_zero_iff hp hp1 hΛK₅).2 ?_)⟩
+  · refine le_antisymm hβ (not_lt.1 fun hβ1 ↦ hx ?_)
+    convert hg𝔫 using 1
+    apply Subtype.ext
+    funext w
+    have hβ1' : ‖β‖₊ < 1 := by exact_mod_cast hβ1
+    change red C (xF C G) w = red C (algebraMap C G (1 : C) * xF C G + algebraMap C G (-β)) w
+    have hv1 : w.1 (algebraMap C G β) < 1 := by rw [valuation_algebraMap_C']; exact hβ1'
+    rw [hgx, red_sub (valuation_xF _).le hv1.le, (red_eq_zero_iff hv1.le).2 hv1, sub_zero]
+  · exact (discSmooth_congr (by ring) (by ring) _ _).1 hs
+
+
+include hp hp1 in
+/-- A singular point of the chart of `D` lies over some residue class of `D`. -/
+lemma exists_bad_class {b d c' : C} (hd : d ≠ 0) (hc0' : c' ≠ 0)
+    [Fintype (Ext C (Aff (0 : C) c' hc0' (Aff b d hd F)))]
+    (hΛG : IsChart 𝓀 (fun w : Ext C (Aff (0 : C) c' hc0' (Aff b d hd F)) ↦
+      red C (xF C (Aff (0 : C) c' hc0' (Aff b d hd F))) w)
+      (redRing C _ (xF C (Aff (0 : C) c' hc0' (Aff b d hd F)))))
+    (hK0 : tot0 C _ hΛG (fun _ ↦ True) ≠ 0) :
+    ∃ β : C, ‖β‖ ≤ 1 ∧ ¬ DiscSmooth F (b + d * c' * β) (mul_ne_zero hd hc0') := by
+  classical
+  have hfin := (finite_dinf₀ hp hp1 hΛG).subset
+    (t := {𝔫 : Ideal (redRing C _ (xF C (Aff (0 : C) c' hc0' (Aff b d hd F)))) |
+      𝔫.IsMaximal ∧ True} ∩ Function.support (dinf 𝓀 (fun w : Ext C (Aff (0 : C) c' hc0'
+        (Aff b d hd F)) ↦ ResidueField w.1.valuationSubring) hΛG))
+    fun 𝔫 h ↦ ⟨h.1.1, h.2⟩
+  obtain ⟨𝔫, ⟨h𝔫, -⟩, hd𝔫⟩ : ∃ 𝔫, (𝔫.IsMaximal ∧ True) ∧ dinf 𝓀 (fun w : Ext C (Aff (0 : C)
+      c' hc0' (Aff b d hd F)) ↦ ResidueField w.1.valuationSubring) hΛG 𝔫 ≠ 0 := by
+    by_contra hne
+    push Not at hne
+    exact hK0 ((DiscBridge.finsum_mem_eq_zero_iff_nat hfin).2 hne)
+  obtain ⟨β, hβ, -, hbad⟩ := bad_class_of_point hp hp1 hd hc0' hΛG h𝔫 hd𝔫
+  exact ⟨β, hβ, hbad⟩
 
 include hp hp1 in
 /-- **Descent of singularities into an exhausting disc of a tube** (`ExhaustDescentFor`). -/
