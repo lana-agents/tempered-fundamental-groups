@@ -39,6 +39,7 @@ import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TateRestrictDeck
 import TemperedFundamentalGroups.Andre.TateRestrictFinal
+import TemperedFundamentalGroups.Andre.TateRestrictInduced
 import TemperedFundamentalGroups.Andre.TateRestrictLevel
 import TemperedFundamentalGroups.Andre.TateRestrictLoop
 import TemperedFundamentalGroups.Andre.TateRestrictModel
@@ -59,6 +60,7 @@ import TemperedFundamentalGroups.Andre.TheoremBGoodTate
 import TemperedFundamentalGroups.Andre.TheoremBUnfolded
 import TemperedFundamentalGroups.Andre.TheoremBW
 import TemperedFundamentalGroups.Andre.Transfer
+import TemperedFundamentalGroups.Andre.TransferGeneric
 import TemperedFundamentalGroups.Andre.TransferTate
 import TemperedFundamentalGroups.Andre.Transport
 import TemperedFundamentalGroups.Andre.ValuativeCentre
