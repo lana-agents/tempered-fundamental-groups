@@ -427,6 +427,257 @@ theorem nodeGerm_chart_zero {ϖ : O} {ε : Oˣ} {n : ℕ} (hπε : π = ε * ϖ 
       ((⟨_, hNA⟩ : (chart π b₄ b₆ 0)) : L) / ((⟨_, hDεA⟩ : (chart π b₄ b₆ 0)) : L) from rfl]
     exact div_mul_ne_one hNQ hDεQ
 
+/-! ### The chart `x₂ ≠ 0` near the node `r = (0, 0)` of the 3-gon -/
+
+lemma aL_mem_chart_two : aL π b₄ b₆ ∈ chart π b₄ b₆ 2 := by
+  have := mem_chart π b₄ b₆ 2 0
+  simpa using this
+
+lemma bL_mem_chart_two : bL π b₄ b₆ ∈ chart π b₄ b₆ 2 := by
+  have := mem_chart π b₄ b₆ 2 1
+  simpa using this
+
+omit [IsDiscreteValuationRing O] [Fact (Squarefree (dpoly π b₄ b₆))] in
+/-- **The equation at `r`**: `(b − π b₄)(a + b + π b₄) = (b₆ − π² b₄²) + π a³`. -/
+lemma chart_two_eq_r : (bL π b₄ b₆ - algebraMap O L (π * b₄)) *
+      (aL π b₄ b₆ + bL π b₄ b₆ + algebraMap O L (π * b₄)) =
+    algebraMap O L (b₆ - π ^ 2 * b₄ ^ 2) + algebraMap O L π * aL π b₄ b₆ ^ 3 := by
+  have h := bL_sq π b₄ b₆
+  rw [algebraMap_cpoly] at h
+  simp only [map_mul, map_sub, map_pow]
+  linear_combination h
+
+/-- Every element of the chart `x₂ ≠ 0` is a constant modulo `(b − π b₄, a + b + π b₄)`. -/
+lemma exists_const_mod_two {x : L} (hx : x ∈ chart π b₄ b₆ 2) :
+    ∃ (o : O) (y₁ y₂ : L), y₁ ∈ chart π b₄ b₆ 2 ∧ y₂ ∈ chart π b₄ b₆ 2 ∧
+      x = algebraMap O L o + (bL π b₄ b₆ - algebraMap O L (π * b₄)) * y₁ +
+        (aL π b₄ b₆ + bL π b₄ b₆ + algebraMap O L (π * b₄)) * y₂ := by
+  have hO : ∀ o : O, algebraMap O L o ∈ chart π b₄ b₆ 2 := algebraMap_mem_chart π b₄ b₆ 2
+  set U := bL π b₄ b₆ - algebraMap O L (π * b₄)
+  set W := aL π b₄ b₆ + bL π b₄ b₆ + algebraMap O L (π * b₄)
+  have hU : U ∈ chart π b₄ b₆ 2 := sub_mem (bL_mem_chart_two π b₄ b₆) (hO _)
+  have hW : W ∈ chart π b₄ b₆ 2 :=
+    add_mem (add_mem (aL_mem_chart_two π b₄ b₆) (bL_mem_chart_two π b₄ b₆)) (hO _)
+  induction hx using Subring.closure_induction with
+  | mem x hx =>
+    rcases hx with ⟨o, rfl⟩ | ⟨j, rfl⟩
+    · exact ⟨o, 0, 0, zero_mem _, zero_mem _, by simp⟩
+    · have hc2 : coords π b₄ b₆ 2 = 1 := rfl
+      have hj : j = 0 ∨ j = 1 ∨ j = 2 := by fin_cases j <;> simp
+      rcases hj with rfl | rfl | rfl
+      · -- `a = W − U − 2 π b₄`
+        refine ⟨-(2 * (π * b₄)), -1, 1, neg_mem (one_mem _), one_mem _, ?_⟩
+        change aL π b₄ b₆ / coords π b₄ b₆ 2 = _
+        rw [hc2, div_one]
+        simp only [U, W, map_neg, map_mul, map_ofNat]
+        ring
+      · refine ⟨π * b₄, 1, 0, one_mem _, zero_mem _, ?_⟩
+        change bL π b₄ b₆ / coords π b₄ b₆ 2 = _
+        rw [hc2, div_one]
+        simp only [U]
+        ring
+      · refine ⟨1, 0, 0, zero_mem _, zero_mem _, ?_⟩
+        change coords π b₄ b₆ 2 / coords π b₄ b₆ 2 = _
+        rw [hc2, div_one, map_one]
+        ring
+  | zero => exact ⟨0, 0, 0, zero_mem _, zero_mem _, by simp⟩
+  | one => exact ⟨1, 0, 0, zero_mem _, zero_mem _, by simp⟩
+  | add x y _ _ hx hy =>
+    obtain ⟨o, a₁, a₂, ha₁, ha₂, rfl⟩ := hx
+    obtain ⟨o', b₁, b₂, hb₁, hb₂, rfl⟩ := hy
+    exact ⟨o + o', a₁ + b₁, a₂ + b₂, add_mem ha₁ hb₁, add_mem ha₂ hb₂, by rw [map_add]; ring⟩
+  | neg x _ hx =>
+    obtain ⟨o, a₁, a₂, ha₁, ha₂, rfl⟩ := hx
+    exact ⟨-o, -a₁, -a₂, neg_mem ha₁, neg_mem ha₂, by rw [map_neg]; ring⟩
+  | mul x y hx' hy' hx hy =>
+    obtain ⟨o, a₁, a₂, ha₁, ha₂, rfl⟩ := hx
+    obtain ⟨o', b₁, b₂, hb₁, hb₂, rfl⟩ := hy
+    refine ⟨o * o', algebraMap O L o * b₁ + a₁ * algebraMap O L o' + a₁ * U * b₁ + a₁ * W * b₂,
+      algebraMap O L o * b₂ + a₂ * algebraMap O L o' + a₂ * U * b₁ + a₂ * W * b₂, ?_, ?_, ?_⟩
+    · exact add_mem (add_mem (add_mem (mul_mem (hO o) hb₁) (mul_mem ha₁ (hO o')))
+        (mul_mem (mul_mem ha₁ hU) hb₁)) (mul_mem (mul_mem ha₁ hW) hb₂)
+    · exact add_mem (add_mem (add_mem (mul_mem (hO o) hb₂) (mul_mem ha₂ (hO o')))
+        (mul_mem (mul_mem ha₂ hU) hb₁)) (mul_mem (mul_mem ha₂ hW) hb₂)
+    · rw [map_mul]; ring
+
+lemma hπ_ne_zero_of (hπ0 : π ≠ 0) : (algebraMap K L (π : K)) ≠ 0 := by
+  rw [algebraMap_K_coe]
+  exact (map_ne_zero_iff _ (algebraMap_O_injective π b₄ b₆)).2 hπ0
+
+/-- The function field is algebraic over `K[b − π b₄]`. -/
+lemma isAlgebraic_adjoin_uR (hπ0 : π ≠ 0) :
+    Algebra.IsAlgebraic (Algebra.adjoin K {bL π b₄ b₆ - algebraMap O L (π * b₄)}) L := by
+  set u := bL π b₄ b₆ - algebraMap O L (π * b₄)
+  set S := Algebra.adjoin K {u}
+  have hc : ∀ o : O, algebraMap O L o ∈ S := fun o => by
+    rw [← algebraMap_K_coe]; exact S.algebraMap_mem _
+  have hu : u ∈ S := Algebra.subset_adjoin rfl
+  have hb : bL π b₄ b₆ ∈ S := by
+    have : bL π b₄ b₆ = u + algebraMap O L (π * b₄) := by simp [u]
+    rw [this]; exact add_mem hu (hc _)
+  -- `a` is a root of `π X³ + (π b₄ − b) X + (b₆ − b²)` over `S`
+  have ha : IsAlgebraic S (aL π b₄ b₆) := by
+    refine ⟨Polynomial.C ⟨_, hc π⟩ * Polynomial.X ^ 3 +
+      Polynomial.C (⟨_, hc (π * b₄)⟩ - ⟨_, hb⟩) * Polynomial.X +
+      Polynomial.C (⟨_, hc b₆⟩ - ⟨_, hb⟩ ^ 2), fun h0 => ?_, ?_⟩
+    · have h3 : (⟨algebraMap O L π, hc π⟩ : S) = 0 := by
+        simpa using congrArg (Polynomial.coeff · 3) h0
+      have h3' := congrArg Subtype.val h3
+      simp only [ZeroMemClass.coe_zero] at h3'
+      exact hπ0 ((map_eq_zero_iff _ (algebraMap_O_injective π b₄ b₆)).1 h3')
+    · have h := bL_sq π b₄ b₆
+      rw [algebraMap_cpoly] at h
+      simp only [map_add, map_mul, Polynomial.aeval_C, Polynomial.aeval_X, map_sub, map_pow]
+      change algebraMap O L π * aL π b₄ b₆ ^ 3 + (algebraMap O L π * algebraMap O L b₄ -
+        bL π b₄ b₆) * aL π b₄ b₆ + (algebraMap O L b₆ - bL π b₄ b₆ ^ 2) = 0
+      linear_combination -h
+  have halg := isAlgebraic_adjoin_aL π b₄ b₆
+  refine ⟨fun z => ?_⟩
+  refine IsAlgebraic.adjoin_of_forall_isAlgebraic (R := K) (s := {aL π b₄ b₆}) (t := {u})
+    (fun x hx => ?_) (halg.isAlgebraic z)
+  rw [Set.mem_sdiff, Set.mem_singleton_iff] at hx
+  rw [hx.1]
+  exact ha
+
+variable {π b₄ b₆} in
+/-- The node coordinate `v = (a + b + π b₄) / (ε (1 + t a³))` at `r`. -/
+def vR (ε t : O) : L :=
+  (aL π b₄ b₆ + bL π b₄ b₆ + algebraMap O L (π * b₄)) /
+    (algebraMap O L ε * (1 + algebraMap O L t * aL π b₄ b₆ ^ 3))
+
+set_option maxHeartbeats 800000 in
+-- a single long proof: generation and the unit computations at `r`
+/-- **The germ of the Tate model at the node `r` of the 3-gon is a node germ** when
+`c = b₆ − π² b₄² = ε ϖⁿ ≠ 0` divides `π` (`π = c t`): exact coordinates `u = b − π b₄`,
+`v = (a + b + π b₄) / (ε (1 + t a³))`, `u v = ϖⁿ`. Here `Q` is a prime of the chart `x₂ ≠ 0`
+containing `𝔪`, `a` and `b`. -/
+theorem nodeGerm_chart_two {ϖ : O} {ε : Oˣ} {n : ℕ} (hπ0 : π ≠ 0)
+    (hπm : π ∈ IsLocalRing.maximalIdeal O)
+    (hc : b₆ - π ^ 2 * b₄ ^ 2 = ε * ϖ ^ n) {t : O} (ht : π = (b₆ - π ^ 2 * b₄ ^ 2) * t)
+    (Q : Ideal (chart π b₄ b₆ 2)) [Q.IsPrime]
+    (ha : (⟨aL π b₄ b₆, aL_mem_chart_two π b₄ b₆⟩ : chart π b₄ b₆ 2) ∈ Q)
+    (hb : (⟨bL π b₄ b₆, bL_mem_chart_two π b₄ b₆⟩ : chart π b₄ b₆ 2) ∈ Q)
+    (h𝔪 : ∀ o ∈ IsLocalRing.maximalIdeal O,
+      (⟨algebraMap O L o, algebraMap_mem_chart π b₄ b₆ 2 o⟩ : chart π b₄ b₆ 2) ∈ Q) :
+    SemistableReduction.NodeGerm O ϖ (locAt (chart π b₄ b₆ 2) Q)
+        (bL π b₄ b₆ - algebraMap O L (π * b₄)) (vR (π := π) (b₄ := b₄) (b₆ := b₆) ε t) n ∧
+      (∀ z ∈ locAt (chart π b₄ b₆ 2) Q, (bL π b₄ b₆ - algebraMap O L (π * b₄)) * z ≠ 1) ∧
+      (∀ z ∈ locAt (chart π b₄ b₆ 2) Q, vR (π := π) (b₄ := b₄) (b₆ := b₆) ε t * z ≠ 1) := by
+  have hO : ∀ o : O, algebraMap O L o ∈ chart π b₄ b₆ 2 := algebraMap_mem_chart π b₄ b₆ 2
+  have hQ1 : ∀ x : chart π b₄ b₆ 2, IsUnit x → x ∉ Q := fun x hx h =>
+    Ideal.IsPrime.ne_top inferInstance (Ideal.eq_top_of_isUnit_mem _ h hx)
+  set U := bL π b₄ b₆ - algebraMap O L (π * b₄)
+  set W := aL π b₄ b₆ + bL π b₄ b₆ + algebraMap O L (π * b₄)
+  set a := aL π b₄ b₆
+  have hUA : U ∈ chart π b₄ b₆ 2 := sub_mem (bL_mem_chart_two π b₄ b₆) (hO _)
+  have hWA : W ∈ chart π b₄ b₆ 2 :=
+    add_mem (add_mem (aL_mem_chart_two π b₄ b₆) (bL_mem_chart_two π b₄ b₆)) (hO _)
+  have hπb₄ : (⟨algebraMap O L (π * b₄), hO _⟩ : chart π b₄ b₆ 2) ∈ Q :=
+    h𝔪 _ (Ideal.mul_mem_right _ _ hπm)
+  have hUQ : (⟨U, hUA⟩ : chart π b₄ b₆ 2) ∈ Q := sub_mem hb hπb₄
+  have hWQ : (⟨W, hWA⟩ : chart π b₄ b₆ 2) ∈ Q := add_mem (add_mem ha hb) hπb₄
+  -- the unit `D = ε (1 + t a³)`
+  have hDA : algebraMap O L ε * (1 + algebraMap O L t * a ^ 3) ∈ chart π b₄ b₆ 2 :=
+    mul_mem (hO _) (add_mem (one_mem _) (mul_mem (hO t) (pow_mem (aL_mem_chart_two π b₄ b₆) 3)))
+  have hDQ : (⟨_, hDA⟩ : chart π b₄ b₆ 2) ∉ Q := by
+    have h1 : (⟨1 + algebraMap O L t * a ^ 3, add_mem (one_mem _)
+        (mul_mem (hO t) (pow_mem (aL_mem_chart_two π b₄ b₆) 3))⟩ : chart π b₄ b₆ 2) ∉ Q := by
+      intro h
+      have hta : (⟨algebraMap O L t * a ^ 3, mul_mem (hO t)
+          (pow_mem (aL_mem_chart_two π b₄ b₆) 3)⟩ : chart π b₄ b₆ 2) ∈ Q := by
+        have : (⟨algebraMap O L t * a ^ 3, mul_mem (hO t)
+            (pow_mem (aL_mem_chart_two π b₄ b₆) 3)⟩ : chart π b₄ b₆ 2) =
+            ⟨_, hO t⟩ * ⟨a, aL_mem_chart_two π b₄ b₆⟩ ^ 3 := rfl
+        rw [this]
+        exact Ideal.mul_mem_left _ _ (Ideal.pow_mem_of_mem _ ha 3 (by norm_num))
+      refine hQ1 1 isUnit_one ?_
+      convert sub_mem h hta using 1
+      exact Subtype.ext (by simp)
+    have hε : (⟨algebraMap O L ε, hO _⟩ : chart π b₄ b₆ 2) ∉ Q := by
+      refine hQ1 _ ⟨⟨⟨_, hO _⟩, ⟨_, hO (ε⁻¹ : Oˣ)⟩, ?_, ?_⟩, rfl⟩
+      · exact Subtype.ext (by
+          change algebraMap O L _ * algebraMap O L _ = 1
+          rw [← map_mul, Units.mul_inv, map_one])
+      · exact Subtype.ext (by
+          change algebraMap O L _ * algebraMap O L _ = 1
+          rw [← map_mul, Units.inv_mul, map_one])
+    intro h
+    rcases Ideal.IsPrime.mem_or_mem inferInstance
+      (show (⟨_, hO _⟩ : chart π b₄ b₆ 2) * ⟨_, add_mem (one_mem _)
+        (mul_mem (hO t) (pow_mem (aL_mem_chart_two π b₄ b₆) 3))⟩ ∈ Q from h) with h | h
+    exacts [hε h, h1 h]
+  have hD0 := ne_zero_of_notMem (chart π b₄ b₆ 2) Q hDQ
+  have hv : vR (π := π) (b₄ := b₄) (b₆ := b₆) ε t =
+      W * (algebraMap O L ε * (1 + algebraMap O L t * a ^ 3))⁻¹ := div_eq_mul_inv _ _
+  have hvP : vR (π := π) (b₄ := b₄) (b₆ := b₆) ε t ∈ locAt (chart π b₄ b₆ 2) Q := by
+    rw [hv]
+    exact mul_mem (mem_locAt_of_mem hWA) (inv_mem_locAt hDQ)
+  have hWv : W = vR (π := π) (b₄ := b₄) (b₆ := b₆) ε t *
+      (algebraMap O L ε * (1 + algebraMap O L t * a ^ 3)) := by
+    rw [vR, div_mul_cancel₀ _ hD0]
+  -- `u v = ϖⁿ`
+  have hmul : U * vR (π := π) (b₄ := b₄) (b₆ := b₆) ε t = algebraMap K L (ϖ : K) ^ n := by
+    have heq := chart_two_eq_r π b₄ b₆
+    have hπ' : algebraMap O L π =
+        algebraMap O L (b₆ - π ^ 2 * b₄ ^ 2) * algebraMap O L t := by
+      rw [← map_mul]; exact congrArg _ ht
+    have hc' : algebraMap O L (b₆ - π ^ 2 * b₄ ^ 2) = algebraMap O L ε * algebraMap O L ϖ ^ n := by
+      rw [← map_pow, ← map_mul]; exact congrArg _ hc
+    rw [vR, mul_div_assoc', heq, hπ', hc', algebraMap_K_coe, div_eq_iff hD0]
+    ring
+  refine ⟨⟨fun o => ?_, mem_locAt_of_mem hUA, hvP, hmul, ?_, fun f => ?_,
+    fun f _ hf => ?_⟩, mul_ne_one_of_mem hUA hUQ, ?_⟩
+  · rw [algebraMap_K_coe]; exact mem_locAt_of_mem (hO o)
+  · rintro _ ⟨a', b', hb', rfl⟩
+    obtain ⟨oa, a₁, a₂, ha₁, ha₂, ha'⟩ := exists_const_mod_two π b₄ b₆ a'.2
+    obtain ⟨ob, b₁, b₂, hb₁, hb₂, hb''⟩ := exists_const_mod_two π b₄ b₆ b'.2
+    have hob : IsUnit ob := by
+      by_contra hu
+      apply hb'
+      have : b' = ⟨algebraMap O L ob, hO ob⟩ + ⟨U, hUA⟩ * ⟨b₁, hb₁⟩ + ⟨W, hWA⟩ * ⟨b₂, hb₂⟩ :=
+        Subtype.ext (by push_cast; exact hb'')
+      rw [this]
+      exact add_mem (add_mem (h𝔪 ob ((IsLocalRing.mem_maximalIdeal ob).2 hu))
+        (Ideal.mul_mem_right _ _ hUQ)) (Ideal.mul_mem_right _ _ hWQ)
+    obtain ⟨ub, hub⟩ := hob.exists_right_inv
+    obtain ⟨o, ho⟩ : ∃ o : O, o = oa * ub := ⟨_, rfl⟩
+    have hb0 := ne_zero_of_notMem (chart π b₄ b₆ 2) Q hb'
+    have hab : (a' : L) - algebraMap O L o * b' =
+        U * (a₁ - algebraMap O L o * b₁) + W * (a₂ - algebraMap O L o * b₂) := by
+      rw [ha', hb'']
+      have : algebraMap O L oa - algebraMap O L o * algebraMap O L ob = 0 := by
+        rw [← map_mul, ← map_sub, show oa - o * ob = 0 by
+          rw [ho, show oa * ub * ob = oa * (ob * ub) by ring, hub, mul_one, sub_self], map_zero]
+      linear_combination this
+    have hbinv : (b' : L)⁻¹ ∈ locAt (chart π b₄ b₆ 2) Q := inv_mem_locAt hb'
+    have hO' := fun o => mem_locAt_of_mem (Q := Q) (hO o)
+    have h1 := mem_locAt_of_mem (Q := Q) ha₁
+    have h2 := mem_locAt_of_mem (Q := Q) ha₂
+    have h3 := mem_locAt_of_mem (Q := Q) hb₁
+    have h4 := mem_locAt_of_mem (Q := Q) hb₂
+    refine ⟨o, 0, zero_mem _, (a₁ - algebraMap O L o * b₁) * (b' : L)⁻¹,
+      mul_mem (sub_mem h1 (mul_mem (hO' o) h3)) hbinv,
+      algebraMap O L ε * (1 + algebraMap O L t * a ^ 3) * (a₂ - algebraMap O L o * b₂) *
+        (b' : L)⁻¹, mul_mem (mul_mem (mem_locAt_of_mem hDA) (sub_mem h2 (mul_mem (hO' o) h4)))
+        hbinv, ?_⟩
+    rw [algebraMap_K_coe, mul_zero, add_zero]
+    have hz : (a' : L) / b' = algebraMap O L o + ((a' : L) - algebraMap O L o * b') / b' := by
+      field_simp
+      ring
+    rw [hz, hab, hWv]
+    field_simp
+    ring
+  · obtain ⟨α, β, hβ, rfl⟩ := IsFractionRing.div_surjective (A := TateRing π b₄ b₆) f
+    have hmem : ∀ γ : TateRing π b₄ b₆, algebraMap _ L γ ∈ chart π b₄ b₆ 2 := fun γ => by
+      rw [chart_two_eq]; exact ⟨γ, rfl⟩
+    exact ⟨_, mem_locAt_of_mem (hmem α), _, mem_locAt_of_mem (hmem β),
+      IsFractionRing.to_map_ne_zero_of_mem_nonZeroDivisors hβ, rfl⟩
+  · exact SemistableReduction.exists_relation_of_transcendental
+      (isAlgebraic_adjoin_uR π b₄ b₆ hπ0) hf
+  · rw [show vR (π := π) (b₄ := b₄) (b₆ := b₆) ε t =
+      ((⟨W, hWA⟩ : chart π b₄ b₆ 2) : L) / ((⟨_, hDA⟩ : chart π b₄ b₆ 2) : L) from rfl]
+    exact div_mul_ne_one hWQ hDQ
+
 end
 
 end TemperedFundamentalGroups.TateNormal

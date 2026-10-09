@@ -67,22 +67,30 @@ lemma modelIso_hom_apply_imageι (z : (TateModel.model π b₄ b₆).scheme) :
   simp only [Scheme.Hom.comp_apply] at this
   exact this
 
+/-- A point of the Tate model whose image in `ℙ²` avoids `xᵢ = 0` comes from the chart
+`xᵢ ≠ 0`. -/
+lemma exists_chartι_eq_of {i : Fin (2 + 1)} {z : (TateModel.model π b₄ b₆).scheme}
+    (hz : X i ∉ (TateModel.ι π b₄ b₆ z).asHomogeneousIdeal) :
+    ∃ Q : Spec (CommRingCat.of (chart π b₄ b₆ i)),
+      chartι (baseRing π b₄ b₆) rfl (hcoords π b₄ b₆ hπ0) i Q = (modelIso π b₄ b₆ hπ0).hom z := by
+  have hmem : (modelIso π b₄ b₆ hπ0).hom z ∈ chartOpen O (hcoords π b₄ b₆ hπ0) i := by
+    change (toProj O (hcoords π b₄ b₆ hπ0)).imageι ((modelIso π b₄ b₆ hπ0).hom z) ∈
+      (stdι O 2 i ''ᵁ ⊤)
+    rw [Scheme.Hom.image_top_eq_opensRange, modelIso_hom_apply_imageι]
+    change TateModel.ι π b₄ b₆ z ∈ (Proj.awayι _ (X i) (X_mem i) one_pos).opensRange
+    rw [Proj.opensRange_awayι]
+    exact hz
+  rw [← opensRange_chartι (baseRing π b₄ b₆) rfl (hcoords π b₄ b₆ hπ0) i] at hmem
+  obtain ⟨Q, hQ⟩ := hmem
+  exact ⟨Q, hQ⟩
+
 /-- A point of the Tate model whose image in `ℙ²` avoids `x₀ = 0` comes from the chart
 `x₀ ≠ 0`. -/
 lemma exists_chartι_eq {z : (TateModel.model π b₄ b₆).scheme}
     (hz : X 0 ∉ (TateModel.ι π b₄ b₆ z).asHomogeneousIdeal) :
     ∃ Q : Spec (CommRingCat.of (chart π b₄ b₆ 0)),
-      chartι (baseRing π b₄ b₆) rfl (hcoords π b₄ b₆ hπ0) 0 Q = (modelIso π b₄ b₆ hπ0).hom z := by
-  have hmem : (modelIso π b₄ b₆ hπ0).hom z ∈ chartOpen O (hcoords π b₄ b₆ hπ0) 0 := by
-    change (toProj O (hcoords π b₄ b₆ hπ0)).imageι ((modelIso π b₄ b₆ hπ0).hom z) ∈
-      (stdι O 2 0 ''ᵁ ⊤)
-    rw [Scheme.Hom.image_top_eq_opensRange, modelIso_hom_apply_imageι]
-    change TateModel.ι π b₄ b₆ z ∈ (Proj.awayι _ (X 0) (X_mem 0) one_pos).opensRange
-    rw [Proj.opensRange_awayι]
-    exact hz
-  rw [← opensRange_chartι (baseRing π b₄ b₆) rfl (hcoords π b₄ b₆ hπ0) 0] at hmem
-  obtain ⟨Q, hQ⟩ := hmem
-  exact ⟨Q, hQ⟩
+      chartι (baseRing π b₄ b₆) rfl (hcoords π b₄ b₆ hπ0) 0 Q = (modelIso π b₄ b₆ hπ0).hom z :=
+  exists_chartι_eq_of π b₄ b₆ hπ0 hz
 
 local notation "𝒜" => MvPolynomial.homogeneousSubmodule (Fin (2 + 1)) O
 
@@ -132,6 +140,54 @@ theorem nodeGerm_of_mem {ϖ : O} (hϖ : Irreducible ϖ) (z : (TateModel.model π
         simp only [evalHom, coe_eval₂Hom, eval₂_mul, eval₂_C, eval₂_X, pow_one]
         rw [mul_div_assoc, div_self ha0, mul_one]) (h𝔪 o ho))
   refine ⟨locAt (chart π b₄ b₆ 0) Q.asIdeal, _, _, n, ?_, hG, hu, hv⟩
+  rw [← hQ, germs_chartι]
+
+/-- **Node germs at the points of `𝒯` over `r = [0 : 0 : 1]`**, when
+`c = b₆ − π² b₄² ≠ 0` divides `π`, in terms of the homogeneous prime of the point:
+`x₂ ∉`, `x₀, x₁ ∈` and `𝔪 x₂ ⊆`. -/
+theorem nodeGerm_of_mem_two {ϖ : O} (hϖ : Irreducible ϖ) (hπm : π ∈ IsLocalRing.maximalIdeal O)
+    (hc0 : b₆ - π ^ 2 * b₄ ^ 2 ≠ 0) (hcπ : b₆ - π ^ 2 * b₄ ^ 2 ∣ π)
+    (z : (TateModel.model π b₄ b₆).scheme)
+    (hX2 : X 2 ∉ (TateModel.ι π b₄ b₆ z).asHomogeneousIdeal)
+    (hX0 : X 0 ∈ (TateModel.ι π b₄ b₆ z).asHomogeneousIdeal)
+    (hX1 : X 1 ∈ (TateModel.ι π b₄ b₆ z).asHomogeneousIdeal)
+    (h𝔪 : ∀ o ∈ IsLocalRing.maximalIdeal O,
+      C o * X 2 ∈ (TateModel.ι π b₄ b₆ z).asHomogeneousIdeal) :
+    ∃ (P : Subring L) (u v : L) (n : ℕ),
+      (P : Set L) = TemperedFundamentalGroups.SemistableReduction.ModelCode.germs
+        (projModelCode O (hcoords π b₄ b₆ hπ0)) (genericPt O (hcoords π b₄ b₆ hπ0))
+        ((modelIso π b₄ b₆ hπ0).hom z) ∧
+      _root_.SemistableReduction.NodeGerm O ϖ P u v n ∧ (∀ w ∈ P, u * w ≠ 1) ∧
+        (∀ w ∈ P, v * w ≠ 1) := by
+  set hf := hcoords π b₄ b₆ hπ0
+  obtain ⟨Q, hQ⟩ := exists_chartι_eq_of π b₄ b₆ hπ0 hX2
+  obtain ⟨n, ε, hn⟩ := IsDiscreteValuationRing.associated_pow_irreducible hc0 hϖ
+  have hc : b₆ - π ^ 2 * b₄ ^ 2 = ((ε⁻¹ : Oˣ) : O) * ϖ ^ n := by
+    rw [← hn, mul_comm (b₆ - π ^ 2 * b₄ ^ 2) (ε : O), Units.inv_mul_cancel_left]
+  obtain ⟨t, ht⟩ := hcπ
+  have hpt : (toProj O hf).imageι (chartι (baseRing π b₄ b₆) rfl hf 2 Q) =
+      TateModel.ι π b₄ b₆ z := by
+    rw [hQ]; exact modelIso_hom_apply_imageι π b₄ b₆ hπ0 z
+  have hmem : ∀ {g : MvPolynomial (Fin (2 + 1)) O} (hg : g ∈ 𝒜 1) {y : L}
+      (hy : y ∈ chart π b₄ b₆ 2), evalHom (coords π b₄ b₆) g / coords π b₄ b₆ 2 ^ 1 = y →
+      g ∈ (TateModel.ι π b₄ b₆ z).asHomogeneousIdeal → (⟨y, hy⟩ : chart π b₄ b₆ 2) ∈ Q.asIdeal :=
+    fun {g} hg {y} hy hval h => by
+      rw [← hpt, mem_imageι_chartι_iff (baseRing π b₄ b₆) rfl hf 2 Q hg one_pos] at h
+      obtain ⟨h', hQ'⟩ := h
+      convert hQ' using 1
+      exact Subtype.ext hval.symm
+  have hc2 : coords π b₄ b₆ 2 = 1 := rfl
+  obtain ⟨hG, hu, hv⟩ := nodeGerm_chart_two π b₄ b₆ hπ0 hπm hc ht Q.asIdeal
+    (hmem (by simpa using isHomogeneous_X O 0) (aL_mem_chart_two π b₄ b₆) (by
+        simp only [evalHom, coe_eval₂Hom, eval₂_X, pow_one, hc2, div_one]; rfl) hX0)
+    (hmem (by simpa using isHomogeneous_X O 1) (bL_mem_chart_two π b₄ b₆) (by
+        simp only [evalHom, coe_eval₂Hom, eval₂_X, pow_one, hc2, div_one]; rfl) hX1)
+    (fun o ho => hmem (by simpa using isHomogeneous_C_mul_X o 2)
+      (algebraMap_mem_chart π b₄ b₆ 2 o) (by
+        simp only [evalHom, coe_eval₂Hom, eval₂_mul, eval₂_C, eval₂_X, pow_one, hc2, div_one]
+        change algebraMap O L o * 1 = _
+        rw [mul_one]) (h𝔪 o ho))
+  refine ⟨locAt (chart π b₄ b₆ 2) Q.asIdeal, _, _, n, ?_, hG, hu, hv⟩
   rw [← hQ, germs_chartι]
 
 variable {π b₄ b₆}

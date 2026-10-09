@@ -2285,8 +2285,41 @@ Total ≈ 5–7k.
 * *`CrossingX1` strengthened (2026-10-09).* The hypotheses `IsSemistable` (source) and
   `FiniteDimensional L₂ L₁` are dropped from `Statement.CrossingX1`; the proof `crossingX1` never
   used them (non-smooth points are node points by definition; split nodes and no loops suffice).
-* *Still open.* The 3-gon case `b₆ ∈ 𝔪`, which needs the node germ at `r` (exact node via
-  `NodeDeformation`).
+* *3-gon, case (i) (done, 2026-10-09).* Write `c = b₆ − π² b₄²`. In the chart `x₂ = 1`, set
+  `U = b − π b₄` and `W = a + b + π b₄`. Then `U W = c + π a³`. If `c ≠ 0` and `c ∣ π`, say
+  `π = c t`, this is `c (1 + t a³)`, where `1 + t a³` is a unit at `r`. This gives exact node
+  coordinates `u = U` and `v = W / (ε (1 + t a³))` (`TateNormal.nodeGerm_chart_two`,
+  `nodeGerm_of_mem_two`).
+  * *Walks.* From a component over `L₁`, cross `r` to `L₂`, then `q` to `C`. From `L₂`, cross
+    `q` to `C`. From `C`, cross `p` to `L₁`. Assembled in `Pres.harmonicTate_of_crossingX1_threeGon`
+    with `ℰ = {L₁, L₂}`.
+  * *Result.* `TateObject.exists_character_ne_one_of_crossing` assumes
+    `IsUnit b₆ ∨ (c ≠ 0 ∧ c ∣ π)` on the Tate data.
+* *Choice of π (IUT corollary).* The object `temperedPi1 (geomOrbicurveRing W ℓ M)` depends on
+  `W` only, and `(π, b₄, b₆)` only factors `a₄ = π² b₄` and `a₆ = π² b₆`. So the corollary
+  `TateOrbicurve.nondegenerate_of_crossing` takes the W-only hypothesis
+  `HasGoodTatePresentation W O`, which is `∃ π b₄ b₆, IsTate W π b₄ b₆ ∧ … ∧ (IsUnit b₆ ∨ (c ≠ 0 ∧ c ∣ π))`.
+  * *Valuations.* For `π' = ϖ^k`: `c' = (a₆ − a₄²)/π'²`, and
+    `a₆ − a₄² = −Δ − 64 a₄³ − 432 a₆² + 72 a₄ a₆`.
+    Case (i) holds iff `v(a₆) = 2k`, or `a₆ ≠ a₄²` and `v(a₆ − a₄²) ≤ 3k`.
+  * *Normal-form `E_q`.* Here `v(a₄) ≥ m` and `a₆ = ϖ^m · unit`, with `m = v(q)`. For `m ≥ 2`,
+    take `k = ⌊m/2⌋`. Then `b₆` is a unit for `m` even, and `c = ϖ · unit` for `m` odd
+    (`hasGoodTatePresentation_of_normalForm`, stated with these valuation hypotheses).
+  * *Where the facts live.* The facts `v(a₄(q)) ≥ v(q)` and `a₆(q) = q · unit` belong to
+    tate-curves-theta / iut. The instance for `tateCurve q` should be stated there.
+  * *The hypothesis is not vacuous for general `W`.* For example, take `v(a₄) = 2` and
+    `v(a₆) = 5`. Then `v(Δ) = 4`, the only `k` is `1`, and `v(a₆ − a₄²) = 4 > 3`, so
+    `v(c) = 2 > v(π) = 1`.
+* *Not built (estimates).*
+  * *`m = v(q) = 1`.* There is no IsTate presentation, since `π² ∣ a₄` fails. The fix is a
+    ramified quadratic base change `K'/K`, after which `v(q) = 2`. Nondegeneracy should
+    descend, because `temperedPi1` over `K'` sits with finite index in the one over `K`.
+    Estimate ≈ 1.5–3k lines: base change of the tempered category / `temperedPi1`, and the
+    finite-index comparison.
+  * *General `W`.* A shape-preserving variable change `x = x' + r`, `y = y' + s x' + t` with
+    `u = 1 + 2s`, `3r = s + s²`, `t = −r/2` would bring `W` to normal form. Transporting
+    `geomOrbicurveRing` and `temperedPi1` along it is estimated at ≈ 1–2k lines.
+  * *Case (ii) (`v(c) > v(π)`).* Via `NodeDeformation`, ≈ 1.5–3k lines, with risk.
 
 **`Statement.CrossingX1` corrected (2026-10-09).** As first written it was false (counterexamples
 by the CrossingX1 helper):
