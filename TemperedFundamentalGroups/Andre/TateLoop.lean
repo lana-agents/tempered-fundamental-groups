@@ -139,34 +139,35 @@ theorem exists_loop_of_crossings (a : Q.U ⟶ X₀ (A := A) T)
   simp only [toAdd_ofAdd, toAdd_one] at this
   omega
 
-/-- **`HarmonicTate`** (targeted, Blueprint §10.3.8) for a member `Q` over `X₀`: (X1) of the model
-map `a.ψ : c → 𝒯` at the nodes of the Tate special fibre `C ∪ E` (`E` the conic, possibly the
-union of two lines). Every component mapped onto the line `C` has a walk crossing `p` (special
-points over `p`) to a component mapped into `E` and not contracted; every component mapped into
-`E` and not contracted has a walk avoiding `p` (crossing the nodes inside `E` and then `q`) to a
-component mapped onto `C`. (A consequence of `CrossingX1` at the nodes of `𝒯`.) -/
-def HarmonicTate (a : Q.U ⟶ X₀ (A := A) T) : Prop :=
+/-- **`HarmonicTate`** (targeted, Blueprint §10.3.8) for a member `Q` over `X₀`, relative to a
+family `ℰ` of subsets of the conic `E` (its components: `{E}` if `b₆` is a unit, the two lines if
+`b₆ ∈ 𝔪`): (X1) of the model map `a.ψ : c → 𝒯` at the nodes of the Tate special fibre `C ∪ E`.
+Every component mapped onto the line `C` has a walk crossing `p` (special points over `p`) to a
+component mapped onto a member of `ℰ`; every component mapped onto a member of `ℰ` has a walk
+avoiding `p` (crossing the nodes inside `E` and then `q`) to a component mapped onto `C`.
+(A consequence of `CrossingX1` at the nodes of `𝒯`.) -/
+def HarmonicTate (ℰ : Set (Set (X₀ (A := A) T).Lv.Z)) (a : Q.U ⟶ X₀ (A := A) T) : Prop :=
   (∀ i : irreducibleComponents Q.Lv.Z,
     specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C i = (decomp (A := A) T).C →
     ∃ L : List (Q.Lv.Z × irreducibleComponents Q.Lv.Z),
       IncWalk (curveConfig Q.Lv.Z Q.hdim) i L ∧
       (∀ p ∈ L, specialFibreMap a.ψ a.ψ_toSpec p.1 ∈ (decomp (A := A) T).Cp) ∧
-      specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C (lastLab i L) ⊆
-        (decomp (A := A) T).E ∧
-      ¬ Contr (K := curveConfig Q.Lv.Z Q.hdim) (specialFibreMap a.ψ a.ψ_toSpec) (lastLab i L)) ∧
+      specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C (lastLab i L) ∈ ℰ) ∧
   (∀ i : irreducibleComponents Q.Lv.Z,
-    specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C i ⊆ (decomp (A := A) T).E →
-    ¬ Contr (K := curveConfig Q.Lv.Z Q.hdim) (specialFibreMap a.ψ a.ψ_toSpec) i →
+    specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C i ∈ ℰ →
     ∃ L : List (Q.Lv.Z × irreducibleComponents Q.Lv.Z),
       IncWalk (curveConfig Q.Lv.Z Q.hdim) i L ∧
       (∀ p ∈ L, specialFibreMap a.ψ a.ψ_toSpec p.1 ∉ (decomp (A := A) T).Cp) ∧
       specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C (lastLab i L) =
         (decomp (A := A) T).C)
 
-/-- **hbase from `HarmonicTate`**: given a component over `C` (with a tree vertex), and the
-generic points of the components mapped into `E` (not contracted) off the line `C`, some
-automorphism of `U` acts on `X₀` through a non-trivial deck transformation. -/
-theorem exists_loop_of_harmonicTate (a : Q.U ⟶ X₀ (A := A) T) (hHT : Q.HarmonicTate T a)
+/-- **hbase from `HarmonicTate`**: given a component over `C` (with a tree vertex), the members
+of `ℰ` inside `E` and not points, and the generic points of the components mapped into `E` (not
+contracted) off the line `C`, some automorphism of `U` acts on `X₀` through a non-trivial deck
+transformation. -/
+theorem exists_loop_of_harmonicTate (a : Q.U ⟶ X₀ (A := A) T)
+    (ℰ : Set (Set (X₀ (A := A) T).Lv.Z))
+    (hℰ : ∀ S ∈ ℰ, S ⊆ (decomp (A := A) T).E ∧ ¬ ∃ y, S = {y}) (hHT : Q.HarmonicTate T ℰ a)
     (hE : ∀ i : irreducibleComponents Q.Lv.Z,
       specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C i ⊆ (decomp (A := A) T).E →
       ¬ Contr (K := curveConfig Q.Lv.Z Q.hdim) (specialFibreMap a.ψ a.ψ_toSpec) i →
@@ -181,15 +182,13 @@ theorem exists_loop_of_harmonicTate (a : Q.U ⟶ X₀ (A := A) T) (hHT : Q.Harmo
   refine Q.exists_loop_of_crossings V hV T a
     (fun i => specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C i =
       (decomp (A := A) T).C)
-    (fun i => specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C i ⊆
-      (decomp (A := A) T).E ∧
-      ¬ Contr (K := curveConfig Q.Lv.Z Q.hdim) (specialFibreMap a.ψ a.ψ_toSpec) i)
-    (fun i hi => hi ▸ ⟨_, (curveConfig Q.Lv.Z Q.hdim).η_mem i, rfl⟩) (fun i hi => hE i hi.1 hi.2)
-    (fun i hi => ?_) (fun i hi => ?_) ht₀ hi₀
-  · obtain ⟨L, hL, hp, he, hc⟩ := hHT.1 i hi
+    (fun i => specialFibreMap a.ψ a.ψ_toSpec '' (curveConfig Q.Lv.Z Q.hdim).C i ∈ ℰ)
+    (fun i hi => hi ▸ ⟨_, (curveConfig Q.Lv.Z Q.hdim).η_mem i, rfl⟩)
+    (fun i hi => hE i (hℰ _ hi).1 (hℰ _ hi).2) (fun i hi => ?_) (fun i hi => ?_) ht₀ hi₀
+  · obtain ⟨L, hL, hp, he⟩ := hHT.1 i hi
     exact ⟨L, hL, fun p hpL => fun hq =>
-      Set.disjoint_left.1 (decomp (A := A) T).disjoint (hp p hpL) hq, he, hc⟩
-  · obtain ⟨L, hL, hq, hc⟩ := hHT.2 i hi.1 hi.2
+      Set.disjoint_left.1 (decomp (A := A) T).disjoint (hp p hpL) hq, he⟩
+  · obtain ⟨L, hL, hq, hc⟩ := hHT.2 i hi
     exact ⟨L, hL, hq, hc⟩
 
 end Pres

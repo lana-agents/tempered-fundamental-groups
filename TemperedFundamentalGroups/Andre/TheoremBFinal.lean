@@ -108,8 +108,10 @@ theorem exists_character_ne_one (hW : SemistableReduction.Statement.StrongCompon
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1)
     (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    (ℰ : Set (Set (X₀ (A := A) T).Lv.Z))
+    (hℰ : ∀ S ∈ ℰ, S ⊆ (decomp (A := A) T).E ∧ ¬ ∃ y, S = {y})
     (hHT : ∀ {X : TempObj O R A} (P : Pres (exists_finite_aeval (K := K) hR).choose X)
-      (a : P.U ⟶ X₀ (A := A) T), P.HarmonicTate T a)
+      (a : P.U ⟶ X₀ (A := A) T), P.HarmonicTate T ℰ a)
     (hd : Squarefree (TateNormal.dpoly T.π T.b₄ T.b₆)) (hx : Transcendental K T.x) :
     ∃ τ : temperedPi1 O R A V hV, character T V hV τ ≠ 1 := by
   obtain ⟨hgal, hdom, hrig⟩ := galoisLimitDataW (A := A) V hV hW p hp hpm hR
@@ -118,7 +120,7 @@ theorem exists_character_ne_one (hW : SemistableReduction.Statement.StrongCompon
   obtain ⟨i₀, hi₀, -⟩ := Q.exists_image_eq_C T hd hx f₀
   obtain ⟨t₀, ht₀⟩ := Q.exists_tree_head i₀
   obtain ⟨κ, d, hd1, hκ⟩ := Q.exists_loop_of_harmonicTate V hV T (Q.iso.inv ≫ f₀)
-    (hHT Q _) (fun i hi hc => Pres.eta_notMem_C T Q _ i hi hc) ht₀ hi₀
+    ℰ hℰ (hHT Q _) (fun i hi hc => Pres.eta_notMem_C T Q _ i hi hc) ht₀ hi₀
   obtain ⟨τ, hτ⟩ := exists_character_eq_of_loop V hV T hgal hdom hrig hX hN ϖ hϖ p₀.mem Q p₀.g
     f₀ hf₀ d κ hκ (fun X P a => P.exists_tree_tateNu T hd hx a)
   exact ⟨τ, hτ ▸ hd1⟩
@@ -153,12 +155,14 @@ theorem nondegenerate (hSCA : SemistableReduction.Statement.StrongComponentA.{u}
     (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) (hπ : π ≠ 0) (hπm : π ∈ IsLocalRing.maximalIdeal O)
+    (ℰ : Set (Set (TateObject.X₀ (A := A') (data hW hπ hπm ℓ M)).Lv.Z))
+    (hℰ : ∀ S ∈ ℰ, S ⊆ (TateObject.decomp (A := A') (data hW hπ hπm ℓ M)).E ∧ ¬ ∃ y, S = {y})
     (hHT : haveI := smooth_geomOrbicurveRing_of_charZero (W := W) hℓ hM
       ∀ {X : TempObj O (geomOrbicurveRing W ℓ M) A'}
       (P : Pres (exists_finite_aeval (K := K)
         (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM)).choose X)
       (a : P.U ⟶ TateObject.X₀ (A := A') (data hW hπ hπm ℓ M)),
-      P.HarmonicTate (data hW hπ hπm ℓ M) a) :
+      P.HarmonicTate (data hW hπ hπm ℓ M) ℰ a) :
     ∃ N : Subgroup (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV),
       IsOpen (N : Set (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV)) ∧ N.Normal ∧
         Infinite (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV ⧸ N) := by
@@ -172,7 +176,7 @@ theorem nondegenerate (hSCA : SemistableReduction.Statement.StrongComponentA.{u}
     exact W.isUnit_Δ.ne_zero hW'
   refine nondegenerate_of_character_ne_one A A' V hV hW hπ hπm ?_
   exact TateObject.exists_character_ne_one (data hW hπ hπm ℓ M) V hV hSCA p hp hpm
-    (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM) hX hN ϖ hϖ hHT
+    (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM) hX hN ϖ hϖ ℰ hℰ hHT
     (TateNormal.squarefree_dpoly π b₄ b₆ h2 hΔ) (transcendental_data_x hW hπ hπm ℓ M)
 
 end TateOrbicurve

@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Andre.TateNodeGerm
 import TemperedFundamentalGroups.Andre.TateModelNormal
+import TemperedFundamentalGroups.Andre.TateNatural
 
 /-!
 # Node germs of the Tate model at `p` and `q` (HarmonicTate glue)
@@ -168,6 +169,64 @@ theorem nodeGerm_q (hπm : π ∈ IsLocalRing.maximalIdeal O) {ϖ : O} (hϖ : Ir
   · simp [TateModel.gq]
   · simp [TateModel.gq]
   · simp [TateModel.gq, (IsLocalRing.residue_eq_zero_iff o).2 ho]
+
+section Generic
+
+omit [IsDiscreteValuationRing O] [Fact (Squarefree (dpoly π b₄ b₆))] in
+lemma toModel_congr {T : Type u} [CommRing T] [IsReduced T] {φ φ' : O →+* T} {x x' y y' : T}
+    (hφ : φ = φ') (hx : x = x') (hy : y = y')
+    (heq : y ^ 2 + x * y = x ^ 3 + φ (π ^ 2 * b₄) * x + φ (π ^ 2 * b₆)) (hπ : IsUnit (φ π))
+    (heq' : y' ^ 2 + x' * y' = x' ^ 3 + φ' (π ^ 2 * b₄) * x' + φ' (π ^ 2 * b₆))
+    (hπ' : IsUnit (φ' π)) :
+    TateModel.toModel π b₄ b₆ φ heq hπ = TateModel.toModel π b₄ b₆ φ' heq' hπ' := by
+  subst hφ hx hy
+  rfl
+
+omit [IsDiscreteValuationRing O] in
+lemma toProj_congr {m : ℕ} {F : Type u} [Field F] [Algebra O F] {f g : Fin (m + 1) → F}
+    (h : f = g) (hf : ∀ i, f i ≠ 0) (hg : ∀ i, g i ≠ 0) : toProj O hf = toProj O hg := by
+  subst h
+  rfl
+
+variable (π b₄ b₆)
+
+include hπ0 in
+lemma isUnit_algebraMap_π : IsUnit (algebraMap O L π) :=
+  isUnit_iff_ne_zero.2 ((map_ne_zero_iff _ (algebraMap_O_injective π b₄ b₆)).2 hπ0)
+
+omit [IsDiscreteValuationRing O] [Fact (Squarefree (dpoly π b₄ b₆))] in
+/-- The point `(π a, π b)` of the Tate curve over its function field. -/
+lemma equation_L : (algebraMap O L π * bL π b₄ b₆) ^ 2 +
+      (algebraMap O L π * aL π b₄ b₆) * (algebraMap O L π * bL π b₄ b₆) =
+    (algebraMap O L π * aL π b₄ b₆) ^ 3 + algebraMap O L (π ^ 2 * b₄) *
+      (algebraMap O L π * aL π b₄ b₆) + algebraMap O L (π ^ 2 * b₆) := by
+  have h := bL_sq π b₄ b₆
+  rw [algebraMap_cpoly] at h
+  simp only [map_mul, map_pow]
+  linear_combination algebraMap O L π ^ 2 * h
+
+/-- **The generic point of the Tate model** is `[π a : π b : π] = [a : b : 1]`. -/
+theorem toModel_comp_modelIso :
+    TateModel.toModel π b₄ b₆ (algebraMap O L) (equation_L π b₄ b₆)
+        (isUnit_algebraMap_π π b₄ b₆ hπ0) ≫ (modelIso π b₄ b₆ hπ0).hom =
+      genericPt O (hcoords π b₄ b₆ hπ0) := by
+  have hu := isUnit_algebraMap_π π b₄ b₆ hπ0
+  have hfun : (![algebraMap O L π * aL π b₄ b₆ / algebraMap O L π,
+      algebraMap O L π * bL π b₄ b₆ / algebraMap O L π, 1] : Fin (2 + 1) → L) =
+      coords π b₄ b₆ := by
+    rw [mul_div_cancel_left₀ _ hu.ne_zero, mul_div_cancel_left₀ _ hu.ne_zero]
+  have hf' : ∀ i, (![algebraMap O L π * aL π b₄ b₆ / algebraMap O L π,
+      algebraMap O L π * bL π b₄ b₆ / algebraMap O L π, 1] : Fin (2 + 1) → L) i ≠ 0 := by
+    rw [hfun]; exact hcoords π b₄ b₆ hπ0
+  refine (cancel_mono (toProj O (hcoords π b₄ b₆ hπ0)).imageι).1 ?_
+  refine (Category.assoc _ _ _).trans ?_
+  refine (congrArg (_ ≫ ·) (modelIso_hom_imageι π b₄ b₆ hπ0)).trans ?_
+  refine (TateModel.toModel_ι π b₄ b₆ (algebraMap O L) (equation_L π b₄ b₆) hu).trans ?_
+  rw [TateModel.toProj_eq_projScheme π _ _ hu hf',
+    toProj_congr hfun hf' (hcoords π b₄ b₆ hπ0)]
+  exact (Scheme.Hom.toImage_imageι _).symm
+
+end Generic
 
 end
 

@@ -32,6 +32,7 @@ import TemperedFundamentalGroups.Andre.TateSurjective
 import TemperedFundamentalGroups.Andre.TateWinding
 import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.Andre.TheoremB
+import TemperedFundamentalGroups.Andre.TheoremBCrossing
 import TemperedFundamentalGroups.Andre.TheoremBFinal
 import TemperedFundamentalGroups.Andre.TheoremBH
 import TemperedFundamentalGroups.Andre.TheoremBHLoop
