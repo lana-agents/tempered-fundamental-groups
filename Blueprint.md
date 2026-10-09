@@ -2256,3 +2256,20 @@ of `u'^D / ϖ^N` on the current component.
 
 Plain "positions increase across any node" was false: sideways nodes `u' = ε ϖ^α`, and rational
 tails with constant residue. Estimate ≈ 2.5–4k lines.
+
+*CrossingX1 proof plan (Lean, helper, 2026-10-09).* All local arguments are valuation-theoretic.
+Points are seen through their germ rings: `germs = range (stalk → L)`. Centres come from
+`ValuativeCentre`.
+
+| # | Statement (file) | Size |
+|---|---|---|
+| CX1 | **Centres and germs** (`CentreGerms`): `germs = range` of the stalk map; `IsCentre g W x ↔ W` dominates `germs x`; valuation rings dominating `germs x` with the same contraction to `germs x` have the same centre; centres map along `ψ` (`W ↦ W ∩ L₂`); `germs y` with residue field from the base forces `y` closed | 0.4k |
+| CX2 | **Composite valuations** (`CompositeValuation`): inside a valuation ring `W` there is `R ≤ W` dominating any local ring mapping into `W`; a unit `g` of `W` with `g⁻¹ ∈ 𝔪_R` for some `R ≤ W` over the base also has `g ∈ 𝔪_{R'}` for some `R' ≤ W` (residue of `g` transcendental: zero of a non-constant function) | 0.3k |
+| CX3 | **Unit branch is unique** (`NodeUnitBranch`): `P` noetherian local, `P = O + ϖP + uP + vP`, `u ∈ 𝔪_P`; two valuation rings `⊇ P` with `ϖ, v ∈ 𝔪` and `u` a unit have the same contraction to `P` (gen-expansion in `u`, Krull intersection) | 0.2k |
+| CX4 | **Smooth points** (`SmoothPrime`): at a smooth point `ϖ` is prime in the germs (étale over `O[X]`, `isDomain_localization_of_etale` over `k[X]`, faithful flatness), so divisors of `ϖ^M` are `ε ϖ^α` | 0.3k |
+| CX5 | **Node divisors**: `exists_nodeGerm` also outputs `t ∣ ϖ^M ⇒ t = ε ϖ^α u^e` or `ε ϖ^α v^e` (`IsOrdinaryDoublePoint.eq_unit_mul_of_dvd`, `D` integrally closed by faithfully flat descent) | 0.15k |
+| CX6 | **Step** (`CrossingStep`): from a component of position `p < top` and a valuation `R ≤ W_v` centred at `z` over `y'` with `u'^{e₂}/ϖ^p ∈ 𝔪_R`, the point `z` is a node; the other component through it has position `p' > p`, and the residue there has a zero at some point over `y'` (if `p' < top`) | 0.5k |
+| CX7 | **Target side** (`CrossingTarget`): exactly one of `u, v` is a unit at each of `η(w₁')`, `η(w₂')`, and they differ; position `top` means the component lies over `w₂'`; positions in `(0, top)` mean contracted | 0.3k |
+| CX8 | **Walk assembly** (`CrossingX1Proof`): induction on `top − p`, distinct nodes (at most two components per node), `Walk.Crosses` | 0.5k |
+
+Total ≈ 2.7k lines. No closedness of `ψ` is needed: `ψ '' v = w₂'` uses CX2 at each point of `w₂'`.
