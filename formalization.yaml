@@ -1,0 +1,177 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# formalization.yaml (v0.4): repo-root metadata for this formalization,
+# following https://github.com/mathlib-initiative/formalization.yaml
+
+version: "v0.4"
+
+project:
+  name: "tempered-fundamental-groups"
+  description: >-
+    A Lean 4 / Mathlib formalization of the tempered fundamental group of an affine orbifold
+    [Spec R / A] over a non-archimedean field, built from algebraic integral models instead of
+    rigid or Berkovich geometry: tempered coverings are presented by a finite étale level, a
+    projective model of the level over the valuation ring, and an equivariant covering space of
+    its special fibre. The repository proves the semistable reduction theorem for smooth curves
+    in mixed characteristic with perfect residue field (equivariant semistable models over a
+    finite Galois extension, following Arzdorf–Wewers), identifies the tempered group with
+    André's group read off from semistable models (Theorem A), shows that the tempered group of
+    IUT's Tate orbicurves E ∖ (E[ℓ] + M) is not degenerate (Theorem B), and proves Zariski
+    connectedness for the special fibres of model codes. It also gives the continuous comparison
+    homomorphism to the étale fundamental group of the orbifold.
+  authors:
+    - "Claude (Anthropic)"
+    - "Christian Merten"
+    - "LANA Project"
+  responsible_maintainers:
+    - "Christian Merten"
+  license: "Apache-2.0"
+
+sources:
+  - title: "Tempered fundamental group and metric graph of a Mumford curve"
+    authors: ["Emmanuel Lepage"]
+    id: "arXiv:0811.3169"
+    type: "article"
+    location: "§1.1 (the limit formula for the tempered group)"
+    relationship: "adapts"
+    note: >-
+      The definition of the tempered fundamental group follows Lepage's description through
+      models; the covering spaces of the special fibres of integral models replace the
+      topological coverings of Berkovich spaces (Blueprint.md §1, §2, §7).
+    author_endorsement: "not-contacted"
+  - title: "Period mappings and differential equations. From ℂ to ℂ_p"
+    authors: ["Yves André"]
+    type: "book"
+    location: "MSJ Memoirs 12 (2003), Chapter III, 2.1.1 and 2.1.5"
+    relationship: "adapts"
+    note: >-
+      André's definition of tempered coverings and of the tempered fundamental group. Theorem A
+      identifies the tempered group of this repository with André's group read off from
+      semistable models.
+    author_endorsement: "not-contacted"
+  - title: "Another proof of the semistable reduction theorem"
+    authors: ["Kai Arzdorf", "Stefan Wewers"]
+    id: "arXiv:1211.4624"
+    type: "article"
+    relationship: "adapts"
+    note: >-
+      The proof of the semistable reduction theorem (Gauss-valued trees, local uniformization at
+      type 3 and type 4 points, stability at type 3 points, descent) follows this paper, with
+      the changes recorded in Blueprint.md §9.
+    author_endorsement: "not-contacted"
+
+related_formalizations:
+  - id: "https://github.com/lana-agents/pi1"
+    relationship: "builds-on"
+    note: >-
+      The étale fundamental group of an affine orbifold (Pi1.Orbifold.etalePi1), its
+      fibre-functor topology and the coded finite étale algebras.
+  - id: "https://github.com/lana-agents/elliptic-curves"
+    relationship: "builds-on"
+    note: "Finiteness of torsion of elliptic curves in characteristic 0."
+  - id: "https://github.com/lana-agents/oka"
+    relationship: "builds-on"
+    note: >-
+      Serre's finiteness theorem on projective space and Zariski's connectedness theorem
+      (AlgebraicGeometry.ProjectiveSpace.isPreconnected_closedFibre).
+  - id: "https://github.com/lana-agents/iut"
+    relationship: "other"
+    note: "Downstream consumer: iut uses Theorem A (andreEquiv') in Iut/Anabelian/TemperedAndre.lean."
+
+classification:
+  arxiv: ["math.AG", "math.NT"]
+  msc2020: ["14H30", "14G22", "14G20", "11G07"]
+
+status:
+  scope: >-
+    The tempered fundamental group of affine orbifolds over a valued field via integral models,
+    with its comparison map to the étale fundamental group; the semistable reduction theorem
+    for smooth curves over complete discretely valued fields of characteristic 0 with perfect
+    residue field of positive characteristic; André's identification (Theorem A) under these
+    hypotheses; non-degeneracy of the tempered group of IUT's Tate orbicurves in normal form
+    (Theorem B); Zariski connectedness for model codes. Everything is proved from Lean's three
+    standard axioms. Not covered: non-complete henselian bases, equal characteristic 0 and
+    imperfect residue fields for Theorem A, and Weierstrass equations not in Tate normal form
+    for Theorem B.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: ["propext", "Classical.choice", "Quot.sound"]
+  main_results:
+    - declaration: "TemperedFundamentalGroups.SemistableReduction.Statement.strongA"
+      file: "TemperedFundamentalGroups/SemistableReduction/StrongAProof.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.andreEquiv'"
+      file: "TemperedFundamentalGroups/Andre/TheoremAFinal.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.TateOrbicurve.nondegenerate_of_normalForm"
+      file: "TemperedFundamentalGroups/Andre/TateRestrictIUT.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.SemistableReduction.Statement.zariskiConnected"
+      file: "TemperedFundamentalGroups/SemistableReduction/ZariskiConnectedProof.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.temperedToEtale"
+      file: "TemperedFundamentalGroups/Tempered/Comparison.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+
+automation:
+  methods:
+    - method: "agent"
+      models: ["claude-opus-5-5"]
+      framework: "Claude Code"
+      tool_setup: >-
+        orchestra for running the agents, taxis for project management, and Claude (Claude Code) as the
+        coding agent; Lean/Lake builds with `lake build --wfail`.
+      prompting_notes: >-
+        Human input consisted of high-level task descriptions and scope decisions.
+  notes: >-
+    Agents were run with orchestra; project management (issues, status) was done in taxis;
+    Claude was the coding agent.
+
+fidelity:
+  divergences: >-
+    No rigid or Berkovich geometry is used. The topological coverings of the analytification are
+    replaced by covering spaces of the special fibres of projective integral models (the formal
+    completion along the special fibre has the special fibre as underlying space), and André's
+    group (`andreGroup`) is the automorphism group of the fibre functor restricted to coverings
+    presented through semistable models; Theorem A identifies the two. The Raynaud–Berkovich
+    comparison and André's III.2.1.5 are therefore not formalized as statements about analytic
+    spaces (Blueprint.md §1, §4, §10). Theorem A needs a complete base, mixed characteristic and
+    a perfect residue field; Theorem B is stated for Weierstrass equations in Tate normal form
+    y² + xy = x³ + a₄x + a₆ with ϖ^m ∣ a₄, a₆ = ϖ^m ε, m ≥ 1.
+
+review:
+  status: "agent-reviewed"
+  reviewers: ["Claude (Anthropic)"]
+  notes: >-
+    The formalization has only been reviewed by Claude; it has not been reviewed by a human.
+    All results are machine-checked by the Lean kernel (axioms as listed under status; checked
+    with `#print axioms` on a built checkout of the code at this revision, and the library
+    contains no `sorry`).
+
+alignment:
+  namespace: "TemperedFundamentalGroups"
+  statements:
+    - source: "Semistable reduction theorem for curves (Arzdorf–Wewers), equivariant form"
+      lean: "TemperedFundamentalGroups.SemistableReduction.Statement.strongA"
+      module: "TemperedFundamentalGroups/SemistableReduction/StrongAProof.lean"
+      status: "proved"
+      note: "Mixed characteristic, perfect residue field, complete discretely valued base."
+    - source: "André, Period mappings, III.2.1 (tempered fundamental group), via semistable models"
+      lean: "TemperedFundamentalGroups.andreEquiv'"
+      module: "TemperedFundamentalGroups/Andre/TheoremAFinal.lean"
+      status: "proved"
+    - source: "Lepage, Tempered fundamental group and metric graph of a Mumford curve, §1.1"
+      lean: "TemperedFundamentalGroups.temperedPi1"
+      module: "TemperedFundamentalGroups/Tempered/Category.lean"
+      status: "defined"
+
+acknowledgements: "Built on Mathlib (Apache-2.0)."
