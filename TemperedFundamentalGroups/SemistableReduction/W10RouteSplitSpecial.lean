@@ -34,7 +34,7 @@ open GaussTube DiscCount AffineTwist SmoothVertex TreeBridge GaussTree ZariskiMo
 
 section Edge
 
-variable {K F : Type*} [Field K] [Field F] [Algebra K F] {Γ₀ : Type*}
+variable {K F : Type u} [Field K] [Field F] [Algebra K F] {Γ₀ : Type*}
   [LinearOrderedCommGroupWithZero Γ₀] (v : Valuation K Γ₀) {ι : Type*} (a c : ι → K) (x : F)
   (W : ValuationSubring F)
 
@@ -53,6 +53,35 @@ lemma RoutedEdge.routed {B : Subring F} (h : RoutedEdge v a c x W B) : Routed v 
   Or.inr (Or.inl h)
 
 end Edge
+
+section Class
+
+variable {E : Type u} [NontriviallyNormedField E] [IsUltrametricDist E] {F₀ : Type u} [Field F₀]
+  [Algebra (RatFunc E) F₀] {ι : Type*} (aE cE : ι → E)
+  (ϖ : (NormedField.valuation (K := E)).valuationSubring)
+
+set_option hygiene false in
+local notation "νE" => NormedField.valuation (K := E)
+
+set_option hygiene false in
+local notation "O_E" => (NormedField.valuation (K := E)).valuationSubring
+
+/-- **The classification of the points of a chart** of the normalized `E`-tree model: étale-locally
+`O_E[X]`, or a split node which is the center of a valuation `W` routed to the normalized edge
+chart `normChart F₀ S` of an edge, with the same local ring. -/
+def SplitClass (Cc : Subring F₀) [Algebra O_E Cc] (𝔭 : Ideal Cc) : Prop :=
+  IsEtaleLocallyAt O_E O_E[X] 𝔭 ∨
+    (IsSplitNodePt ϖ 𝔭 ∧ ∃ (W : ValuationSubring F₀) (hCW : Cc ≤ W.toSubring),
+      centerIdeal Cc W hCW = 𝔭 ∧ ∃ S : Subring (RatFunc E),
+        RoutedEdge νE aE cE (RatFunc.X : RatFunc E) (W.comap (algebraMap (RatFunc E) F₀)) S ∧
+        ∃ _ : normChart F₀ S ≤ W.toSubring, localAt Cc W = localAt (normChart F₀ S) W)
+
+variable {aE cE ϖ} in
+lemma SplitClass.isSplitSemistableAt {Cc : Subring F₀} [Algebra O_E Cc] {𝔭 : Ideal Cc}
+    (h : SplitClass aE cE ϖ Cc 𝔭) : IsSplitSemistableAt ϖ 𝔭 :=
+  h.imp id And.left
+
+end Class
 
 section Routed
 
@@ -74,21 +103,6 @@ set_option hygiene false in
 local notation "ψ" => algebraMap (RatFunc C) F'
 
 variable {ι : Type*} {aE cE : ι → E}
-
-variable (aE cE ϖ) in
-/-- **The classification of the points of a chart** of the normalized `E`-tree model: étale-locally
-`O_E[X]`, or a split node which is the center of a valuation `W` routed to the normalized edge
-chart `normChart F₀ S` of an edge, with the same local ring. -/
-def SplitClass (Cc : Subring F₀) [Algebra O_E Cc] (𝔭 : Ideal Cc) : Prop :=
-  IsEtaleLocallyAt O_E O_E[X] 𝔭 ∨
-    (IsSplitNodeAt ϖ 𝔭 ∧ ∃ (W : ValuationSubring F₀) (hCW : Cc ≤ W.toSubring),
-      centerIdeal Cc W hCW = 𝔭 ∧ ∃ S : Subring (RatFunc E),
-        RoutedEdge νE aE cE (RatFunc.X : RatFunc E) (W.comap (algebraMap (RatFunc E) F₀)) S ∧
-        ∃ _ : normChart F₀ S ≤ W.toSubring, localAt Cc W = localAt (normChart F₀ S) W)
-
-lemma SplitClass.isSplitSemistableAt {Cc : Subring F₀} [Algebra O_E Cc] {𝔭 : Ideal Cc}
-    (h : SplitClass aE cE ϖ Cc 𝔭) : IsSplitSemistableAt ϖ 𝔭 :=
-  h.imp id And.left
 
 include hφ hχ in
 /-- **Routed charts over `E`, split form.** -/
@@ -126,7 +140,7 @@ theorem routedStepSplit [Finite ι] [IsAlgClosed C] [Algebra C F'] [IsScalarTowe
         P'.comap (algebraMap (nodeRing (φ (cE j) / φ (cE m)))
           (Rint (φ (cE j) / φ (cE m)) (Aff (φ (aE j)) (φ (cE m)) (hc m) F'))) =
             tubeIdeal (φ (cE j) / φ (cE m)) →
-        IsSplitNodeAt ϖ (P'.comap (ιN (χAff χ (hcE m) (hc m)) hφ
+        IsSplitNodePt ϖ (P'.comap (ιN (χAff χ (hcE m) (hc m)) hφ
           (isCompat_χAff (hcE m) (hc m) hχ rfl rfl) (map_div₀ φ (cE j) (cE m)))))
     (W' : ValuationSubring F') (hO : IsOverOC C W') {S : Subring (RatFunc E)}
     (hS : Routed νE aE cE (RatFunc.X : RatFunc E)
@@ -135,7 +149,7 @@ theorem routedStepSplit [Finite ι] [IsAlgClosed C] [Algebra C F'] [IsScalarTowe
     (hBc : ∀ o, ((algebraMap O_E (normChart F₀ S) o : normChart F₀ S) : F₀) = algebraMap E F₀ o)
     (hSW : normChart F₀ S ≤ (W'.comap χ).toSubring) :
     IsEtaleLocallyAt O_E O_E[X] (centerIdeal _ (W'.comap χ) hSW) ∨
-      (IsSplitNodeAt ϖ (centerIdeal _ (W'.comap χ) hSW) ∧
+      (IsSplitNodePt ϖ (centerIdeal _ (W'.comap χ) hSW) ∧
         RoutedEdge νE aE cE (RatFunc.X : RatFunc E)
           ((W'.comap χ).comap (algebraMap (RatFunc E) F₀)) S) := by
   classical
@@ -225,7 +239,7 @@ theorem chartsSplit [Fintype ι] [Nonempty ι] [IsAlgClosed C] [Algebra C F']
         P'.comap (algebraMap (nodeRing (φ (cE j) / φ (cE m)))
           (Rint (φ (cE j) / φ (cE m)) (Aff (φ (aE j)) (φ (cE m)) (hc m) F'))) =
             tubeIdeal (φ (cE j) / φ (cE m)) →
-        IsSplitNodeAt ϖ (P'.comap (ιN (χAff χ (hcE m) (hc m)) hφ
+        IsSplitNodePt ϖ (P'.comap (ιN (χAff χ (hcE m) (hc m)) hφ
           (isCompat_χAff (hcE m) (hc m) hχ rfl rfl) (map_div₀ φ (cE j) (cE m)))))
     {Cc : Subring F₀} (hCc : Cc ∈ ((gaussJoinModel νE aE cE).normalization F₀).charts)
     [Algebra O_E Cc] (hCcc : ∀ o, ((algebraMap O_E Cc o : Cc) : F₀) = algebraMap O_E F₀ o) :
@@ -243,7 +257,7 @@ theorem chartsSplit [Fintype ι] [Nonempty ι] [IsAlgClosed C] [Algebra C F']
       ∀ B ∈ ((gaussJoinModel νE aE cE).normalization F₀).charts, ∀ [Algebra O_E B],
       (∀ o, ((algebraMap O_E B o : B) : F₀) = algebraMap O_E F₀ o) →
       ∀ hBW : B ≤ W.toSubring, IsEtaleLocallyAt O_E O_E[X] (centerIdeal B W hBW) ∨
-        (IsSplitNodeAt ϖ (centerIdeal B W hBW) ∧ ∃ S : Subring (RatFunc E),
+        (IsSplitNodePt ϖ (centerIdeal B W hBW) ∧ ∃ S : Subring (RatFunc E),
           RoutedEdge νE aE cE (RatFunc.X : RatFunc E) (W.comap (algebraMap (RatFunc E) F₀)) S ∧
           ∃ _ : normChart F₀ S ≤ W.toSubring, localAt B W = localAt (normChart F₀ S) W) := by
     intro W hW B hB _ hBc hBW
@@ -265,7 +279,7 @@ theorem chartsSplit [Fintype ι] [Nonempty ι] [IsAlgClosed C] [Algebra C F']
     have hRB := ((gaussJoinModel νE aE cE).normalization F₀).le_chart B hB
     rcases h1 with h1 | ⟨h1, hE⟩
     · exact .inl (isEtaleLocallyAt_of_localAt_eq hBcS hBc hRS hRB sS sB hsS hsB hSW hBW hloc h1)
-    · exact .inr ⟨isSplitNodeAt_of_localAt_eq hϖm hBcS hBc hRS hRB sS sB hsS hsB hSW hBW hloc h1,
+    · exact .inr ⟨isSplitNodePt_of_localAt_eq hϖm hBcS hBc hRS hRB sS sB hsS hsB hSW hBW hloc h1,
         S, hE, hSW, hloc⟩
   intro 𝔭 _
   obtain ⟨W, hCW, rfl⟩ := exists_centerIdeal_eq Cc 𝔭
@@ -297,7 +311,7 @@ theorem chartsSplit [Fintype ι] [Nonempty ι] [IsAlgClosed C] [Algebra C F']
     rw [hc]
     have hϖ0 : (ϖ : E) ≠ 0 := fun h ↦ hϖ.ne_zero (Subtype.ext h)
     refine ((valuation_eq_one_iff_mem_and_inv_mem W).2 ⟨?_, hWE _, ?_⟩).ge
-    · exact (map_ne_zero _).2 hϖ0
+    · exact (_root_.map_ne_zero _).2 hϖ0
     · rw [← map_inv₀]; exact hWE _
   have h3 : IsEtaleLocallyAt O_E O_E[X] (centerIdeal B W hBW) :=
     h₂.of_le_of_notMem hϖm (fun z hz ↦ by

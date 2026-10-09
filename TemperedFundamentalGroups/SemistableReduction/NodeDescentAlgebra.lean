@@ -232,8 +232,8 @@ variable {O B : Type u} {V₁ V₂ k : Type*} [CommRing O] [IsDomain O]
 
 /-- **The node lemma from branch data on a ring, with split node**: under the hypotheses of
 `exists_node_of_branches`, `B` is étale-locally the node at `𝔭` (`IsAnnulusAt`), and
-the node is split (`IsSplitNodeAt`). -/
-theorem isAnnulusAt_and_isSplitNodeAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B →+* V₁)
+the node is split (`IsSplitNodePt`). -/
+theorem isAnnulusAt_and_isSplitNodePt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B →+* V₁)
     (φ₂ : B →+* V₂)
     (r₁ : V₁ →+* k) (r₂ : V₂ →+* k) (hr₁ : ∀ a, r₁ a = 0 ↔ a ∈ maximalIdeal V₁)
     (hr₂ : ∀ b, r₂ b = 0 ↔ b ∈ maximalIdeal V₂) (hcomp : ∀ b, r₁ (φ₁ b) = r₂ (φ₂ b))
@@ -249,7 +249,7 @@ theorem isAnnulusAt_and_isSplitNodeAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsP
     (hv0 : φ₂ v' ≠ 0) {x y : B} {c₀ : O} (hc₀ : c₀ ≠ 0) (hxy : x * y = algebraMap O B c₀)
     {d : ℕ} (hd : 1 ≤ d) {η : V₁} (hη : r₁ η ≠ 0) (hx₁ : φ₁ x = η * φ₁ u' ^ d) (hx₂ : φ₂ x = 0)
     (hy : φ₂ y ≠ 0) :
-    IsAnnulusAt ϖ x y d 𝔭 ∧ IsSplitNodeAt ϖ 𝔭 := by
+    IsAnnulusAt ϖ x y d 𝔭 ∧ IsSplitNodePt ϖ 𝔭 := by
   classical
   set D := Localization.AtPrime 𝔭
   have hinj : Function.Injective (algebraMap B D) :=
@@ -338,7 +338,7 @@ theorem isAnnulusAt_and_isSplitNodeAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsP
     refine Ideal.IsPrime.mul_notMem ‹_› ht ?_
     rw [h𝔭, hη₁, map_mul]
     exact mul_ne_zero hη fun h ↦ hs' ((h𝔭 _).mpr h)
-  refine isAnnulusAt_and_isSplitNodeAt_of_isOrdinaryDoublePoint hϖ 𝔭 H hc₀ hxy hd hs'' hη' ?_ ?_
+  refine isAnnulusAt_and_isSplitNodePt_of_isOrdinaryDoublePoint hϖ 𝔭 H hc₀ hxy hd hs'' hη' ?_ ?_
   · have : t * s' * x - t * η' * u' ^ d = algebraMap O B ϖ * z := by
       rw [← hz]; ring
     rw [this]
@@ -363,15 +363,15 @@ theorem isAnnulusAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B �
     {d : ℕ} (hd : 1 ≤ d) {η : V₁} (hη : r₁ η ≠ 0) (hx₁ : φ₁ x = η * φ₁ u' ^ d) (hx₂ : φ₂ x = 0)
     (hy : φ₂ y ≠ 0) :
     IsAnnulusAt ϖ x y d 𝔭 :=
-  (isAnnulusAt_and_isSplitNodeAt_of_branches_alg 𝔭 φ₁ φ₂ r₁ r₂ hr₁ hr₂ hcomp h𝔭 hϖ hϖ0 hϖ₁ hϖ₂
+  (isAnnulusAt_and_isSplitNodePt_of_branches_alg 𝔭 φ₁ φ₂ r₁ r₂ hr₁ hr₂ hcomp h𝔭 hϖ hϖ0 hϖ₁ hϖ₂
     hker hfp hO₁ hO₂ hu₁ hu₂ hv₂ hv₁ hu0 hv0 hc₀ hxy hd hη hx₁ hx₂ hy).1
 
-/-- `isAnnulusAt_and_isSplitNodeAt_of_branches_alg` for bundled branch data: split node. -/
-theorem BranchData.isSplitNodeAt {𝔭 : Ideal B} [𝔭.IsPrime] {φ₁ : B →+* V₁} {φ₂ : B →+* V₂}
+/-- `isAnnulusAt_and_isSplitNodePt_of_branches_alg` for bundled branch data: split node. -/
+theorem BranchData.isSplitNodePt {𝔭 : Ideal B} [𝔭.IsPrime] {φ₁ : B →+* V₁} {φ₂ : B →+* V₂}
     {r₁ : V₁ →+* k} {r₂ : V₂ →+* k} {ϖ : O} {u' v' x y : B} {c₀ : O} {d : ℕ}
-    (h : BranchData 𝔭 φ₁ φ₂ r₁ r₂ ϖ u' v' x y c₀ d) : IsSplitNodeAt ϖ 𝔭 := by
+    (h : BranchData 𝔭 φ₁ φ₂ r₁ r₂ ϖ u' v' x y c₀ d) : IsSplitNodePt ϖ 𝔭 := by
   obtain ⟨η, hη, hx₁⟩ := h.hx₁
-  exact (isAnnulusAt_and_isSplitNodeAt_of_branches_alg 𝔭 φ₁ φ₂ r₁ r₂ h.hr₁ h.hr₂ h.hcomp h.h𝔭
+  exact (isAnnulusAt_and_isSplitNodePt_of_branches_alg 𝔭 φ₁ φ₂ r₁ r₂ h.hr₁ h.hr₂ h.hcomp h.h𝔭
     h.hϖ h.hϖ0 h.hϖ₁ h.hϖ₂ h.hker h.hfp h.hO₁ h.hO₂ h.hu₁ h.hu₂ h.hv₂ h.hv₁ h.hu0 h.hv0 h.hc₀
     h.hxy h.hd hη hx₁ h.hx₂ h.hy).2
 

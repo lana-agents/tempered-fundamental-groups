@@ -9,13 +9,13 @@ import TemperedFundamentalGroups.SemistableReduction.LocalModel
 # Split nodes (ring level)
 
 Blueprint §9.7a, §10.3.8 (split nodes for `ModelCode.HasSplitNodes`). The `O`-algebra `A` has a
-**split node at `𝔭`** (`IsSplitNodeAt ϖ 𝔭`) if it is étale-locally the node
+**split node at `𝔭`** (`IsSplitNodePt ϖ 𝔭`) if it is étale-locally the node
 `Node O (ϖ ^ n) = O[u, v] ⧸ (u v - ϖ ^ n)` at its singular point (`u, v ∈ 𝔮`), and the point `𝔮`
 of the common étale neighbourhood `C` has the residue field of `O` (`O → C ⧸ 𝔮` surjective).
 `IsSplitSemistableAt ϖ 𝔭`: `A` is étale-locally the affine line `O[X]` at `𝔭`, or has a split
 node there. This implies `IsSemistableAt`.
 
-* `IsSplitNodeAt.of_etale_of_comap`, `IsSplitNodeAt.of_etale`: descent along étale maps, ascent
+* `IsSplitNodePt.of_etale_of_comap`, `IsSplitNodePt.of_etale`: descent along étale maps, ascent
   along étale maps to points with the residue field of `O`;
 * `residue_of_isLocalization_away`: localizations at points of the special fibre with the residue
   field of `O` keep it;
@@ -35,7 +35,7 @@ variable {O : Type u} [CommRing O]
 /-- `A` has a **split node at `𝔭`**: a common étale neighbourhood `C` of `𝔭 ∈ Spec A` and of the
 singular point of the node `O[u, v] ⧸ (u v - ϖ ^ n)` (`u, v ∈ 𝔮`) whose point `𝔮` has the residue
 field of `O`. -/
-def IsSplitNodeAt (ϖ : O) {A : Type u} [CommRing A] [Algebra O A] (𝔭 : Ideal A) : Prop :=
+def IsSplitNodePt (ϖ : O) {A : Type u} [CommRing A] [Algebra O A] (𝔭 : Ideal A) : Prop :=
   ∃ (n : ℕ) (C : Type u) (_ : CommRing C) (g : A →+* C) (f : Node O (ϖ ^ n) →+* C)
     (𝔮 : Ideal C), g.Etale ∧ f.Etale ∧ 𝔮.IsPrime ∧ 𝔮.comap g = 𝔭 ∧
       f.comp (algebraMap O (Node O (ϖ ^ n))) = g.comp (algebraMap O A) ∧
@@ -44,22 +44,22 @@ def IsSplitNodeAt (ϖ : O) {A : Type u} [CommRing A] [Algebra O A] (𝔭 : Ideal
 
 /-- `A` is **split semistable at `𝔭`**: étale-locally `O[X]`, or a split node. -/
 def IsSplitSemistableAt (ϖ : O) {A : Type u} [CommRing A] [Algebra O A] (𝔭 : Ideal A) : Prop :=
-  IsEtaleLocallyAt O O[X] 𝔭 ∨ IsSplitNodeAt ϖ 𝔭
+  IsEtaleLocallyAt O O[X] 𝔭 ∨ IsSplitNodePt ϖ 𝔭
 
 variable {ϖ : O} {A A' : Type u} [CommRing A] [Algebra O A] [CommRing A'] [Algebra O A']
 
-namespace IsSplitNodeAt
+namespace IsSplitNodePt
 
-theorem isEtaleLocallyAt {𝔭 : Ideal A} (h : IsSplitNodeAt ϖ 𝔭) :
+theorem isEtaleLocallyAt {𝔭 : Ideal A} (h : IsSplitNodePt ϖ 𝔭) :
     ∃ n : ℕ, IsEtaleLocallyAt O (Node O (ϖ ^ n)) 𝔭 := by
   obtain ⟨n, C, _, g, f, 𝔮, hg, hf, h𝔮, hc, hO, -⟩ := h
   exact ⟨n, C, inferInstance, g, f, 𝔮, hg, hf, h𝔮, hc, hO⟩
 
-theorem isSemistableAt {𝔭 : Ideal A} (h : IsSplitNodeAt ϖ 𝔭) : IsSemistableAt ϖ 𝔭 :=
+theorem isSemistableAt {𝔭 : Ideal A} (h : IsSplitNodePt ϖ 𝔭) : IsSemistableAt ϖ 𝔭 :=
   .inl h.isEtaleLocallyAt
 
 /-- The residue field at a split node is that of `O`. -/
-theorem residue {𝔭 : Ideal A} (h : IsSplitNodeAt ϖ 𝔭) (a : A) :
+theorem residue {𝔭 : Ideal A} (h : IsSplitNodePt ϖ 𝔭) (a : A) :
     ∃ o : O, a - algebraMap O A o ∈ 𝔭 := by
   obtain ⟨n, C, _, g, f, 𝔮, -, -, -, hc, -, -, -, hs⟩ := h
   obtain ⟨o, ho⟩ := hs (Ideal.Quotient.mk 𝔮 (g a))
@@ -79,14 +79,14 @@ lemma mem_of_u_v_mem {n : ℕ} {C : Type u} [CommRing C] {g : A →+* C}
   exact ‹𝔮.IsPrime›.mem_of_pow_mem n h2
 
 /-- A split node lies on the special fibre. -/
-theorem algebraMap_mem {𝔭 : Ideal A} (h : IsSplitNodeAt ϖ 𝔭) : algebraMap O A ϖ ∈ 𝔭 := by
+theorem algebraMap_mem {𝔭 : Ideal A} (h : IsSplitNodePt ϖ 𝔭) : algebraMap O A ϖ ∈ 𝔭 := by
   obtain ⟨n, C, _, g, f, 𝔮, -, -, h𝔮, hc, hO, -, hv, -⟩ := h
   rw [← hc, Ideal.mem_comap]
   exact mem_of_u_v_mem hO hv
 
 /-- **Descent from an étale neighbourhood.** -/
 theorem of_etale_of_comap (φ : A →ₐ[O] A') (hφ : φ.toRingHom.Etale) {𝔭' : Ideal A'}
-    (h : IsSplitNodeAt ϖ 𝔭') : IsSplitNodeAt ϖ (𝔭'.comap φ.toRingHom) := by
+    (h : IsSplitNodePt ϖ 𝔭') : IsSplitNodePt ϖ (𝔭'.comap φ.toRingHom) := by
   obtain ⟨n, C, _, g, f, 𝔮, hg, hf, h𝔮, hcomap, hcomp, hu, hv, hs⟩ := h
   have hφO : g.comp (algebraMap O A') = (g.comp φ.toRingHom).comp (algebraMap O A) := by
     rw [RingHom.comp_assoc]
@@ -99,7 +99,7 @@ theorem of_etale_of_comap (φ : A →ₐ[O] A') (hφ : φ.toRingHom.Etale) {𝔭
 /-- **Ascent along étale maps** to a point `𝔭'` with the residue field of `O`. -/
 theorem of_etale (φ : A →ₐ[O] A') (hφ : φ.toRingHom.Etale) (𝔭' : Ideal A') [𝔭'.IsPrime]
     (hres : ∀ a' : A', ∃ o : O, a' - algebraMap O A' o ∈ 𝔭')
-    (h : IsSplitNodeAt ϖ (𝔭'.comap φ.toRingHom)) : IsSplitNodeAt ϖ 𝔭' := by
+    (h : IsSplitNodePt ϖ (𝔭'.comap φ.toRingHom)) : IsSplitNodePt ϖ 𝔭' := by
   obtain ⟨n, C, _, g, f, 𝔮, hg, hf, h𝔮, hcomap, hcomp, hu, hv, hs⟩ := h
   letI : Algebra A A' := φ.toRingHom.toAlgebra
   letI : Algebra A C := g.toAlgebra
@@ -173,7 +173,7 @@ theorem of_etale (φ : A →ₐ[O] A') (hφ : φ.toRingHom.Etale) (𝔭' : Ideal
   obtain ⟨o, ho⟩ := key z
   exact ⟨o, (Ideal.Quotient.eq.2 ho).symm⟩
 
-end IsSplitNodeAt
+end IsSplitNodePt
 
 /-- **Residue fields of localizations**: if `A` has the residue field of `O` at `𝔭' ∩ A`, which
 lies on the special fibre, so does a localization `A' = A[1/s]` at `𝔭'`. -/
@@ -368,24 +368,24 @@ theorem isEtaleLocallyAt_of_u_notMem (𝔫 : Ideal (Node O a)) [𝔫.IsPrime] (h
   rw [aeval_C]
 
 /-- The swap `u ↔ v` of the node. -/
-noncomputable def swap : Node O a ≃ₐ[O] Node O a :=
+noncomputable def swapUV : Node O a ≃ₐ[O] Node O a :=
   AlgEquiv.ofAlgHom (lift (v a) (u a) (by rw [mul_comm, u_mul_v]))
     (lift (v a) (u a) (by rw [mul_comm, u_mul_v]))
     (algHom_ext (by simp) (by simp)) (algHom_ext (by simp) (by simp))
 
-lemma swap_u : swap (a := a) (u a) = v a := by
-  simp [swap]
+lemma swapUV_u : swapUV (a := a) (u a) = v a := by
+  simp [swapUV]
 
 /-- The same with `v ∉ 𝔫`. -/
 theorem isEtaleLocallyAt_of_v_notMem (𝔫 : Ideal (Node O a)) [𝔫.IsPrime] (hv : v a ∉ 𝔫) :
     IsEtaleLocallyAt O O[X] 𝔫 := by
-  have h : IsEtaleLocallyAt O O[X] (𝔫.comap (swap (a := a)).toAlgHom.toRingHom) :=
+  have h : IsEtaleLocallyAt O O[X] (𝔫.comap (swapUV (a := a)).toAlgHom.toRingHom) :=
     isEtaleLocallyAt_of_u_notMem _ (by
       rw [Ideal.mem_comap]
-      change swap (a := a) (u a) ∉ 𝔫
-      rw [swap_u]; exact hv)
-  have h' := h.of_etale_of_comap (swap (a := a)).symm.toAlgHom
-    (RingHom.Etale.of_bijective (swap (a := a)).symm.bijective)
+      change swapUV (a := a) (u a) ∉ 𝔫
+      rw [swapUV_u]; exact hv)
+  have h' := h.of_etale_of_comap (swapUV (a := a)).symm.toAlgHom
+    (RingHom.Etale.of_bijective (swapUV (a := a)).symm.bijective)
   convert h' using 1
   ext x
   simp [Ideal.mem_comap]
@@ -395,7 +395,7 @@ end Node
 namespace IsSplitSemistableAt
 
 theorem isSemistableAt {𝔭 : Ideal A} (h : IsSplitSemistableAt ϖ 𝔭) : IsSemistableAt ϖ 𝔭 :=
-  h.elim .inr IsSplitNodeAt.isSemistableAt
+  h.elim .inr IsSplitNodePt.isSemistableAt
 
 theorem of_etale_of_comap (φ : A →ₐ[O] A') (hφ : φ.toRingHom.Etale) {𝔭' : Ideal A'}
     (h : IsSplitSemistableAt ϖ 𝔭') : IsSplitSemistableAt ϖ (𝔭'.comap φ.toRingHom) :=

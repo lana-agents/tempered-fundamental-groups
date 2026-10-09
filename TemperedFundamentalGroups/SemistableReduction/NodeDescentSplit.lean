@@ -11,10 +11,10 @@ import TemperedFundamentalGroups.SemistableReduction.SplitNodeGen
 
 Blueprint §10.3.8 (split nodes). `W10Route.NodeDescentSplitStatement`: the node descent statement
 `W10Route.NodeDescentStatement` with the conclusion strengthened to a **split node**
-(`IsSplitNodeAt`): the descended node point has the residue field of `O_E` in a common étale
+(`IsSplitNodePt`): the descended node point has the residue field of `O_E` in a common étale
 neighbourhood with the singular point of the node. It holds with the same finite set of
 constants (`W10Route.nodeDescentSplitStatement`): the residues at the descended point are
-rational by construction (`exists_finset_forall_isSplitNodeAt`).
+rational by construction (`exists_finset_forall_isSplitNodePt`).
 -/
 
 namespace SemistableReduction
@@ -26,7 +26,7 @@ open GaussTube DVRDescent
 universe u
 
 /-- **Descent of node points, split form.** As `NodeDescentStatement`, with the conclusion
-`IsSplitNodeAt ϖ (P'.comap ιN)`. -/
+`IsSplitNodePt ϖ (P'.comap ιN)`. -/
 def NodeDescentSplitStatement : Prop :=
   ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C] [CharZero C]
     (p : ℕ) (_ : p.Prime) (_ : ‖(p : C)‖ < 1)
@@ -54,12 +54,12 @@ def NodeDescentSplitStatement : Prop :=
       (P' : Ideal (Rint c₀ G)), P'.IsMaximal →
       P'.comap (algebraMap (nodeRing c₀) (Rint c₀ G)) = tubeIdeal c₀ →
       IsNodeODP hc hc0 P' →
-      IsSplitNodeAt ϖ (P'.comap (ιN χ hφ hχ hcE))
+      IsSplitNodePt ϖ (P'.comap (ιN χ hφ hχ hcE))
 
 /-- **O1, split form.** -/
 theorem nodeDescentSplitStatement : NodeDescentSplitStatement.{u} := by
   intro C _ _ _ _ p hp hp1 G _ _ _ _ _ T hT c₀ hc hc0
-  obtain ⟨S, hS⟩ := exists_finset_forall_isSplitNodeAt.{u, u, u} hp hp1 hT hc hc0
+  obtain ⟨S, hS⟩ := exists_finset_forall_isSplitNodePt.{u, u, u} hp hp1 hT hc hc0
   refine ⟨S, ?_⟩
   intro E _ _ _ φ hφ hSφ halg _ _ F₀ _ _ _ _ _ _ χ hχ hdeg hTχ ϖ hϖ c₀E hcE inst hinst P' hP'm
     hP' hODP

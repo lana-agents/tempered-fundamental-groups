@@ -153,7 +153,7 @@ set_option maxHeartbeats 4000000 in
 include hp hp1 in
 /-- **Uniform descent at one ordinary double point, split form**: a finite set of constants `S`
 such that every admissible `E ⊇ S` descends `P'` to a split node. -/
-theorem exists_finset_isSplitNodeAt {T : Finset G}
+theorem exists_finset_isSplitNodePt {T : Finset G}
     (hT : Algebra.adjoin (RatFunc C) (T : Set G) = ⊤) {c : C} (hc : ‖c‖ < 1) (hc0 : c ≠ 0)
     (P' : Ideal (Rint c G)) [P'.IsMaximal]
     (hP' : P'.comap (algebraMap (nodeRing c) (Rint c G)) = tubeIdeal c)
@@ -169,7 +169,7 @@ theorem exists_finset_isSplitNodeAt {T : Finset G}
       (ι : BE F₀ c₀ →+* Rint c G) (_hι : ∀ y, (ι y : G) = χ y)
       {ϖ : HenselComplete.integers E} (_hϖ : Irreducible ϖ),
       letI := algO (F₀ := F₀) c₀
-      IsSplitNodeAt ϖ (P'.comap ι) := by
+      IsSplitNodePt ϖ (P'.comap ι) := by
   classical
   obtain ⟨b₁, -, hb₁, -⟩ := id hODP
   obtain ⟨b₂, hb₂, hfp, hP₁, hP₂⟩ := exists_cData hc hc0 hODP hb₁
@@ -244,7 +244,7 @@ theorem exists_finset_isSplitNodeAt {T : Finset G}
   have hyrange : yR (φ c₀) ∈ ι.range := hdesc _ (hin5 (by tauto))
   have hrrange' : ∀ j, r j ∈ ι.range := fun j ↦ hdesc _
     (by rw [hys]; exact Finset.mem_union_right _ (Finset.mem_image_of_mem _ (Finset.mem_univ j)))
-  refine isSplitNodeAt_of_descentData hp hp1 hφ hχ hdeg hθ₀ rfl hc hc0 hP' hODP hb₁ hb₂ ι hι
+  refine isSplitNodePt_of_descentData hp hp1 hφ hχ hdeg hθ₀ rfl hc hc0 hP' hODP hb₁ hb₂ ι hι
     ?_ ?_ ?_ ?_ t₀' ?_ ?_ ?_ yu' ?_ ?_ yv' ?_ ?_ ?_ ?_ ?_ hϖ
   · exact heo
   · exact fun v f ↦ heoI (toInvExt hc0 v) f
@@ -288,7 +288,7 @@ theorem exists_finset_isSemistableAt {T : Finset G}
       {ϖ : HenselComplete.integers E} (_hϖ : Irreducible ϖ),
       letI := algO (F₀ := F₀) c₀
       IsSemistableAt ϖ (P'.comap ι) := by
-  obtain ⟨S, hS⟩ := exists_finset_isSplitNodeAt.{u, v, w} hp hp1 hT hc hc0 P' hP' hODP
+  obtain ⟨S, hS⟩ := exists_finset_isSplitNodePt.{u, v, w} hp hp1 hT hc hc0 P' hP' hODP
   refine ⟨S, ?_⟩
   intro E F₀ _ _ _ φ hφ hSφ halg _ _ _ _ χ hχ hdeg hTχ c₀ hcc ι hι ϖ hϖ
   letI := algO (F₀ := F₀) c₀
@@ -298,7 +298,7 @@ include hp hp1 in
 /-- **Uniform descent of node points, split form**: a finite set of constants `S` such that for
 every admissible `E ⊇ S`, every ordinary double point over the node of the normalized node chart
 descends to a split node of `B_E`. -/
-theorem exists_finset_forall_isSplitNodeAt {T : Finset G}
+theorem exists_finset_forall_isSplitNodePt {T : Finset G}
     (hT : Algebra.adjoin (RatFunc C) (T : Set G) = ⊤) {c : C} (hc : ‖c‖ < 1) (hc0 : c ≠ 0) :
     ∃ S : Finset C, ∀ {E F₀ : Type w} [NontriviallyNormedField E] [IsUltrametricDist E]
       [IsDiscreteValuationRing (HenselComplete.integers E)] (φ : E →+* C)
@@ -314,7 +314,7 @@ theorem exists_finset_forall_isSplitNodeAt {T : Finset G}
       (_hP' : P'.comap (algebraMap (nodeRing c) (Rint c G)) = tubeIdeal c)
       (_hODP : IsNodeODP hc hc0 P'),
       letI := algO (F₀ := F₀) c₀
-      IsSplitNodeAt ϖ (P'.comap ι) := by
+      IsSplitNodePt ϖ (P'.comap ι) := by
   classical
   haveI := finite_ext (F := G) hp hp1
   letI : Fintype (OuterBranch C G) := Fintype.ofFinite _
@@ -322,7 +322,7 @@ theorem exists_finset_forall_isSplitNodeAt {T : Finset G}
     if h : (placeIdeal hc b.1 b.2.2).comap (algebraMap (nodeRing c) (Rint c G)) =
         tubeIdeal c ∧ IsNodeODP hc hc0 (placeIdeal hc b.1 b.2.2) then
       haveI := placeIdeal_isMaximal hc b.1 b.2.2
-      Classical.choose (exists_finset_isSplitNodeAt.{u, v, w} hp hp1 hT hc hc0
+      Classical.choose (exists_finset_isSplitNodePt.{u, v, w} hp hp1 hT hc hc0
         (placeIdeal hc b.1 b.2.2) h.1 h.2)
     else ∅
   refine ⟨Finset.univ.biUnion Sb, ?_⟩
@@ -334,7 +334,7 @@ theorem exists_finset_forall_isSplitNodeAt {T : Finset G}
       tubeIdeal c ∧ IsNodeODP hc hc0 (placeIdeal hc b₁.1 b₁.2.2) := ⟨hP', hODP⟩
   have hsub : Sb b₁ ⊆ Finset.univ.biUnion Sb := Finset.subset_biUnion_of_mem Sb (Finset.mem_univ _)
   simp only [Sb, dif_pos h] at hsub
-  exact Classical.choose_spec (exists_finset_isSplitNodeAt.{u, v, w} hp hp1 hT hc hc0
+  exact Classical.choose_spec (exists_finset_isSplitNodePt.{u, v, w} hp hp1 hT hc hc0
     (placeIdeal hc b₁.1 b₁.2.2) h.1 h.2) φ hφ
     ((Finset.coe_subset.mpr hsub).trans hS) halg χ hχ hdeg hTχ c₀ hcc ι hι hϖ
 
@@ -359,7 +359,7 @@ theorem exists_finset_forall_isSemistableAt {T : Finset G}
       (_hODP : IsNodeODP hc hc0 P'),
       letI := algO (F₀ := F₀) c₀
       IsSemistableAt ϖ (P'.comap ι) := by
-  obtain ⟨S, hS⟩ := exists_finset_forall_isSplitNodeAt.{u, v, w} hp hp1 hT hc hc0
+  obtain ⟨S, hS⟩ := exists_finset_forall_isSplitNodePt.{u, v, w} hp hp1 hT hc hc0
   refine ⟨S, ?_⟩
   intro E F₀ _ _ _ φ hφ hSφ halg _ _ _ _ χ hχ hdeg hTχ c₀ hcc ι hι ϖ hϖ P' _ hP' hODP
   letI := algO (F₀ := F₀) c₀

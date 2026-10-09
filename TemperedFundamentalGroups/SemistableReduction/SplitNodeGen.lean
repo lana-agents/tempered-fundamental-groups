@@ -62,7 +62,7 @@ private lemma generize [IsLocalRing O] (hϖ : maximalIdeal O ≤ Ideal.span {ϖ}
       exact ‹𝔮.IsPrime›.ne_top (Ideal.eq_top_of_isUnit_mem _ h2 ((hunit.map _).map _))
     · obtain ⟨r, hr⟩ := Ideal.mem_span_singleton'.1 (hϖ ((mem_maximalIdeal _).2 hunit))
       rw [← hr, map_mul, map_mul]
-      exact Ideal.mul_mem_left _ _ (IsSplitNodeAt.mem_of_u_v_mem hO huv.2)
+      exact Ideal.mul_mem_left _ _ (IsSplitNodePt.mem_of_u_v_mem hO huv.2)
   · left
     letI : Algebra O C := (g.comp (algebraMap O A)).toAlgebra
     let fA : Node O (ϖ ^ n) →ₐ[O] C :=

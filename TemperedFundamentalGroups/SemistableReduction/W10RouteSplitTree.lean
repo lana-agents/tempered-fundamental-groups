@@ -71,6 +71,9 @@ namespace W10Route
 
 open GaussTube DiscCount AffineTwist SmoothVertex TreeBridge GaussTree ZariskiModel
 
+set_option hygiene false in
+local notation "O_E" => (NormedField.valuation (K := E)).valuationSubring
+
 /-- **G4′: the points of the charts of the normalized tree model over `E` are classified**
 (`SplitClass`), given the smooth descent in the smooth form (the node descent in the split form
 is `nodeDescentSplitStatement`). -/

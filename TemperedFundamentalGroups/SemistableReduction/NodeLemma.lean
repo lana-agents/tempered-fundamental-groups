@@ -89,7 +89,7 @@ variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O]
 node lemma (S9): at a point `𝔭` of a normal chart `B` over the base node `x y = c₀`
 at which the special fibre is an ordinary double point with branch orders `d`, `B` is
 étale-locally the node `O[u, v] ⧸ (u v - ϖ ^ n)` with `x = ε u ^ d`, `y = ε' v ^ d`. -/
-theorem isAnnulusAt_and_isSplitNodeAt_of_isOrdinaryDoublePoint {ϖ : O} (hϖ : Irreducible ϖ)
+theorem isAnnulusAt_and_isSplitNodePt_of_isOrdinaryDoublePoint {ϖ : O} (hϖ : Irreducible ϖ)
     (𝔭 : Ideal B)
     [𝔭.IsPrime] {u' v' : B} {𝔔₁ 𝔔₂ : Ideal (Localization.AtPrime 𝔭)}
     (H : IsOrdinaryDoublePoint ϖ (algebraMap B (Localization.AtPrime 𝔭) u')
@@ -98,7 +98,7 @@ theorem isAnnulusAt_and_isSplitNodeAt_of_isOrdinaryDoublePoint {ϖ : O} (hϖ : I
     {s η : B} (hs : s ∉ 𝔭) (hη : η ∉ 𝔭)
     (hx : s * x - η * u' ^ d ∈ Ideal.span {algebraMap O B ϖ, v'})
     (hy : algebraMap B (Localization.AtPrime 𝔭) y ∉ 𝔔₂) :
-    IsAnnulusAt ϖ x y d 𝔭 ∧ IsSplitNodeAt ϖ 𝔭 := by
+    IsAnnulusAt ϖ x y d 𝔭 ∧ IsSplitNodePt ϖ 𝔭 := by
   classical
   let D := Localization.AtPrime 𝔭
   let ιD := algebraMap B D
@@ -358,7 +358,7 @@ theorem isAnnulusAt_of_isOrdinaryDoublePoint {ϖ : O} (hϖ : Irreducible ϖ) (�
     (hx : s * x - η * u' ^ d ∈ Ideal.span {algebraMap O B ϖ, v'})
     (hy : algebraMap B (Localization.AtPrime 𝔭) y ∉ 𝔔₂) :
     IsAnnulusAt ϖ x y d 𝔭 :=
-  (isAnnulusAt_and_isSplitNodeAt_of_isOrdinaryDoublePoint hϖ 𝔭 H hc₀ hxy hd hs hη hx hy).1
+  (isAnnulusAt_and_isSplitNodePt_of_isOrdinaryDoublePoint hϖ 𝔭 H hc₀ hxy hd hs hη hx hy).1
 
 end Assembly
 

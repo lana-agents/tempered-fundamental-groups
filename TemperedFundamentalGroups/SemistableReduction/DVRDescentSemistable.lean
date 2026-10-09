@@ -98,7 +98,7 @@ set_option maxHeartbeats 1000000 in
 -- the branch types are elaboration-heavy
 /-- **Split node at the descended node point** from the descent data: `B_E` is étale-locally
 the node at `P' ∩ B_E`, and the node is split (rational residues `hres`). -/
-theorem isSplitNodeAt_of_descentData (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+theorem isSplitNodePt_of_descentData (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
     [IsDiscreteValuationRing (HenselComplete.integers E)] [FiniteDimensional (RatFunc E) F₀]
     [Algebra.IsSeparable (RatFunc E) F₀]
     (hφ : ∀ e, ‖φ e‖ = ‖e‖) (hχ : IsCompat φ χ)
@@ -127,7 +127,7 @@ theorem isSplitNodeAt_of_descentData (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
     (halgk : letI := kEAlgebra φ; Algebra.IsAlgebraic (kE φ) 𝓀)
     {ϖ : HenselComplete.integers E} (hϖ : Irreducible ϖ) :
     letI := algO (F₀ := F₀) c₀
-    IsSplitNodeAt ϖ (P'.comap ι) := by
+    IsSplitNodePt ϖ (P'.comap ι) := by
   classical
   subst hcc
   have hc₀0 : c₀ ≠ 0 := by rintro rfl; exact hc0 (map_zero φ)
@@ -143,7 +143,7 @@ theorem isSplitNodeAt_of_descentData (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
   haveI : (P'.comap ι).IsPrime := Ideal.comap_isPrime ι P'
   obtain ⟨_, _, -, H⟩ := branchData hp hp1 hφ hχ hdeg hθ hc hc0 hODP hb₁ hb₂ hι heo hei hLD₁
     hLD₂ t₀ ht₀ ht₀o ht₀i yu hyu₁ hyu₂ yv hyv₂ hyv₁ hspan hres halgk hϖ
-  exact H.isSplitNodeAt
+  exact H.isSplitNodePt
 
 /-- **Semistability at the descended node point** from the descent data: `B_E` is étale-locally
 the node at `P' ∩ B_E`. -/
@@ -178,7 +178,7 @@ theorem isSemistableAt_of_descentData (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
     letI := algO (F₀ := F₀) c₀
     IsSemistableAt ϖ (P'.comap ι) := by
   letI := algO (F₀ := F₀) c₀
-  exact (isSplitNodeAt_of_descentData hp hp1 hφ hχ hdeg hθ hcc hc hc0 hP' hODP hb₁ hb₂ ι hι heo
+  exact (isSplitNodePt_of_descentData hp hp1 hφ hχ hdeg hθ hcc hc hc0 hP' hODP hb₁ hb₂ ι hι heo
     hei hLD₁ hLD₂ t₀ ht₀ ht₀o ht₀i yu hyu₁ hyu₂ yv hyv₂ hyv₁ hspan hres halgk hϖ).isSemistableAt
 
 end Descent

@@ -172,7 +172,7 @@ theorem edgeStepSplit [IsDiscreteValuationRing O_E] (hϖ : Irreducible ϖ) {aE c
         Aff aE cE hcE F₀) = toAff hcE (algebraMap E F₀ o)) →
       ∀ P' : Ideal (Rint c₀ (Aff a c hc F')), P'.IsMaximal →
         P'.comap (algebraMap (nodeRing c₀) (Rint c₀ (Aff a c hc F'))) = tubeIdeal c₀ →
-        IsSplitNodeAt ϖ (P'.comap (ιN (χAff χ hcE hc) hφ (isCompat_χAff hcE hc hχ ha hcc) hc₀E)))
+        IsSplitNodePt ϖ (P'.comap (ιN (χAff χ hcE hc) hφ (isCompat_χAff hcE hc hχ ha hcc) hc₀E)))
     [Algebra O_E (normChart F₀ (nodeChart νE (coord (RatFunc.X : RatFunc E) aE cE) c₀E))]
     (hBc : ∀ o, ((algebraMap O_E
       (normChart F₀ (nodeChart νE (coord (RatFunc.X : RatFunc E) aE cE) c₀E)) o :
