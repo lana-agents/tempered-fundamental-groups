@@ -172,6 +172,56 @@ lemma eq_one_or_eq_σS {g : SemilinearAut R A (B c)} (hg : g ∈ Subgroup.zpower
     change σS c A ^ (2 * k + 1) = σS c A
     rw [zpow_add, zpow_mul, zpow_two, σS_mul_self, one_zpow, one_mul, zpow_one]
 
+/-! ### The geometric fibre: `⟨σ⟩` acts simply transitively -/
+
+variable {Ω : Type u} [Field Ω] [Algebra R Ω]
+
+variable (c) in
+/-- Two geometric points differ by `σ` or agree. -/
+lemma eq_or_eq_comp_σ (t t' : B c →ₐ[R] Ω) : t' = t ∨ t' = t.comp (σ c).toAlgHom := by
+  have h : t' (x c) ^ 2 = t (x c) ^ 2 := by
+    rw [← map_pow, ← map_pow, x_sq, AlgHom.commutes, AlgHom.commutes]
+  rcases sq_eq_sq_iff_eq_or_eq_neg.1 h with h | h
+  · exact Or.inl (algHom_ext c h)
+  · refine Or.inr (algHom_ext c ?_)
+    rw [h]
+    change _ = t (σ c (x c))
+    rw [σ_x, map_neg]
+
+/-- An element of `H⁰ = H` of the level. -/
+def σH0 : (level h2 hc A).H0 :=
+  ⟨⟨σS c A, Subgroup.mem_zpowers _⟩, FiniteLevel.mem_H0.2 (Subsingleton.elim _ _)⟩
+
+lemma fibreAct_σH0 (t : B c →ₐ[R] Ω) :
+    FiniteLevel.fibreAct Ω (level h2 hc A) (σH0 h2 hc A) t = t.comp (σ c).toAlgHom := by
+  refine algHom_ext c ?_
+  change t ((σ c).toRingEquiv.symm (x c)) = t (σ c (x c))
+  congr 1
+
+/-- **`H⁰` acts transitively on the geometric fibre.** -/
+lemma exists_fibreAct_eq (t t' : B c →ₐ[R] Ω) :
+    ∃ g : (level h2 hc A).H0, FiniteLevel.fibreAct Ω (level h2 hc A) g t = t' := by
+  rcases eq_or_eq_comp_σ c t t' with rfl | rfl
+  · exact ⟨1, FiniteLevel.fibreAct_one _ _ _⟩
+  · exact ⟨σH0 h2 hc A, fibreAct_σH0 h2 hc A t⟩
+
+/-- **`H⁰` acts freely on the geometric fibre** (if `2 ≠ 0` and `c ≠ 0` in `Ω`). -/
+lemma eq_one_of_fibreAct_eq (h2Ω : (2 : Ω) ≠ 0) (hcΩ : algebraMap R Ω c ≠ 0)
+    {g : (level h2 hc A).H0} {t : B c →ₐ[R] Ω}
+    (hg : FiniteLevel.fibreAct Ω (level h2 hc A) g t = t) : g = 1 := by
+  rcases eq_one_or_eq_σS c A g.1.2 with h | h
+  · exact Subtype.ext (Subtype.ext h)
+  · exfalso
+    have hgσ : g = σH0 h2 hc A := Subtype.ext (Subtype.ext h)
+    rw [hgσ, fibreAct_σH0] at hg
+    have hx : t (σ c (x c)) = t (x c) := congrArg (fun φ : B c →ₐ[R] Ω ↦ φ (x c)) hg
+    rw [σ_x, map_neg] at hx
+    have h0 : t (x c) = 0 := by
+      have : (2 : Ω) * t (x c) = 0 := by linear_combination -hx
+      exact (mul_eq_zero.1 this).resolve_left h2Ω
+    apply hcΩ
+    rw [← AlgHom.commutes t c, ← x_sq, map_pow, h0, zero_pow two_ne_zero]
+
 end
 
 end TemperedFundamentalGroups.QuadraticLevel

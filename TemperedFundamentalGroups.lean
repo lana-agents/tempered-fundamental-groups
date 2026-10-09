@@ -39,6 +39,7 @@ import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TateRestrictLevel
 import TemperedFundamentalGroups.Andre.TateRestrictModel
+import TemperedFundamentalGroups.Andre.TateRestrictObject
 import TemperedFundamentalGroups.Andre.TateRestrictSigma
 import TemperedFundamentalGroups.Andre.TateSurjective
 import TemperedFundamentalGroups.Andre.TateThreeGon
