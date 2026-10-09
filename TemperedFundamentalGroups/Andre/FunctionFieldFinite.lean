@@ -5,8 +5,6 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.WModelGerm
 
-open Polynomial Cardinal
-
 /-!
 # Finite-dimensionality of function fields of curves over subfields
 
@@ -15,6 +13,8 @@ finite type `K`-algebra, algebraic over `K'(u)` for a finite extension `K'/K`) i
 finite-dimensional over every subfield `F` containing an element transcendental over `K`
 (transcendence degree one).
 -/
+
+open Polynomial Cardinal
 
 universe u
 

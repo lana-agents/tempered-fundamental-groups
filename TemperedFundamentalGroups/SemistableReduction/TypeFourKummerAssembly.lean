@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.TypeFourKummerStep
 import TemperedFundamentalGroups.SemistableReduction.KummerUnram
+import TemperedFundamentalGroups.SemistableReduction.TypeFourDegreeReductionAS
 
 /-!
 # The Kummer step from the degree reduction
@@ -323,6 +324,34 @@ theorem typeFourGoodFor_of_degreeReduction {p : ℕ} (hp : p.Prime) (hp1 : ‖(p
     S8A.TypeFourGoodFor C F :=
   typeFourGoodFor_of (fun _ _ _ _ _ _ _ ↦ unifFor_of_kummerStep hp hp1
     (kummerStepFor_of hp hp1 hDR)) hG hA6
+
+/-- **`TypeFourGoodFor` from the Artin–Schreier case of the degree reduction** (the purely
+inseparable case is `DegRed.degreeReduction_of_kb_lt`). -/
+theorem typeFourGoodFor_of_degreeReductionAS {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+    (hAS : DegRed.DegreeReductionASFor C p) {F : Type v} [Field F] [Algebra (RatFunc C) F]
+    [Algebra C F] [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F]
+    (hG : ∀ (L : Type v) [Field L] [Algebra (RatFunc C) L] [Algebra C L]
+      [IsScalarTower C (RatFunc C) L] [FiniteDimensional (RatFunc C) L]
+      [IsGalois (RatFunc C) L], CoreGFor C L)
+    (hA6 : ∀ (L : Type v) [Field L] [Algebra (RatFunc C) L] [Algebra F L]
+      [IsScalarTower (RatFunc C) F L] [Algebra C L] [IsScalarTower C (RatFunc C) L]
+      [FiniteDimensional (RatFunc C) L] [IsGalois F L], ClassicalSmooth.A6For C F L) :
+    S8A.TypeFourGoodFor C F :=
+  typeFourGoodFor_of_degreeReduction hp hp1 (DegRed.degreeReductionFor_of_AS hp hp1 hAS) hG hA6
+
+/-- **`TypeFourGoodFor` from the geometric comparison and A6**: the degree reduction is proved
+(`DegRed.degreeReductionFor`), so local uniformization at type-4 points holds unconditionally. -/
+theorem typeFourGoodFor_of_coreG {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1) {F : Type v}
+    [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
+    [FiniteDimensional (RatFunc C) F]
+    (hG : ∀ (L : Type v) [Field L] [Algebra (RatFunc C) L] [Algebra C L]
+      [IsScalarTower C (RatFunc C) L] [FiniteDimensional (RatFunc C) L]
+      [IsGalois (RatFunc C) L], CoreGFor C L)
+    (hA6 : ∀ (L : Type v) [Field L] [Algebra (RatFunc C) L] [Algebra F L]
+      [IsScalarTower (RatFunc C) F L] [Algebra C L] [IsScalarTower C (RatFunc C) L]
+      [FiniteDimensional (RatFunc C) L] [IsGalois F L], ClassicalSmooth.A6For C F L) :
+    S8A.TypeFourGoodFor C F :=
+  typeFourGoodFor_of_degreeReduction hp hp1 (DegRed.degreeReductionFor hp hp1) hG hA6
 
 end Final
 

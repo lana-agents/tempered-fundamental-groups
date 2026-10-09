@@ -5,13 +5,15 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Andre.TheoremBFinal
 import TemperedFundamentalGroups.Andre.TateCrossing
+import TemperedFundamentalGroups.SemistableReduction.CrossingX1Proof
 
 /-!
 # Theorem B with `CrossingX1` in place of `HarmonicTate` (Blueprint §10.3.8)
 
 When `b₆` is a unit (the special fibre of the Tate model is the 2-gon `C ∪ E`), the targeted
-`HarmonicTate` follows from `Statement.CrossingX1` (`Pres.harmonicTate_of_crossingX1`), so
-Theorem B and its IUT corollary hold with `CrossingX1` as input:
+`HarmonicTate` follows from `Statement.CrossingX1` (`Pres.harmonicTate_of_crossingX1`), which is
+proved (`SemistableReduction.crossingX1`). So Theorem B and its IUT corollary hold without
+`HarmonicTate`:
 
 * `TateObject.exists_character_ne_one_of_crossing`;
 * `TateOrbicurve.nondegenerate_of_crossing`.
@@ -49,14 +51,13 @@ lemma decomp_E_not_singleton : ¬ ∃ y, (decomp (A := A) T).E = {y} := by
   rw [hy] at hp hq
   exact hpq (hp.trans hq.symm)
 
-/-- **Theorem B (scheme case) with `CrossingX1`**, for `b₆` a unit. -/
+/-- **Theorem B (scheme case) without `HarmonicTate`**, for `b₆` a unit. -/
 theorem exists_character_ne_one_of_crossing
     (hW : SemistableReduction.Statement.StrongComponentA.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1)
     (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
-    (hC : SemistableReduction.Statement.CrossingX1.{u})
     (hd : Squarefree (TateNormal.dpoly T.π T.b₄ T.b₆)) (hb : IsUnit T.b₆)
     (hx : Transcendental K T.x) :
     ∃ τ : temperedPi1 O R A V hV, character T V hV τ ≠ 1 := by
@@ -65,7 +66,7 @@ theorem exists_character_ne_one_of_crossing
     (fun S hS => by
       rw [Set.mem_singleton_iff.1 hS]
       exact ⟨subset_rfl, decomp_E_not_singleton T⟩)
-    (fun P a => P.harmonicTate_of_crossingX1 T hC hb hx hϖ a) hd hx
+    (fun P a => P.harmonicTate_of_crossingX1 T SemistableReduction.crossingX1 hb hx hϖ a) hd hx
 
 end TateObject
 
@@ -85,7 +86,7 @@ variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscret
   (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
 
 include A' in
-/-- **Theorem B for IUT's orbicurves with `CrossingX1`**, for Tate data with `b₆` a unit:
+/-- **Theorem B for IUT's orbicurves without `HarmonicTate`**, for Tate data with `b₆` a unit:
 `temperedPi1 [Y/A]` has an open normal subgroup with infinite quotient. -/
 theorem nondegenerate_of_crossing (hSCA : SemistableReduction.Statement.StrongComponentA.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
@@ -93,7 +94,6 @@ theorem nondegenerate_of_crossing (hSCA : SemistableReduction.Statement.StrongCo
     (hM : (M : Set W.toAffine.Point).Finite)
     (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
-    (hC : SemistableReduction.Statement.CrossingX1.{u})
     {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) (hπ : π ≠ 0) (hπm : π ∈ IsLocalRing.maximalIdeal O)
     (hb : IsUnit b₆) :
     ∃ N : Subgroup (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV),
@@ -109,7 +109,7 @@ theorem nondegenerate_of_crossing (hSCA : SemistableReduction.Statement.StrongCo
     exact W.isUnit_Δ.ne_zero hW'
   refine nondegenerate_of_character_ne_one A A' V hV hW hπ hπm ?_
   exact TateObject.exists_character_ne_one_of_crossing (data hW hπ hπm ℓ M) V hV hSCA p hp hpm
-    (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM) hX hN ϖ hϖ hC
+    (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM) hX hN ϖ hϖ
     (TateNormal.squarefree_dpoly π b₄ b₆ h2 hΔ) hb (transcendental_data_x hW hπ hπm ℓ M)
 
 end TateOrbicurve
