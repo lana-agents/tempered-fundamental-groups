@@ -39,4 +39,4 @@ rev = "7647d28f361ba3c9705ed0a179b6a377d461c57a"
 [[require]]
 name = "oka"
 git = "https://github.com/lana-agents/oka"
-rev = "b5ab02e971b380a12105570d858fc1d702c796a7"
+rev = "405aadd70a16b05bd1a179a489b2c1c1299df695"
