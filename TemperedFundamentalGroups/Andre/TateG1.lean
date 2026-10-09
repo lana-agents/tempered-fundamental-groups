@@ -117,18 +117,18 @@ namespace Pres
 
 variable {X : TempObj O R A} (P : Pres x X)
 
+omit [IsReduced R] [Subsingleton A] in
 /-- A surjective model map has a component mapping onto `closure {z}`, for `z` whose closure and a
-closed set avoiding `z` cover the special fibre. -/
-lemma exists_image_eq_closure (a : X ⟶ TateObject.X₀ (A := A) T)
-    (hsurj : Function.Surjective (P.tateMap T a)) {z : (TateObject.X₀ (A := A) T).Lv.Z}
-    {E₀ : Set (TateObject.X₀ (A := A) T).Lv.Z} (hE : IsClosed E₀)
-    (hcov : closure {z} ∪ E₀ = univ) (hz : z ∉ E₀) :
+closed set avoiding `z` cover the special fibre (any target object `X₀`). -/
+lemma exists_image_eq_closureG {X₀ : TempObj O R A} (a : X ⟶ X₀)
+    (hsurj : Function.Surjective (P.tateMapG a)) {z : X₀.Lv.Z} {E₀ : Set X₀.Lv.Z}
+    (hE : IsClosed E₀) (hcov : closure {z} ∪ E₀ = univ) (hz : z ∉ E₀) :
     ∃ i : irreducibleComponents P.Lv.Z,
-      P.tateMap T a '' (curveConfig P.Lv.Z P.hdim).C i = closure {z} := by
+      P.tateMapG a '' (curveConfig P.Lv.Z P.hdim).C i = closure {z} := by
   obtain ⟨w, hw⟩ := hsurj z
   set i := (curveConfig P.Lv.Z P.hdim).comp w
   refine ⟨i, subset_antisymm ?_ ?_⟩
-  · have hirr : IsIrreducible (P.tateMap T a '' (curveConfig P.Lv.Z P.hdim).C i) :=
+  · have hirr : IsIrreducible (P.tateMapG a '' (curveConfig P.Lv.Z P.hdim).C i) :=
       i.2.1.image _ (continuous_specialFibreMap _ _).continuousOn
     rcases isPreirreducible_iff_isClosed_union_isClosed.1 hirr.isPreirreducible _ _
       isClosed_closure hE (by rw [hcov]; exact subset_univ _) with h | h
@@ -138,15 +138,34 @@ lemma exists_image_eq_closure (a : X ⟶ TateObject.X₀ (A := A) T)
       ((curveConfig P.Lv.Z P.hdim).isClosed_C i)).closure_subset_iff.2 ?_
     exact singleton_subset_iff.2 ⟨w, (curveConfig P.Lv.Z P.hdim).mem_comp w, hw⟩
 
-/-- A component mapping onto a set containing two distinct points is not contracted. -/
-lemma not_contr_of_image_eq (a : X ⟶ TateObject.X₀ (A := A) T)
-    {i : irreducibleComponents P.Lv.Z} {S : Set (TateObject.X₀ (A := A) T).Lv.Z}
-    (hi : P.tateMap T a '' (curveConfig P.Lv.Z P.hdim).C i = S) {p q} (hp : p ∈ S) (hq : q ∈ S)
-    (hpq : p ≠ q) : P.tateNu T a i := by
+/-- A surjective model map has a component mapping onto `closure {z}`, for `z` whose closure and a
+closed set avoiding `z` cover the special fibre. -/
+lemma exists_image_eq_closure (a : X ⟶ TateObject.X₀ (A := A) T)
+    (hsurj : Function.Surjective (P.tateMap T a)) {z : (TateObject.X₀ (A := A) T).Lv.Z}
+    {E₀ : Set (TateObject.X₀ (A := A) T).Lv.Z} (hE : IsClosed E₀)
+    (hcov : closure {z} ∪ E₀ = univ) (hz : z ∉ E₀) :
+    ∃ i : irreducibleComponents P.Lv.Z,
+      P.tateMap T a '' (curveConfig P.Lv.Z P.hdim).C i = closure {z} :=
+  P.exists_image_eq_closureG a hsurj hE hcov hz
+
+omit [IsReduced R] [Subsingleton A] in
+/-- A component mapping onto a set containing two distinct points is not contracted (any target
+object `X₀`). -/
+lemma not_contr_of_image_eqG {X₀ : TempObj O R A} (a : X ⟶ X₀)
+    {i : irreducibleComponents P.Lv.Z} {S : Set X₀.Lv.Z}
+    (hi : P.tateMapG a '' (curveConfig P.Lv.Z P.hdim).C i = S) {p q} (hp : p ∈ S) (hq : q ∈ S)
+    (hpq : p ≠ q) : P.tateNuG a i := by
   rintro ⟨y, hy⟩
   rw [hi] at hy
   rw [hy] at hp hq
   exact hpq (hp.trans hq.symm)
+
+/-- A component mapping onto a set containing two distinct points is not contracted. -/
+lemma not_contr_of_image_eq (a : X ⟶ TateObject.X₀ (A := A) T)
+    {i : irreducibleComponents P.Lv.Z} {S : Set (TateObject.X₀ (A := A) T).Lv.Z}
+    (hi : P.tateMap T a '' (curveConfig P.Lv.Z P.hdim).C i = S) {p q} (hp : p ∈ S) (hq : q ∈ S)
+    (hpq : p ≠ q) : P.tateNu T a i :=
+  P.not_contr_of_image_eqG a hi hp hq hpq
 
 variable [IsDiscreteValuationRing O] [IsDomain R]
 
@@ -183,13 +202,11 @@ theorem exists_image_eq_E (hd : Squarefree (TateNormal.dpoly T.π T.b₄ T.b₆)
   exact ⟨i, hi, P.not_contr_of_image_eq T a hi (TateModel.pZ_mem_Eset T.π_mem)
     (TateModel.qZ_mem_Eset T.π_mem) (TateModel.pZ_ne_qZ T.π_mem)⟩
 
-/-- **(G1), tree form**: a component vertex of the tree of the universal covering of a member
-whose component is not contracted over the Tate model. -/
-theorem exists_tree_tateNu (hd : Squarefree (TateNormal.dpoly T.π T.b₄ T.b₆))
-    (hx : Transcendental K T.x) (a : X ⟶ TateObject.X₀ (A := A) T) :
+omit [IsReduced R] [Subsingleton A] [IsDiscreteValuationRing O] [IsDomain R] in
+/-- Every component is the label of a component vertex of the tree of the universal covering. -/
+lemma exists_tree_lab_eq (i : irreducibleComponents P.Lv.Z) :
     ∃ t₁ : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀),
-      IsComp t₁ ∧ P.tateNu T a (lab t₁) := by
-  obtain ⟨i, -, hi⟩ := P.exists_image_eq_C T hd hx a
+      IsComp t₁ ∧ lab t₁ = i := by
   haveI : Nonempty P.E := ⟨universalCovering.base P.hdim P.z₀⟩
   obtain ⟨e, he⟩ := (universalCovering.isUniversalCovering.{u, u, u} P.hdim
     P.z₀).isCoveringMap.surjective_of_connectedSpace ((curveConfig P.Lv.Z P.hdim).η i)
@@ -200,13 +217,21 @@ theorem exists_tree_tateNu (hd : Squarefree (TateNormal.dpoly T.π T.b₄ T.b₆
     rw [he'] at hm
     have hji : j = i := ((curveConfig P.Lv.Z P.hdim).eq_of_notMem_S
       ((curveConfig P.Lv.Z P.hdim).η_mem i) hm.1 hS).symm
-    refine ⟨e.1.2, ⟨j, hj⟩, ?_⟩
-    rw [lab_of hj, hji]
-    exact hi
+    exact ⟨e.1.2, ⟨j, hj⟩, (lab_of hj).trans hji⟩
   · have h1 := Cover.eq_of_inr hs
     have h2 := mem_S_of_head hs
     rw [← h1, he'] at h2
     exact absurd h2 hS
+
+/-- **(G1), tree form**: a component vertex of the tree of the universal covering of a member
+whose component is not contracted over the Tate model. -/
+theorem exists_tree_tateNu (hd : Squarefree (TateNormal.dpoly T.π T.b₄ T.b₆))
+    (hx : Transcendental K T.x) (a : X ⟶ TateObject.X₀ (A := A) T) :
+    ∃ t₁ : (curveConfig P.Lv.Z P.hdim).Tree (universalCovering.root P.hdim P.z₀),
+      IsComp t₁ ∧ P.tateNu T a (lab t₁) := by
+  obtain ⟨i, -, hi⟩ := P.exists_image_eq_C T hd hx a
+  obtain ⟨t₁, ht, hl⟩ := P.exists_tree_lab_eq i
+  exact ⟨t₁, ht, hl ▸ hi⟩
 
 /-- **(G1), tree form**, for `2 ≠ 0` and nonzero discriminant `Δ = -π² E` of the Tate curve. -/
 theorem exists_tree_tateNu_of_tateDisc (h2 : (2 : O) ≠ 0)
