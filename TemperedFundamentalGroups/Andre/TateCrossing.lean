@@ -14,8 +14,8 @@ For a member `Q` (with W-model data `D = Q.D`) and `a : Q.U ⟶ X₀`, the model
 `Q.tateψ : D.c' ⟶ tgtModel T` (the Tate model as the projective model of the function field
 `L₂ = TateField` of the Tate curve) satisfies the hypotheses of `Statement.CrossingX1`:
 
-* `L₂ ⊆ L₁ = D.L₁` through `TateNormal.toField` (`X ↦ x/π`, `Y ↦ y/π`), with `L₁ / L₂` finite
-  (`finiteDimensional_of_transcendental`, transcendence degree one);
+* `L₂ ⊆ L₁ = D.L₁` through `TateNormal.toField` (`X ↦ x/π`, `Y ↦ y/π`) (`L₁ / L₂` is finite,
+  `finiteDimensional_toF`, though `CrossingX1` no longer needs it);
 * the generic points are compatible (`TateNormal.toModel_comp_modelIso`, naturality of `toModel`);
 * the generic point of `tgtModel T` is dominant;
 
@@ -197,6 +197,7 @@ theorem tateψ_generic (hx : Transcendental K T.x) (a : Q.U ⟶ X₀ (A := A) T)
 
 variable [CharZero K] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
 
+omit [Algebra.Smooth K R] in
 /-- **`CrossingX1` for the model map of a member to the Tate model.** -/
 theorem crossing_tate (hC : SemistableReduction.Statement.CrossingX1.{u})
     (hx : Transcendental K T.x) {ϖ : O} (hϖ : Irreducible ϖ) (a : Q.U ⟶ X₀ (A := A) T)
@@ -224,7 +225,6 @@ theorem crossing_tate (hC : SemistableReduction.Statement.CrossingX1.{u})
   haveI : IsScalarTower K F Q.D.L₁ := IsScalarTower.of_algebraMap_eq fun k =>
     (RingHom.congr_fun (TateNormal.toField_comp_algK T.π T.b₄ T.b₆ _
       (Q.algKL_π_ne_zero T) (Q.equation_rhoL T) (Q.transcendental_rhoL T hx)) k).symm
-  haveI : FiniteDimensional F Q.D.L₁ := Q.finiteDimensional_toF T hx
   have h₂ : O.comap (algebraMap K K) = O := by
     ext y
     simp
@@ -242,9 +242,10 @@ theorem crossing_tate (hC : SemistableReduction.Statement.CrossingX1.{u})
     exact congrArg (Q.D.e.inv ≫ ·) a.ψ_toSpec
   exact hC K O Q.D.K' K Q.D.O' O Q.D.hO' h₂ Q.D.ϖ' ϖ Q.D.hϖ' hϖ Q.D.L₁ F Q.D.xL Q.D.c'
     (tgtModel T) (Q.tateψ T a) Q.D.j₁ (genericPt O hf) Q.D.wmodel (Q.tateψ_generic T hx a) hto
-    Q.D.semistable Q.D.split Q.D.noLoops (isDominant_genericPt hf).denseRange y' w₁' w₂' hw₁
+    Q.D.split Q.D.noLoops (isDominant_genericPt hf).denseRange y' w₁' w₂' hw₁
     hw₂ hne hy₁ hy₂ hG v hv hψv
 
+omit [Algebra.Smooth K R] in
 /-- **`HarmonicTate` from `CrossingX1`** when `b₆` is a unit (the special fibre of the Tate model
 is the 2-gon `C ∪ E` with nodes `p`, `q`). -/
 theorem harmonicTate_of_crossingX1 (hC : SemistableReduction.Statement.CrossingX1.{u})

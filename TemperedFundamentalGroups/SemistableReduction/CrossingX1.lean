@@ -12,7 +12,7 @@ import TemperedFundamentalGroups.SemistableReduction.MonomialUnique
 Only a **definition** (targeted, owned by the Theorem B agent). The shared core of (X1) of
 `Statement.HarmonicX` (without lengths) and of `HarmonicTate` (Blueprint §10.3.8): for a map
 `ψ : c ⟶ c'` of models compatible with the generic points, where the source `c` is a split
-semistable unfolded W-model without loops and the target `c'` is **any** projective model, and a
+unfolded W-model without loops and the target `c'` is **any** projective model, and a
 point `y'` of `c'` on two components `w₁' ≠ w₂'` at which the germs of `c'` form a node germ
 (`NodeGerm`: `u v = ϖ'ⁿ` exactly, with `u, v` non-units of the germ ring), the generic point
 `j'` being dominant, every component of `c` over `w₁'` starts a walk crossing `y'`
@@ -44,7 +44,7 @@ def Statement.CrossingX1 : Prop :=
     (_ : Irreducible ϖ₁) (_ : Irreducible ϖ₂)
     (L₁ L₂ : Type u) [Field L₁] [Field L₂] [Algebra K₁ L₁] [Algebra K₂ L₂] [Algebra L₂ L₁]
     [Algebra K L₁] [Algebra K L₂] [IsScalarTower K K₁ L₁] [IsScalarTower K K₂ L₂]
-    [IsScalarTower K L₂ L₁] [FiniteDimensional L₂ L₁]
+    [IsScalarTower K L₂ L₁]
     [Algebra O₁ L₁] [IsScalarTower O₁ K₁ L₁] [Algebra O₂ L₂] [IsScalarTower O₂ K₂ L₂] (x : L₁)
     (c : TemperedFundamentalGroups.ModelCode O₁) (c' : TemperedFundamentalGroups.ModelCode O₂)
     (ψ : c.scheme ⟶ c'.scheme)
@@ -55,7 +55,7 @@ def Statement.CrossingX1 : Prop :=
       (fun y hy ↦ by rw [← h₂] at hy; exact hy))) =
       c.toSpec ≫ Spec.map (CommRingCat.ofHom ((algebraMap K K₁).restrict O O₁
         (fun y hy ↦ by rw [← h₁] at hy; exact hy))) →
-    ModelCode.IsSemistable ϖ₁ c → ModelCode.IsSplit ϖ₁ c → ModelCode.NoLoops c →
+    ModelCode.IsSplit ϖ₁ c → ModelCode.NoLoops c →
     Dense (Set.range j'.base) →
     ∀ (y' : c'.scheme) (w₁' w₂' : Set c'.scheme), w₁' ∈ ModelCode.components c' →
       w₂' ∈ ModelCode.components c' → w₁' ≠ w₂' → y' ∈ w₁' → y' ∈ w₂' →

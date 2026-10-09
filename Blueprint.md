@@ -2282,6 +2282,9 @@ Total ≈ 5–7k.
 * *Result.* With `crossingX1` proved, `TateObject.exists_character_ne_one_of_crossing` and
   `TateOrbicurve.nondegenerate_of_crossing` need neither `HarmonicTate` nor `CrossingX1`, for
   `IsUnit b₆`.
+* *`CrossingX1` strengthened (2026-10-09).* The hypotheses `IsSemistable` (source) and
+  `FiniteDimensional L₂ L₁` are dropped from `Statement.CrossingX1`; the proof `crossingX1` never
+  used them (non-smooth points are node points by definition; split nodes and no loops suffice).
 * *Still open.* The 3-gon case `b₆ ∈ 𝔪`, which needs the node germ at `r` (exact node via
   `NodeDeformation`).
 

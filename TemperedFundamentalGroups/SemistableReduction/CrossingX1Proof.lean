@@ -33,8 +33,8 @@ open CentreGerms ValuativeCentre ModelCode CrossingSource CrossingGlue
 
 /-- **`Statement.CrossingX1` holds.** -/
 theorem crossingX1 : Statement.CrossingX1.{u} := by
-  intro K _ _ O _ _ K₁ K₂ _ _ _ _ _ _ O₁ O₂ h₁ h₂ _ _ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ _ _ _ _ _ _ _ _ _ _ _
-    _ _ _ _ x c c' ψ j j' hunf hj hψO _ hsplit0 hloops hdense y' w₁' w₂' hw₁ hw₂ hne hy₁ hy₂ hP
+  intro K _ _ O _ _ K₁ K₂ _ _ _ _ _ _ O₁ O₂ h₁ h₂ _ _ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ _ _ _ _ _ _ _ _ _ _
+    _ _ _ _ x c c' ψ j j' hunf hj hψO hsplit0 hloops hdense y' w₁' w₂' hw₁ hw₂ hne hy₁ hy₂ hP
     v₀ hv₀ hψv₀
   obtain ⟨P, u, v, n, hPg, hG, hu, hv⟩ := hP
   have hW : IsWModel O₁ L₁ x c j := hunf.isWModel
