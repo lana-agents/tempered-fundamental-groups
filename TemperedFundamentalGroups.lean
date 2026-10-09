@@ -16,8 +16,10 @@ import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.PointLift
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
+import TemperedFundamentalGroups.Andre.QuadraticLevel
 import TemperedFundamentalGroups.Andre.RamifiedQuadratic
 import TemperedFundamentalGroups.Andre.Refinement
+import TemperedFundamentalGroups.Andre.TateChartMap
 import TemperedFundamentalGroups.Andre.TateCovering
 import TemperedFundamentalGroups.Andre.TateCrossing
 import TemperedFundamentalGroups.Andre.TateCrossingField
@@ -33,6 +35,7 @@ import TemperedFundamentalGroups.Andre.TateNodePoints
 import TemperedFundamentalGroups.Andre.TateNormalAlgebra
 import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
+import TemperedFundamentalGroups.Andre.TateRestrictModel
 import TemperedFundamentalGroups.Andre.TateSurjective
 import TemperedFundamentalGroups.Andre.TateThreeGon
 import TemperedFundamentalGroups.Andre.TateWinding
