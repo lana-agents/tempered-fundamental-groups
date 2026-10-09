@@ -8,6 +8,8 @@ import TemperedFundamentalGroups.SemistableReduction.W10ComponentTree
 import TemperedFundamentalGroups.SemistableReduction.W10LineX
 import TemperedFundamentalGroups.SemistableReduction.W10TreeUnfolded
 import TemperedFundamentalGroups.SemistableReduction.StrongComponentA
+import TemperedFundamentalGroups.SemistableReduction.StrongAProof
+import TemperedFundamentalGroups.SemistableReduction.W10RouteFinal
 
 /-!
 # W10 with components: `Statement.StrongComponentA` (modulo targeted inputs)
@@ -265,3 +267,17 @@ theorem strongComponentA_of_W7_of_tree (h7 : W7.Statement.{u, u})
 end W10Assembly
 
 end SemistableReduction
+
+namespace TemperedFundamentalGroups.SemistableReduction.Statement
+
+/-- **`StrongComponentA` from its two targeted inputs**: the component models over `E` are split,
+without loops and unfolded (`W10.TreeComponentsUnfolded`), and Zariski connectedness
+(`Statement.ZariskiConnected`). W7 and G4 are proved (`W7.statement`,
+`W10Route.treeChartsSemistable`). -/
+theorem strongComponentA_of (hU : _root_.SemistableReduction.W10.TreeComponentsUnfolded.{u})
+    (hZ : ZariskiConnected.{u}) : StrongComponentA.{u} :=
+  _root_.SemistableReduction.W10Assembly.strongComponentA_of_W7_of_tree
+    _root_.SemistableReduction.W7.statement
+    _root_.SemistableReduction.W10Route.treeChartsSemistable hU hZ
+
+end TemperedFundamentalGroups.SemistableReduction.Statement
