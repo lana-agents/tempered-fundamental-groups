@@ -163,6 +163,48 @@ lemma connectedSpace_toCodeEq (ρ : G →* (Z ≃ₜ Z)) (hρ : ∀ g, D.Preserv
   have := D.connectedSpace hC hE hp hq
   exact D.codeHomeomorph.symm.surjective.connectedSpace D.codeHomeomorph.symm.continuous
 
+/-! ### Pulling back a decomposition along a homeomorphism -/
+
+section comap
+
+variable {Z' : Type u} [TopologicalSpace Z']
+
+/-- The decomposition pulled back along a homeomorphism. -/
+def comap (Φ : Z ≃ₜ Z') (D' : Decomp Z') : Decomp Z where
+  C := Φ ⁻¹' D'.C
+  E := Φ ⁻¹' D'.E
+  Cp := Φ ⁻¹' D'.Cp
+  Cq := Φ ⁻¹' D'.Cq
+  isClosed_C := D'.isClosed_C.preimage Φ.continuous
+  isClosed_E := D'.isClosed_E.preimage Φ.continuous
+  isClosed_Cp := D'.isClosed_Cp.preimage Φ.continuous
+  isClosed_Cq := D'.isClosed_Cq.preimage Φ.continuous
+  union := by rw [← preimage_union, D'.union, preimage_univ]
+  inter := by rw [← preimage_inter, D'.inter, preimage_union]
+  disjoint := D'.disjoint.preimage Φ
+
+lemma isPreconnected_comap_C (Φ : Z ≃ₜ Z') {D' : Decomp Z'} (h : IsPreconnected D'.C) :
+    IsPreconnected (D'.comap Φ).C := by
+  change IsPreconnected (Φ ⁻¹' D'.C)
+  rw [← Φ.image_symm]
+  exact h.image _ Φ.symm.continuous.continuousOn
+
+lemma isPreconnected_comap_E (Φ : Z ≃ₜ Z') {D' : Decomp Z'} (h : IsPreconnected D'.E) :
+    IsPreconnected (D'.comap Φ).E := by
+  change IsPreconnected (Φ ⁻¹' D'.E)
+  rw [← Φ.image_symm]
+  exact h.image _ Φ.symm.continuous.continuousOn
+
+lemma nonempty_comap_Cp (Φ : Z ≃ₜ Z') {D' : Decomp Z'} (h : D'.Cp.Nonempty) :
+    (D'.comap Φ).Cp.Nonempty :=
+  h.preimage Φ.surjective
+
+lemma nonempty_comap_Cq (Φ : Z ≃ₜ Z') {D' : Decomp Z'} (h : D'.Cq.Nonempty) :
+    (D'.comap Φ).Cq.Nonempty :=
+  h.preimage Φ.surjective
+
+end comap
+
 end Decomp
 
 end TemperedFundamentalGroups.TateCovering

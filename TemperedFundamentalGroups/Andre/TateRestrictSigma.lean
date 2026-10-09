@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Andre.TateRestrictModel
 import TemperedFundamentalGroups.SemistableReduction.W10Local
+import TemperedFundamentalGroups.SemistableReduction.ProjChartGerms
 
 /-!
 # The involution of the Tate model over `O'` (Blueprint §10.3.8, `v(q) = 1`, B3c)
@@ -197,21 +198,124 @@ lemma ρ'_toSpec : ρ' π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0 ≫
       Spec.map (CommRingCat.ofHom σ) :=
   homOfLocalProj_toSpec _ _ _ _ _ _ σ (RingHom.ext (σL_algebraMap_O π b₄ b₆ σ hσπ hσ4 hσ6 hσσ))
 
+/-- The involution of the chart `j`. -/
+def σChartJ (j : Fin (2 + 1)) : TateNormal.chart π b₄ b₆ j →+* TateNormal.chart π b₄ b₆ j :=
+  (σL π b₄ b₆ σ hσπ hσ4 hσ6 hσσ).restrict _ _ fun _ hy ↦ σL_mem_chart π b₄ b₆ σ hσπ hσ4 hσ6 hσσ j hy
+
 /-- The involution of the chart `w = 1`. -/
-def σChart : TateNormal.chart π b₄ b₆ 2 →+* TateNormal.chart π b₄ b₆ 2 :=
-  (σL π b₄ b₆ σ hσπ hσ4 hσ6 hσσ).restrict _ _ fun _ hy ↦ σL_mem_chart π b₄ b₆ σ hσπ hσ4 hσ6 hσσ 2 hy
+abbrev σChart : TateNormal.chart π b₄ b₆ 2 →+* TateNormal.chart π b₄ b₆ 2 :=
+  σChartJ π b₄ b₆ σ hσπ hσ4 hσ6 hσσ 2
+
+lemma chartι_ρ'J (j : Fin (2 + 1)) :
+    chartι Rb rfl (TateNormal.hcoords π b₄ b₆ hπ0) j ≫ ρ' π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0 =
+      Spec.map (CommRingCat.ofHom (σChartJ π b₄ b₆ σ hσπ hσ4 hσ6 hσσ j)) ≫
+        chartι Rb rfl (TateNormal.hcoords π b₄ b₆ hπ0) j := by
+  rw [ρ', chartι_homOfLocalProj, chartLocal]
+  refine (eq_homOfLocal _ _ _ _ _ ?_).symm
+  have e : (TateNormal.chart π b₄ b₆ j).subtype.comp (σChartJ π b₄ b₆ σ hσπ hσ4 hσ6 hσσ j) =
+      (σL π b₄ b₆ σ hσπ hσ4 hσ6 hσσ).comp (TateNormal.chart π b₄ b₆ j).subtype :=
+    RingHom.ext fun _ ↦ rfl
+  rw [← Spec.map_comp_assoc, ← CommRingCat.ofHom_comp, e, CommRingCat.ofHom_comp,
+    Spec.map_comp_assoc, ← genericPt_eq_chartι]
 
 lemma chartι_ρ' :
     chartι Rb rfl (TateNormal.hcoords π b₄ b₆ hπ0) 2 ≫ ρ' π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0 =
       Spec.map (CommRingCat.ofHom (σChart π b₄ b₆ σ hσπ hσ4 hσ6 hσσ)) ≫
-        chartι Rb rfl (TateNormal.hcoords π b₄ b₆ hπ0) 2 := by
-  rw [ρ', chartι_homOfLocalProj, chartLocal]
-  refine (eq_homOfLocal _ _ _ _ _ ?_).symm
-  have e : (TateNormal.chart π b₄ b₆ 2).subtype.comp (σChart π b₄ b₆ σ hσπ hσ4 hσ6 hσσ) =
-      (σL π b₄ b₆ σ hσπ hσ4 hσ6 hσσ).comp (TateNormal.chart π b₄ b₆ 2).subtype :=
-    RingHom.ext fun _ ↦ rfl
-  rw [← Spec.map_comp_assoc, ← CommRingCat.ofHom_comp, e, CommRingCat.ofHom_comp,
-    Spec.map_comp_assoc, ← genericPt_eq_chartι]
+        chartι Rb rfl (TateNormal.hcoords π b₄ b₆ hπ0) 2 :=
+  chartι_ρ'J π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0 2
+
+/-! ### Membership of σ-semi-invariant forms -/
+
+attribute [local instance] MvPolynomial.gradedAlgebra
+
+lemma coords_pow_sign (i : Fin (2 + 1)) (e : ℕ) :
+    σL π b₄ b₆ σ hσπ hσ4 hσ6 hσσ (g i ^ e) = (if i = 2 then 1 else (-1) ^ e) * g i ^ e := by
+  rw [map_pow, σL_coords, mul_pow]
+  split_ifs <;> simp
+
+/-- **Forms semi-invariant under `σ` define `ρ'`-stable loci.** -/
+lemma mem_imageι_ρ'_iff {q : MvPolynomial (Fin (2 + 1)) O'} {e : ℕ}
+    (hq : q ∈ MvPolynomial.homogeneousSubmodule (Fin (2 + 1)) O' e) (he : 0 < e) (δ : L)
+    (hδ : δ = 1 ∨ δ = -1)
+    (hσq : σL π b₄ b₆ σ hσπ hσ4 hσ6 hσσ (evalHom g q) = δ * evalHom g q)
+    (w : (projModelCode O' (TateNormal.hcoords π b₄ b₆ hπ0)).scheme) :
+    q ∈ ((toProj O' (TateNormal.hcoords π b₄ b₆ hπ0)).imageι
+        (ρ' π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0 w)).asHomogeneousIdeal ↔
+      q ∈ ((toProj O' (TateNormal.hcoords π b₄ b₆ hπ0)).imageι w).asHomogeneousIdeal := by
+  obtain ⟨i, hi⟩ := exists_mem_chartOpen (TateNormal.hcoords π b₄ b₆ hπ0) w
+  rw [← opensRange_chartι Rb rfl] at hi
+  obtain ⟨Q, rfl⟩ := hi
+  have hρ : ρ' π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0 (chartι Rb rfl (TateNormal.hcoords π b₄ b₆ hπ0) i Q) =
+      chartι Rb rfl (TateNormal.hcoords π b₄ b₆ hπ0) i
+        (Spec.map (CommRingCat.ofHom (σChartJ π b₄ b₆ σ hσπ hσ4 hσ6 hσσ i)) Q) := by
+    rw [← Scheme.Hom.comp_apply, chartι_ρ'J, Scheme.Hom.comp_apply]
+  rw [hρ, mem_imageι_chartι_iff Rb rfl _ i _ hq he, mem_imageι_chartι_iff Rb rfl _ i _ hq he]
+  -- the sign
+  set a := evalHom g q / g i ^ e
+  obtain ⟨u, hu, hσa⟩ : ∃ u : L, (u = 1 ∨ u = -1) ∧
+      σL π b₄ b₆ σ hσπ hσ4 hσ6 hσσ a = u * a := by
+    refine ⟨δ * (if i = 2 then 1 else (-1) ^ e), ?_, ?_⟩
+    · rcases neg_one_pow_eq_or L e with h | h <;> rcases hδ with rfl | rfl <;>
+        split_ifs <;> simp [h]
+    · rw [map_div₀, hσq, coords_pow_sign]
+      have hs : (if i = 2 then (1 : L) else (-1) ^ e) ^ 2 = 1 := by
+        split_ifs
+        · simp
+        · rw [← pow_mul, mul_comm, pow_mul, neg_one_sq, one_pow]
+      have hc : (if i = 2 then (1 : L) else (-1) ^ e)⁻¹ = (if i = 2 then (1 : L) else (-1) ^ e) :=
+        inv_eq_of_mul_eq_one_right (by rw [← sq, hs])
+      rw [div_eq_mul_inv, mul_inv, hc]
+      simp only [a, div_eq_mul_inv]
+      ring
+  have huc : u ∈ TateNormal.chart π b₄ b₆ i := by
+    rcases hu with rfl | rfl
+    · exact one_mem _
+    · exact neg_mem (one_mem _)
+  have hu2 : u * u = 1 := by rcases hu with rfl | rfl <;> simp
+  constructor
+  · rintro ⟨h, hQ⟩
+    refine ⟨h, ?_⟩
+    change σChartJ π b₄ b₆ σ hσπ hσ4 hσ6 hσσ i ⟨a, h⟩ ∈ Q.asIdeal at hQ
+    have e1 : σChartJ π b₄ b₆ σ hσπ hσ4 hσ6 hσσ i ⟨a, h⟩ = ⟨u, huc⟩ * ⟨a, h⟩ :=
+      Subtype.ext hσa
+    rw [e1] at hQ
+    have := Q.asIdeal.mul_mem_left ⟨u, huc⟩ hQ
+    rwa [← mul_assoc, show (⟨u, huc⟩ : TateNormal.chart π b₄ b₆ i) * ⟨u, huc⟩ = 1 from
+      Subtype.ext hu2, one_mul] at this
+  · rintro ⟨h, hQ⟩
+    refine ⟨h, ?_⟩
+    change σChartJ π b₄ b₆ σ hσπ hσ4 hσ6 hσσ i ⟨a, h⟩ ∈ Q.asIdeal
+    have e1 : σChartJ π b₄ b₆ σ hσπ hσ4 hσ6 hσσ i ⟨a, h⟩ = ⟨u, huc⟩ * ⟨a, h⟩ :=
+      Subtype.ext hσa
+    rw [e1]
+    exact Q.asIdeal.mul_mem_left _ hQ
+
+lemma mem_imageι_ρ'_X_iff (i : Fin (2 + 1))
+    (w : (projModelCode O' (TateNormal.hcoords π b₄ b₆ hπ0)).scheme) :
+    MvPolynomial.X i ∈ ((toProj O' (TateNormal.hcoords π b₄ b₆ hπ0)).imageι
+        (ρ' π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0 w)).asHomogeneousIdeal ↔
+      MvPolynomial.X i ∈
+        ((toProj O' (TateNormal.hcoords π b₄ b₆ hπ0)).imageι w).asHomogeneousIdeal :=
+  mem_imageι_ρ'_iff π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0
+    ((MvPolynomial.mem_homogeneousSubmodule _ _).2 (MvPolynomial.isHomogeneous_X _ i)) one_pos
+    (if i = 2 then 1 else -1) (by split_ifs <;> simp)
+    (by simp only [evalHom, MvPolynomial.coe_eval₂Hom, MvPolynomial.eval₂_X]
+        exact σL_coords π b₄ b₆ σ hσπ hσ4 hσ6 hσσ i) w
+
+lemma mem_imageι_ρ'_X01_iff (w : (projModelCode O' (TateNormal.hcoords π b₄ b₆ hπ0)).scheme) :
+    MvPolynomial.X 0 + MvPolynomial.X 1 ∈ ((toProj O' (TateNormal.hcoords π b₄ b₆ hπ0)).imageι
+        (ρ' π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0 w)).asHomogeneousIdeal ↔
+      MvPolynomial.X 0 + MvPolynomial.X 1 ∈
+        ((toProj O' (TateNormal.hcoords π b₄ b₆ hπ0)).imageι w).asHomogeneousIdeal :=
+  mem_imageι_ρ'_iff π b₄ b₆ σ hσπ hσ4 hσ6 hσσ hπ0
+    ((MvPolynomial.mem_homogeneousSubmodule _ _).2
+      ((MvPolynomial.isHomogeneous_X _ 0).add (MvPolynomial.isHomogeneous_X _ 1))) one_pos
+    (-1) (Or.inr rfl)
+    (by
+      simp only [evalHom, map_add, MvPolynomial.coe_eval₂Hom, MvPolynomial.eval₂_X]
+      rw [σL_coords, σL_coords]
+      simp only [Fin.isValue, Fin.reduceEq, ↓reduceIte]
+      ring) w
 
 /-! ### Compatibility with the point `Spec T ⟶` (model) -/
 
