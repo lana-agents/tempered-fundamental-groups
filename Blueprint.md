@@ -2207,3 +2207,52 @@ Total ≈ 5–7k.
   * The maximal ideal is `(ϖ, u, v)`, since `s ≡ v · unit mod (w, ϖ)`. The residue field is `k`,
     the fraction field is `TateField`, and it is algebraic over `K(u)`.
   * At `q = (−1, 0)` the same argument applies with `1 + s` and `s` exchanged.
+
+**Reducible conic (`b₆ ∈ 𝔪`), recorded 2026-10-09.** `IsTate W π b₄ b₆` allows `b₆ ∈ 𝔪`.
+
+* *Special fibre.* `E' = {G = 0}` reduces to the two lines `L₁ = {X₁ = 0} ∋ p` and
+  `L₂ = {X₀ + X₁ = 0} ∋ q`. They meet at `r = [0 : 0 : 1]`. The special fibre of `𝒯` is the
+  **3-gon** `C, L₁, L₂`, with nodes `p = C ∩ L₁`, `q = C ∩ L₂`, `r = L₁ ∩ L₂`.
+* *What still holds.* G1 (surjectivity, a component over `C`) uses only `C` and holds as before.
+  The `ℤ`-cover `X₀` (`Decomp` with `E = L₁ ∪ L₂`) is unchanged.
+* *Winding argument, modified.* `Pres.HarmonicTate` (generalised) asks for two kinds of walk:
+  * from every component over `C`, a crossing at `p` to a component mapped into `E` and not
+    contracted;
+  * from every such component, a walk to a component over `C` whose special points avoid `p`
+    (through `r`, then `q`).
+
+  A crossing at `r` keeps the sheet (`r ∉ Cp ∪ Cq`), so the pigeonhole/sheet argument
+  (`exists_sheet_ne`) is unchanged.
+* *`NodeGerm` at `r`.* In the chart `X₂ = 1` (`a = X₀/X₂`, `b = X₁/X₂`) the equation is
+  `b(a + b) − b₆ = π a (a² + b₄)`. With `U = b − π b₄` and `W = a + b + π b₄` this becomes
+  `U W = c + π a³`, where `c = b₆ − π² b₄²`.
+  * So the local ring at `r` is an ordinary double point: its maximal ideal is `(ϖ, U, W)`, its
+    residue field is `k`, `U W ∈ (ϖ)`, and it is normal (`TateModelNormal`).
+  * It is **not** an exact node in these coordinates.
+  * The exact Zariski-local node `u v = ϖⁿ · unit` comes from the deformation step
+    `NodeDeformation.exists_node` (Newton iteration plus termination), as for W-models.
+  * At `p` and `q` the exact form is explicit: `u = w`, `v = (s(1+s) − b₆ w²)/((1 + b₄ w²) ε)`.
+
+**`Statement.CrossingX1` corrected (2026-10-09).** As first written it was false (counterexamples
+by the CrossingX1 helper):
+* *Target not dominated by `j'`.* Take `c' = c ∪ E` with an extra special-fibre line `E` through
+  a point of `c`. A node germ exists there, but no crossing can reach `E`.
+* *`NodeGerm` with `u` a unit.* At a pinched point of a non-normal target, `NodeGerm` says nothing.
+
+Added hypotheses: `j'` dominant, and `u, v` non-units of the germ ring. Then `P` is a
+2-dimensional noetherian local ring with maximal ideal `(ϖ, u, v)`, and exactly one component
+through `y'` has `u` (resp. `v`) as a unit.
+
+*Proof plan (repaired positions argument).* Always choose the next node as a zero of the residue
+of `u'^D / ϖ^N` on the current component.
+1. The first point `z ∈ v` over `y'` is a node (at a smooth point `ϖ` is prime, which would make
+   `u'` a unit).
+2. The divisor lemma gives `u' = ε a^e` with `e ≥ 1` along `v`.
+3. Across the chosen node the position strictly increases, and the residue on the next component
+   has a pole at the entry node, hence also a zero.
+4. Positions in `(0, n')` mean the component is contracted to `y'`. Position `n'` means the
+   component lies over `w₂'`.
+5. Finitely many components give termination.
+
+Plain "positions increase across any node" was false: sideways nodes `u' = ε ϖ^α`, and rational
+tails with constant residue. Estimate ≈ 2.5–4k lines.

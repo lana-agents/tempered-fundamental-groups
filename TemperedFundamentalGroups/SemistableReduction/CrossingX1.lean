@@ -14,10 +14,15 @@ Only a **definition** (targeted, owned by the Theorem B agent). The shared core 
 `ψ : c ⟶ c'` of models compatible with the generic points, where the source `c` is a split
 semistable unfolded W-model without loops and the target `c'` is **any** projective model, and a
 point `y'` of `c'` on two components `w₁' ≠ w₂'` at which the germs of `c'` form a node germ
-(`NodeGerm`: `u v = ϖ'ⁿ` exactly), every component of `c` over `w₁'` starts a walk crossing `y'`
+(`NodeGerm`: `u v = ϖ'ⁿ` exactly, with `u, v` non-units of the germ ring), the generic point
+`j'` being dominant, every component of `c` over `w₁'` starts a walk crossing `y'`
 (special points over `y'`, inner components contracted to `y'`) to a component over `w₂'`.
 
 The x-line of the target is not used; it only enters the lengths of (X1) in `HarmonicX`.
+
+Both the dominance of `j'` and the non-unit condition are necessary (counterexamples, Blueprint
+§10.3.8: a target `c' = c ∪ E` with an extra special-fibre line `E` not dominated by `j'`; a
+pinched model, where `NodeGerm` with a unit `u` says nothing).
 -/
 
 universe u
@@ -50,10 +55,12 @@ def Statement.CrossingX1 : Prop :=
       c.toSpec ≫ Spec.map (CommRingCat.ofHom ((algebraMap K K₁).restrict O O₁
         (fun y hy ↦ by rw [← h₁] at hy; exact hy))) →
     ModelCode.IsSemistable ϖ₁ c → ModelCode.IsSplit ϖ₁ c → ModelCode.NoLoops c →
+    Dense (Set.range j'.base) →
     ∀ (y' : c'.scheme) (w₁' w₂' : Set c'.scheme), w₁' ∈ ModelCode.components c' →
       w₂' ∈ ModelCode.components c' → w₁' ≠ w₂' → y' ∈ w₁' → y' ∈ w₂' →
       (∃ (P : Subring L₂) (u v : L₂) (n : ℕ), (P : Set L₂) = ModelCode.germs c' j' y' ∧
-        _root_.SemistableReduction.NodeGerm O₂ ϖ₂ P u v n) →
+        _root_.SemistableReduction.NodeGerm O₂ ϖ₂ P u v n ∧
+        (∀ w ∈ P, u * w ≠ 1) ∧ (∀ w ∈ P, v * w ≠ 1)) →
       ∀ v ∈ ModelCode.components c, ψ '' v = w₁' →
         ∃ w : ModelCode.Walk c, w.v 0 = v ∧ w.Crosses ψ y' ∧ ψ '' w.v (Fin.last w.k) = w₂'
 
