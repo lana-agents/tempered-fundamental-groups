@@ -364,6 +364,150 @@ theorem exists_integral_near {ξ' : Valuation F ℝ≥0}
       _ < ‖γ‖₊⁻¹ * (ε * ‖γ‖₊) := mul_lt_mul_of_pos_left hN (inv_pos.2 (nnnorm_pos.2 hγ))
       _ = ε := by rw [mul_comm ε, ← mul_assoc, inv_mul_cancel₀ (nnnorm_pos.2 hγ).ne', one_mul]
 
+omit [IsUltrametricDist C] [IsAlgClosed C] [FiniteDimensional (RatFunc C) F] in
+/-- **The degree trick.** If `s₁` is integral over `C[x]`, then for `M` large and every `l ≠ 0`,
+`x` is integral over `C[s₁ + l x^M]`: substituting `s₁ = s₂ - l x^M` into an integral equation of
+`s₁` gives a polynomial equation for `x` over `C[s₂]` with leading coefficient `(-l)^m`. -/
+theorem isIntegral_add_pow {s₁ : F} (hs₁ : IsIntegral (Algebra.adjoin C {xF C F}) s₁) :
+    ∃ M : ℕ, 0 < M ∧ ∀ l : C, l ≠ 0 →
+      IsIntegral (Algebra.adjoin C {s₁ + algebraMap C F l * xF C F ^ M}) (xF C F) := by
+  classical
+  obtain ⟨f, hfm, hf⟩ := hs₁
+  have hcoef : ∀ i, ∃ g : C[X], aeval (xF C F) g = (f.coeff i : F) := by
+    intro i
+    have : (f.coeff i : F) ∈ (aeval (R := C) (xF C F)).range := by
+      rw [← Algebra.adjoin_singleton_eq_range_aeval]; exact (f.coeff i).2
+    obtain ⟨g, hg⟩ := this
+    exact ⟨g, hg⟩
+  choose g hg using hcoef
+  set m := f.natDegree
+  set D := (Finset.range (m + 1)).sup fun i ↦ (g i).natDegree
+  refine ⟨D + 1, Nat.succ_pos _, fun l hl ↦ ?_⟩
+  set M := D + 1
+  set s₂ := s₁ + algebraMap C F l * xF C F ^ M
+  set sB : Algebra.adjoin C {s₂} := ⟨s₂, Algebra.self_mem_adjoin_singleton C _⟩
+  set lB : Algebra.adjoin C {s₂} := algebraMap C (Algebra.adjoin C {s₂}) l
+  have hlB : lB ≠ 0 := fun h ↦ hl ((algebraMap C F).injective (by
+    rw [map_zero]; exact congrArg Subtype.val h))
+  set T : (Algebra.adjoin C {s₂})[X] := Polynomial.C sB - Polynomial.C lB * X ^ M
+  set H : (Algebra.adjoin C {s₂})[X] := ∑ i ∈ Finset.range (m + 1), (g i).map (algebraMap C (Algebra.adjoin C {s₂})) * T ^ i
+  -- `x` is a root of `H`
+  have hT : aeval (xF C F) T = s₁ := by
+    simp only [T, map_sub, map_mul, map_pow, aeval_C, aeval_X, sB, lB, s₂]
+    change s₁ + algebraMap C F l * xF C F ^ M - algebraMap C F l * xF C F ^ M = s₁
+    ring
+  have hroot : aeval (xF C F) H = 0 := by
+    simp only [H, map_sum, map_mul, map_pow, hT, Polynomial.aeval_map_algebraMap, hg]
+    rw [← hf, eval₂_eq_sum_range]
+    rfl
+  -- the degree of `T`
+  have hTdeg : T.natDegree = M := by
+    rw [natDegree_sub_eq_right_of_natDegree_lt] <;> rw [natDegree_C_mul_X_pow M lB hlB]
+    rw [natDegree_C]; exact Nat.succ_pos _
+  have hTlead : T.leadingCoeff = -lB := by
+    rw [leadingCoeff_sub_of_degree_lt', leadingCoeff_C_mul_X_pow]
+    refine degree_lt_degree ?_
+    rw [natDegree_C, natDegree_C_mul_X_pow M lB hlB]; exact Nat.succ_pos _
+  -- `m ≥ 1`
+  have hm : 1 ≤ m := by
+    by_contra h
+    have h0 : f.natDegree = 0 := by omega
+    rw [eq_one_of_monic_natDegree_zero hfm h0, eval₂_one] at hf
+    exact one_ne_zero hf
+  have hgm : g m = 1 := by
+    have h1 : aeval (xF C F) (g m) = aeval (xF C F) (1 : C[X]) := by
+      rw [hg, hfm.coeff_natDegree, map_one]; rfl
+    exact (transcendental_iff_injective.1 (GaussFibre.transcendental_xF (C := C) (F := F))) h1
+  -- the lower terms have smaller degree
+  set S : (Algebra.adjoin C {s₂})[X] := ∑ i ∈ Finset.range m, (g i).map (algebraMap C (Algebra.adjoin C {s₂})) * T ^ i
+  have hHS : H = S + T ^ m := by
+    simp only [H, S, Finset.sum_range_succ, hgm, Polynomial.map_one, one_mul]
+  have hSdeg : S.natDegree < (T ^ m).natDegree := by
+    rw [natDegree_pow, hTdeg]
+    refine lt_of_le_of_lt (natDegree_sum_le_of_forall_le _ _ (n := D + (m - 1) * M)
+      fun i hi ↦ ?_) ?_
+    · have hi' := Finset.mem_range.1 hi
+      refine (natDegree_mul_le).trans (add_le_add ?_ ?_)
+      · refine (natDegree_map_le).trans ?_
+        exact Finset.le_sup (f := fun i ↦ (g i).natDegree) (Finset.mem_range.2 (by omega))
+      · refine (natDegree_pow_le).trans ?_
+        rw [hTdeg]
+        exact Nat.mul_le_mul_right _ (by omega)
+    · obtain ⟨k, hk⟩ : ∃ k, m = k + 1 := ⟨m - 1, by omega⟩
+      have hM : M = D + 1 := rfl
+      rw [hk, Nat.add_sub_cancel, hM]
+      nlinarith
+  have hHlead : H.leadingCoeff = (-lB) ^ m := by
+    rw [hHS, leadingCoeff_add_of_degree_lt (degree_lt_degree hSdeg), leadingCoeff_pow, hTlead]
+  -- normalize
+  have hu : IsUnit ((-lB) ^ m) := by
+    have : (-lB) ^ m = algebraMap C (Algebra.adjoin C {s₂}) ((-l) ^ m) := by simp [lB]
+    rw [this]
+    exact (isUnit_iff_ne_zero.2 (pow_ne_zero _ (neg_ne_zero.2 hl))).map _
+  refine ⟨Polynomial.C (↑hu.unit⁻¹ : Algebra.adjoin C {s₂}) * H, ?_, ?_⟩
+  · rw [Monic, leadingCoeff_mul, leadingCoeff_C, hHlead]
+    exact hu.val_inv_mul
+  · rw [← aeval_def, map_mul, hroot, mul_zero]
+
+omit [IsUltrametricDist C] [FiniteDimensional (RatFunc C) F] [Algebra (RatFunc C) F]
+  [IsScalarTower C (RatFunc C) F] in
+/-- An element algebraic over the algebraically closed `C` is a constant. -/
+lemma exists_eq_algebraMap_of_isAlgebraic {y : F} (hy : IsAlgebraic C y) :
+    ∃ α : C, algebraMap C F α = y :=
+  minpoly.mem_range_of_degree_eq_one C y
+    (IsAlgClosed.degree_eq_one_of_irreducible C (minpoly.irreducible hy.isIntegral))
+
+/-- **A good topological generator**: if `C(s)` is dense in `(F, ξ')`, there is `s'` with
+`C(s')` dense, `s'` transcendental over `C`, integral over `C[x]`, and `x` integral over `C[s']`.
+If `s` comes arbitrarily close to constants, `C` is dense and `s' = x`; otherwise `s'` is an
+integral approximation of `s` (`exists_integral_near`) corrected by `l x^M` (degree trick), close
+enough to `s` for density (`coordDense_of_near`). -/
+theorem exists_good_coord {ξ' : Valuation F ℝ≥0}
+    (hξ : IsTypeFour (ξ'.comap (algebraMap (RatFunc C) F))) {s : F} (hs : CoordDense C ξ' s) :
+    ∃ s' : F, CoordDense C ξ' s' ∧ Transcendental C s' ∧
+      IsIntegral (Algebra.adjoin C {xF C F}) s' ∧
+      IsIntegral (Algebra.adjoin C {s'}) (xF C F) := by
+  have hC : ∀ c : C, ξ' (algebraMap C F c) = ‖c‖₊ := fun c ↦ by
+    rw [IsScalarTower.algebraMap_apply C (RatFunc C) F, ← Valuation.comap_apply, hξ.map_C,
+      NormedField.valuation_apply]
+  by_cases h0 : ∀ ε : ℝ≥0, 0 < ε → ∃ b : C, ξ' (s - algebraMap C F b) < ε
+  · refine ⟨xF C F, fun y ε hε ↦ ?_, GaussFibre.transcendental_xF, ?_, ?_⟩
+    · obtain ⟨c, hc⟩ := exists_const_near hs h0 y hε
+      exact ⟨Polynomial.C c, 1, by simp, by simpa using hc⟩
+    · exact isIntegral_adjoin_of_mem (Algebra.self_mem_adjoin_singleton C _)
+    · exact isIntegral_algebraMap
+        (x := (⟨_, Algebra.self_mem_adjoin_singleton C (xF C F)⟩ : Algebra.adjoin C {xF C F}))
+  push Not at h0
+  obtain ⟨r, hr0, hr⟩ := h0
+  set q : ℝ≥0 := 1 / 2 with hq
+  have hq0 : 0 < q := by norm_num [hq]
+  have hq1 : q < 1 := by norm_num [hq]
+  obtain ⟨s₁, hs₁, hs₁s⟩ := exists_integral_near hξ s (mul_pos hq0 hr0)
+  obtain ⟨M, -, hM⟩ := isIntegral_add_pow hs₁
+  have hx0 : 0 < ξ' (xF C F) := (Valuation.pos_iff _).2 fun h ↦
+    GaussFibre.transcendental_xF (C := C) (F := F) (h ▸ isAlgebraic_zero)
+  obtain ⟨l, hl0, hl⟩ := NormedField.exists_norm_lt C
+    (r := ((q * r / ξ' (xF C F) ^ M : ℝ≥0) : ℝ)) (by
+      exact_mod_cast div_pos (mul_pos hq0 hr0) (pow_pos hx0 M))
+  have hl' : ‖l‖₊ * ξ' (xF C F) ^ M < q * r := by
+    rw [← lt_div_iff₀ (pow_pos hx0 M)]
+    exact_mod_cast hl
+  set s' := s₁ + algebraMap C F l * xF C F ^ M
+  have hclose : ξ' (s' - s) < q * r := by
+    rw [show s' - s = -(s - s₁) + algebraMap C F l * xF C F ^ M by ring]
+    refine (Valuation.map_add _ _ _).trans_lt (max_lt (by rwa [Valuation.map_neg]) ?_)
+    rwa [map_mul, map_pow, hC]
+  refine ⟨s', coordDense_of_near hs hq0 hq1 hr hclose.le, ?_, ?_,
+    hM l (norm_pos_iff.1 hl0)⟩
+  · intro halg
+    obtain ⟨α, hα⟩ := exists_eq_algebraMap_of_isAlgebraic halg
+    have := hr α
+    rw [hα, ← Valuation.map_neg, neg_sub] at this
+    exact absurd (this.trans_lt (hclose.trans (mul_lt_of_lt_one_left hr0 hq1))) (lt_irrefl _)
+  · refine hs₁.add ((isIntegral_adjoin_of_mem (Subalgebra.algebraMap_mem _ l)).mul
+      (IsIntegral.pow ?_ M))
+    exact isIntegral_adjoin_of_mem (Algebra.self_mem_adjoin_singleton C _)
+
 end Integral
 
 end TypeFour
