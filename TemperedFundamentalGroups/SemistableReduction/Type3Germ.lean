@@ -6,6 +6,7 @@ Authors: Christian Merten
 import TemperedFundamentalGroups.SemistableReduction.Type3Chart
 import TemperedFundamentalGroups.SemistableReduction.Type3Value
 import TemperedFundamentalGroups.SemistableReduction.TypeThreeGermTwo
+import TemperedFundamentalGroups.SemistableReduction.TypeTwoGerm
 
 /-!
 # Exact node data on the inverted charts around a type-3 point
@@ -21,6 +22,13 @@ poles. Hence there are `r₁ < ρ < |C₀|` such that for every chart `s = κ / 
 (`κ = c₃ C₀`, `r₁ ≤ |κ| < ρ`, `|b| ≤ |κ|`) the elements `S`, `μ u` (`μᵈ = κ / c₀`) and
 `S s / (μ u)ᵈ` are good (`isGood_chart`), and every point over the node of the chart has exact node
 data (**`exists_chart_nodeData`**, via `exists_nodeData_of_type3`).
+
+**The two-sided type-3 germ** (`S8A.typeThreeGermTwoFor`, Blueprint §9.12 O6.1h): for an edge
+`D(a, |c₁|) ⊊ D(a, |c₂|)` with `r₁ ≤ |c₁| < ρ < |c₂| ≤ ρ₂` and a representation `(a', c, c')`, the
+inverted coordinate `c' / ((x - a') / c) = c c' / (x - a')` is the chart coordinate with
+`b = a' - a`, `c₃ = c c' / C₀` (over `Aff a 1 F`); R4(i) (`isNodeODP_of_le`) shrinks the annulus
+from `|C₀|` to `|c|`, and `nodeGood_of_inv` returns to the coordinate `(x - a') / c`. Hence
+`S8A.typeThreeGermFor : TypeThreeGermFor C F` (the `W7.Leaves.typeThree` leaf), unconditionally.
 -/
 
 open Polynomial
@@ -30,8 +38,8 @@ namespace SemistableReduction
 
 namespace Type3
 
-open AffineTwist GaussTube GaussStability FundamentalInequality TypeThree GaussFibre ZariskiModel
-  PlaceNorm
+open AffineTwist GaussTube GaussStability FundamentalInequality TypeThree GaussFibre
+  ZariskiModel PlaceNorm
 
 universe u
 
@@ -402,6 +410,121 @@ theorem exists_chart_nodeData {ρ : ℝ≥0} (hρ : IsIrrat C ρ) :
 
 end Chart
 
+omit [IsAlgClosed C] in
+/-- The chart coordinate over `Aff a 1 F` is the inverted coordinate of `(x - a') / c`. -/
+lemma chart_aff_eq {a b a' C₀ c₃ c c' : C} (hC₀ : C₀ ≠ 0) (hc₃ : c₃ ≠ 0) (hc : c ≠ 0)
+    (hc' : c' ≠ 0) (hab : a + b = a') (hκ : c₃ * C₀ = c * c') (φ : RatFunc C) :
+    aff a 1 one_ne_zero (aff b C₀ hC₀ (inv hc₃ (aff 0 1 one_ne_zero φ))) =
+      aff a' c hc (inv hc' φ) := by
+  rw [aff_zero_one]
+  have h := congrArg (fun χ : RatFunc C →ₐ[C] RatFunc C ↦ χ φ)
+    (ratFunc_algHom_ext
+      (φ := ((aff a 1 one_ne_zero).toAlgHom.comp (aff b C₀ hC₀).toAlgHom).comp (inv hc₃).toAlgHom)
+      (ψ := (aff a' c hc).toAlgHom.comp (inv hc').toAlgHom) ?_)
+  · exact h
+  subst hab
+  obtain rfl : c₃ = c * c' / C₀ := (eq_div_iff hC₀).2 hκ
+  simp only [AlgHom.comp_apply, AlgEquiv.coe_toAlgHom, aff_apply, inv_apply, affHom_X, invHom_X,
+    map_div₀, AlgHom.commutes, gaussCoord_eq, map_mul, map_sub, map_inv₀, inv_one, map_one,
+    one_mul, map_add]
+  have hX : ∀ e : C, (RatFunc.X : RatFunc C) - algebraMap C (RatFunc C) e ≠ 0 := by
+    intro e h0
+    have := congrArg RatFunc.intDegree (sub_eq_zero.1 h0)
+    simp at this
+  have hC : algebraMap C (RatFunc C) C₀ ≠ 0 := by simpa using hC₀
+  have hc0 : algebraMap C (RatFunc C) c ≠ 0 := by simpa using hc
+  have h2 : (RatFunc.X : RatFunc C) - algebraMap C (RatFunc C) a -
+      algebraMap C (RatFunc C) b ≠ 0 := by
+    rw [sub_sub, ← map_add]
+    exact hX (a + b)
+  field_simp
+  linear_combination (-(algebraMap C (RatFunc C) c')) * mul_inv_cancel₀ h2
+
 end Type3
+
+namespace S8A
+
+open GaussTube AffineTwist Type3 TypeThree
+
+variable {C : Type*} [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
+  [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+  {F : Type*} [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
+  [FiniteDimensional (RatFunc C) F]
+
+include hp hp1 in
+/-- **O6.1h: the two-sided germ of annuli at a type-3 point**, unconditional. -/
+theorem typeThreeGermTwoFor : TypeThreeGermTwoFor C F := by
+  intro a ρ hρ hirr
+  set ρn : NNReal := ⟨ρ, hρ.le⟩
+  have hirr' : IsIrrat C ρn := fun z hz ↦ hirr z (by
+    rw [← coe_nnnorm, hz]
+    rfl)
+  obtain ⟨r₁, hr₁, C₀, hC₀, hC₀ρ, H⟩ :=
+    exists_chart_nodeData (F := Aff a 1 one_ne_zero F) hp hp1 hirr'
+  have hC₀ρ' : ρ < ‖C₀‖ := by
+    have : (ρn : ℝ) < ‖C₀‖₊ := by exact_mod_cast hC₀ρ
+    exact this
+  have hr₁' : (r₁ : ℝ) < ρ := by
+    have : (r₁ : ℝ) < ρn := by exact_mod_cast hr₁
+    exact this
+  refine ⟨r₁, hr₁', (ρ + ‖C₀‖) / 2, by linarith,
+    fun c₁ c₂ hc₁0 hr hc₁ρ hρc₂ hc₂ρ₂ ↦ ?_⟩
+  intro a' c c' hc hc' hc0' hE hG
+  have hc₂0 : c₂ ≠ 0 := by
+    rintro rfl
+    rw [norm_zero] at hρc₂
+    linarith
+  obtain ⟨h1, h2⟩ := (BallTree.closedBall_eq_closedBall_iff' hc₁0 (mul_ne_zero hc hc0')).1 hE
+  obtain ⟨h3, -⟩ := (BallTree.closedBall_eq_closedBall_iff' hc₂0 hc).1 hG
+  set b := a' - a
+  set c₃ := c * c' / C₀
+  have hc₃ : c₃ ≠ 0 := div_ne_zero (mul_ne_zero hc hc0') hC₀
+  have hκ : c₃ * C₀ = c * c' := div_mul_cancel₀ _ hC₀
+  have hcC : ‖c‖ < ‖C₀‖ := by rw [← h3]; linarith
+  have hlt : ‖c₃‖ < ‖c'‖ := by
+    rw [norm_div, norm_mul, div_lt_iff₀ (norm_pos_iff.2 hC₀)]
+    have := norm_pos_iff.2 hc0'
+    nlinarith
+  have hc₃1 : ‖c₃‖ < 1 := hlt.trans hc'
+  have hr' : r₁ ≤ ‖c₃ * C₀‖₊ := by
+    rw [hκ]
+    have : (r₁ : ℝ) ≤ ‖c * c'‖ := h1 ▸ hr
+    exact_mod_cast this
+  have hκρ : ‖c₃ * C₀‖₊ < ρn := by
+    rw [hκ]
+    have : ‖c * c'‖ < (ρn : ℝ) := h1 ▸ hc₁ρ
+    exact_mod_cast this
+  have hb : ‖b‖₊ ≤ ‖c₃ * C₀‖₊ := by
+    rw [hκ]
+    have : ‖b‖ ≤ ‖c * c'‖ := by
+      rw [norm_sub_rev, ← h1]
+      exact h2
+    exact_mod_cast this
+  set G := Chart (Aff a 1 one_ne_zero F) b C₀ c₃ hC₀ hc₃
+  have hNG : NodeGood G c' hc' hc0' := by
+    intro P'' hmax hP''
+    set P' := P''.comap (rintMap (F' := G) (nodeRing_le hlt.le hc0'))
+    have hcomap := comap_rintMap_comap hc' hc0' hlt P'' hP''
+    haveI : P'.IsMaximal :=
+      Ideal.isMaximal_of_isIntegral_of_isMaximal_comap (R := nodeRing c₃) _
+        (by rw [hcomap]; exact tubeIdeal_isMaximal hc₃1 hc₃)
+    obtain ⟨b₁, hb₁, ⟨N⟩⟩ := H b c₃ hc₃ hc₃1 hr' hκρ hb P' inferInstance hcomap
+    exact isNodeODP_of_le hp hp1 hc₃1 hc' hc₃ hc0' hlt P'' hP'' rfl hb₁ N
+  have hinv : NodeGood (GaussTube.Inv c' hc0' (Aff a' c hc F)) c' hc' hc0' := by
+    let e : G ≃+* GaussTube.Inv c' hc0' (Aff a' c hc F) := RingEquiv.refl F
+    refine nodeGood_of_algebraMap_eq e (fun φ ↦ ?_) hc' hc0' hNG
+    change algebraMap (RatFunc C) F
+        (aff a 1 one_ne_zero (aff b C₀ hC₀ (inv hc₃ (aff 0 1 one_ne_zero φ)))) =
+      algebraMap (RatFunc C) F (aff a' c hc (inv hc0' φ))
+    rw [chart_aff_eq (a' := a') hC₀ hc₃ hc hc0' (by simp [b]) hκ]
+  exact nodeGood_of_inv hc' hc0' hinv
+
+include hp hp1 in
+/-- **O6.1h: the type-3 germ** (`W7.Leaves.typeThree`), unconditional: `DefinedOverDVR` is not
+needed. -/
+theorem typeThreeGermFor (_hdef : DefinedOverDVR C F) : TypeThreeGermFor C F :=
+  typeThreeGermFor_of_two (typeThreeGermTwoFor hp hp1)
+
+end S8A
 
 end SemistableReduction
