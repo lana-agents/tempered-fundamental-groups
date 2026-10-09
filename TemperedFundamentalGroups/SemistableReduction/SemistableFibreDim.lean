@@ -82,6 +82,33 @@ end TemperedFundamentalGroups.SemistableReduction.ModelCode
 
 namespace TemperedFundamentalGroups
 
+/-- A prime of the DVR `O'` over the closed point of the DVR `O` (for an injective `O → O'`) is
+the closed point. -/
+lemma eq_closedPoint_of_comap_eq {O O' : Type u} [CommRing O] [CommRing O']
+    [IsDomain O] [IsDiscreteValuationRing O] [IsDomain O'] [IsDiscreteValuationRing O']
+    (φ : O →+* O') (hφ : Function.Injective φ) (p : PrimeSpectrum O')
+    (hp : PrimeSpectrum.comap φ p = closedPoint O) : p = closedPoint O' := by
+  have hne : p.asIdeal ≠ ⊥ := by
+    intro h0
+    have := congrArg PrimeSpectrum.asIdeal hp
+    rw [PrimeSpectrum.comap_asIdeal, h0, ← RingHom.ker_eq_comap_bot,
+      (RingHom.injective_iff_ker_eq_bot φ).1 hφ, closedPoint] at this
+    exact IsDiscreteValuationRing.not_a_field' (R := O) this.symm
+  apply PrimeSpectrum.ext
+  exact ((p.isPrime.isMaximal hne).eq_of_le (maximalIdeal.isMaximal O').ne_top
+    (le_maximalIdeal p.isPrime.ne_top))
+
+lemma mem_specialFibre_of_comp_dvr {O O' : Type u} [CommRing O] [CommRing O']
+    [IsDomain O] [IsDiscreteValuationRing O] [IsDomain O'] [IsDiscreteValuationRing O']
+    (φ : O →+* O') (hφ : Function.Injective φ) {X Y : Scheme.{u}}
+    (f : X ⟶ Spec (CommRingCat.of O')) (e : Y ≅ X) {y : Y}
+    (hy : y ∈ specialFibre (e.hom ≫ f ≫ Spec.map (CommRingCat.ofHom φ))) :
+    e.hom y ∈ specialFibre f := by
+  rw [mem_specialFibre] at hy ⊢
+  refine eq_closedPoint_of_comap_eq φ hφ _ ?_
+  rw [← hy, Scheme.Hom.comp_apply, Scheme.Hom.comp_apply]
+  rfl
+
 /-- **Special fibres after base change of DVRs.** For `f : X ⟶ Spec O'`, a local map `φ : O → O'`
 of DVRs with `O → O'` injective and an isomorphism `e : Y ≅ X`, the special fibre of
 `e.hom ≫ f ≫ Spec φ` embeds into that of `f`; hence its dimension is at most that of `f`. -/
@@ -92,22 +119,7 @@ theorem topologicalKrullDim_specialFibre_comp_le {O O' : Type u} [CommRing O] [C
     topologicalKrullDim (specialFibre (e.hom ≫ f ≫ Spec.map (CommRingCat.ofHom φ))) ≤
       topologicalKrullDim (specialFibre f) := by
   have hmem : ∀ y ∈ specialFibre (e.hom ≫ f ≫ Spec.map (CommRingCat.ofHom φ)),
-      e.hom y ∈ specialFibre f := by
-    intro y hy
-    rw [mem_specialFibre] at hy ⊢
-    set p := f (e.hom y)
-    have hp : PrimeSpectrum.comap φ p = closedPoint O := by
-      rw [← hy, Scheme.Hom.comp_apply, Scheme.Hom.comp_apply]
-      rfl
-    have hne : p.asIdeal ≠ ⊥ := by
-      intro h0
-      have := congrArg PrimeSpectrum.asIdeal hp
-      rw [PrimeSpectrum.comap_asIdeal, h0, ← RingHom.ker_eq_comap_bot,
-        (RingHom.injective_iff_ker_eq_bot φ).1 hφ, closedPoint] at this
-      exact IsDiscreteValuationRing.not_a_field' (R := O) this.symm
-    apply PrimeSpectrum.ext
-    exact ((p.isPrime.isMaximal hne).eq_of_le (maximalIdeal.isMaximal O').ne_top
-      (le_maximalIdeal p.isPrime.ne_top))
+      e.hom y ∈ specialFibre f := fun y hy ↦ mem_specialFibre_of_comp_dvr φ hφ f e hy
   let g : specialFibre (e.hom ≫ f ≫ Spec.map (CommRingCat.ofHom φ)) → specialFibre f :=
     fun y ↦ ⟨e.hom y.1, hmem y.1 y.2⟩
   have hg : Topology.IsInducing g := by
@@ -129,5 +141,31 @@ theorem ModelCode.topologicalKrullDim_le_one_of_iso {O O' : Type u} [CommRing O]
   rw [← he]
   exact (topologicalKrullDim_specialFibre_comp_le φ hφ c'.toSpec e).trans
     (SemistableReduction.ModelCode.topologicalKrullDim_Z_le_one hϖ' hc')
+
+/-- **Connected special fibres after base change of DVRs**: for a local map `φ : O → O'` and an
+isomorphism `e : Y ≅ X`, the special fibre of `e.hom ≫ f ≫ Spec φ` is connected if that of `f`
+is (for an injective local map of DVRs). -/
+theorem connectedSpace_specialFibre_comp {O O' : Type u} [CommRing O] [CommRing O']
+    [IsDomain O] [IsDiscreteValuationRing O] [IsDomain O'] [IsDiscreteValuationRing O']
+    (φ : O →+* O') (hφ : Function.Injective φ) [IsLocalHom φ] {X Y : Scheme.{u}}
+    (f : X ⟶ Spec (CommRingCat.of O')) (e : Y ≅ X) [ConnectedSpace (specialFibre f)] :
+    ConnectedSpace (specialFibre (e.hom ≫ f ≫ Spec.map (CommRingCat.ofHom φ))) := by
+  have hmem : ∀ z ∈ specialFibre f,
+      e.inv z ∈ specialFibre (e.hom ≫ f ≫ Spec.map (CommRingCat.ofHom φ)) := by
+    intro z hz
+    rw [mem_specialFibre] at hz ⊢
+    have h1 : e.hom (e.inv z) = z := by
+      rw [← Scheme.Hom.comp_apply, e.inv_hom_id]; rfl
+    change Spec.map (CommRingCat.ofHom φ) (f (e.hom (e.inv z))) = _
+    rw [h1, hz]
+    exact IsLocalRing.comap_closedPoint φ
+  let F : specialFibre f → specialFibre (e.hom ≫ f ≫ Spec.map (CommRingCat.ofHom φ)) :=
+    fun z ↦ ⟨e.inv z.1, hmem z.1 z.2⟩
+  have hF : Function.Surjective F := by
+    intro y
+    refine ⟨⟨e.hom y.1, mem_specialFibre_of_comp_dvr φ hφ f e y.2⟩, Subtype.ext ?_⟩
+    change e.inv (e.hom y.1) = y.1
+    rw [← Scheme.Hom.comp_apply, e.hom_inv_id]; rfl
+  exact hF.connectedSpace (by fun_prop)
 
 end TemperedFundamentalGroups
