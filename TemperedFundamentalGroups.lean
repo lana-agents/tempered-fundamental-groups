@@ -17,6 +17,7 @@ import TemperedFundamentalGroups.Andre.PointLift
 import TemperedFundamentalGroups.Andre.Pullback
 import TemperedFundamentalGroups.Andre.Refinement
 import TemperedFundamentalGroups.Andre.TateCovering
+import TemperedFundamentalGroups.Andre.TateG1
 import TemperedFundamentalGroups.Andre.TateLoop
 import TemperedFundamentalGroups.Andre.TateModel
 import TemperedFundamentalGroups.Andre.TateModelCharts
@@ -24,6 +25,7 @@ import TemperedFundamentalGroups.Andre.TateModelNormal
 import TemperedFundamentalGroups.Andre.TateNormalAlgebra
 import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
+import TemperedFundamentalGroups.Andre.TateSurjective
 import TemperedFundamentalGroups.Andre.TateWinding
 import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.Andre.TheoremB
