@@ -100,4 +100,39 @@ theorem rho_eq_of_restrict (φ : Fbar L₂ →ₐ[K] Fbar L₁) {x ϖ₀ : Fbar 
     simpa using (map_ne_zero (φ : Fbar L₂ →+* Fbar L₁)).2 hϖ0
   exact IsLogValue.unique hw0 hlt ha.1 hσ
 
+omit [Algebra K L₁] [Algebra K L₂] in
+/-- **The radius does not change under restriction**, for arbitrary fields of centres: it suffices
+that the centres correspond under `φ`. -/
+theorem rho_eq_of_restrict' {A₁ A₂ : Type*} [Field A₁] [Field A₂] [Algebra A₁ (Fbar L₁)]
+    [Algebra A₂ (Fbar L₂)] (φ : Fbar L₂ →+* Fbar L₁) {x ϖ₀ : Fbar L₂} (hϖ0 : ϖ₀ ≠ 0)
+    {U' : ValuationSubring (Fbar L₁)} (hlt : U'.valuation (φ ϖ₀) < 1) {a : A₁} {ρ : ℚ}
+    (ha : IsXGauss (φ ϖ₀) (φ x) a ρ U') {b : A₂} {σ : ℚ} (hb : IsXGauss ϖ₀ x b σ (U'.comap φ))
+    (hb₁ : ∃ c₁ : A₁, algebraMap A₁ (Fbar L₁) c₁ = φ (algebraMap A₂ (Fbar L₂) b))
+    (ha₂ : ∃ c₂ : A₂, φ (algebraMap A₂ (Fbar L₂) c₂) = algebraMap A₁ (Fbar L₁) a) : ρ = σ := by
+  obtain ⟨c₁, hc₁⟩ := hb₁
+  obtain ⟨c₂, hc₂⟩ := ha₂
+  have h1 := ha.valuation_le c₁
+  rw [hc₁] at h1
+  have h2 := hb.valuation_le c₂
+  rw [comap_valuation_le_iff] at h2
+  simp only [map_sub] at h2
+  rw [hc₂] at h2
+  have heq : U'.valuation (φ x - algebraMap A₁ (Fbar L₁) a) =
+      U'.valuation (φ x - φ (algebraMap A₂ (Fbar L₂) b)) := le_antisymm h1 h2
+  have hσ : IsLogValue U' (φ ϖ₀) (φ x - algebraMap A₁ (Fbar L₁) a) σ := by
+    have h := hb.1
+    unfold IsLogValue at h ⊢
+    rw [heq]
+    set y := x - algebraMap A₂ (Fbar L₂) b
+    have h' : (U'.comap φ).valuation (y ^ σ.den) = (U'.comap φ).valuation (ϖ₀ ^ σ.num) := by
+      rw [map_pow, map_zpow₀]; exact h
+    have h'' : U'.valuation (φ (y ^ σ.den)) = U'.valuation (φ (ϖ₀ ^ σ.num)) :=
+      le_antisymm ((comap_valuation_le_iff _ _ _ _).1 h'.le)
+        ((comap_valuation_le_iff _ _ _ _).1 h'.ge)
+    rw [map_pow, map_zpow₀, map_pow, map_zpow₀] at h''
+    simpa [y, map_sub] using h''
+  have hw0 : U'.valuation (φ ϖ₀) ≠ 0 := by
+    simpa using (map_ne_zero φ).2 hϖ0
+  exact IsLogValue.unique hw0 hlt ha.1 hσ
+
 end SemistableReduction
