@@ -680,6 +680,17 @@ proved and what remains is recorded row by row below and in the following summar
 | XL9 | **(X2) no shortening**: the concatenated monomial paths of a crossing walk restrict to a path `Γ` in the closed tube of `y'` from `W_{w₁'}` to `W_{w₂'}` (inner components and nodes are centred over `y'`); `s(U) = log_{|ϖ'|} U(u')` is continuous along `Γ` and every `U` with `s(U) = s` is `U'_s` or lies in a disc hanging at `U'_s` (attached only there), so `Γ` passes through `U'_{s₁}, …, U'_{s_m}` in this order for every partition; hence `TV(x ∘ Γ) ≥ ∑ d(x(U'_{sᵢ}), x(U'_{sᵢ₊₁}))` and `∑ λ(xᵢ) = TV(x ∘ Γ) ≥ λ'(y')`. For unfolded `y'` (XL6) this is just the triangle inequality for positions (`abs_sub_le_sum_of_branchNodes`) | XL3, XL7, `IsXLength.le_of_chain` | planned, 0.6k |
 | XL10 | **(X3)**: `ψ y ∈ Z c'` (`ψ` over `O`); not a node ⇒ smooth; a point of `Z` lies on some component (Zorn, `exists_preirreducible` in the subspace `Z`) and a smooth point on at most one (minimal primes of `O_{Z,y}` inject into those of a local étale neighbourhood of `κ[u]`, a domain; flat ⇒ going down) | DualGraph, LocalModel | planned, parked (Theorem B parked) |
 
+**Convexity in `IsUnfolded` (2026-10-09, approved).** `ModelCode.IsUnfolded` now also requires
+the Gauss data `(a, b)` to be convex and reduced (`GaussTree.IsConvex`, `GaussTree.IsReduced`).
+Without convexity the claim "the x-path of every node is monotone" is false: for `L = K(x)` and
+the discs `D(0, |ϖ|)`, `D(1, |ϖ|)` (join `D(0, 1)` missing) the join model is normal with special
+fibre two lines meeting at `p`, `u = ϖ/x`, `v = ϖ/(x − 1)`, `(u − ϖ)(v + ϖ) = −ϖ²`, a split node of
+thickness 2 without loops at which `IsUnfolded` held, but the x-path of `p` runs
+`w_{0,|ϖ|} → w_{0,1} → w_{1,|ϖ|}` (radius `1 → 0 → 1`): `λ = 2`, position difference `0`. W7's
+trees are convex and reduced (`W7.Statement`), and so are their descents to `E`
+(`isConvex_descent`, `isReduced_descent` in W10Main), so the obligation on `StrongComponentA`
+holds for the trees it uses. `CrossingX1` only consumes `IsUnfolded` and still builds.
+
 **Scope (decided):** `Statement.HarmonicX` assumes `ModelCode.IsUnfolded` for `c` and `c'` (W7 (c), to be
 output by W10's component clause for B5); λ keeps the folded-inclusive definition. Then XL3 is the
 monotone case of XL6 (`t = ε u^e ϖ^α` at the base node: `ρ(s)` linear, centre `K'`-rational, Gauss data
