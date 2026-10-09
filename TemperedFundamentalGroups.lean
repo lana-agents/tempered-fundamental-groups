@@ -28,6 +28,7 @@ import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TateSurjective
 import TemperedFundamentalGroups.Andre.TateWinding
 import TemperedFundamentalGroups.Andre.TheoremA
+import TemperedFundamentalGroups.Andre.TheoremAFinal
 import TemperedFundamentalGroups.Andre.TheoremB
 import TemperedFundamentalGroups.Andre.TheoremBFinal
 import TemperedFundamentalGroups.Andre.TheoremBH
@@ -275,6 +276,7 @@ import TemperedFundamentalGroups.SemistableReduction.SplitDisc
 import TemperedFundamentalGroups.SemistableReduction.Splitting
 import TemperedFundamentalGroups.SemistableReduction.Statement
 import TemperedFundamentalGroups.SemistableReduction.StrongA
+import TemperedFundamentalGroups.SemistableReduction.StrongAProof
 import TemperedFundamentalGroups.SemistableReduction.StrongComponent
 import TemperedFundamentalGroups.SemistableReduction.StrongComponentA
 import TemperedFundamentalGroups.SemistableReduction.TameLocal
