@@ -278,6 +278,33 @@ variable {K : Type u} [Field K] {Γ₀ : Type*} [LinearOrderedCommGroupWithZero 
 
 local notation "⟪" k "⟫" => algebraMap K (RatFunc K) k
 
+/-- **The thickness of a node is in `𝔪_O`**: if `y, c/y ∈ 𝔪_W` for a valuation subring `W` of
+`F₀` over `O`, then `v(c) < 1`. -/
+lemma valuation_lt_one_of_node {y : RatFunc K} (hy0 : y ≠ 0) {c' : K} (hc'0 : c' ≠ 0)
+    {F₀ : Type u} [Field F₀] [Algebra (RatFunc K) F₀] {W : ValuationSubring F₀}
+    (hW : (W.comap (algebraMap (RatFunc K) F₀)).comap (algebraMap K (RatFunc K)) =
+      v.valuationSubring)
+    (hy : W.valuation (algebraMap (RatFunc K) F₀ y) < 1)
+    (hcy : W.valuation (algebraMap (RatFunc K) F₀ (⟪c'⟫ / y)) < 1) : v c' < 1 := by
+  have hWc : W.valuation (algebraMap (RatFunc K) F₀ ⟪c'⟫) < 1 := by
+    have e : ⟪c'⟫ = y * (⟪c'⟫ / y) := by field_simp
+    rw [e, map_mul, map_mul]
+    exact mul_lt_one_of_lt_of_le hy (le_of_lt hcy)
+  by_contra hge
+  push Not at hge
+  have hinv : c'⁻¹ ∈ v.valuationSubring := by
+    rw [Valuation.mem_valuationSubring_iff, map_inv₀]
+    exact inv_le_one_of_one_le₀ hge
+  have hmem : algebraMap (RatFunc K) F₀ ⟪c'⁻¹⟫ ∈ W := by
+    have : c'⁻¹ ∈ (W.comap (algebraMap (RatFunc K) F₀)).comap (algebraMap K (RatFunc K)) :=
+      hW ▸ hinv
+    exact this
+  have h1 := (W.valuation_le_one_iff _).2 hmem
+  rw [map_inv₀, map_inv₀, map_inv₀] at h1
+  have h0 : W.valuation (algebraMap (RatFunc K) F₀ ⟪c'⟫) ≠ 0 := by
+    simp [hc'0]
+  exact absurd h1 (not_le.2 ((one_lt_inv₀ (pos_iff_ne_zero.2 h0)).2 hWc))
+
 open GaussTree in
 /-- **Both branches through an edge node.** For the edge chart `O[t, c'/t]`, `t = (X - a j)/c m`,
 `c' = c j / c m`, its integral closure `T` in `F₀` and a valuation
@@ -309,26 +336,7 @@ theorem exists_branches_edge {ι : Type*} {a c : ι → K} {j m : ι} (hcj : c j
   have hc'0 : c' ≠ 0 := div_ne_zero hcj hcm
   have hgm := isGaussCoord_coord (v := v) (a := a j) hcm
   have hy0 : y ≠ 0 := hgm.ne_zero
-  -- `v(c') < 1`
-  have hc' : v c' < 1 := by
-    have hWc : W.valuation (algebraMap (RatFunc K) F₀ ⟪c'⟫) < 1 := by
-      have e : ⟪c'⟫ = y * (⟪c'⟫ / y) := by field_simp
-      rw [e, map_mul, map_mul]
-      exact mul_lt_one_of_lt_of_le hy (le_of_lt hcy)
-    by_contra hge
-    push Not at hge
-    have hinv : c'⁻¹ ∈ v.valuationSubring := by
-      rw [Valuation.mem_valuationSubring_iff, map_inv₀]
-      exact inv_le_one_of_one_le₀ hge
-    have hmem : algebraMap (RatFunc K) F₀ ⟪c'⁻¹⟫ ∈ W := by
-      have : c'⁻¹ ∈ (W.comap (algebraMap (RatFunc K) F₀)).comap (algebraMap K (RatFunc K)) :=
-        hW ▸ hinv
-      exact this
-    have h1 := (W.valuation_le_one_iff _).2 hmem
-    rw [map_inv₀, map_inv₀, map_inv₀] at h1
-    have h0 : W.valuation (algebraMap (RatFunc K) F₀ ⟪c'⟫) ≠ 0 := by
-      simp [hc'0]
-    exact absurd h1 (not_le.2 ((one_lt_inv₀ (pos_iff_ne_zero.2 h0)).2 hWc))
+  have hc' : v c' < 1 := valuation_lt_one_of_node hy0 hc'0 hW hy hcy
   refine ⟨?_, ?_⟩
   · obtain ⟨V, hV, hVc⟩ := hgm.exists_valuationSubring_branch hc'0 hc' hTW hW hy hcy
     exact ⟨V, hV, hVc⟩
