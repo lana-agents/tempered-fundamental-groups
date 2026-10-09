@@ -31,12 +31,55 @@ namespace TemperedFundamentalGroups.SemistableReduction
 
 open CentreGerms ValuativeCentre ModelCode CrossingSource CrossingGlue
 
-/-- **`Statement.CrossingX1` holds.** -/
-theorem crossingX1 : Statement.CrossingX1.{u} := by
+/-- **`Statement.CrossingX1` with positions**: the crossing walk, for the given node coordinates
+`u v = ϖ₂ ^ n` of `y'`, comes with a coordinate `a ∈ {u, v}` and an exponent `m > 0` such that
+the exponent of `a ^ m` (in powers of `ϖ₁`) strictly increases along each edge. -/
+def CrossingX1Inc : Prop :=
+  ∀ (K : Type u) [Field K] [CharZero K] (O : ValuationSubring K) [IsDiscreteValuationRing O]
+    [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+    (K₁ K₂ : Type u) [Field K₁] [Field K₂] [Algebra K K₁] [Algebra K K₂]
+    [FiniteDimensional K K₁] [FiniteDimensional K K₂]
+    (O₁ : ValuationSubring K₁) (O₂ : ValuationSubring K₂)
+    (h₁ : O₁.comap (algebraMap K K₁) = O) (h₂ : O₂.comap (algebraMap K K₂) = O)
+    [IsDiscreteValuationRing O₁] [IsDiscreteValuationRing O₂] (ϖ₁ : O₁) (ϖ₂ : O₂)
+    (_ : Irreducible ϖ₁) (_ : Irreducible ϖ₂)
+    (L₁ L₂ : Type u) [Field L₁] [Field L₂] [Algebra K₁ L₁] [Algebra K₂ L₂] [Algebra L₂ L₁]
+    [Algebra K L₁] [Algebra K L₂] [IsScalarTower K K₁ L₁] [IsScalarTower K K₂ L₂]
+    [IsScalarTower K L₂ L₁]
+    [Algebra O₁ L₁] [IsScalarTower O₁ K₁ L₁] [Algebra O₂ L₂] [IsScalarTower O₂ K₂ L₂] (x : L₁)
+    (c : TemperedFundamentalGroups.ModelCode O₁) (c' : TemperedFundamentalGroups.ModelCode O₂)
+    (ψ : c.scheme ⟶ c'.scheme)
+    (j : Spec (CommRingCat.of L₁) ⟶ c.scheme) (j' : Spec (CommRingCat.of L₂) ⟶ c'.scheme)
+    (hunf : ModelCode.IsUnfolded O₁ x c j),
+    j ≫ ψ = Spec.map (CommRingCat.ofHom (algebraMap L₂ L₁)) ≫ j' →
+    ψ ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom ((algebraMap K K₂).restrict O O₂
+      (fun y hy ↦ by rw [← h₂] at hy; exact hy))) =
+      c.toSpec ≫ Spec.map (CommRingCat.ofHom ((algebraMap K K₁).restrict O O₁
+        (fun y hy ↦ by rw [← h₁] at hy; exact hy))) →
+    ModelCode.IsSplit ϖ₁ c → ModelCode.NoLoops c →
+    Dense (Set.range j'.base) →
+    ∀ (y' : c'.scheme) (w₁' w₂' : Set c'.scheme), w₁' ∈ ModelCode.components c' →
+      w₂' ∈ ModelCode.components c' → w₁' ≠ w₂' → y' ∈ w₁' → y' ∈ w₂' →
+      ∀ (P : Subring L₂) (u v : L₂) (n : ℕ), (P : Set L₂) = ModelCode.germs c' j' y' →
+        _root_.SemistableReduction.NodeGerm O₂ ϖ₂ P u v n →
+        (∀ w ∈ P, u * w ≠ 1) → (∀ w ∈ P, v * w ≠ 1) →
+      ∀ v₀ ∈ ModelCode.components c, ψ '' v₀ = w₁' →
+        ∃ w : ModelCode.Walk c, w.v 0 = v₀ ∧ w.Crosses ψ y' ∧ ψ '' w.v (Fin.last w.k) = w₂' ∧
+          ∃ (a : L₂) (m : ℕ), (a = u ∨ a = v) ∧ 0 < m ∧
+            ∀ i : Fin w.k, ∃ q q' : ℕ, q < q' ∧
+              (Wc hunf.isWModel (w.mem_components i.castSucc)).valuation
+                  (algebraMap L₂ L₁ a ^ m) =
+                (Wc hunf.isWModel (w.mem_components i.castSucc)).valuation
+                  (algebraMap O₁ L₁ ϖ₁) ^ q ∧
+              (Wc hunf.isWModel (w.mem_components i.succ)).valuation (algebraMap L₂ L₁ a ^ m) =
+                (Wc hunf.isWModel (w.mem_components i.succ)).valuation
+                  (algebraMap O₁ L₁ ϖ₁) ^ q'
+
+/-- **`CrossingX1Inc` holds.** -/
+theorem crossingX1_inc : CrossingX1Inc.{u} := by
   intro K _ _ O _ _ K₁ K₂ _ _ _ _ _ _ O₁ O₂ h₁ h₂ _ _ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ _ _ _ _ _ _ _ _ _ _
-    _ _ _ _ x c c' ψ j j' hunf hj hψO hsplit0 hloops hdense y' w₁' w₂' hw₁ hw₂ hne hy₁ hy₂ hP
-    v₀ hv₀ hψv₀
-  obtain ⟨P, u, v, n, hPg, hG, hu, hv⟩ := hP
+    _ _ _ _ x c c' ψ j j' hunf hj hψO hsplit0 hloops hdense y' w₁' w₂' hw₁ hw₂ hne hy₁ hy₂ P u v n
+    hPg hG hu hv v₀ hv₀ hψv₀
   have hW : IsWModel O₁ L₁ x c j := hunf.isWModel
   have hsplit := hsplit0.1
   set ι := algebraMap L₂ L₁ with hι
@@ -107,14 +150,21 @@ theorem crossingX1 : Statement.CrossingX1.{u} := by
       core hPV' hP₂ hϖV' h2 h1 hϖ₂V h4 h3 hV hV₂)
   suffices H : ∀ a b : L₂, NodeCore P ι₂ ϖ₂L a b n → V₁.valuation a = 1 →
       V₂.valuation b = 1 → V₂.valuation a < 1 →
-      ∃ w : Walk c, w.v 0 = v₀ ∧ w.Crosses ψ y' ∧ ψ '' w.v (Fin.last w.k) = w₂' by
+      ∃ w : Walk c, w.v 0 = v₀ ∧ w.Crosses ψ y' ∧ ψ '' w.v (Fin.last w.k) = w₂' ∧
+        ∃ m : ℕ, 0 < m ∧ ∀ i : Fin w.k, ∃ q q' : ℕ, q < q' ∧
+          (Wc hW (w.mem_components i.castSucc)).valuation (ι a ^ m) =
+            (Wc hW (w.mem_components i.castSucc)).valuation (algebraMap O₁ L₁ ϖ₁) ^ q ∧
+          (Wc hW (w.mem_components i.succ)).valuation (ι a ^ m) =
+            (Wc hW (w.mem_components i.succ)).valuation (algebraMap O₁ L₁ ϖ₁) ^ q' by
     rcases CrossingTarget.unit_or_unit (hdom y') hPg core₀ hP₁ hϖ₁V hV₁ hη₁ne with
       ⟨hu₁, hv₁⟩ | ⟨hv₁, hu₁⟩ <;>
     rcases CrossingTarget.unit_or_unit (hdom y') hPg core₀ hP₂ hϖ₂V hV₂ hη₂ne with
       ⟨hu₂, hv₂⟩ | ⟨hv₂, hu₂⟩
     · exact (hsame core₀ V₁ hV₁ hP₁ hϖ₁V hu₁ hv₁ hu₂ hv₂).elim
-    · exact H u v core₀ hu₁ hv₂ hu₂
-    · exact H v u core₀.swap hv₁ hu₂ hv₂
+    · obtain ⟨w, h1, h2, h3, m, hm, hinc⟩ := H u v core₀ hu₁ hv₂ hu₂
+      exact ⟨w, h1, h2, h3, u, m, .inl rfl, hm, hinc⟩
+    · obtain ⟨w, h1, h2, h3, m, hm, hinc⟩ := H v u core₀.swap hv₁ hu₂ hv₂
+      exact ⟨w, h1, h2, h3, v, m, .inr rfl, hm, hinc⟩
     · exact (hsame core₀.swap V₁ hV₁ hP₁ hϖ₁V hv₁ hu₁ hv₂ hu₂).elim
   intro a b core ha₁ hb₂ ha₂
   clear core₀
@@ -346,7 +396,19 @@ theorem crossingX1 : Statement.CrossingX1.{u} := by
     have := (valuation_comap_lt_one_iff _ _).1 (hdomR a core.u_mem core.u_nonunit)
     rw [ht, map_pow]
     exact pow_lt_one₀ zero_le this (by omega)
-  exact exists_walk hW hϖ₁ hsplit hloops ψ y' w₂' t N (Nat.mul_pos he₁ hn) hM hbound hcontr
-    hend (hnot w₂' hw₂ hy₂) hv₀ hv₀c hstart hz₀ hψz₀ hR₀
+  obtain ⟨w, h1, h2, h3, hinc⟩ := exists_walk hW hϖ₁ hsplit hloops ψ y' w₂' t N
+    (Nat.mul_pos he₁ hn) hM hbound hcontr hend (hnot w₂' hw₂ hy₂) hv₀ hv₀c hstart hz₀ hψz₀ hR₀
+  exact ⟨w, h1, h2, h3, e₂, he₂, hinc⟩
+
+/-- **`Statement.CrossingX1` holds.** -/
+theorem crossingX1 : Statement.CrossingX1.{u} := by
+  intro K _ _ O _ _ K₁ K₂ _ _ _ _ _ _ O₁ O₂ h₁ h₂ _ _ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ _ _ _ _ _ _ _ _ _ _
+    _ _ _ _ x c c' ψ j j' hunf hj hψO hsplit0 hloops hdense y' w₁' w₂' hw₁ hw₂ hne hy₁ hy₂ hP
+    v₀ hv₀ hψv₀
+  obtain ⟨P, u, v, n, hPg, hG, hu, hv⟩ := hP
+  obtain ⟨w, h1, h2, h3, -⟩ := crossingX1_inc K O K₁ K₂ O₁ O₂ h₁ h₂ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ x c c'
+    ψ j j' hunf hj hψO hsplit0 hloops hdense y' w₁' w₂' hw₁ hw₂ hne hy₁ hy₂ P u v n hPg hG hu hv
+    v₀ hv₀ hψv₀
+  exact ⟨w, h1, h2, h3⟩
 
 end TemperedFundamentalGroups.SemistableReduction
