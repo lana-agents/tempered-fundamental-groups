@@ -2473,4 +2473,8 @@ axioms `propext`, `Classical.choice`, `Quot.sound`). About 2.8k lines in 21 file
   * the split node descent.
 * *Scheme level.* `projModelCode_hasSplitNodes`, `exists_component_model_split`: the component
   model code has `HasSplitNodes`.
+* *Any coordinates.* `projModelCode_split_of_points` gives split nodes and a germ bridge for every
+  `g` with the points of a finite-type model.
+* *Node points lie over edges.* `W10Route.exists_routedEdge_of_isNodePt`: at a node point the
+  germs are the local ring of a normalized edge chart (`RoutedEdge`) at a valuation `W`.
 * *Open:* `HasGeomIrreducibleComponents` (linear disjointness at the vertex Gauss points, ≈ 1.5k).
