@@ -2215,6 +2215,47 @@ so the special fibre is connected (Zariski). *Routes to discharge it:*
   * `W10.TreeComponentsGeomIrred` is no longer needed.
   * The earlier `strongComponentA_of` (`IsSplit` output) is replaced by `strongComponentAS_of`.
 
+**Plan: `v(q) = 1` by ramified quadratic base change (2026-10-09, owner's request).**
+For `v(q) = 1` (in normal form `v(a₄), v(a₆) ≥ 1` with `v(a₆) = 1`), no `π ∈ 𝔪_O` has
+`π² | a₄, a₆`. The special fibre of the minimal model is a 1-gon (a loop), so `NoLoops` fails and
+the crossing argument does not apply. Over `K' = K(√ϖ)` (`e = 2`) we have `v'(q) = 2`, and
+`π = √ϖ` is a good Tate presentation: `b₆` is a unit, so the special fibre is a 2-gon.
+*How nondegeneracy reaches `K`.* `temperedPi1 O R A` is arithmetic: its levels are arbitrary
+finite étale `R`-algebras over `K`.
+* Route A (descent of groups). Restriction of scalars `TempObj O' (K' ⊗ R) A → TempObj O R A`
+  identifies `temperedPi1` over `K'` with an open subgroup of finite index of the one over `K`
+  (the stabiliser of an embedding `K' → Ω`).
+  * Then nondegeneracy descends: take the normal core of the image of `N'`.
+  * The cost is the comparison of the two Galois categories: an equivalence onto the slice over
+    `Spec (K' ⊗ R)`, the fibre functors, and the surjectivity of the restriction map. Plus
+    `geomOrbicurveRing` of the base-changed curve ≅ `K' ⊗ geomOrbicurveRing`. Estimated 3–4k,
+    high risk.
+* Route B (chosen). Run Theorem B in the category over `K` itself, with the Tate object
+  `X₀` replaced by the restriction of scalars of the Tate object over `K'`:
+  * the level `B = K' ⊗_K R` (finite étale over `R`, `H` acting through `A`);
+  * the model is the Tate 2-gon model over `O'`, presented over `O` by the multi-theta base change
+    (`baseChangeIsoFin`, as in the W10 assembly), with special fibre homeomorphic to that over `O'`;
+  * the covering space is the `ℤ`-cover of the 2-gon, as now.
+  The character, the induction to `A` (`InducedTate`) and the nondegeneracy argument stay in the
+  `K`-category. No comparison of fundamental groups is needed.
+  * B1. The extension (≈0.3k): `K' = K[X]/(X² - ϖ)` is a field (Eisenstein). `O'` is its
+    valuation ring over `O`, a complete DVR with uniformizer `√ϖ`, `O' ∩ K = O`. Reuse
+    `W10Apply.OE` and `W10Gal` (normed structure, DVR, generators θ of `O'` over `O`).
+  * B2. The Tate data over `K'` (≈0.1k): `a₄ = (√ϖ)² u₄`, `a₆ = (√ϖ)² ε`, `b₆ = ε` a unit,
+    with `x, y ∈ K' ⊗ R`.
+  * B3. Generalise `TateObject.Data` (≈1.5–2.5k, the bulk). The Tate data may live over a finite
+    extension `(K', O')` and in a level `B` over `R`. `X₀` then has level `B` and the
+    theta-presented model.
+    * The Tate-model lemmas (`TateModel*`, `TateNode*`, `TateCrossing*`) are already generic in
+      `(K, O)` and are applied at `(K', O')`.
+    * The files that use `X₀` as an object over `O` (`TateObject`, `TateSurjective`, `TateLoop`,
+      `TateG1`, `TateCrossing`, `TateThreeGon`, `TransferTate`, `NonzeroCharacter`,
+      `TheoremBFinal`; ≈4k lines) need their model identifications transported along the
+      theta isomorphism. `CrossingX1S` already allows a target over any `O₂`.
+  * B4. The IUT corollary for every `E_q` (≈0.2k). `v(q) ≥ 2` uses the existing route; `v(q) = 1`
+    uses B1–B3.
+  * Total ≈2.2–3.2k, stop and report at 3k.
+
 **Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
 `∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line
 (`W10Line.exists_invariant_line`) and the `G × Gal`-stability of the Gauss tree needs the line to
