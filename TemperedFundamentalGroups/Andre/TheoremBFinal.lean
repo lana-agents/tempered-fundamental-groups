@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Andre.TateLoop
 import TemperedFundamentalGroups.Andre.TateG1
+import TemperedFundamentalGroups.Orbicurve.Smooth
 
 /-!
 # Theorem B: assembly (Blueprint §10.3.8)
@@ -123,6 +124,58 @@ theorem exists_character_ne_one (hW : SemistableReduction.Statement.StrongCompon
   exact ⟨τ, hτ ▸ hd1⟩
 
 end TateObject
+
+namespace TateOrbicurve
+
+open Orbicurve
+
+variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
+  [IsAdicComplete (IsLocalRing.maximalIdeal O) O] {W : WeierstrassCurve K} [W.IsElliptic]
+  [DecidableEq K]
+  (A : Type u) [Group A] [Finite A] (A' : Type u) [Group A'] [Subsingleton A']
+  {ℓ : ℕ} {M : AddSubgroup W.toAffine.Point}
+  [MulSemiringAction A (geomOrbicurveRing W ℓ M)] [SMulCommClass A K (geomOrbicurveRing W ℓ M)]
+  [MulSemiringAction A' (geomOrbicurveRing W ℓ M)]
+  {Ω : Type u} [Field Ω] [IsAlgClosed Ω] [Algebra K Ω] [Algebra (geomOrbicurveRing W ℓ M) Ω]
+  [IsScalarTower K (geomOrbicurveRing W ℓ M) Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+/-- **Theorem B for IUT's orbicurves** (non-degeneracy of `temperedPi1 [Y/A]`,
+`Y = E_q ∖ (E[ℓ] + M)`): given W10 with components (`StrongComponentA`, mixed characteristic,
+perfect residue field), `HarmonicX`, `NodeOfTwoComponents` and the targeted `HarmonicTate`
+(for the members over the Tate object), `temperedPi1 [Y/A]` has an open normal subgroup with
+infinite quotient. The non-degeneracy condition on the Tate data (`x` transcendental) and the
+irreducibility of the Tate model are discharged (`transcendental_data_x`, `squarefree_dpoly`). -/
+theorem nondegenerate (hSCA : SemistableReduction.Statement.StrongComponentA.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hℓ : 1 ≤ ℓ)
+    (hM : (M : Set W.toAffine.Point).Finite)
+    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
+    {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) (hπ : π ≠ 0) (hπm : π ∈ IsLocalRing.maximalIdeal O)
+    (hHT : haveI := smooth_geomOrbicurveRing_of_charZero (W := W) hℓ hM
+      ∀ {X : TempObj O (geomOrbicurveRing W ℓ M) A'}
+      (P : Pres (exists_finite_aeval (K := K)
+        (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM)).choose X)
+      (a : P.U ⟶ TateObject.X₀ (A := A') (data hW hπ hπm ℓ M)),
+      P.HarmonicTate (data hW hπ hπm ℓ M) a) :
+    ∃ N : Subgroup (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV),
+      IsOpen (N : Set (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV)) ∧ N.Normal ∧
+        Infinite (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV ⧸ N) := by
+  haveI := smooth_geomOrbicurveRing_of_charZero (W := W) hℓ hM
+  have h2 : (2 : O) ≠ 0 := fun h => two_ne_zero (congrArg Subtype.val h : ((2 : O) : K) = 0)
+  have hΔ : TateNormal.tateDisc π b₄ b₆ ≠ 0 := by
+    intro h
+    have hW' := TateNormal.Δ_eq_tateDisc (π := π) (b₄ := b₄) (b₆ := b₆) O.subtype W hW.a₁ hW.a₂
+      hW.a₃ (by rw [hW.a₄]; simp) (by rw [hW.a₆]; simp)
+    rw [h, map_zero] at hW'
+    exact W.isUnit_Δ.ne_zero hW'
+  refine nondegenerate_of_character_ne_one A A' V hV hW hπ hπm ?_
+  exact TateObject.exists_character_ne_one (data hW hπ hπm ℓ M) V hV hSCA p hp hpm
+    (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM) hX hN ϖ hϖ hHT
+    (TateNormal.squarefree_dpoly π b₄ b₆ h2 hΔ) (transcendental_data_x hW hπ hπm ℓ M)
+
+end TateOrbicurve
 
 end
 
