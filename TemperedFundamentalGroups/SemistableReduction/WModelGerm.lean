@@ -183,7 +183,8 @@ thickness `n ≥ 1`. Then the germs at `y` form a local subring `P ⊆ L` which 
 `NodeGerm O' ϖ P u v n` for exact coordinates `u v = ϖ ^ n`, with `ϖ, u, v` in the maximal ideal,
 `u` transcendental over `K'`, `P` flat over the node `O'[u, v] ⧸ (u v - ϖ ^ n)` via `(u, v)` (the
 image consisting of polynomials in `u, v`), and `u, v` are sections, vanishing at `y`, over an
-open `V ∋ y` containing the generic point (the data of `ModelCode.IsXLength`). -/
+open `V ∋ y` containing the generic point (the data of `ModelCode.IsXLength`); `P` is the image of
+a normal noetherian ordinary double point (`IsODPGerm`, input of the divisor lemma). -/
 theorem exists_nodeGerm {ϖ : O'} (hϖ : Irreducible ϖ) {x : L}
     {c : TemperedFundamentalGroups.ModelCode O'} {j : Spec (CommRingCat.of L) ⟶ c.scheme}
     (hW : IsWModel O' L x c j) (hsplit : HasSplitNodes ϖ c) (hloops : NoLoops c) {y : c.scheme}
@@ -205,7 +206,8 @@ theorem exists_nodeGerm {ϖ : O'} (hϖ : Irreducible ϖ) {x : L}
         su * sv = algebraMap O' Γ(c.scheme, V) (ϖ ^ n) ∧
         ¬ IsUnit ((c.scheme.presheaf.germ V y hyV).hom su) ∧
         ¬ IsUnit ((c.scheme.presheaf.germ V y hyV).hom sv) ∧
-        toL j hV su = u ∧ toL j hV sv = v) := by
+        toL j hV su = u ∧ toL j hV sv = v) ∧
+      _root_.SemistableReduction.IsODPGerm O' ϖ P u v n := by
   classical
   obtain ⟨hx, -, -, -, -, -, halg, -⟩ := id hW
   -- the split chart, at the singular point
@@ -235,14 +237,14 @@ theorem exists_nodeGerm {ϖ : O'} (hϖ : Irreducible ϖ) {x : L}
   have hιO : ∀ o : O', toLHom j h (algebraMap O' _ o) = algebraMap K' L (o : K') := fun o ↦ by
     rw [toLHom_apply, hO', IsScalarTower.algebraMap_apply O' K' L]
     rfl
-  obtain ⟨P, u, v, hG, hPset, hloc, htr, hflat, a, b, s, hs, hua, hvb⟩ :=
+  obtain ⟨P, u, v, hG, hPset, hloc, htr, hflat, ⟨a, b, s, hs, hua, hvb⟩, hODP⟩ :=
     _root_.SemistableReduction.exists_nodeGerm_of_split (O := O') hϖ hn (toLHom j h) hinj hιO
       hfrac hx (isAlgebraic_adjoin_of_ratFunc hx halg) 𝔭 hsp P₁ P₂ hϖ₁ hϖ₂ hle₁ hle₂ hmin₁
       hmin₂ hne
   have hPg : (P : Set L) = germs c j y := by
     rw [hPset, germs_eq_of_isAffineOpen j hU hyU h hinj]
     rfl
-  refine ⟨P, u, v, n, hG, hn, hthick, hPg, hloc, htr, hflat, ?_⟩
+  refine ⟨P, u, v, n, hG, hn, hthick, hPg, hloc, htr, hflat, ?_, hODP⟩
   obtain ⟨_, -, humax, hvmax⟩ := hloc
   -- sections over `V = D(s)`
   have hι0 : ∀ z : Γ(c.scheme, U), z ∉ 𝔭 → toL j h z ≠ 0 := fun z hz h0 ↦

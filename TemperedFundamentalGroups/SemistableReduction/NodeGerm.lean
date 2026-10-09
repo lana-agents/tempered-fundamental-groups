@@ -5,6 +5,7 @@ Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.NodeDescent
 import TemperedFundamentalGroups.SemistableReduction.NodeLemma
+import TemperedFundamentalGroups.SemistableReduction.FaithfullyFlatNormal
 
 /-!
 # Exact node coordinates at split nodes (W8′, XL1)
@@ -43,6 +44,7 @@ theorem exists_exact_node_of_split {ϖ : O} (hϖ : Irreducible ϖ) {n : ℕ} (hn
     (hmin₂ : ∀ Q : Ideal (Localization.AtPrime 𝔭), Q.IsPrime → algebraMap O _ ϖ ∈ Q → Q ≤ P₂ →
       Q = P₂)
     (hne : P₁ ≠ P₂) :
+    IsIntegrallyClosed (Localization.AtPrime 𝔭) ∧
     ∃ (u v : Localization.AtPrime 𝔭) (𝔔₁ 𝔔₂ : Ideal (Localization.AtPrime 𝔭)),
       u * v = algebraMap O _ ϖ ^ n ∧ IsOrdinaryDoublePoint ϖ u v 𝔔₁ 𝔔₂ ∧
       (∃ ε ε' : (Localization.AtPrime 𝔮)ˣ,
@@ -121,7 +123,9 @@ theorem exists_exact_node_of_split {ϖ : O} (hϖ : Irreducible ϖ) {n : ℕ} (hn
     haveI := hE.isPrime₂
     exact hE.notMem₂ ((Ideal.mul_mem_left _ (↑ε'⁻¹ : E) h) |> fun h' ↦ by
       rwa [← mul_assoc, Units.inv_mul, one_mul] at h')
-  refine ⟨u₀, v₀, (Ideal.span {algebraMap O E ϖ, algebraMap N E (Node.v (ϖ ^ n))}).comap
+  haveI : Module.FaithfullyFlat D E := Module.FaithfullyFlat.of_flat_of_isLocalHom
+  refine ⟨isIntegrallyClosed_of_faithfullyFlat (D := D) (E := E),
+    u₀, v₀, (Ideal.span {algebraMap O E ϖ, algebraMap N E (Node.v (ϖ ^ n))}).comap
     (algebraMap D E), (Ideal.span {algebraMap O E ϖ, algebraMap N E (Node.u (ϖ ^ n))}).comap
     (algebraMap D E), huv₀, ?_, ε, ε', hε, hε'⟩
   exact
