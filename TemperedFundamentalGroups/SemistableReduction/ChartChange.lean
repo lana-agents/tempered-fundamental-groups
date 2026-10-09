@@ -296,6 +296,45 @@ theorem mem_trI_iff
   rw [extEmb_e_red] at h
   exact (iff_of_eq (congrArg (· < 1) h)).symm
 
+include hσ hu hx in
+/-- The coordinate of `K₂` lies in the transport of a point iff `u x₁ + β` lies in the point. -/
+theorem mem_trI_iff_x
+    (hΛ₁ : IsChart 𝓀 (fun w : Ext C K₁ ↦ red C (xF C K₁) w) (redRing C K₁ (xF C K₁)))
+    (hΛ₂ : IsChart 𝓀 (fun w : Ext C K₂ ↦ red C (xF C K₂) w) (redRing C K₂ (xF C K₂)))
+    {𝔫 : Ideal (redRing C K₁ (xF C K₁))} (h𝔫 : 𝔫.IsMaximal)
+    (hg : algebraMap C K₁ u * xF C K₁ + algebraMap C K₁ β ∈ intRing C K₁ (xF C K₁)) :
+    (⟨fun w ↦ red C (algebraMap C K₁ u * xF C K₁ + algebraMap C K₁ β) w, red_mem_redRing hg⟩ :
+        redRing C K₁ (xF C K₁)) ∈ 𝔫 ↔
+      (⟨fun w' ↦ red C (xF C K₂) w', hΛ₂.mem⟩ : redRing C K₂ (xF C K₂)) ∈
+        trI hΛ₁ hΛ₂ (E σ hσ φ he) 𝔫 := by
+  rw [mem_trI_iff σ hσ φ he hu hx hΛ₁ hΛ₂ h𝔫 hg]
+  have e : (⟨fun w' ↦ red C (xF C K₂) w', hΛ₂.mem⟩ : redRing C K₂ (xF C K₂)) =
+      ⟨fun w' ↦ red C (φ (algebraMap C K₁ u * xF C K₁ + algebraMap C K₁ β)) w',
+        red_mem_redRing ((mem_intRing_iff σ hσ φ he hu hx _).2 hg)⟩ :=
+    Subtype.ext (funext fun w' ↦ congrArg (fun f ↦ red C f w') hx)
+  rw [e]
+
+include hσ hu hx in
+/-- **Total `δ` over the residue point** along a change of coordinates. -/
+theorem tot0_x_eq
+    (hΛ₁ : IsChart 𝓀 (fun w : Ext C K₁ ↦ red C (xF C K₁) w) (redRing C K₁ (xF C K₁)))
+    (hΛ₂ : IsChart 𝓀 (fun w : Ext C K₂ ↦ red C (xF C K₂) w) (redRing C K₂ (xF C K₂)))
+    (hg : algebraMap C K₁ u * xF C K₁ + algebraMap C K₁ β ∈ intRing C K₁ (xF C K₁)) :
+    tot0 C K₂ hΛ₂ (fun 𝔫 ↦ (⟨fun w' ↦ red C (xF C K₂) w', hΛ₂.mem⟩ :
+      redRing C K₂ (xF C K₂)) ∈ 𝔫) =
+    tot0 C K₁ hΛ₁ (fun 𝔫 ↦ (⟨fun w ↦ red C (algebraMap C K₁ u * xF C K₁ + algebraMap C K₁ β) w,
+      red_mem_redRing hg⟩ : redRing C K₁ (xF C K₁)) ∈ 𝔫) :=
+  tot0_eq σ hσ φ he hu hx hΛ₁ hΛ₂ _ _ fun _ h𝔫 ↦
+    mem_trI_iff_x σ hσ φ he hu hx hΛ₁ hΛ₂ h𝔫 hg
+
+include hσ hu hx in
+/-- **Total `δ` of the chart** along a change of coordinates. -/
+theorem tot0_true_eq
+    (hΛ₁ : IsChart 𝓀 (fun w : Ext C K₁ ↦ red C (xF C K₁) w) (redRing C K₁ (xF C K₁)))
+    (hΛ₂ : IsChart 𝓀 (fun w : Ext C K₂ ↦ red C (xF C K₂) w) (redRing C K₂ (xF C K₂))) :
+    tot0 C K₂ hΛ₂ (fun _ ↦ True) = tot0 C K₁ hΛ₁ (fun _ ↦ True) :=
+  tot0_eq σ hσ φ he hu hx hΛ₁ hΛ₂ _ _ fun _ _ ↦ Iff.rfl
+
 end Chart
 
 /-! ### Instances -/
@@ -313,42 +352,44 @@ lemma ratFunc_algHom_ext {f g : RatFunc C →ₐ[C] RatFunc C} (h : f RatFunc.X 
   rw [← RatFunc.num_div_denom φ, map_div₀, map_div₀, hp, hp]
 
 omit [IsAlgClosed C] in
-/-- `x ↦ ((x - b)/d)/c' = (x - b)/(d c')`. -/
-lemma aff_aff {b d c' : C} (hd : d ≠ 0) (hc' : c' ≠ 0) (φ : RatFunc C) :
-    aff b d hd (aff 0 c' hc' φ) = aff b (d * c') (mul_ne_zero hd hc') φ := by
-  have := ratFunc_algHom_ext (f := (aff b d hd).toAlgHom.comp (aff 0 c' hc').toAlgHom)
-    (g := (aff b (d * c') (mul_ne_zero hd hc')).toAlgHom) (by
-      change aff b d hd (aff 0 c' hc' RatFunc.X) = aff b (d * c') _ RatFunc.X
+/-- `x ↦ ((x - b)/d - a)/c = (x - (b + d a))/(d c)`. -/
+lemma aff_aff {a b c d : C} (hd : d ≠ 0) (hc : c ≠ 0) (φ : RatFunc C) :
+    aff b d hd (aff a c hc φ) = aff (b + d * a) (d * c) (mul_ne_zero hd hc) φ := by
+  have := ratFunc_algHom_ext (f := (aff b d hd).toAlgHom.comp (aff a c hc).toAlgHom)
+    (g := (aff (b + d * a) (d * c) (mul_ne_zero hd hc)).toAlgHom) (by
+      change aff b d hd (aff a c hc RatFunc.X) = aff (b + d * a) (d * c) _ RatFunc.X
       simp only [aff_apply]
-      rw [affHom_X, affHom_gaussCoord, affHom_X, gaussCoord_eq, gaussCoord_eq, map_zero, sub_zero,
-        mul_inv, map_mul]
+      have hd' : algebraMap C (RatFunc C) d ≠ 0 := by simpa using hd
+      have hc' : algebraMap C (RatFunc C) c ≠ 0 := by simpa using hc
+      rw [affHom_X, affHom_gaussCoord, affHom_X, gaussCoord_eq, gaussCoord_eq]
+      simp only [map_inv₀, map_mul, map_add]
+      field_simp
       ring)
   exact congrArg (fun f : RatFunc C →ₐ[C] RatFunc C ↦ f φ) this
 
 variable {F : Type*} [Field F] [Algebra (RatFunc C) F] [Algebra C F]
   [IsScalarTower C (RatFunc C) F]
 
-/-- **Composition of affine twists**: `Aff 0 c' (Aff b d F) = Aff b (d c') F`. -/
-noncomputable def compEquiv {b d c' : C} (hd : d ≠ 0) (hc' : c' ≠ 0) :
-    Aff (0 : C) c' hc' (Aff b d hd F) ≃+* Aff b (d * c') (mul_ne_zero hd hc') F :=
-  ((toAff hc').symm.trans (toAff hd).symm).trans (toAff (mul_ne_zero hd hc'))
+/-- **Composition of affine twists**: `Aff a c (Aff b d F) = Aff (b + d a) (d c) F`. -/
+noncomputable def compEquiv {a b c d : C} (hd : d ≠ 0) (hc : c ≠ 0) :
+    Aff a c hc (Aff b d hd F) ≃+* Aff (b + d * a) (d * c) (mul_ne_zero hd hc) F :=
+  ((toAff hc).symm.trans (toAff hd).symm).trans (toAff (mul_ne_zero hd hc))
 
 omit [IsAlgClosed C] [Algebra C F] [IsScalarTower C (RatFunc C) F] in
-lemma compEquiv_he {b d c' : C} (hd : d ≠ 0) (hc' : c' ≠ 0) (ψ : RatFunc C) :
-    compEquiv (F := F) hd hc' (algebraMap (RatFunc C) (Aff (0 : C) c' hc' (Aff b d hd F))
+lemma compEquiv_he {a b c d : C} (hd : d ≠ 0) (hc : c ≠ 0) (ψ : RatFunc C) :
+    compEquiv (F := F) hd hc (algebraMap (RatFunc C) (Aff a c hc (Aff b d hd F))
       ((AlgEquiv.refl : RatFunc C ≃ₐ[C] RatFunc C) ψ)) =
-      algebraMap (RatFunc C) (Aff b (d * c') (mul_ne_zero hd hc') F) ψ := by
-  change algebraMap (RatFunc C) F (aff b d hd (aff 0 c' hc' ψ)) = _
+      algebraMap (RatFunc C) (Aff (b + d * a) (d * c) (mul_ne_zero hd hc) F) ψ := by
+  change algebraMap (RatFunc C) F (aff b d hd (aff a c hc ψ)) = _
   rw [aff_aff]
   rfl
 
 omit [IsAlgClosed C] [IsScalarTower C (RatFunc C) F] in
-lemma compEquiv_x {b d c' : C} (hd : d ≠ 0) (hc' : c' ≠ 0) :
-    xF C (Aff b (d * c') (mul_ne_zero hd hc') F) =
-      compEquiv (F := F) hd hc' (algebraMap C (Aff (0 : C) c' hc' (Aff b d hd F)) (1 : C) *
-        xF C (Aff (0 : C) c' hc' (Aff b d hd F)) +
-          algebraMap C (Aff (0 : C) c' hc' (Aff b d hd F)) (0 : C)) := by
-  rw [map_one, one_mul, map_zero, add_zero, xF, xF, ← compEquiv_he hd hc']
+lemma compEquiv_x {a b c d : C} (hd : d ≠ 0) (hc : c ≠ 0) :
+    xF C (Aff (b + d * a) (d * c) (mul_ne_zero hd hc) F) =
+      compEquiv (F := F) hd hc (algebraMap C (Aff a c hc (Aff b d hd F)) (1 : C) *
+        xF C (Aff a c hc (Aff b d hd F)) + algebraMap C (Aff a c hc (Aff b d hd F)) (0 : C)) := by
+  rw [map_one, one_mul, map_zero, add_zero, xF, xF, ← compEquiv_he hd hc]
   rfl
 
 lemma gauss1_aff_one {β : C} (hβ : ‖β‖ ≤ 1) (ψ : RatFunc C) :
