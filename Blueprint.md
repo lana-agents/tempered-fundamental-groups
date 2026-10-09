@@ -2130,6 +2130,42 @@ characteristic, perfect residue field, `IsDomain R`, `G` acting on `R`) plus the
 mixed-characteristic hypothesis, so as stated it is out of reach of the W-chain (W7 is proved for
 residue characteristic `p > 0`); Theorem B only needs it for IUT's `K_v`.
 
+**Connected special fibres: `Statement.ZariskiConnected` (2026-10-09, approved interim).**
+The component clause needs `ConnectedSpace (specialFibre c₁.toSpec)`. It is taken as the named,
+targeted hypothesis `Statement.ZariskiConnected` (`SemistableReduction/ZariskiConnected.lean`):
+a semistable projective model over `O'` (finite over a complete DVR, char 0) with integral
+generic fibre (scheme-theoretically dominant `Spec L ⟶ c'` over `O'`) has a connected special
+fibre. *Why true:* semistable ⇒ normal and flat; projective ⇒ proper; Stein factorization gives
+`Γ(c', O)` finite over `O'` and inside `L`, a domain finite over the henselian `O'`, hence local,
+so the special fibre is connected (Zariski). *Routes to discharge it:*
+* (i) a tree version of G8 (`GaussFibre.no_split`): traces of Newton iterates on all charts of
+  the tree model and a Liouville theorem for restricted functions on the tree, or induction over
+  the tree via blow-downs `T → M_ρ` with a disc version of `no_split` for connected fibres.
+  The single-vertex `no_split` does not suffice: in the coarse model the closures of the two
+  halves of a splitting may meet over child directions, so the CRT idempotent need not exist.
+  ≈ 3–5k, high risk.
+* (ii) formal functions over the complete `O'` (Stein factorization): a Mathlib-level project,
+  probably larger than (i).
+* (iii) avoid it by working with connected components of special fibres of levels: a refactor
+  of the tempered/Galois-object layer.
+
+**Status of `StrongComponentA` (2026-10-09).**
+* *Dimension clause:* proved, with no extra hypothesis. `ModelCode.topologicalKrullDim_le_one_of_iso`
+  (`SemistableFibreDim.lean`) derives it from two existing clauses: `IsSemistable ϖ' c'` and
+  `c.toSpec = e.hom ≫ c'.toSpec ≫ Spec φ`.
+  * Semistable at `𝔭₀` ⇒ no chain `𝔭₂ < 𝔭₁ < 𝔭₀` of primes containing `ϖ`
+    (`IsSemistableAt.not_chain`, `SemistableDim.lean`).
+  * Proof: going down along the flat map `A → C`, then incomparability along the quasi-finite
+    étale map `M → C`, then `dim M/(ϖ) ≤ 1` for `O[X]` and for the node. About 0.25k lines.
+* *Integration:* `strongComponentA_body_of_data` / `_of_tree` (`W10ComponentData.lean`,
+  `W10ComponentTree.lean`) give every clause of `StrongComponentA` with `K' = E`.
+  * Connectedness comes from `Statement.ZariskiConnected`, transported along `eComp`.
+  * Still open, as the hypothesis `hunf` over all component models of the tree: split nodes,
+  no loops and the node clause of `IsUnfolded`. The W-model, convexity and reducedness parts
+  of `IsUnfolded` are proved (`isWModelOf_projModelCode`, `GaussValTransfer.lean`).
+* `Statement.HarmonicX` is proved (`SemistableReduction.harmonicX`). The crossing forms of
+  Theorem B and of the IUT corollary no longer assume it.
+
 **Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
 `∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line
 (`W10Line.exists_invariant_line`) and the `G × Gal`-stability of the Gauss tree needs the line to

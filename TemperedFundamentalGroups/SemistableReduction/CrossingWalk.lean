@@ -108,7 +108,12 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
     (hv₀c : ¬ IsContracted' ψ v₀)
     (hstart : (Wc hW hv₀).valuation t = 1) {z₀ : c.scheme} (hz₀ : z₀ ∈ v₀) (hψz₀ : ψ z₀ = y')
     (hR₀ : ∀ R : ValuationSubring L, IsCentre j R z₀ → R.valuation t < 1) :
-    ∃ w : Walk c, w.v 0 = v₀ ∧ w.Crosses ψ y' ∧ ψ '' w.v (Fin.last w.k) = w₂' := by
+    ∃ w : Walk c, w.v 0 = v₀ ∧ w.Crosses ψ y' ∧ ψ '' w.v (Fin.last w.k) = w₂' ∧
+    (∀ i : Fin w.k, ∃ q q' : ℕ, q < q' ∧
+      (Wc hW (w.mem_components i.castSucc)).valuation t =
+        (Wc hW (w.mem_components i.castSucc)).valuation (algebraMap O L ϖ) ^ q ∧
+      (Wc hW (w.mem_components i.succ)).valuation t =
+        (Wc hW (w.mem_components i.succ)).valuation (algebraMap O L ϖ) ^ q') := by
   set ϖL := algebraMap O L ϖ
   let Inv : Walk c → ℕ → Prop := fun w p ↦
     w.v 0 = v₀ ∧ Function.Injective w.x ∧ (∀ i, ψ (w.x i) = y') ∧
@@ -119,19 +124,29 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
     (Wc hW (w.mem_components (Fin.last w.k))).valuation t =
       (Wc hW (w.mem_components (Fin.last w.k))).valuation ϖL ^ p ∧
     (∃ z ∈ w.v (Fin.last w.k), ψ z = y' ∧
-      ∃ R : ValuationSubring L, IsCentre j R z ∧ R.valuation (t / ϖL ^ p) < 1) ∧ p < N
+      ∃ R : ValuationSubring L, IsCentre j R z ∧ R.valuation (t / ϖL ^ p) < 1) ∧ p < N ∧
+    (∀ i : Fin w.k, ∃ q q' : ℕ, q < q' ∧
+      (Wc hW (w.mem_components i.castSucc)).valuation t =
+        (Wc hW (w.mem_components i.castSucc)).valuation (ϖL) ^ q ∧
+      (Wc hW (w.mem_components i.succ)).valuation t =
+        (Wc hW (w.mem_components i.succ)).valuation (ϖL) ^ q')
   have hϖ0 : ϖL ≠ 0 := by
     rw [show ϖL = algebraMap K L (ϖ : K) from IsScalarTower.algebraMap_apply O K L ϖ]
     exact (map_ne_zero _).2 fun h ↦ hϖ.ne_zero (Subtype.ext h)
   have hWϖ : ∀ {v} (hv : v ∈ components c), (Wc hW hv).valuation ϖL < 1 := fun hv ↦
     valuation_ϖ_lt_one hW hϖ (hv.2.1 (gp_mem hv)) (Wc_spec hW hv)
   have key : ∀ k, ∀ (w : Walk c) (p : ℕ), Inv w p → N - p = k →
-      ∃ w : Walk c, w.v 0 = v₀ ∧ w.Crosses ψ y' ∧ ψ '' w.v (Fin.last w.k) = w₂' := by
+      ∃ w : Walk c, w.v 0 = v₀ ∧ w.Crosses ψ y' ∧ ψ '' w.v (Fin.last w.k) = w₂' ∧
+      (∀ i : Fin w.k, ∃ q q' : ℕ, q < q' ∧
+      (Wc hW (w.mem_components i.castSucc)).valuation t =
+        (Wc hW (w.mem_components i.castSucc)).valuation (ϖL) ^ q ∧
+      (Wc hW (w.mem_components i.succ)).valuation t =
+        (Wc hW (w.mem_components i.succ)).valuation (ϖL) ^ q') := by
     intro k
     induction k using Nat.strong_induction_on with
     | _ k ih =>
-    intro w p ⟨hstart', hinj, hnodes, hinner, hdist, hpos, hlast, ⟨z, hz, hψz, R, hRz, hR⟩, hpN⟩
-      hk
+    intro w p ⟨hstart', hinj, hnodes, hinner, hdist, hpos, hlast, ⟨z, hz, hψz, R, hRz, hR⟩, hpN,
+      hinc⟩ hk
     have hvl := w.mem_components (Fin.last w.k)
     obtain ⟨htz, hMz⟩ := hM z hψz
     obtain ⟨hnode, v', hv', hv'ne, hzv', hW'⟩ :=
@@ -182,6 +197,33 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
     have hstart'' : w'.v 0 = v₀ := by rw [snoc_v_zero]; exact hstart'
     have hold : ∀ i : Fin (w.k + 1), i ≠ 0 → ψ '' w'.v i.castSucc = {y'} := fun i hi ↦ by
       rw [snoc_v_castSucc]; exact hinner i hi
+    have hinc' : (∀ i : Fin w'.k, ∃ q q' : ℕ, q < q' ∧
+        (Wc hW (w'.mem_components i.castSucc)).valuation t =
+          (Wc hW (w'.mem_components i.castSucc)).valuation (ϖL) ^ q ∧
+        (Wc hW (w'.mem_components i.succ)).valuation t =
+          (Wc hW (w'.mem_components i.succ)).valuation (ϖL) ^ q') := by
+      have congrv : ∀ (u u' : Set c.scheme) (hu : u ∈ components c) (hu' : u' ∈ components c),
+          u = u' → ∀ q : ℕ, (Wc hW hu').valuation t = (Wc hW hu').valuation ϖL ^ q →
+            (Wc hW hu).valuation t = (Wc hW hu).valuation ϖL ^ q := by
+        rintro u _ hu hu' rfl q hq; exact hq
+      intro i
+      induction i using Fin.lastCases with
+      | last =>
+        refine ⟨p, p', hpp', congrv _ _ _ (w.mem_components (Fin.last w.k)) ?_ p hlast,
+          congrv _ _ _ hv' ?_ p' hW't⟩
+        · change w'.v (Fin.last w.k).castSucc = w.v (Fin.last w.k)
+          exact snoc_v_castSucc w z v' hv' hjoin _
+        · change w'.v (Fin.last (w.k + 1)) = v'
+          exact snoc_v_last w z v' hv' hjoin
+      | cast i =>
+        obtain ⟨q, q', hqq, h1, h2⟩ := hinc i
+        refine ⟨q, q', hqq, congrv _ _ _ (w.mem_components i.castSucc) ?_ q h1,
+          congrv _ _ _ (w.mem_components i.succ) ?_ q' h2⟩
+        · change w'.v i.castSucc.castSucc = w.v i.castSucc
+          exact snoc_v_castSucc w z v' hv' hjoin _
+        · change w'.v i.castSucc.succ = w.v i.succ
+          rw [Fin.succ_castSucc]
+          exact snoc_v_castSucc w z v' hv' hjoin _
     have hg : (Wc hW hv').valuation (t / ϖL ^ p') = 1 := by
       rw [map_div₀, hW't, map_pow, div_self (pow_ne_zero _ (by simpa using hϖ0))]
     have key1 : ∀ (u : Set c.scheme) (hu : u ∈ components c), u = v' →
@@ -198,7 +240,7 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
       have hz''' : z'' ∈ w'.v (Fin.last w'.k) := by
         change z'' ∈ w'.v (Fin.last (w.k + 1)); rw [snoc_v_last]; exact hz''
       refine ih (N - p') (by omega) w' p' ⟨hstart'', hinj', hnodes', fun i hi ↦ ?_, fun i ↦ ?_,
-        fun i ↦ ?_, ?_, ⟨z'', hz''', hψz'', R'', hR''z, hR''⟩, hlt⟩ rfl
+        fun i ↦ ?_, ?_, ⟨z'', hz''', hψz'', R'', hR''z, hR''⟩, hlt, hinc'⟩ rfl
       · induction i using Fin.lastCases with
         | last => change ψ '' w'.v (Fin.last (w.k + 1)) = {y'}; rw [snoc_v_last]; exact hcon
         | cast i => exact hold i (fun h ↦ hi (by rw [h]; rfl))
@@ -221,7 +263,8 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
     · -- `v'` lies over `w₂'`: done
       subst heq
       have hend' := hend v' hv' _ (Wc_spec hW hv') z hzv' hψz hW't
-      refine ⟨w', hstart'', ⟨by simp [w', snoc], hinj', ?_, ?_, fun i hi hi' ↦ ?_, hnodes'⟩, ?_⟩
+      refine ⟨w', hstart'', ⟨by simp [w', snoc], hinj', ?_, ?_, fun i hi hi' ↦ ?_, hnodes'⟩, ?_,
+        hinc'⟩
       · rw [hstart'']; exact hv₀c
       · rintro ⟨y, hy⟩
         change ψ '' w'.v (Fin.last (w.k + 1)) = {y} at hy
@@ -237,7 +280,7 @@ theorem exists_walk {ϖ : O} (hϖ : Irreducible ϖ) (hsplit : HasSplitNodes ϖ c
   refine key (N - 0) (single v₀ hv₀) 0 ⟨rfl, fun a ↦ a.elim0, fun a ↦ a.elim0, fun i hi ↦
     (hi (Fin.ext (by have := i.2; change i.1 < 1 at this; change i.1 = 0; omega))).elim,
     fun a ↦ a.elim0, fun i ↦ ⟨0, le_rfl, ?_⟩, ?_,
-    ⟨z₀, hz₀, hψz₀, R₀, hR₀z, ?_⟩, hN⟩ rfl
+    ⟨z₀, hz₀, hψz₀, R₀, hR₀z, ?_⟩, hN, fun a ↦ a.elim0⟩ rfl
   · rw [pow_zero]; exact hstart
   · rw [pow_zero]; exact hstart
   · rw [pow_zero, div_one]; exact hR₀ R₀ hR₀z
