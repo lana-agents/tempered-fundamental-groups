@@ -16,6 +16,7 @@ import TemperedFundamentalGroups.SemistableReduction.OffSkeleton
 import TemperedFundamentalGroups.SemistableReduction.TypeFourCoreG
 import TemperedFundamentalGroups.SemistableReduction.ExhaustLimit
 import TemperedFundamentalGroups.SemistableReduction.TypeThreeGermTwo
+import TemperedFundamentalGroups.SemistableReduction.ExhaustDescent
 
 /-!
 # `StrongA` from the still open leaves
@@ -33,12 +34,13 @@ Blueprint §9.12 (final glue). Of the leaves of `W7.Leaves`, the following are p
   `TypeFour.typeFourGoodFor_of_degreeReductionAS` with part (G) `TypeFour.coreGFor`;
 * (D⇐) and (T⇐) (O12) modulo the two `δ`-count steps, the two-sided type-3 germ and the type-4
   leaf: `ExhaustGluing.smoothOfDiscCond_and_exhaustingOfTube`;
-* the (one-sided) type-3 germ from the two-sided one: `S8A.typeThreeGermFor_of_two`.
+* the (one-sided) type-3 germ from the two-sided one: `S8A.typeThreeGermFor_of_two`;
+* the `δ`-count step `ExhaustDescentFor`: `ExhaustDescent.exhaustDescentFor`.
 
-`W7.OpenLeaves` collects the remaining ones: the `δ`-count steps `ExhaustDescentFor`,
-`ExhaustGlueFor`, the two-sided type-3 germ `S8A.TypeThreeGermTwoFor`, R5 and the
-Artin–Schreier case `TypeFour.DegRed.DegreeReductionASFor` of the degree reduction at type-4
-points. **`W10Assembly.strongA_of_openLeaves`**.
+`W7.OpenLeaves` collects the remaining ones: the `δ`-count step `ExhaustGlueFor`, the two-sided
+type-3 germ `S8A.TypeThreeGermTwoFor`, R5 and the Artin–Schreier case
+`TypeFour.DegRed.DegreeReductionASFor` of the degree reduction at type-4 points.
+**`W10Assembly.strongA_of_openLeaves`**.
 -/
 
 universe u
@@ -51,11 +53,6 @@ namespace W7
 
 /-- The still open local leaves of `W7.Statement` (Blueprint §9.12). -/
 structure OpenLeaves : Prop where
-  /-- O12, `δ`-count step: descent of singularities into an exhausting disc of a tube. -/
-  exhDescent : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
-    [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
-    ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F], DefinedOverDVR C F → ExhaustDescentFor C F
   /-- O12, `δ`-count step: gluing of exhaustion through a circle of a tube. -/
   exhGlue : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
@@ -85,7 +82,7 @@ theorem OpenLeaves.typeFour (h : OpenLeaves.{u}) (C : Type u) [NontriviallyNorme
     [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F] :
     S8A.TypeFourGoodFor C F :=
   TypeFour.typeFourGoodFor_of_degreeReductionAS hp hp1 (h.degreeReductionAS C p hp hp1)
-    (fun L _ _ _ _ _ _ ↦ TypeFour.coreGFor hp hp1 L) (fun L _ _ _ _ _ _ _ _ ↦ a6For hp hp1)
+    (fun L _ _ _ _ _ _ ↦ TypeFour.coreGFor hp hp1 L) (fun _ _ _ _ _ _ _ _ _ ↦ a6For hp hp1)
 
 /-- (D⇐) and (T⇐) from the open leaves. -/
 theorem OpenLeaves.smooth_exh (h : OpenLeaves.{u}) (C : Type u) [NontriviallyNormedField C]
@@ -93,7 +90,7 @@ theorem OpenLeaves.smooth_exh (h : OpenLeaves.{u}) (C : Type u) [NontriviallyNor
     (hp1 : ‖(p : C)‖ < 1) (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F]
     [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F]
     (hdef : DefinedOverDVR C F) : SmoothOfDiscCond C F ∧ ExhaustingOfTube C F :=
-  smoothOfDiscCond_and_exhaustingOfTube hp hp1 (h.exhDescent C p hp hp1 F hdef)
+  smoothOfDiscCond_and_exhaustingOfTube hp hp1 (ExhaustDescent.exhaustDescentFor hp hp1)
     (h.exhGlue C p hp hp1 F hdef) (h.typeThreeTwo C p hp hp1 F hdef) (h.typeFour C p hp hp1 F)
 
 /-- The leaves of `W7.Statement` from the still open ones. -/
