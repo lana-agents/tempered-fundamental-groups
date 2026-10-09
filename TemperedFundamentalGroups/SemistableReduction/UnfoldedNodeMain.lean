@@ -49,7 +49,9 @@ theorem exists_unfoldedNodeGerm (hU : IsUnfolded O x c j) {ϖ : O} (hϖ : Irredu
       (hv₁ : v₁ ∈ components c) (hv₂ : v₂ ∈ components c),
       UnfoldedNodeGerm O ϖ P u v n x a β e α ε (Wc hU.isWModel hv₁) (Wc hU.isWModel hv₂) ∧
       NodeBranches O ϖ P (algebraMap O L) u v n (Wc hU.isWModel hv₁) (Wc hU.isWModel hv₂) ∧
-      (P : Set L) = germs c j y ∧ y ∈ v₁ ∧ y ∈ v₂ ∧
+      (P : Set L) = germs c j y ∧ y ∈ v₁ ∧ y ∈ v₂ ∧ NodeGerm O ϖ P v u n ∧
+      (∀ s : ℚ, 0 < s → s < n → ∃ U : ValuationSubring L,
+        IsMonomialPt O (P : Set L) (algebraMap K L (ϖ : K)) u s U) ∧
       (∀ t ∈ P, ∀ M : ℕ, (∃ r ∈ P, t * r = algebraMap O L ϖ ^ M) →
         ∃ ε ∈ P, ε⁻¹ ∈ P ∧ ∃ α e : ℕ, t = ε * algebraMap O L ϖ ^ α * u ^ e ∨
           t = ε * algebraMap O L ϖ ^ α * v ^ e) ∧
@@ -60,8 +62,8 @@ theorem exists_unfoldedNodeGerm (hU : IsUnfolded O x c j) {ϖ : O} (hϖ : Irredu
         ¬ IsUnit ((c.scheme.presheaf.germ V y hyV).hom sv) ∧ toL j hV su = u := by
   classical
   have hW := hU.isWModel
-  obtain ⟨P, u, v, n, hG, hn, -, hPg, ⟨hloc, -, hum, hvm⟩, hutr, -, hsec, hODP⟩ :=
-    exists_nodeGerm hϖ hW hsplit hloops hy
+  obtain ⟨P, u, v, n, hG, hn, -, hPg, ⟨hloc, hϖm, hum, hvm⟩, hutr, ⟨φN, hflat, himg, hφO, hφu, -⟩,
+    hsec, hODP⟩ := exists_nodeGerm hϖ hW hsplit hloops hy
   haveI := hloc
   haveI := hODP.isNoetherianRing
   have hϖL : algebraMap O L ϖ = algebraMap K L (ϖ : K) := IsScalarTower.algebraMap_apply O K L ϖ
@@ -88,6 +90,28 @@ theorem exists_unfoldedNodeGerm (hU : IsUnfolded O x c j) {ϖ : O} (hϖ : Irredu
     change algebraMap K L k = RatFunc.liftAlgHom _ _ (algebraMap K (RatFunc K) k)
     rw [AlgHom.commutes]
   obtain ⟨halgx, hb, -⟩ := id hWof
+  have hvtr : Transcendental K v := by
+    intro hvalg
+    apply hutr
+    have hv0 : v ≠ 0 := HB.v_ne_zero
+    have e1 : u = algebraMap K L ((ϖ : K) ^ n) * v⁻¹ := by
+      rw [map_pow, ← hG.mul_eq, mul_inv_cancel_right₀ hv0]
+    rw [e1]
+    exact (isAlgebraic_algebraMap _).mul hvalg.inv
+  have halgv : Algebra.IsAlgebraic (Algebra.adjoin K {v}) L :=
+    isAlgebraic_adjoin_of_transcendental hx (isAlgebraic_adjoin_of_ratFunc hx halgx) hvtr
+  have hint : ∀ s : ℚ, 0 < s → s < n → ∃ U : ValuationSubring L,
+      IsMonomialPt O (P : Set L) (algebraMap K L (ϖ : K)) u s U := by
+    intro s hs0 hsn
+    letI := φN.toAlgebra
+    haveI := hflat
+    exact hG.exists_isMonomialPt hϖ hutr hϖm hum hvm (A := Node O (ϖ ^ n)) himg
+      (fun o ↦ ⟨algebraMap O _ o, hφO o⟩) ⟨Node.u _, hφu⟩ hs0 hsn
+  have hintv : ∀ s : ℚ, 0 < s → s < n → ∃ U : ValuationSubring L,
+      IsMonomialPt O (P : Set L) (algebraMap K L (ϖ : K)) v s U := by
+    intro s hs0 hsn
+    obtain ⟨U, hU⟩ := hint (n - s) (by linarith) (by linarith)
+    exact ⟨U, (isMonomialPt_swap_iff HB.base HB.core HB.irred).2 hU⟩
   obtain ⟨hV₀, hcen⟩ := center_subset_germs hx hWof hPg hdomR
   obtain ⟨W₁', hW₁', W₂', hW₂', hne, hsub⟩ := hnode y hy
   have hsub' : ∀ f : RatFunc K, algebraMap (RatFunc K) L f ∈ P → f ∈ W₁' ∧ f ∈ W₂' :=
@@ -184,20 +208,11 @@ theorem exists_unfoldedNodeGerm (hU : IsUnfolded O x c j) {ϖ : O} (hϖ : Irredu
   rcases hT with hT | hT
   · exact ⟨P, u, v, n, a jj, b m, e, α, ε, v₁, v₂, hv₁, hv₂,
       unfoldedNodeGerm_of hW hϖ hG hn hPg hv₁ hv₂ hy₁ hy₂ HB hbm (he u hT) hε0 hε hεi
-        (hcoord u hT), HB, hPg, hy₁, hy₂, hdiv, V, hyV, hV, su, sv, hsuv, hsu, hsv, hsuL⟩
-  · have hvtr : Transcendental K v := by
-      intro hvalg
-      apply hutr
-      have hv0 : v ≠ 0 := HB.v_ne_zero
-      have e1 : u = algebraMap K L ((ϖ : K) ^ n) * v⁻¹ := by
-        rw [map_pow, ← hG.mul_eq, mul_inv_cancel_right₀ hv0]
-      rw [e1]
-      exact (isAlgebraic_algebraMap _).mul hvalg.inv
-    have halgv : Algebra.IsAlgebraic (Algebra.adjoin K {v}) L :=
-      isAlgebraic_adjoin_of_transcendental hx (isAlgebraic_adjoin_of_ratFunc hx halgx) hvtr
-    refine ⟨P, v, u, n, a jj, b m, e, α, ε, v₂, v₁, hv₂, hv₁,
+        (hcoord u hT), HB, hPg, hy₁, hy₂, hG.swap' halgv, hint, hdiv, V, hyV, hV, su, sv, hsuv,
+        hsu, hsv, hsuL⟩
+  · refine ⟨P, v, u, n, a jj, b m, e, α, ε, v₂, v₁, hv₂, hv₁,
       unfoldedNodeGerm_of hW hϖ (hG.swap' halgv) hn hPg hv₂ hv₁ hy₂ hy₁ HB.swap hbm (he v hT)
-        hε0 hε hεi (hcoord v hT), HB.swap, hPg, hy₂, hy₁,
+        hε0 hε hεi (hcoord v hT), HB.swap, hPg, hy₂, hy₁, hG, hintv,
       fun t ht M hM ↦ ?_, V, hyV, hV, sv, su, by rw [mul_comm]; exact hsuv, hsv, hsu, hsvL⟩
     obtain ⟨ε', hε', hεi', α', e', h⟩ := hdiv t ht M hM
     exact ⟨ε', hε', hεi', α', e', h.symm⟩
