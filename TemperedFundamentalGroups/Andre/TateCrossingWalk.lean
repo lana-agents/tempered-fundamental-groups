@@ -42,6 +42,59 @@ variable {K : Type u} [Field K] {O : ValuationSubring K} [IsDiscreteValuationRin
   [MulSemiringAction A R] [Subsingleton A] {x : R}
   (T : TateObject.Data O R) [Fact (Squarefree (TateNormal.dpoly T.π T.b₄ T.b₆))]
 
+/-! ### Points and subsets of special fibres along an identification of models -/
+
+section IsoPt
+
+variable {X₀ : TempObj O R A} {O₂ : Type u} [CommRing O₂] [IsLocalRing O₂]
+  {c₂ : ModelCode O₂} (e : X₀.Lv.c.scheme ≅ c₂.scheme)
+
+/-- A point of the special fibre of `X₀` as a point of `c₂`. -/
+def isoPt (z : X₀.Lv.Z) : c₂.scheme := e.hom z.1
+
+/-- A subset of the special fibre of `X₀` as a subset of `c₂`. -/
+def isoSet (S : Set X₀.Lv.Z) : Set c₂.scheme := isoPt e '' S
+
+omit [IsDiscreteValuationRing O] [IsReduced R] [Subsingleton A] [IsLocalRing O₂] in
+lemma isoPt_injective : Function.Injective (isoPt e) := fun a b h => Subtype.ext (by
+  have := congrArg e.inv h
+  simpa [isoPt, ← Scheme.Hom.comp_apply] using this)
+
+omit [IsDiscreteValuationRing O] [IsReduced R] [Subsingleton A] [IsLocalRing O₂] in
+lemma isoSet_injective : Function.Injective (isoSet e) :=
+  Set.image_injective.2 (isoPt_injective e)
+
+omit [IsDiscreteValuationRing O] [IsReduced R] [Subsingleton A] [IsLocalRing O₂] in
+lemma continuous_isoPt : Continuous (isoPt e) :=
+  e.hom.continuous.comp continuous_subtype_val
+
+omit [IsDiscreteValuationRing O] [IsReduced R] [Subsingleton A] in
+/-- Irreducible components of the special fibre give components of `c₂`, if `e` identifies the
+special fibres. -/
+lemma isoSet_mem (hZ : ∀ y, y ∈ specialFibre X₀.Lv.c.toSpec ↔
+      e.hom y ∈ SemistableReduction.ModelCode.Z c₂)
+    {C : Set X₀.Lv.Z} (hC : C ∈ irreducibleComponents X₀.Lv.Z) :
+    isoSet e C ∈ SemistableReduction.ModelCode.components c₂ := by
+  refine ⟨hC.1.image _ (continuous_isoPt e).continuousOn, ?_, fun w hw hwZ hCw => ?_⟩
+  · rintro _ ⟨z, -, rfl⟩
+    exact (hZ z.1).1 z.2
+  · have hwZ' : e.inv '' w ⊆ specialFibre X₀.Lv.c.toSpec := by
+      rintro _ ⟨y, hy, rfl⟩
+      rw [hZ]
+      simpa [← Scheme.Hom.comp_apply] using hwZ hy
+    have hirr := WData.isIrreducible_preimage_val
+      (hw.image _ e.inv.continuous.continuousOn) hwZ'
+    have hsub : C ⊆ (↑) ⁻¹' (e.inv '' w) := fun z hz =>
+      ⟨isoPt e z, hCw ⟨z, hz, rfl⟩, by simp [isoPt, ← Scheme.Hom.comp_apply]⟩
+    have heq := hC.2 hirr hsub
+    apply subset_antisymm _ hCw
+    intro y hy
+    have hy' : e.inv y ∈ specialFibre X₀.Lv.c.toSpec := hwZ' ⟨y, hy, rfl⟩
+    refine ⟨⟨e.inv y, hy'⟩, heq ⟨y, hy, rfl⟩, ?_⟩
+    simp [isoPt, ← Scheme.Hom.comp_apply]
+
+end IsoPt
+
 namespace TateObject
 
 /-- The projective model of the function field of the Tate curve (the Tate model). -/
@@ -58,19 +111,15 @@ def tpt (z : (X₀ (A := A) T).Lv.Z) : (tgtModel T).scheme := (tIso (A := A) T).
 /-- A subset of the special fibre of `X₀` as a subset of `tgtModel T`. -/
 def tSet (S : Set (X₀ (A := A) T).Lv.Z) : Set (tgtModel T).scheme := tpt (A := A) T '' S
 
-lemma tpt_injective : Function.Injective (tpt (A := A) T) := fun a b h => Subtype.ext (by
-  have := congrArg (tIso (A := A) T).inv h
-  simpa [tpt, ← Scheme.Hom.comp_apply] using this)
+lemma tpt_injective : Function.Injective (tpt (A := A) T) := isoPt_injective (tIso (A := A) T)
 
-lemma tSet_injective : Function.Injective (tSet (A := A) T) :=
-  Set.image_injective.2 (tpt_injective T)
+lemma tSet_injective : Function.Injective (tSet (A := A) T) := isoSet_injective (tIso (A := A) T)
 
 lemma tpt_mem_tSet_iff {S : Set (X₀ (A := A) T).Lv.Z} {z : (X₀ (A := A) T).Lv.Z} :
     tpt (A := A) T z ∈ tSet (A := A) T S ↔ z ∈ S :=
   (tpt_injective T).mem_set_image
 
-lemma continuous_tpt : Continuous (tpt (A := A) T) :=
-  (tIso (A := A) T).hom.continuous.comp continuous_subtype_val
+lemma continuous_tpt : Continuous (tpt (A := A) T) := continuous_isoPt (tIso (A := A) T)
 
 lemma tIso_toSpec :
     (tIso (A := A) T).hom ≫ (tgtModel T).toSpec = (X₀ (A := A) T).Lv.c.toSpec :=
@@ -85,25 +134,8 @@ lemma mem_Z_iff (y : (X₀ (A := A) T).Lv.c.scheme) :
 /-- Irreducible components of the special fibre give components of `tgtModel T`. -/
 lemma tSet_mem {C : Set (X₀ (A := A) T).Lv.Z}
     (hC : C ∈ irreducibleComponents (X₀ (A := A) T).Lv.Z) :
-    tSet (A := A) T C ∈ SemistableReduction.ModelCode.components (tgtModel T) := by
-  refine ⟨hC.1.image _ (continuous_tpt T).continuousOn, ?_, fun w hw hwZ hCw => ?_⟩
-  · rintro _ ⟨z, -, rfl⟩
-    exact (mem_Z_iff T z.1).1 z.2
-  · have hwZ' : (tIso (A := A) T).inv '' w ⊆ specialFibre (X₀ (A := A) T).Lv.c.toSpec := by
-      rintro _ ⟨y, hy, rfl⟩
-      rw [mem_Z_iff]
-      simpa [← Scheme.Hom.comp_apply] using hwZ hy
-    have hirr := WData.isIrreducible_preimage_val
-      (hw.image _ (tIso (A := A) T).inv.continuous.continuousOn) hwZ'
-    have hsub : C ⊆ (↑) ⁻¹' ((tIso (A := A) T).inv '' w) := fun z hz =>
-      ⟨tpt (A := A) T z, hCw ⟨z, hz, rfl⟩, by simp [tpt, ← Scheme.Hom.comp_apply]⟩
-    have heq := hC.2 hirr hsub
-    apply subset_antisymm _ hCw
-    intro y hy
-    have hy' : (tIso (A := A) T).inv y ∈ specialFibre (X₀ (A := A) T).Lv.c.toSpec :=
-      hwZ' ⟨y, hy, rfl⟩
-    refine ⟨⟨(tIso (A := A) T).inv y, hy'⟩, heq ⟨y, hy, rfl⟩, ?_⟩
-    simp [tpt, ← Scheme.Hom.comp_apply]
+    tSet (A := A) T C ∈ SemistableReduction.ModelCode.components (tgtModel T) :=
+  isoSet_mem (tIso (A := A) T) (mem_Z_iff T) hC
 
 /-- `closure {z}` is an irreducible component if a closed set avoiding `z` covers the rest. -/
 lemma closure_mem_irreducibleComponents {Z : Type*} [TopologicalSpace Z] {z : Z} {S : Set Z}
@@ -141,34 +173,40 @@ end TateObject
 
 namespace Pres
 
-variable {Y : TempObj O R A} (Q : Pres x Y) (a : Q.U ⟶ X₀ (A := A) T)
+section IsoPt
 
-/-- The model map from the W-model of a member to the Tate model `tgtModel T`. -/
-def tateψ : Q.D.c'.scheme ⟶ (tgtModel T).scheme := Q.D.e.inv ≫ a.ψ ≫ (tIso (A := A) T).hom
+variable {Y X₀ : TempObj O R A} (Q : Pres x Y) {O₂ : Type u} [CommRing O₂] [IsLocalRing O₂]
+  {c₂ : ModelCode O₂} (e : X₀.Lv.c.scheme ≅ c₂.scheme) (a : Q.U ⟶ X₀)
 
-lemma tateψ_pt (z : Q.Lv.Z) :
-    Q.tateψ T a (Q.D.pt z) = tpt (A := A) T (specialFibreMap a.ψ a.ψ_toSpec z) := by
+/-- The model map from the W-model of a member to `c₂`, along `e`. -/
+def isoψ : Q.D.c'.scheme ⟶ c₂.scheme := Q.D.e.inv ≫ a.ψ ≫ e.hom
+
+omit [IsDiscreteValuationRing O] [IsReduced R] [Subsingleton A] [IsLocalRing O₂] in
+lemma isoψ_pt (z : Q.Lv.Z) :
+    Q.isoψ e a (Q.D.pt z) = isoPt e (specialFibreMap a.ψ a.ψ_toSpec z) := by
   have h : Q.D.e.inv (Q.D.e.hom z.1) = z.1 := by
     rw [← Scheme.Hom.comp_apply, Iso.hom_inv_id]
     rfl
-  simp only [tateψ, WData.pt, Scheme.Hom.comp_apply, h]
+  simp only [isoψ, WData.pt, Scheme.Hom.comp_apply, h]
   rfl
 
-lemma tateψ_image_compSet (S : Set Q.Lv.Z) :
-    Q.tateψ T a '' Q.D.compSet S = tSet (A := A) T (specialFibreMap a.ψ a.ψ_toSpec '' S) := by
-  rw [WData.compSet, tSet, Set.image_image, Set.image_image]
-  exact Set.image_congr fun z _ => Q.tateψ_pt T a z
+omit [IsDiscreteValuationRing O] [IsReduced R] [Subsingleton A] [IsLocalRing O₂] in
+lemma isoψ_image_compSet (S : Set Q.Lv.Z) :
+    Q.isoψ e a '' Q.D.compSet S = isoSet e (specialFibreMap a.ψ a.ψ_toSpec '' S) := by
+  rw [WData.compSet, isoSet, Set.image_image, Set.image_image]
+  exact Set.image_congr fun z _ => Q.isoψ_pt e a z
 
-/-- **Walks crossing a point of the Tate model give walks of the incidence graph** with special
-points over that point. -/
-lemma exists_incWalk_of_crosses (w : SemistableReduction.ModelCode.Walk Q.D.c')
+omit [IsReduced R] [Subsingleton A] [IsLocalRing O₂] in
+/-- **Walks crossing a point of `c₂` give walks of the incidence graph** with special points over
+that point. -/
+lemma exists_incWalk_of_crossesG (w : SemistableReduction.ModelCode.Walk Q.D.c')
     (i₀ : irreducibleComponents Q.Lv.Z) (hw0 : w.v 0 = Q.D.compSet i₀.1)
-    {y' : (tgtModel T).scheme} (hcross : w.Crosses (Q.tateψ T a) y') :
+    {y' : c₂.scheme} (hcross : w.Crosses (Q.isoψ e a) y') :
     ∃ L : List (Q.Lv.Z × irreducibleComponents Q.Lv.Z),
       IncWalk (curveConfig Q.Lv.Z Q.hdim) i₀ L ∧
-      (∀ p ∈ L, tpt (A := A) T (specialFibreMap a.ψ a.ψ_toSpec p.1) = y') ∧
-      Q.tateψ T a '' w.v (Fin.last w.k) =
-        tSet (A := A) T (specialFibreMap a.ψ a.ψ_toSpec ''
+      (∀ p ∈ L, isoPt e (specialFibreMap a.ψ a.ψ_toSpec p.1) = y') ∧
+      Q.isoψ e a '' w.v (Fin.last w.k) =
+        isoSet e (specialFibreMap a.ψ a.ψ_toSpec ''
           (curveConfig Q.Lv.Z Q.hdim).C (lastLab i₀ L)) := by
   classical
   obtain ⟨-, -, -, -, -, hxy⟩ := hcross
@@ -195,10 +233,38 @@ lemma exists_incWalk_of_crosses (w : SemistableReduction.ModelCode.Walk Q.D.c')
   refine ⟨_, hW, fun p hp => ?_, ?_⟩
   · obtain ⟨j, hj⟩ := List.mem_ofFn.1 hp
     rw [← hj]
-    change tpt (A := A) T (specialFibreMap a.ψ a.ψ_toSpec (ss j)) = y'
-    rw [← Q.tateψ_pt T a, hss, hxy]
-  · rw [hlast, ← hcc, Q.tateψ_image_compSet T a]
+    change isoPt e (specialFibreMap a.ψ a.ψ_toSpec (ss j)) = y'
+    rw [← Q.isoψ_pt e a, hss, hxy]
+  · rw [hlast, ← hcc, Q.isoψ_image_compSet e a]
     rfl
+
+end IsoPt
+
+variable {Y : TempObj O R A} (Q : Pres x Y) (a : Q.U ⟶ X₀ (A := A) T)
+
+/-- The model map from the W-model of a member to the Tate model `tgtModel T`. -/
+def tateψ : Q.D.c'.scheme ⟶ (tgtModel T).scheme := Q.D.e.inv ≫ a.ψ ≫ (tIso (A := A) T).hom
+
+lemma tateψ_pt (z : Q.Lv.Z) :
+    Q.tateψ T a (Q.D.pt z) = tpt (A := A) T (specialFibreMap a.ψ a.ψ_toSpec z) :=
+  Q.isoψ_pt (tIso (A := A) T) a z
+
+lemma tateψ_image_compSet (S : Set Q.Lv.Z) :
+    Q.tateψ T a '' Q.D.compSet S = tSet (A := A) T (specialFibreMap a.ψ a.ψ_toSpec '' S) :=
+  Q.isoψ_image_compSet (tIso (A := A) T) a S
+
+/-- **Walks crossing a point of the Tate model give walks of the incidence graph** with special
+points over that point. -/
+lemma exists_incWalk_of_crosses (w : SemistableReduction.ModelCode.Walk Q.D.c')
+    (i₀ : irreducibleComponents Q.Lv.Z) (hw0 : w.v 0 = Q.D.compSet i₀.1)
+    {y' : (tgtModel T).scheme} (hcross : w.Crosses (Q.tateψ T a) y') :
+    ∃ L : List (Q.Lv.Z × irreducibleComponents Q.Lv.Z),
+      IncWalk (curveConfig Q.Lv.Z Q.hdim) i₀ L ∧
+      (∀ p ∈ L, tpt (A := A) T (specialFibreMap a.ψ a.ψ_toSpec p.1) = y') ∧
+      Q.tateψ T a '' w.v (Fin.last w.k) =
+        tSet (A := A) T (specialFibreMap a.ψ a.ψ_toSpec ''
+          (curveConfig Q.Lv.Z Q.hdim).C (lastLab i₀ L)) :=
+  Q.exists_incWalk_of_crossesG (tIso (A := A) T) a w i₀ hw0 hcross
 
 end Pres
 

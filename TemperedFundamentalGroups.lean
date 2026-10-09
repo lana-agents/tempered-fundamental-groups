@@ -37,6 +37,8 @@ import TemperedFundamentalGroups.Andre.TateNodePoints
 import TemperedFundamentalGroups.Andre.TateNormalAlgebra
 import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
+import TemperedFundamentalGroups.Andre.TateRestrictCrossing
+import TemperedFundamentalGroups.Andre.TateRestrictG1
 import TemperedFundamentalGroups.Andre.TateRestrictLevel
 import TemperedFundamentalGroups.Andre.TateRestrictLoop
 import TemperedFundamentalGroups.Andre.TateRestrictModel
