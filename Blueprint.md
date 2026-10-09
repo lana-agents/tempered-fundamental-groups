@@ -2119,6 +2119,13 @@ characteristic, perfect residue field, `IsDomain R`, `G` acting on `R`) plus the
 mixed-characteristic hypothesis, so as stated it is out of reach of the W-chain (W7 is proved for
 residue characteristic `p > 0`); Theorem B only needs it for IUT's `K_v`.
 
+**Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
+`∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line
+(`W10Line.exists_invariant_line`) and the `G × Gal`-stability of the Gauss tree needs the line to
+be invariant; for a non-invariant `x` there is no reason for a `G`-stable model to be a W-model on
+`x`. The only consumer (`galoisLimitDataW`, `G` acting trivially on `R`) satisfies it, and the
+projection to `StrongA` uses `exists_finite_aeval_invariant`.
+
 Cost estimate beyond `StrongA` (high uncertainty):
 * unfolded W-model output (W7 (c) node condition, transport of `IsWModelOf` through M9c) ≈ 1–1.5k;
 * split and no loops after a further finite extension and refinement of the Gauss tree ≈ 0.5–1k;

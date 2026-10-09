@@ -4,17 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.SemistableReduction.StrongA
+import TemperedFundamentalGroups.Setup.InvariantLine
 
 /-!
 # `StrongA` with the component clause (the W10 form targeted for Theorem B)
 
 Only a **definition** and two implications. `Statement.StrongComponentA` has **exactly the inputs
 of `Statement.StrongA`** (mixed characteristic, perfect residue field, `IsDomain R`, `G` acting on
-`R` and `B`) together with an x-line `x ∈ R` (`R` finite over `K[x]`). Its output is the output
-conjunction of `StrongA`, followed by the dimension bound of the special fibre and the component
-clause of `Statement.StrongComponent` (clopen semistable sub-models of the connected components
-of the generic fibre with connected special fibres, unfolded W-models on the x-line). Blueprint
-§10.3.8 (targeted for Theorem B, 2026-10-07).
+`R` and `B`) together with a `G`-invariant x-line `x ∈ R` (`R` finite over `K[x]`; invariance
+because the W10 construction needs a `G`-invariant line for the stability of the Gauss tree).
+Its output is the output conjunction of `StrongA`, followed by the dimension bound of the special
+fibre and the component clause of `Statement.StrongComponent` (clopen semistable sub-models of
+the connected components of the generic fibre with connected special fibres, unfolded W-models on
+the x-line). Blueprint §10.3.8 (targeted for Theorem B, 2026-10-07).
 
 * `Statement.strongA_of_strongComponentA`: projection (the meaning of `StrongA` is unchanged);
 * `Statement.strongComponentA_of_strongComponent`: dropping clauses (the old `StrongComponent`,
@@ -40,6 +42,7 @@ def Statement.StrongComponentA : Prop :=
     (G : Type u) [Group G] [Finite G] [MulSemiringAction G B] [SMulCommClass G K B]
     [MulSemiringAction G R] [SMulCommClass G K R]
     (_ : ∀ (g : G) (r : R), g • algebraMap R B r = algebraMap R B (g • r))
+    (_ : ∀ g : G, g • x = x)
     (ι : Type u) [Finite ι] (c₀ : ι → TemperedFundamentalGroups.ModelCode O)
     (j₀ : ∀ i, Spec (CommRingCat.of B) ⟶ (c₀ i).scheme)
     (_ : ∀ i, j₀ i ≫ (c₀ i).toSpec = Spec.map (CommRingCat.ofHom
@@ -102,16 +105,17 @@ def Statement.StrongComponentA : Prop :=
 theorem Statement.strongA_of_strongComponentA (h : Statement.StrongComponentA.{u}) :
     Statement.StrongA.{u} := by
   intro K _ _ O _ _ _ p hp hpm R _ _ _ _ hR B _ _ _ _ _ _ G _ _ _ _ _ _ hGR ι _ c₀ j₀ hj₀
+  obtain ⟨x, hxG, hx⟩ := exists_finite_aeval_invariant (K := K) (G := G) hR
   obtain ⟨K', i1, i2, i3, i4, O', hO', i5, ϖ', hϖ', c', c, e, j, act, dom, hss, he, hjd, hjS,
-    hact, hactj, hdom, hdomS, -⟩ := h K O p hp hpm R hR (exists_finite_aeval hR).choose
-      (exists_finite_aeval hR).choose_spec B G hGR ι c₀ j₀ hj₀
+    hact, hactj, hdom, hdomS, -⟩ := h K O p hp hpm R hR x hx B G hGR hxG ι c₀ j₀ hj₀
   exact ⟨K', i1, i2, i3, i4, O', hO', i5, ϖ', hϖ', c', c, e, j, act, dom, hss, he, hjd, hjS, hact,
     hactj, hdom, hdomS⟩
 
 /-- The old (untargeted) `StrongComponent` implies `StrongComponentA` (dropping clauses). -/
 theorem Statement.strongComponentA_of_strongComponent (h : Statement.StrongComponent.{u}) :
     Statement.StrongComponentA.{u} := by
-  intro K _ _ O _ _ _ p hp hpm R _ _ _ _ hR x hx B _ _ _ _ _ _ G _ _ _ _ _ _ hGR ι _ c₀ j₀ hj₀
+  intro K _ _ O _ _ _ p hp hpm R _ _ _ _ hR x hx B _ _ _ _ _ _ G _ _ _ _ _ _ hGR _ ι _ c₀ j₀
+    hj₀
   obtain ⟨K', i1, i2, i3, i4, O', hO', i5, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, hjd,
     hjS, hact, hactj, hdom, hdomS, -, hdim, hcomp⟩ := h K O R hR x hx B G ι c₀ j₀ hj₀
   exact ⟨K', i1, i2, i3, i4, O', hO', i5, ϖ', hϖ', c', c, e, j, act, dom, hss, he, hjd, hjS, hact,
