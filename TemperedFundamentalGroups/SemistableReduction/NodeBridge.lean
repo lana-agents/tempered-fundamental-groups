@@ -472,6 +472,619 @@ lemma comap_comap_eq {𝔫 : Ideal (redRing C (TwoV c F) (xF C (TwoV c F)))} [h�
 
 end Points
 
+/-! ### Branches -/
+
+section Branches
+
+variable [Fintype (Ext C (TwoV c F))] [CharZero C] {p : ℕ} (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+
+attribute [local instance] isCurveFunctionField DiscreteCoefficients.isAlgClosed_residueField
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] in
+/-- Residues along isomorphisms of function fields. -/
+lemma res_map {κ κ' : Type*} [Field κ] [Field κ'] [Algebra 𝓀 κ] [Algebra 𝓀 κ']
+    [IsCurveFunctionField 𝓀 κ] [IsCurveFunctionField 𝓀 κ'] (e : κ ≃ₐ[𝓀] κ')
+    (Q : CurvePlace 𝓀 κ) {a : κ'} (ha : a ∈ (Q.map e).V) : (Q.map e).res a = Q.res (e.symm a) := by
+  refine (Q.map e).res_eq_of_valuation_sub_lt_one ?_
+  rw [CurvePlace.valuation_map, map_sub, AlgEquiv.commutes]
+  exact Q.valuation_sub_res_lt_one ha
+
+/-- The outer components. -/
+noncomputable abbrev EU : CompEmb 𝓀 (fun w : Ext C F ↦ ResidueField w.1.valuationSubring)
+    (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring) where
+  ι := ιU hc0 hc1
+  inj := (extEmb (toTwoV (F' := F) c) toTwoV_algebraMap_C (ιU (F := F) hc0 hc1)
+    (ιU_apply hc0 hc1)).inj
+  e w := resAlgEquiv (toTwoV (F' := F) c) toTwoV_algebraMap_C (ιU_apply hc0 hc1 w)
+
+/-- The inner components. -/
+noncomputable abbrev EI :
+    CompEmb 𝓀 (fun w : Ext C (Inv c hc0 F) ↦ ResidueField w.1.valuationSubring)
+      (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring) where
+  ι := ιI hc0 hc1
+  inj := ιI_injective hc0 hc1
+  e w := resAlgEquiv (φI hc0) (φI_algebraMap_C hc0) (ιI_apply hc0 hc1 w)
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] [FiniteDimensional (RatFunc C) F] in
+lemma EU_e_red (v : Ext C F) (f : F) :
+    (EU hc0 hc1).e v (red C f v) = red C (toTwoV c f) (ιU hc0 hc1 v) :=
+  resAlgEquiv_red (toTwoV (F' := F) c) toTwoV_algebraMap_C (ιU_apply hc0 hc1 v) f
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] [FiniteDimensional (RatFunc C) F] in
+lemma EI_e_red (w₂ : Ext C (Inv c hc0 F)) (f : Inv c hc0 F) :
+    (EI hc0 hc1).e w₂ (red C f w₂) = red C (φI hc0 f) (ιI hc0 hc1 w₂) :=
+  resAlgEquiv_red (φI hc0) (φI_algebraMap_C hc0) (ιI_apply hc0 hc1 w₂) f
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] [FiniteDimensional (RatFunc C) F] in
+lemma pmap_U (v : Ext C F) (Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)) :
+    (EU hc0 hc1).pmap ⟨v, Q⟩ =
+      (⟨ιU hc0 hc1 v, Q.map ((EU hc0 hc1).e v)⟩ :
+        Branch 𝓀 (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring)) := rfl
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] [FiniteDimensional (RatFunc C) F] in
+lemma pmap_I (w₂ : Ext C (Inv c hc0 F)) (Q : CurvePlace 𝓀 (ResidueField w₂.1.valuationSubring)) :
+    (EI hc0 hc1).pmap ⟨w₂, Q⟩ =
+      (⟨ιI hc0 hc1 w₂, Q.map ((EI hc0 hc1).e w₂)⟩ :
+        Branch 𝓀 (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring)) := rfl
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] [Algebra C F] [IsScalarTower C (RatFunc C) F]
+  [FiniteDimensional (RatFunc C) F] in
+lemma val_ιI_x (w₂ : Ext C (Inv c hc0 F)) : (ιI hc0 hc1 w₂).1 (toTwoV c (xF C F)) = ‖c‖₊ := by
+  change (innerExt hc0 w₂).1 (xF C F) = ‖c‖₊
+  have := congrArg (fun u : Valuation (RatFunc C) ℝ≥0 ↦ u RatFunc.X) (innerExt hc0 w₂).2
+  simp only [Valuation.comap_apply] at this
+  rw [show xF C F = algebraMap (RatFunc C) F RatFunc.X from rfl, this, gaussRat_X]
+  rfl
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] [FiniteDimensional (RatFunc C) F] in
+/-- `t̄` on an outer component is `x̄`. -/
+lemma red_t_U (v : Ext C F) :
+    red C (xF C (TwoV c F)) (ιU hc0 hc1 v) = (EU hc0 hc1).e v (red C (xF C F) v) := by
+  have h1 : (ιU hc0 hc1 v).1 (toTwoV c (xF C F)) ≤ 1 := (valuation_ιU_x hc0 hc1 v).le
+  have h2 : (ιU hc0 hc1 v).1 (toTwoV c (algebraMap C F c / xF C F)) < 1 := by
+    rw [ιU_apply, map_div₀, valuation_algebraMap_C', valuation_xF, div_one]
+    exact_mod_cast hc1
+  rw [EU_e_red, xF_twoV', map_add, red_add h1 h2.le, (red_eq_zero_iff h2.le).2 h2, add_zero]
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] [FiniteDimensional (RatFunc C) F] in
+/-- `t̄` on an inner component is the residue of `c/x`. -/
+lemma red_t_I (w₂ : Ext C (Inv c hc0 F)) :
+    red C (xF C (TwoV c F)) (ιI hc0 hc1 w₂) =
+      (EI hc0 hc1).e w₂ (red C (xF C (Inv c hc0 F)) w₂) := by
+  have h1 : (ιI hc0 hc1 w₂).1 (toTwoV c (xF C F)) < 1 := by
+    rw [val_ιI_x]; exact_mod_cast hc1
+  have e : φI hc0 (xF C (Inv c hc0 F)) = toTwoV c (algebraMap C F c / xF C F) := by
+    rw [GaussTube.xF_inv]
+    change toTwoV c (algebraMap (RatFunc C) F (algebraMap C (RatFunc C) c / RatFunc.X)) = _
+    rw [map_div₀, ← IsScalarTower.algebraMap_apply]
+  have h2 : (ιI hc0 hc1 w₂).1 (toTwoV c (algebraMap C F c / xF C F)) ≤ 1 := by
+    rw [← e, ιI_apply]
+    exact (valuation_xF w₂).le
+  rw [EI_e_red, e, xF_twoV', map_add, red_add h1.le h2, (red_eq_zero_iff h1.le).2 h1,
+    zero_add]
+
+variable (hΛT : IsChart (IsLocalRing.ResidueField (HenselComplete.integers C))
+  (fun w : Ext C (TwoV c F) ↦ red C (xF C (TwoV c F)) w) (redRing C (TwoV c F) (xF C (TwoV c F))))
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] in
+lemma hz_U (v : Ext C F) {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v)) :
+    red C (xF C (TwoV c F)) (ιU hc0 hc1 v) ∈ (Q.map ((EU hc0 hc1).e v)).V := by
+  rw [red_t_U]
+  exact (CurvePlace.mem_map_V _ _).2 (by
+    rw [AlgEquiv.symm_apply_apply]; exact SmoothVertex.xbar_mem_V v hQ)
+
+omit [Fintype (Ext C (TwoV c F))] [CharZero C] in
+lemma hz_I (w₂ : Ext C (Inv c hc0 F)) {Q : CurvePlace 𝓀 (ResidueField w₂.1.valuationSubring)}
+    (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂)) :
+    red C (xF C (TwoV c F)) (ιI hc0 hc1 w₂) ∈ (Q.map ((EI hc0 hc1).e w₂)).V := by
+  rw [red_t_I]
+  exact (CurvePlace.mem_map_V _ _).2 (by
+    rw [AlgEquiv.symm_apply_apply]; exact SmoothVertex.xbar_mem_V w₂ hQ)
+
+omit [CharZero C] in
+/-- The centre of an outer branch, pulled back to `R'`. -/
+lemma comap_center_U (v : Ext C F) {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v)) :
+    (ChartLocal.center hΛT (j := ιU hc0 hc1 v) (Q.map ((EU hc0 hc1).e v))
+      (hz_U hc0 hc1 v hQ)).comap (redT hc0 hc1) = placeIdeal hc1 v hQ := by
+  ext y
+  rw [Ideal.mem_comap, mem_center, redT_apply, ← EU_e_red, CurvePlace.valuation_map_apply,
+    mem_placeIdeal_iff, CurvePlace.res_eq_zero_iff Q (red_mem_V hc1 v y hQ)]
+
+omit [CharZero C] in
+/-- The centre of an inner branch, pulled back to `R'`. -/
+lemma comap_center_I (w₂ : Ext C (Inv c hc0 F))
+    {Q : CurvePlace 𝓀 (ResidueField w₂.1.valuationSubring)}
+    (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂)) :
+    (ChartLocal.center hΛT (j := ιI hc0 hc1 w₂) (Q.map ((EI hc0 hc1).e w₂))
+      (hz_I hc0 hc1 w₂ hQ)).comap (redT hc0 hc1) =
+      (placeIdeal hc1 w₂ hQ).comap (rintEquiv hc0).toRingHom := by
+  ext y
+  rw [Ideal.mem_comap, mem_center, redT_apply, Ideal.mem_comap]
+  change (Q.map ((EI hc0 hc1).e w₂)).valuation (red C (φI hc0 (toInv hc0 (y : F)))
+    (ιI hc0 hc1 w₂)) < 1 ↔ _
+  rw [← EI_e_red, CurvePlace.valuation_map_apply]
+  exact (CurvePlace.res_eq_zero_iff Q (red_mem_V hc1 w₂ (rintEquiv hc0 y) hQ)).symm.trans
+    (mem_placeIdeal_iff hc1 w₂ hQ _).symm
+
+section P
+
+variable {P' : Ideal (Rint c F)} [hP'm : P'.IsMaximal]
+  (hP' : P'.comap (algebraMap (nodeRing c) (Rint c F)) = tubeIdeal c)
+include hP'
+
+omit hP'm hP' in
+include hp hp1 in
+/-- An outer branch of `P'` is a branch of `redT(P')`. -/
+lemma mem_brs_U (v : Ext C F) {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v)) (h : placeIdeal hc1 v hQ = P') :
+    (EU hc0 hc1).pmap ⟨v, Q⟩ ∈ brs hΛT (P'.map (redT hc0 hc1)) := by
+  have h2 := (comap_center_U hc0 hc1 hΛT v hQ).trans h
+  have h1 := Ideal.map_comap_of_surjective (redT hc0 hc1) (redT_surjective hc0 hc1 hp hp1)
+    (ChartLocal.center hΛT (j := ιU hc0 hc1 v) (Q.map ((EU hc0 hc1).e v)) (hz_U hc0 hc1 v hQ))
+  rw [h2] at h1
+  rw [mem_brs, centerOf_eq hΛT (b := (EU hc0 hc1).pmap ⟨v, Q⟩) (hz_U hc0 hc1 v hQ)]
+  exact h1.symm
+
+omit hP'm hP' in
+include hp hp1 in
+/-- An inner branch of `P'` is a branch of `redT(P')`. -/
+lemma mem_brs_I (w₂ : Ext C (Inv c hc0 F)) {Q : CurvePlace 𝓀 (ResidueField w₂.1.valuationSubring)}
+    (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂))
+    (h : placeIdeal hc1 w₂ hQ = P'.comap (rintEquiv hc0).symm.toRingHom) :
+    (EI hc0 hc1).pmap ⟨w₂, Q⟩ ∈ brs hΛT (P'.map (redT hc0 hc1)) := by
+  have h2 : (ChartLocal.center hΛT (j := ιI hc0 hc1 w₂) (Q.map ((EI hc0 hc1).e w₂))
+      (hz_I hc0 hc1 w₂ hQ)).comap (redT hc0 hc1) = P' := by
+    rw [comap_center_I hc0 hc1 hΛT w₂ hQ, h, Ideal.comap_comap]
+    convert Ideal.comap_id P'
+    ext y
+    exact congrArg Subtype.val ((rintEquiv hc0).symm_apply_apply y)
+  have h1 := Ideal.map_comap_of_surjective (redT hc0 hc1) (redT_surjective hc0 hc1 hp hp1)
+    (ChartLocal.center hΛT (j := ιI hc0 hc1 w₂) (Q.map ((EI hc0 hc1).e w₂)) (hz_I hc0 hc1 w₂ hQ))
+  rw [h2] at h1
+  rw [mem_brs, centerOf_eq hΛT (b := (EI hc0 hc1).pmap ⟨w₂, Q⟩) (hz_I hc0 hc1 w₂ hQ)]
+  exact h1.symm
+
+include hp hp1 in
+/-- **The branches of `redT(P')`**: transported outer branches of `P'` and transported inner
+branches of `P'`. -/
+lemma brs_cases {b : Branch 𝓀 (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring)}
+    (hb : b ∈ brs hΛT (P'.map (redT hc0 hc1))) :
+    (∃ (v : Ext C F) (Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring))
+        (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v)),
+        (EU hc0 hc1).pmap ⟨v, Q⟩ = b ∧ placeIdeal hc1 v hQ = P') ∨
+      ∃ (w₂ : Ext C (Inv c hc0 F)) (Q : CurvePlace 𝓀 (ResidueField w₂.1.valuationSubring))
+        (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂)),
+        (EI hc0 hc1).pmap ⟨w₂, Q⟩ = b ∧
+          placeIdeal hc1 w₂ hQ = P'.comap (rintEquiv hc0).symm.toRingHom := by
+  have hne := (map_isMaximal hc0 hc1 hp hp1 hP').ne_top
+  have hlt := (mem_iff_of_mem_brs hΛT hne hb (tbar hΛT)).1 (tbar_mem_map hc0 hc1 hΛT hP')
+  have hz := mem_V_of_mem_brs hΛT hne hb
+  obtain ⟨w', Q'⟩ := b
+  rcases ext_cases_I hc0 hc1 w' with ⟨v, rfl⟩ | ⟨w₂, rfl⟩
+  · obtain ⟨Q, rfl⟩ : ∃ Q, Q.map ((EU hc0 hc1).e v) = Q' :=
+      ⟨Q'.map ((EU hc0 hc1).e v).symm, CurvePlace.map_map_symm _ _⟩
+    have hx0 : red C (xF C F) v ≠ 0 := red_xF_ne_zero' v
+    have hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v) := by
+      refine DiscBridge.mem_zeros_of_lt hx0 ?_
+      have := hlt
+      change (Q.map ((EU hc0 hc1).e v)).valuation (red C (xF C (TwoV c F)) (ιU hc0 hc1 v)) < 1
+        at this
+      rwa [red_t_U, CurvePlace.valuation_map_apply] at this
+    refine Or.inl ⟨v, Q, hQ, rfl, ?_⟩
+    rw [← comap_center_U hc0 hc1 hΛT v hQ, ← comap_map hc0 hc1 hp hp1 hP']
+    congr 1
+    exact (centerOf_eq hΛT (b := (EU hc0 hc1).pmap ⟨v, Q⟩) (hz_U hc0 hc1 v hQ)).symm.trans hb
+  · obtain ⟨Q, rfl⟩ : ∃ Q, Q.map ((EI hc0 hc1).e w₂) = Q' :=
+      ⟨Q'.map ((EI hc0 hc1).e w₂).symm, CurvePlace.map_map_symm _ _⟩
+    have hx0 : red C (xF C (Inv c hc0 F)) w₂ ≠ 0 := red_xF_ne_zero' w₂
+    have hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂) := by
+      refine DiscBridge.mem_zeros_of_lt hx0 ?_
+      have := hlt
+      change (Q.map ((EI hc0 hc1).e w₂)).valuation (red C (xF C (TwoV c F)) (ιI hc0 hc1 w₂)) < 1
+        at this
+      rwa [red_t_I, CurvePlace.valuation_map_apply] at this
+    refine Or.inr ⟨w₂, Q, hQ, rfl, ?_⟩
+    have hc : ChartLocal.center hΛT (j := ιI hc0 hc1 w₂) (Q.map ((EI hc0 hc1).e w₂))
+        (hz_I hc0 hc1 w₂ hQ) = P'.map (redT hc0 hc1) :=
+      (centerOf_eq hΛT (b := (EI hc0 hc1).pmap ⟨w₂, Q⟩) (hz_I hc0 hc1 w₂ hQ)).symm.trans hb
+    have h2 := comap_center_I hc0 hc1 hΛT w₂ hQ
+    rw [hc, comap_map hc0 hc1 hp hp1 hP'] at h2
+    rw [h2, Ideal.comap_comap]
+    convert (Ideal.comap_id (placeIdeal hc1 w₂ hQ)).symm
+    ext y
+    exact congrArg Subtype.val ((rintEquiv hc0).apply_symm_apply y)
+
+omit [CharZero C] hP' in
+lemma redT_U (y : Rint c F) (v : Ext C F) :
+    (redT hc0 hc1 y).1 (ιU hc0 hc1 v) = (EU hc0 hc1).e v (redHom hc1 v y) :=
+  (EU_e_red hc0 hc1 v (y : F)).symm
+
+omit [CharZero C] hP' in
+lemma redT_I (y : Rint c F) (w₂ : Ext C (Inv c hc0 F)) :
+    (redT hc0 hc1 y).1 (ιI hc0 hc1 w₂) = (EI hc0 hc1).e w₂ (redHomInv hc1 hc0 w₂ y) :=
+  (EI_e_red hc0 hc1 w₂ (toInv hc0 (y : F))).symm
+
+include hp hp1 in
+/-- Quotients by elements outside `P'` lie in the local ring of `redT(P')`. -/
+lemma div_mem_locSet {y s : Rint c F} (hs : s ∉ P') :
+    (fun w' ↦ (redT hc0 hc1 y).1 w' / (redT hc0 hc1 s).1 w') ∈
+      locSet (P'.map (redT hc0 hc1)) := by
+  refine ⟨redT hc0 hc1 (s * s), fun h ↦ ?_, ?_⟩
+  · have : s * s ∈ P' := by rw [← comap_map hc0 hc1 hp hp1 hP']; exact h
+    exact hs ((hP'm.isPrime.mem_or_mem this).elim id id)
+  · have e : (redT hc0 hc1 (s * s)).1 * (fun w' ↦ (redT hc0 hc1 y).1 w' / (redT hc0 hc1 s).1 w') =
+        (redT hc0 hc1 (s * y)).1 := by
+      funext w'
+      change redW hc0 hc1 w' (s * s) * (redW hc0 hc1 w' y / redW hc0 hc1 w' s) =
+        redW hc0 hc1 w' (s * y)
+      rw [map_mul, map_mul]
+      by_cases h : redW hc0 hc1 w' s = 0
+      · rw [h]; ring
+      · field_simp
+    rw [e]
+    exact (redT hc0 hc1 (s * y)).2
+
+omit [CharZero C] hP' [Fintype (GaussFibre.Ext C (TwoV c F))] hP'm in
+lemma redHom_ne_zero (v : Ext C F) {Q : CurvePlace 𝓀 (ResidueField v.1.valuationSubring)}
+    (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v)) (h : placeIdeal hc1 v hQ = P') {s : Rint c F}
+    (hs : s ∉ P') : redHom hc1 v s ≠ 0 := fun h0 ↦ hs <| by
+  rw [← h, mem_placeIdeal_iff]
+  change Q.res (redHom hc1 v s) = 0
+  rw [h0, Q.res_zero]
+
+omit [CharZero C] hP' [Fintype (GaussFibre.Ext C (TwoV c F))] hP'm in
+lemma redHomInv_ne_zero (w₂ : Ext C (Inv c hc0 F))
+    {Q : CurvePlace 𝓀 (ResidueField w₂.1.valuationSubring)}
+    (hQ : Q ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂))
+    (h : placeIdeal hc1 w₂ hQ = P'.comap (rintEquiv hc0).symm.toRingHom) {s : Rint c F}
+    (hs : s ∉ P') : redHomInv hc1 hc0 w₂ s ≠ 0 := fun h0 ↦ hs <| by
+  have : rintEquiv hc0 s ∈ placeIdeal hc1 w₂ hQ := by
+    rw [mem_placeIdeal_iff]
+    change Q.res (redHomInv hc1 hc0 w₂ s) = 0
+    rw [h0, Q.res_zero]
+  rw [h, Ideal.mem_comap] at this
+  simpa using this
+
+set_option maxHeartbeats 2000000 in
+-- the residue fields of the transported branches are only unfolded at default transparency
+include hp hp1 in
+/-- **Ordinary double points in the reduced two-vertex chart**: the image of an ordinary double
+point has one transported outer branch, one transported inner branch, and `δ ≤ 1` at every jet
+order. -/
+theorem structure_of_isNodeODP (h : IsNodeODP hc1 hc0 P') :
+    ∃ (v₁ : Ext C F) (Q₁ : CurvePlace 𝓀 (ResidueField v₁.1.valuationSubring))
+      (hQ₁ : Q₁ ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v₁))
+      (w₂ : Ext C (Inv c hc0 F)) (Q₂ : CurvePlace 𝓀 (ResidueField w₂.1.valuationSubring))
+      (hQ₂ : Q₂ ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂)),
+      placeIdeal hc1 v₁ hQ₁ = P' ∧
+      placeIdeal hc1 w₂ hQ₂ = P'.comap (rintEquiv hc0).symm.toRingHom ∧
+      (∀ b ∈ brs hΛT (P'.map (redT hc0 hc1)),
+        b = (EU hc0 hc1).pmap ⟨v₁, Q₁⟩ ∨ b = (EI hc0 hc1).pmap ⟨w₂, Q₂⟩) ∧
+      ∀ M, dl 𝓀 (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring) hΛT
+        (P'.map (redT hc0 hc1)) M ≤ 1 := by
+  classical
+  obtain ⟨⟨v₁, Q₁, hQ₁⟩, ⟨w₂, Q₂, hQ₂⟩, h₁, h₂, hfp⟩ := h
+  have hP₁ : placeIdeal hc1 v₁ hQ₁ = P' := by
+    have : (⟨v₁, Q₁, hQ₁⟩ : OuterBranch C F) ∈ outerBranches hc1 P' := by rw [h₁]; rfl
+    exact this
+  have hP₂ : placeIdeal hc1 w₂ hQ₂ = P'.comap (rintEquiv hc0).symm.toRingHom := by
+    have : (⟨w₂, Q₂, hQ₂⟩ : OuterBranch C (Inv c hc0 F)) ∈ innerBranches hc1 hc0 P' := by
+      rw [h₂]; rfl
+    exact this
+  have huniq : ∀ b ∈ brs hΛT (P'.map (redT hc0 hc1)),
+      b = (EU hc0 hc1).pmap ⟨v₁, Q₁⟩ ∨ b = (EI hc0 hc1).pmap ⟨w₂, Q₂⟩ := by
+    intro b hb
+    rcases brs_cases hc0 hc1 hp hp1 hΛT hP' hb with ⟨v, Q, hQ, rfl, hPv⟩ | ⟨w, Q, hQ, rfl, hPw⟩
+    · left
+      have : (⟨v, Q, hQ⟩ : OuterBranch C F) ∈ outerBranches hc1 P' := hPv
+      rw [h₁, Set.mem_singleton_iff] at this
+      cases this
+      rfl
+    · right
+      have : (⟨w, Q, hQ⟩ : OuterBranch C (Inv c hc0 F)) ∈ innerBranches hc1 hc0 P' := hPw
+      rw [h₂, Set.mem_singleton_iff] at this
+      cases this
+      rfl
+  refine ⟨v₁, Q₁, hQ₁, w₂, Q₂, hQ₂, hP₁, hP₂, huniq, fun M ↦ ?_⟩
+  have hU₀ := mem_brs_U hc0 hc1 hp hp1 hΛT v₁ hQ₁ hP₁
+  have hI₀ := mem_brs_I hc0 hc1 hp hp1 hΛT w₂ hQ₂ hP₂
+  have h𝔫' : (P'.map (redT hc0 hc1)).IsMaximal := map_isMaximal hc0 hc1 hp hp1 hP'
+  have hdiv : ∀ {y s : Rint c F}, s ∉ P' →
+      (fun w' ↦ (redT hc0 hc1 y).1 w' / (redT hc0 hc1 s).1 w') ∈
+        locSet (P'.map (redT hc0 hc1)) := fun hs ↦ div_mem_locSet hc0 hc1 hp hp1 hP' hs
+  generalize P'.map (redT hc0 hc1) = 𝔫 at huniq hU₀ hI₀ h𝔫' hdiv ⊢
+  haveI h𝔫 : 𝔫.IsMaximal := h𝔫'
+  have hne := h𝔫.ne_top
+  have hS : ∀ b ∈ brsF hΛT 𝔫,
+      b = ⟨ιU hc0 hc1 v₁, Q₁.map ((EU hc0 hc1).e v₁)⟩ ∨
+        b = ⟨ιI hc0 hc1 w₂, Q₂.map ((EI hc0 hc1).e w₂)⟩ := fun b hb ↦ by
+    have := huniq b ((mem_brsF hΛT hne).1 hb)
+    rwa [pmap_U, pmap_I] at this
+  have hne12 : ιI hc0 hc1 w₂ ≠ ιU hc0 hc1 v₁ := (ιU_ne_ιI hc0 hc1 v₁ w₂).symm
+  haveI := finiteDimensional_regAt_quot hΛT.tr (fun b hb ↦ mem_V_of_mem_brsF hΛT hne hb) M
+    (locSpace 𝓀 𝔫)
+  obtain ⟨e₁, he₁def⟩ : ∃ e : Π w' : Ext C (TwoV c F), ResidueField w'.1.valuationSubring,
+      e = Pi.single (ιU hc0 hc1 v₁) 1 := ⟨_, rfl⟩
+  have he₁U : e₁ (ιU hc0 hc1 v₁) = 1 := by rw [he₁def]; exact Pi.single_eq_same _ _
+  have he₁I : e₁ (ιI hc0 hc1 w₂) = 0 := by rw [he₁def]; exact Pi.single_eq_of_ne hne12 _
+  have he₁ : e₁ ∈ regAt 𝓀 _ (brsF hΛT 𝔫) := fun b hb ↦ by
+    rcases hS b hb with rfl | rfl
+    · change e₁ (ιU hc0 hc1 v₁) ∈ _
+      rw [he₁U]; exact one_mem _
+    · change e₁ (ιI hc0 hc1 w₂) ∈ _
+      rw [he₁I]; exact zero_mem _
+  refine finrank_le_one (Submodule.Quotient.mk ⟨e₁, he₁⟩) fun x ↦ ?_
+  obtain ⟨⟨a, ha⟩, rfl⟩ := Submodule.Quotient.mk_surjective _ x
+  rw [pmap_U] at hU₀
+  rw [pmap_I] at hI₀
+  have haU := ha _ ((mem_brsF hΛT hne).2 hU₀)
+  have haI := ha _ ((mem_brsF hΛT hne).2 hI₀)
+  obtain ⟨l, hl⟩ : ∃ l : 𝓀, l = (Q₁.map ((EU hc0 hc1).e v₁)).res (a (ιU hc0 hc1 v₁)) -
+      (Q₂.map ((EI hc0 hc1).e w₂)).res (a (ιI hc0 hc1 w₂)) := ⟨_, rfl⟩
+  refine ⟨l, ?_⟩
+  rw [← Submodule.Quotient.mk_smul, Submodule.Quotient.eq, Submodule.mem_comap]
+  -- the element `a' = a - l e₁` has equal residues at the two branches
+  obtain ⟨a', ha'def⟩ : ∃ a' : Π w' : Ext C (TwoV c F), ResidueField w'.1.valuationSubring,
+      a' = a - l • e₁ := ⟨_, rfl⟩
+  have ha'U : a' (ιU hc0 hc1 v₁) = a (ιU hc0 hc1 v₁) - algebraMap 𝓀 _ l := by
+    rw [ha'def, Pi.sub_apply, Pi.smul_apply, he₁U, Algebra.smul_def, mul_one]
+  have ha'I : a' (ιI hc0 hc1 w₂) = a (ιI hc0 hc1 w₂) := by
+    rw [ha'def, Pi.sub_apply, Pi.smul_apply, he₁I, smul_zero, sub_zero]
+  have hα₁V : a' (ιU hc0 hc1 v₁) ∈ (Q₁.map ((EU hc0 hc1).e v₁)).V := by
+    rw [ha'U]; exact sub_mem haU ((Q₁.map ((EU hc0 hc1).e v₁)).algebraMap_mem l)
+  have hα₂V : a' (ιI hc0 hc1 w₂) ∈ (Q₂.map ((EI hc0 hc1).e w₂)).V := by
+    rw [ha'I]; exact haI
+  have hres : (Q₁.map ((EU hc0 hc1).e v₁)).res (a' (ιU hc0 hc1 v₁)) =
+      (Q₂.map ((EI hc0 hc1).e w₂)).res (a' (ιI hc0 hc1 w₂)) := by
+    rw [ha'I, ha'U]
+    refine (Q₁.map ((EU hc0 hc1).e v₁)).res_eq_of_valuation_sub_lt_one ?_
+    have : a (ιU hc0 hc1 v₁) - algebraMap 𝓀 _ l -
+        algebraMap 𝓀 _ ((Q₂.map ((EI hc0 hc1).e w₂)).res (a (ιI hc0 hc1 w₂))) =
+        a (ιU hc0 hc1 v₁) -
+          algebraMap 𝓀 _ ((Q₁.map ((EU hc0 hc1).e v₁)).res (a (ιU hc0 hc1 v₁))) := by
+      rw [sub_sub, ← map_add, hl, sub_add_cancel]
+    rw [this]
+    exact (Q₁.map ((EU hc0 hc1).e v₁)).valuation_sub_res_lt_one haU
+  have hα₁ : ((EU hc0 hc1).e v₁).symm (a' (ιU hc0 hc1 v₁)) ∈ Q₁.V :=
+    (CurvePlace.mem_map_V _ _).1 hα₁V
+  have hα₂ : ((EI hc0 hc1).e w₂).symm (a' (ιI hc0 hc1 w₂)) ∈ Q₂.V :=
+    (CurvePlace.mem_map_V _ _).1 hα₂V
+  have hres' : Q₁.res (((EU hc0 hc1).e v₁).symm (a' (ιU hc0 hc1 v₁))) =
+      Q₂.res (((EI hc0 hc1).e w₂).symm (a' (ιI hc0 hc1 w₂))) := by
+    rw [← res_map _ _ hα₁V, hres, res_map _ _ hα₂V]
+  obtain ⟨y, s, hsP, hy₁, hy₂⟩ := hfp _ hα₁ _ hα₂ hres'
+  have hs₁ := redHom_ne_zero hc1 v₁ hQ₁ hP₁ hsP
+  have hs₂ := redHomInv_ne_zero hc0 hc1 w₂ hQ₂ hP₂ hsP
+  obtain ⟨o, ho_def⟩ : ∃ o : Π w' : Ext C (TwoV c F), ResidueField w'.1.valuationSubring,
+      o = fun w' ↦ (redT hc0 hc1 y).1 w' / (redT hc0 hc1 s).1 w' := ⟨_, rfl⟩
+  have hoL : o ∈ locSpace 𝓀 𝔫 := subset_locSpace 𝔫 (ho_def ▸ hdiv hsP)
+  have hoU : o (ιU hc0 hc1 v₁) = a' (ιU hc0 hc1 v₁) := by
+    rw [ho_def]
+    change (redT hc0 hc1 y).1 (ιU hc0 hc1 v₁) / (redT hc0 hc1 s).1 (ιU hc0 hc1 v₁) = _
+    rw [redT_U, redT_U, hy₁, map_mul, mul_div_cancel_right₀ _
+      ((map_ne_zero ((EU hc0 hc1).e v₁)).2 hs₁)]
+    exact AlgEquiv.apply_symm_apply _ _
+  have hoI : o (ιI hc0 hc1 w₂) = a' (ιI hc0 hc1 w₂) := by
+    rw [ho_def]
+    change (redT hc0 hc1 y).1 (ιI hc0 hc1 w₂) / (redT hc0 hc1 s).1 (ιI hc0 hc1 w₂) = _
+    rw [redT_I, redT_I, hy₂, map_mul, mul_div_cancel_right₀ _
+      ((map_ne_zero ((EI hc0 hc1).e w₂)).2 hs₂)]
+    exact AlgEquiv.apply_symm_apply _ _
+  have hmem : a' ∈ locSpace 𝓀 𝔫 ⊔ jetKer 𝓀 _ M (brsF hΛT 𝔫) := by
+    have : a' = o + (a' - o) := by ring
+    rw [this]
+    refine add_mem (Submodule.mem_sup_left hoL) (Submodule.mem_sup_right fun b hb ↦ ?_)
+    rcases hS b hb with rfl | rfl
+    · change (Q₁.map ((EU hc0 hc1).e v₁)).valuation
+        (a' (ιU hc0 hc1 v₁) - o (ιU hc0 hc1 v₁)) ≤ _
+      rw [hoU, sub_self, map_zero]; exact zero_le
+    · change (Q₂.map ((EI hc0 hc1).e w₂)).valuation
+        (a' (ιI hc0 hc1 w₂) - o (ιI hc0 hc1 w₂)) ≤ _
+      rw [hoI, sub_self, map_zero]; exact zero_le
+  have : ((l • (⟨e₁, he₁⟩ : regAt 𝓀 _ (brsF hΛT 𝔫)) - ⟨a, ha⟩ :
+      regAt 𝓀 _ (brsF hΛT 𝔫)) : Π w' : Ext C (TwoV c F), ResidueField w'.1.valuationSubring) =
+      -a' := by
+    rw [ha'def]
+    simp
+  rw [Submodule.coe_subtype, this]
+  exact neg_mem hmem
+
+set_option maxHeartbeats 2000000 in
+-- the residue fields of the transported branches are only unfolded at default transparency
+include hp hp1 in
+/-- The jets of the fibre product at `P'`, from `δ = r - 1` in the reduced two-vertex chart. -/
+lemma jets_of_dl (v₁ : Ext C F) {Q₁ : CurvePlace 𝓀 (ResidueField v₁.1.valuationSubring)}
+    (hQ₁ : Q₁ ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v₁)) (w₂ : Ext C (Inv c hc0 F))
+    {Q₂ : CurvePlace 𝓀 (ResidueField w₂.1.valuationSubring)}
+    (hQ₂ : Q₂ ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂))
+    (hP₁ : placeIdeal hc1 v₁ hQ₁ = P')
+    (hP₂ : placeIdeal hc1 w₂ hQ₂ = P'.comap (rintEquiv hc0).symm.toRingHom)
+    (huniq : ∀ b ∈ brs hΛT (P'.map (redT hc0 hc1)),
+      b = ⟨ιU hc0 hc1 v₁, Q₁.map ((EU hc0 hc1).e v₁)⟩ ∨
+        b = ⟨ιI hc0 hc1 w₂, Q₂.map ((EI hc0 hc1).e w₂)⟩)
+    (hdl : ∀ M, dl 𝓀 (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring) hΛT
+      (P'.map (redT hc0 hc1)) M ≤ 1)
+    {a : ResidueField v₁.1.valuationSubring} (ha : a ∈ Q₁.V)
+    {b : ResidueField w₂.1.valuationSubring} (hb : b ∈ Q₂.V) (hab : Q₁.res a = Q₂.res b)
+    (M : ℕ) : ∃ y s : Rint c F, s ∉ placeIdeal hc1 v₁ hQ₁ ∧
+      Q₁.valuation (redHom hc1 v₁ y / redHom hc1 v₁ s - a) ≤ exp (-(M : ℤ)) ∧
+      Q₂.valuation (redHomInv hc1 hc0 w₂ y / redHomInv hc1 hc0 w₂ s - b) ≤ exp (-(M : ℤ)) := by
+  classical
+  have hU₀ := mem_brs_U hc0 hc1 hp hp1 hΛT v₁ hQ₁ hP₁
+  have hI₀ := mem_brs_I hc0 hc1 hp hp1 hΛT w₂ hQ₂ hP₂
+  rw [pmap_U] at hU₀
+  rw [pmap_I] at hI₀
+  have h𝔫' : (P'.map (redT hc0 hc1)).IsMaximal := map_isMaximal hc0 hc1 hp hp1 hP'
+  have hcomap := comap_map hc0 hc1 hp hp1 hP'
+  generalize P'.map (redT hc0 hc1) = 𝔫 at huniq hU₀ hI₀ h𝔫' hdl hcomap ⊢
+  haveI h𝔫 : 𝔫.IsMaximal := h𝔫'
+  have hne := h𝔫.ne_top
+  have hne12 : ιI hc0 hc1 w₂ ≠ ιU hc0 hc1 v₁ := (ιU_ne_ιI hc0 hc1 v₁ w₂).symm
+  have hU₀F := (mem_brsF hΛT hne).2 hU₀
+  have hI₀F := (mem_brsF hΛT hne).2 hI₀
+  have hS : ∀ b ∈ brsF hΛT 𝔫,
+      b = ⟨ιU hc0 hc1 v₁, Q₁.map ((EU hc0 hc1).e v₁)⟩ ∨
+        b = ⟨ιI hc0 hc1 w₂, Q₂.map ((EI hc0 hc1).e w₂)⟩ :=
+    fun b hb ↦ huniq b ((mem_brsF hΛT hne).1 hb)
+  have hcard : 1 < (brsF hΛT 𝔫).card := Finset.one_lt_card.2 ⟨_, hU₀F, _, hI₀F,
+    fun e ↦ hne12 (congrArg Sigma.fst e).symm⟩
+  have hle := eqRes_le_of_dl_le hΛT (M := M + 1) (by omega) ⟨_, hU₀F⟩
+    ((hdl (M + 1)).trans (by omega))
+  -- the element with values `a`, `b` at the two branches
+  obtain ⟨A, hA⟩ : ∃ A : Π w' : Ext C (TwoV c F), ResidueField w'.1.valuationSubring,
+      A = Pi.single (ιU hc0 hc1 v₁) ((EU hc0 hc1).e v₁ a) +
+        Pi.single (ιI hc0 hc1 w₂) ((EI hc0 hc1).e w₂ b) := ⟨_, rfl⟩
+  have hAU : A (ιU hc0 hc1 v₁) = (EU hc0 hc1).e v₁ a := by
+    rw [hA, Pi.add_apply, Pi.single_eq_same, Pi.single_eq_of_ne hne12.symm, add_zero]
+  have hAI : A (ιI hc0 hc1 w₂) = (EI hc0 hc1).e w₂ b := by
+    rw [hA, Pi.add_apply, Pi.single_eq_same, Pi.single_eq_of_ne hne12, zero_add]
+  have hAV₁ : A (ιU hc0 hc1 v₁) ∈ (Q₁.map ((EU hc0 hc1).e v₁)).V := by
+    rw [hAU, CurvePlace.mem_map_V, AlgEquiv.symm_apply_apply]; exact ha
+  have hAV₂ : A (ιI hc0 hc1 w₂) ∈ (Q₂.map ((EI hc0 hc1).e w₂)).V := by
+    rw [hAI, CurvePlace.mem_map_V, AlgEquiv.symm_apply_apply]; exact hb
+  have hAr₁ : (Q₁.map ((EU hc0 hc1).e v₁)).res (A (ιU hc0 hc1 v₁)) = Q₁.res a := by
+    rw [res_map _ _ hAV₁, hAU, AlgEquiv.symm_apply_apply]
+  have hAr₂ : (Q₂.map ((EI hc0 hc1).e w₂)).res (A (ιI hc0 hc1 w₂)) = Q₂.res b := by
+    rw [res_map _ _ hAV₂, hAI, AlgEquiv.symm_apply_apply]
+  have hAE : A ∈ eqRes 𝓀 _ (brsF hΛT 𝔫) := by
+    refine ⟨fun β hβ ↦ ?_, fun β hβ β' hβ' ↦ ?_⟩
+    · rcases hS β hβ with rfl | rfl
+      · exact hAV₁
+      · exact hAV₂
+    · rcases hS β hβ with rfl | rfl <;> rcases hS β' hβ' with rfl | rfl
+      · rfl
+      · change (Q₁.map ((EU hc0 hc1).e v₁)).res (A (ιU hc0 hc1 v₁)) =
+          (Q₂.map ((EI hc0 hc1).e w₂)).res (A (ιI hc0 hc1 w₂))
+        rw [hAr₁, hAr₂, hab]
+      · change (Q₂.map ((EI hc0 hc1).e w₂)).res (A (ιI hc0 hc1 w₂)) =
+          (Q₁.map ((EU hc0 hc1).e v₁)).res (A (ιU hc0 hc1 v₁))
+        rw [hAr₁, hAr₂, hab]
+      · rfl
+  obtain ⟨o, ⟨s, hs𝔫, hso⟩, hoA⟩ := exists_locSet_of_eqRes_le hΛT hle hAE
+  obtain ⟨s', rfl⟩ := redT_surjective hc0 hc1 hp hp1 s
+  obtain ⟨y', hy'⟩ := redT_surjective hc0 hc1 hp hp1 ⟨_, hso⟩
+  have hs'P : s' ∉ placeIdeal hc1 v₁ hQ₁ := by
+    rw [hP₁, ← hcomap]; exact hs𝔫
+  have hsU : (redT hc0 hc1 s').1 (ιU hc0 hc1 v₁) ≠ 0 := fun h0 ↦ hs𝔫 <| by
+    rw [mem_iff_of_mem_brs hΛT hne hU₀]
+    change (Q₁.map ((EU hc0 hc1).e v₁)).valuation ((redT hc0 hc1 s').1 (ιU hc0 hc1 v₁)) < 1
+    rw [h0, map_zero]; exact zero_lt_one
+  have hsI : (redT hc0 hc1 s').1 (ιI hc0 hc1 w₂) ≠ 0 := fun h0 ↦ hs𝔫 <| by
+    rw [mem_iff_of_mem_brs hΛT hne hI₀]
+    change (Q₂.map ((EI hc0 hc1).e w₂)).valuation ((redT hc0 hc1 s').1 (ιI hc0 hc1 w₂)) < 1
+    rw [h0, map_zero]; exact zero_lt_one
+  have hyU : (redT hc0 hc1 y').1 (ιU hc0 hc1 v₁) =
+      (redT hc0 hc1 s').1 (ιU hc0 hc1 v₁) * o (ιU hc0 hc1 v₁) :=
+    congrArg (fun z ↦ z (ιU hc0 hc1 v₁)) (congrArg Subtype.val hy')
+  have hyI : (redT hc0 hc1 y').1 (ιI hc0 hc1 w₂) =
+      (redT hc0 hc1 s').1 (ιI hc0 hc1 w₂) * o (ιI hc0 hc1 w₂) :=
+    congrArg (fun z ↦ z (ιI hc0 hc1 w₂)) (congrArg Subtype.val hy')
+  have hM : exp (-((M + 1 : ℕ) : ℤ)) ≤ exp (-(M : ℤ)) := by
+    rw [exp_le_exp]; push_cast; omega
+  have h1₀ := hoA _ hU₀F
+  have h1 : (Q₁.map ((EU hc0 hc1).e v₁)).valuation (o (ιU hc0 hc1 v₁) - A (ιU hc0 hc1 v₁)) ≤
+      exp (-((M + 1 : ℕ) : ℤ)) := by
+    change (⟨ιU hc0 hc1 v₁, Q₁.map ((EU hc0 hc1).e v₁)⟩ :
+      Branch 𝓀 (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring)).2.valuation _ ≤ _
+    exact h1₀
+  have h2₀ := hoA _ hI₀F
+  have h2 : (Q₂.map ((EI hc0 hc1).e w₂)).valuation (o (ιI hc0 hc1 w₂) - A (ιI hc0 hc1 w₂)) ≤
+      exp (-((M + 1 : ℕ) : ℤ)) := by
+    change (⟨ιI hc0 hc1 w₂, Q₂.map ((EI hc0 hc1).e w₂)⟩ :
+      Branch 𝓀 (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring)).2.valuation _ ≤ _
+    exact h2₀
+  refine ⟨y', s', hs'P, ?_, ?_⟩
+  · rw [← CurvePlace.valuation_map_apply ((EU hc0 hc1).e v₁), map_sub, map_div₀, ← redT_U,
+      ← redT_U, hyU, mul_div_cancel_left₀ _ hsU, ← hAU]
+    exact h1.trans hM
+  · rw [← CurvePlace.valuation_map_apply ((EI hc0 hc1).e w₂), map_sub, map_div₀, ← redT_I,
+      ← redT_I, hyI, mul_div_cancel_left₀ _ hsI, ← hAI]
+    exact h2.trans hM
+
+set_option maxHeartbeats 2000000 in
+-- the residue fields of the transported branches are only unfolded at default transparency
+include hp hp1 in
+/-- **Recognition of ordinary double points in the reduced two-vertex chart**: if the image of
+`P'` has exactly the transported outer branch `(v₁, Q₁)` and inner branch `(w₂, Q₂)` of `P'`,
+and `δ ≤ 1` at every jet order, then `P'` is an ordinary double point. -/
+theorem isNodeODP_of (v₁ : Ext C F) {Q₁ : CurvePlace 𝓀 (ResidueField v₁.1.valuationSubring)}
+    (hQ₁ : Q₁ ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v₁)) (w₂ : Ext C (Inv c hc0 F))
+    {Q₂ : CurvePlace 𝓀 (ResidueField w₂.1.valuationSubring)}
+    (hQ₂ : Q₂ ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂))
+    (hP₁ : placeIdeal hc1 v₁ hQ₁ = P')
+    (hP₂ : placeIdeal hc1 w₂ hQ₂ = P'.comap (rintEquiv hc0).symm.toRingHom)
+    (huniq : ∀ b ∈ brs hΛT (P'.map (redT hc0 hc1)),
+      b = ⟨ιU hc0 hc1 v₁, Q₁.map ((EU hc0 hc1).e v₁)⟩ ∨
+        b = ⟨ιI hc0 hc1 w₂, Q₂.map ((EI hc0 hc1).e w₂)⟩)
+    (hdl : ∀ M, dl 𝓀 (fun w' : Ext C (TwoV c F) ↦ ResidueField w'.1.valuationSubring) hΛT
+      (P'.map (redT hc0 hc1)) M ≤ 1) :
+    IsNodeODP hc1 hc0 P' := by
+  classical
+  have hU₀ := mem_brs_U hc0 hc1 hp hp1 hΛT v₁ hQ₁ hP₁
+  have hI₀ := mem_brs_I hc0 hc1 hp hp1 hΛT w₂ hQ₂ hP₂
+  rw [pmap_U] at hU₀
+  rw [pmap_I] at hI₀
+  have hout : outerBranches hc1 P' = {⟨v₁, Q₁, hQ₁⟩} := by
+    ext ⟨v, Q, hQ⟩
+    rw [Set.mem_singleton_iff]
+    constructor
+    · intro h
+      have hb := mem_brs_U hc0 hc1 hp hp1 hΛT v hQ h
+      rw [pmap_U] at hb
+      rcases huniq _ hb with e | e
+      · have e' : (EU hc0 hc1).pmap ⟨v, Q⟩ = (EU hc0 hc1).pmap ⟨v₁, Q₁⟩ := by
+          rw [pmap_U, pmap_U]; exact e
+        have := (EU hc0 hc1).pmap_injective e'
+        cases this
+        rfl
+      · exact absurd (congrArg Sigma.fst e) (ιU_ne_ιI hc0 hc1 v w₂)
+    · intro h
+      cases h
+      exact hP₁
+  have hin : innerBranches hc1 hc0 P' = {⟨w₂, Q₂, hQ₂⟩} := by
+    ext ⟨w, Q, hQ⟩
+    rw [Set.mem_singleton_iff]
+    constructor
+    · intro h
+      have hb := mem_brs_I hc0 hc1 hp hp1 hΛT w hQ h
+      rw [pmap_I] at hb
+      rcases huniq _ hb with e | e
+      · exact absurd (congrArg Sigma.fst e).symm (ιU_ne_ιI hc0 hc1 v₁ w)
+      · have e' : (EI hc0 hc1).pmap ⟨w, Q⟩ = (EI hc0 hc1).pmap ⟨w₂, Q₂⟩ := by
+          rw [pmap_I, pmap_I]; exact e
+        have := (EI hc0 hc1).pmap_injective e'
+        cases this
+        rfl
+    · intro h
+      cases h
+      exact hP₂
+  refine ⟨⟨v₁, Q₁, hQ₁⟩, ⟨w₂, Q₂, hQ₂⟩, hout, hin, fun a ha b hb hab ↦ ?_⟩
+  have hP : placeIdeal hc1 w₂ hQ₂ =
+      (placeIdeal hc1 v₁ hQ₁).comap (rintEquiv hc0).symm.toRingHom := by rw [hP₁]; exact hP₂
+  have hoth₁ : ∀ R (hR : R ∈ PlaceNorm.zeros 𝓀 (red C (xF C F) v₁)), R ≠ Q₁ →
+      placeIdeal hc1 v₁ hR ≠ placeIdeal hc1 v₁ hQ₁ := fun R hR hne heq ↦ by
+    have : (⟨v₁, R, hR⟩ : OuterBranch C F) ∈ outerBranches hc1 P' := heq.trans hP₁
+    rw [hout, Set.mem_singleton_iff] at this
+    cases this
+    exact hne rfl
+  have hoth₂ : ∀ R (hR : R ∈ PlaceNorm.zeros 𝓀 (red C (xF C (Inv c hc0 F)) w₂)), R ≠ Q₂ →
+      placeIdeal hc1 w₂ hR ≠ placeIdeal hc1 w₂ hQ₂ := fun R hR hne heq ↦ by
+    have : (⟨w₂, R, hR⟩ : OuterBranch C (Inv c hc0 F)) ∈ innerBranches hc1 hc0 P' :=
+      heq.trans hP₂
+    rw [hin, Set.mem_singleton_iff] at this
+    cases this
+    exact hne rfl
+  obtain ⟨y, s, hs, h1, h2⟩ := exists_fp hc1 hc0 hp hp1 v₁ hQ₁ w₂ hQ₂ hP hoth₁ hoth₂
+    (fun a ha b hb hab M ↦ jets_of_dl hc0 hc1 hp hp1 hΛT hP' v₁ hQ₁ w₂ hQ₂ hP₁ hP₂ huniq hdl ha hb
+      hab M) ha hb hab
+  exact ⟨y, s, hP₁ ▸ hs, h1, h2⟩
+
+end P
+
+end Branches
+
 end NodeBridge
 
 end SemistableReduction
