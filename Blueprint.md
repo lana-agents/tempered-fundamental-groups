@@ -2286,8 +2286,20 @@ finite étale `R`-algebras over `K`.
 * The induction to `[Spec R / A]` (`TateRestrictInduced`) uses the level
   `(A → R[t]/(t² - ϖ), A × ⟨σ⟩)` and the generic transfer
   `exists_open_normal_infinite_quotient_of_ne_one_gen`.
-* Remaining: the geometric inputs for `X₀'` (S1/G1, `HarmonicTateR`) and the IUT corollary
-  (`IsTate1`, `TateRestrictOrbicurve`).
+* The geometric inputs for `X₀'` are proved: S1/G1 (`Pres.exists_image_eq_C_R`) and
+  `HarmonicTateR` from `CrossingX1S` (`Pres.harmonicTateR_of_crossingX1`).
+* IUT data: `IsTate1`, with `d` squarefree over `O'` derived from `Δ ≠ 0` (`TateRestrictOrbicurve`).
+
+**Theorem B is complete (2026-10-09).** `TateOrbicurve.nondegenerate_of_normalForm`
+(`Andre/TateRestrictIUT.lean`) covers every Tate curve in normal form `a₁ = 1`, `a₂ = a₃ = 0`,
+`a₄ = ϖ^m u₄`, `a₆ = ϖ^m ε` (`ε` a unit, `m ≥ 1`):
+* the hypotheses are only these data, `ϖ` a uniformizer, `1 ≤ ℓ`, `M` finite, `p ∈ 𝔪` prime and a
+  perfect residue field;
+* the conclusion is that `temperedPi1 [Y/A]` has an open normal subgroup with infinite quotient;
+* `m = 1` goes through `nondegenerate_of_isTate1` (`X₀'`), and `m ≥ 2` through
+  `nondegenerate_of_goodTate` (`X₀`).
+* No hypotheses remain open: `ZariskiConnected`, `HarmonicX`, `CrossingX1`,
+  `NodeOfTwoComponents` and `StrongComponentAS` are all proved.
 
 **Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
 `∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line

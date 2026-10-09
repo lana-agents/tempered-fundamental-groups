@@ -94,6 +94,29 @@ theorem nondegenerate_of_isTate1 [PerfectField (IsLocalRing.ResidueField O)] (p 
     (TateRestrict.exists_character'_ne_one hϖ b₄ b₆ _ (heqR_of_isTate1 hW ℓ M) A' V hV p hp hpm
       (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM) hb (transcendental_xR ℓ M))
 
+include A' in
+/-- **Theorem B for IUT's orbicurves, every Tate curve in normal form**: for
+`W : y² + xy = x³ + a₄ x + a₆` with `ϖ^m ∣ a₄`, `a₆ = ϖ^m ε` (`ε` a unit) and `m ≥ 1`,
+`temperedPi1 [Y/A]` (`Y = E ∖ (E[ℓ] + M)`) has an open normal subgroup with infinite quotient.
+`m = 1` is the restricted Tate object over `K(√ϖ)` (`nondegenerate_of_isTate1`), `m ≥ 2` the Tate
+object (`nondegenerate_of_goodTate`). -/
+theorem nondegenerate_of_normalForm [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ)
+    (hp : p.Prime) (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hℓ : 1 ≤ ℓ)
+    (hM : (M : Set W.toAffine.Point).Finite) {ϖ : O} (hϖ : Irreducible ϖ) (ha₁ : W.a₁ = 1)
+    (ha₂ : W.a₂ = 0) (ha₃ : W.a₃ = 0) {m : ℕ} (hm : 1 ≤ m) (u₄ : O)
+    (ha₄ : W.a₄ = ((ϖ ^ m * u₄ : O) : K)) (ε : Oˣ) (ha₆ : W.a₆ = ((ϖ ^ m * ε : O) : K)) :
+    ∃ N : Subgroup (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV),
+      IsOpen (N : Set (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV)) ∧ N.Normal ∧
+        Infinite (temperedPi1 O (geomOrbicurveRing W ℓ M) A V hV ⧸ N) := by
+  rcases Nat.lt_or_ge m 2 with h1 | h2
+  · obtain rfl : m = 1 := by omega
+    refine nondegenerate_of_isTate1 A A' V hV p hp hpm hℓ hM hϖ (b₄ := u₄) (b₆ := ε)
+      ⟨ha₁, ha₂, ha₃, ?_, ?_⟩ ε.isUnit
+    · rw [ha₄, pow_one]; push_cast; rfl
+    · rw [ha₆, pow_one]; push_cast; rfl
+  · exact TateOrbicurve.nondegenerate_of_goodTate A A' V hV p hp hpm hℓ hM ϖ hϖ
+      (hasGoodTatePresentation_of_normalForm hϖ ha₁ ha₂ ha₃ h2 u₄ ha₄ ε ha₆)
+
 end TateOrbicurve
 
 end
