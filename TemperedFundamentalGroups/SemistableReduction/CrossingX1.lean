@@ -18,7 +18,8 @@ point `y'` of `c'` on two components `w₁' ≠ w₂'` at which the germs of `c'
 `j'` being dominant, every component of `c` over `w₁'` starts a walk crossing `y'`
 (special points over `y'`, inner components contracted to `y'`) to a component over `w₂'`.
 
-The x-line of the target is not used; it only enters the lengths of (X1) in `HarmonicX`.
+The x-line `x ∈ L₁` is only a hypothesis on the source (it need not come from `L₂`); the target has
+no x-line (it only enters the lengths of (X1) in `HarmonicX`).
 
 Both the dominance of `j'` and the non-unit condition are necessary (counterexamples, Blueprint
 §10.3.8: a target `c' = c ∪ E` with an extra special-fibre line `E` not dominated by `j'`; a
@@ -44,11 +45,11 @@ def Statement.CrossingX1 : Prop :=
     (L₁ L₂ : Type u) [Field L₁] [Field L₂] [Algebra K₁ L₁] [Algebra K₂ L₂] [Algebra L₂ L₁]
     [Algebra K L₁] [Algebra K L₂] [IsScalarTower K K₁ L₁] [IsScalarTower K K₂ L₂]
     [IsScalarTower K L₂ L₁] [FiniteDimensional L₂ L₁]
-    [Algebra O₁ L₁] [IsScalarTower O₁ K₁ L₁] [Algebra O₂ L₂] [IsScalarTower O₂ K₂ L₂] (x : L₂)
+    [Algebra O₁ L₁] [IsScalarTower O₁ K₁ L₁] [Algebra O₂ L₂] [IsScalarTower O₂ K₂ L₂] (x : L₁)
     (c : TemperedFundamentalGroups.ModelCode O₁) (c' : TemperedFundamentalGroups.ModelCode O₂)
     (ψ : c.scheme ⟶ c'.scheme)
     (j : Spec (CommRingCat.of L₁) ⟶ c.scheme) (j' : Spec (CommRingCat.of L₂) ⟶ c'.scheme),
-    ModelCode.IsUnfolded O₁ (algebraMap L₂ L₁ x) c j →
+    ModelCode.IsUnfolded O₁ x c j →
     j ≫ ψ = Spec.map (CommRingCat.ofHom (algebraMap L₂ L₁)) ≫ j' →
     ψ ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom ((algebraMap K K₂).restrict O O₂
       (fun y hy ↦ by rw [← h₂] at hy; exact hy))) =

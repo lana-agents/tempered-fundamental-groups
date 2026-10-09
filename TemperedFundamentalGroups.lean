@@ -22,6 +22,7 @@ import TemperedFundamentalGroups.Andre.TateLoop
 import TemperedFundamentalGroups.Andre.TateModel
 import TemperedFundamentalGroups.Andre.TateModelCharts
 import TemperedFundamentalGroups.Andre.TateModelNormal
+import TemperedFundamentalGroups.Andre.TateNatural
 import TemperedFundamentalGroups.Andre.TateNormalAlgebra
 import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
