@@ -2,6 +2,7 @@ import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.FracGalois
 import TemperedFundamentalGroups.Andre.FracMap
+import TemperedFundamentalGroups.Andre.FunctionFieldFinite
 import TemperedFundamentalGroups.Andre.GTransitive
 import TemperedFundamentalGroups.Andre.GTransitiveAux
 import TemperedFundamentalGroups.Andre.GaloisClass
@@ -22,6 +23,7 @@ import TemperedFundamentalGroups.Andre.TateLoop
 import TemperedFundamentalGroups.Andre.TateModel
 import TemperedFundamentalGroups.Andre.TateModelCharts
 import TemperedFundamentalGroups.Andre.TateModelNormal
+import TemperedFundamentalGroups.Andre.TateNodePoints
 import TemperedFundamentalGroups.Andre.TateNatural
 import TemperedFundamentalGroups.Andre.TateNormalAlgebra
 import TemperedFundamentalGroups.Andre.TateObject
