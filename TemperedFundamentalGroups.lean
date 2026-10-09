@@ -50,6 +50,7 @@ import TemperedFundamentalGroups.Andre.TheoremBCrossing
 import TemperedFundamentalGroups.Andre.TheoremBFinal
 import TemperedFundamentalGroups.Andre.TheoremBH
 import TemperedFundamentalGroups.Andre.TheoremBHLoop
+import TemperedFundamentalGroups.Andre.TheoremBGoodTate
 import TemperedFundamentalGroups.Andre.TheoremBUnfolded
 import TemperedFundamentalGroups.Andre.TheoremBW
 import TemperedFundamentalGroups.Andre.Transfer
