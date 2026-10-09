@@ -15,6 +15,8 @@ Let `K` be a field, `O ⊆ K` a complete discrete valuation ring, `K' / K` a fin
 * `mem_iff_spectralNorm_le_one`: `O'` is the closed unit ball of the spectral norm on `K'` (for
   the norm `DVRNorm.normedField O` on `K`), by uniqueness of the extension
   (`CrossingAux.eq_of_comap_eq_dvr`).
+* `algebra`, `mem_iff_isIntegral`, `isIntegralClosure`, `finite`: with the `O`-algebra structure
+  induced by `K → K'`, `O'` is the integral closure of `O` in `K'` and a finite `O`-module.
 * `isAdicComplete_maximalIdeal`: `O'` is complete for its maximal ideal: `𝔪'`-adic Cauchy
   sequences are Cauchy for the (complete) spectral norm and the unit ball is closed.
 -/
@@ -47,6 +49,59 @@ theorem mem_iff_spectralNorm_le_one (h : O'.comap (algebraMap K K') = O) (x : K'
   rw [CrossingAux.eq_of_comap_eq_dvr O h hV,
     _root_.SemistableReduction.HenselComplete.mem_integers_iff]
   rfl
+
+/-- The `O`-algebra structure on `O'` given by restricting `algebraMap K K'`. -/
+@[implicit_reducible]
+noncomputable def algebra (h : O'.comap (algebraMap K K') = O) : Algebra O O' :=
+  ((algebraMap K K').restrict O O' fun x hx ↦ by
+    rw [← h] at hx
+    exact hx).toAlgebra
+
+/-- The composite `O`-algebra structure on `K'`. -/
+@[implicit_reducible]
+noncomputable def algebraTop : Algebra O K' :=
+  ((algebraMap K K').comp (algebraMap O K)).toAlgebra
+
+/-- **Integral closure.** `O'` is the integral closure of `O` in `K'`. -/
+theorem mem_iff_isIntegral (h : O'.comap (algebraMap K K') = O) (x : K') :
+    letI := algebraTop O (K' := K'); x ∈ O' ↔ IsIntegral O x := by
+  letI := algebraTop O (K' := K')
+  haveI : IsScalarTower O K K' := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  letI := DVRNorm.normedField O
+  rw [mem_iff_spectralNorm_le_one O h, spectralNorm,
+    spectralValue_le_one_iff (minpoly.monic (Algebra.IsIntegral.isIntegral x))]
+  simp only [DVRNorm.norm_le_one_iff]
+  constructor
+  · intro hc
+    have hl : minpoly K x ∈ Polynomial.lifts (algebraMap O K) := by
+      rw [Polynomial.lifts_iff_coeff_lifts]
+      exact fun n ↦ ⟨⟨_, hc n⟩, rfl⟩
+    obtain ⟨q, hq, -, hqm⟩ := Polynomial.lifts_and_degree_eq_and_monic hl
+      (minpoly.monic (Algebra.IsIntegral.isIntegral x))
+    refine ⟨q, hqm, ?_⟩
+    rw [← Polynomial.aeval_def, ← Polynomial.aeval_map_algebraMap K, hq, minpoly.aeval]
+  · intro hi n
+    rw [minpoly.isIntegrallyClosed_eq_field_fractions' K hi, Polynomial.coeff_map]
+    exact ((minpoly O x).coeff n).2
+
+theorem isIntegralClosure (h : O'.comap (algebraMap K K') = O) :
+    letI := algebra O h; letI := algebraTop O (K' := K'); IsIntegralClosure O' O K' := by
+  letI := algebra O h
+  letI := algebraTop O (K' := K')
+  exact ⟨Subtype.val_injective, fun {x} ↦ by
+    rw [← mem_iff_isIntegral O h]
+    exact ⟨fun hx ↦ ⟨⟨x, hx⟩, rfl⟩, fun ⟨y, hy⟩ ↦ hy ▸ y.2⟩⟩
+
+/-- **Finiteness.** `O'` is a finite `O`-module (`K` has characteristic `0`, so `K' / K` is
+separable). -/
+theorem finite [CharZero K] (h : O'.comap (algebraMap K K') = O) :
+    letI := algebra O h; Module.Finite O O' := by
+  letI := algebra O h
+  letI := algebraTop O (K' := K')
+  haveI : IsScalarTower O K K' := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  haveI : IsScalarTower O O' K' := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  haveI := isIntegralClosure O h
+  exact IsIntegralClosure.finite O K K' O'
 
 /-- **Completeness.** A discrete valuation ring `O'` lying over a complete DVR `O` in a finite
 extension is `𝔪'`-adically complete. -/
