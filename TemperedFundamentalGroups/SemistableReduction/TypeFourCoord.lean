@@ -390,7 +390,8 @@ theorem isIntegral_add_pow {s₁ : F} (hs₁ : IsIntegral (Algebra.adjoin C {xF 
   have hlB : lB ≠ 0 := fun h ↦ hl ((algebraMap C F).injective (by
     rw [map_zero]; exact congrArg Subtype.val h))
   set T : (Algebra.adjoin C {s₂})[X] := Polynomial.C sB - Polynomial.C lB * X ^ M
-  set H : (Algebra.adjoin C {s₂})[X] := ∑ i ∈ Finset.range (m + 1), (g i).map (algebraMap C (Algebra.adjoin C {s₂})) * T ^ i
+  set H : (Algebra.adjoin C {s₂})[X] :=
+    ∑ i ∈ Finset.range (m + 1), (g i).map (algebraMap C (Algebra.adjoin C {s₂})) * T ^ i
   -- `x` is a root of `H`
   have hT : aeval (xF C F) T = s₁ := by
     simp only [T, map_sub, map_mul, map_pow, aeval_C, aeval_X, sB, lB, s₂]
@@ -419,7 +420,8 @@ theorem isIntegral_add_pow {s₁ : F} (hs₁ : IsIntegral (Algebra.adjoin C {xF 
       rw [hg, hfm.coeff_natDegree, map_one]; rfl
     exact (transcendental_iff_injective.1 (GaussFibre.transcendental_xF (C := C) (F := F))) h1
   -- the lower terms have smaller degree
-  set S : (Algebra.adjoin C {s₂})[X] := ∑ i ∈ Finset.range m, (g i).map (algebraMap C (Algebra.adjoin C {s₂})) * T ^ i
+  set S : (Algebra.adjoin C {s₂})[X] :=
+    ∑ i ∈ Finset.range m, (g i).map (algebraMap C (Algebra.adjoin C {s₂})) * T ^ i
   have hHS : H = S + T ^ m := by
     simp only [H, S, Finset.sum_range_succ, hgm, Polynomial.map_one, one_mul]
   have hSdeg : S.natDegree < (T ^ m).natDegree := by
