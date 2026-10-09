@@ -2269,6 +2269,26 @@ finite étale `R`-algebras over `K`.
     uses B1–B3.
   * Total ≈2.2–3.2k, stop and report at 3k.
 
+**Status of `v(q) = 1` (2026-10-09, route B as implemented; cap 5k).**
+* The level is `B = R[t]/(t² - ϖ)` with `H = ⟨σ⟩` (`QuadraticLevel`), not `K' ⊗ R`.
+* The model is the Tate model over `O'` presented over `O` (`modelR`, via `baseChangeIsoFin`).
+* `ρ(σ)` is the semilinear involution of the projective `O'`-model (`TateRestrictSigma`).
+* `X₀'`, its deck torsor and its character are in `TateRestrictObject`.
+* *σ-invariance is proved, not assumed.*
+  * `ρ(σ)` preserves `C, Cp, Cq` (`mem_imageι_ρ'_iff`).
+  * Model maps from a member to `X₀'` agree up to `ρ(σ)` (`TateRestrict.modelUnique'`), from
+    the dichotomy for maps `R[t]/(t² - ϖ) → B`, `B` connected
+    (`QuadraticLevel.eq_or_eq_comp_σ_of_idem`).
+  * Hence `tateNuG` and `HCWG` do not depend on the model map (`Pres.ModelUnique`).
+  * The model map determines the level map (`TateRestrict.φf_eq_of_ψ_eq`).
+* The middle layer is stated for any target `X₀` (`tateMapG`, `exists_character_eq_of_loopG`).
+  The Tate-object forms are corollaries.
+* The induction to `[Spec R / A]` (`TateRestrictInduced`) uses the level
+  `(A → R[t]/(t² - ϖ), A × ⟨σ⟩)` and the generic transfer
+  `exists_open_normal_infinite_quotient_of_ne_one_gen`.
+* Remaining: the geometric inputs for `X₀'` (S1/G1, `HarmonicTateR`) and the IUT corollary
+  (`IsTate1`, `TateRestrictOrbicurve`).
+
 **Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
 `∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line
 (`W10Line.exists_invariant_line`) and the `G × Gal`-stability of the Gauss tree needs the line to
