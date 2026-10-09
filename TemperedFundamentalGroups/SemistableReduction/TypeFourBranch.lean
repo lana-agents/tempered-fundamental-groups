@@ -89,7 +89,8 @@ include hp hp1 in
 /-- **Clearing the components not through `P'`.** -/
 theorem exists_lift' {P' : Ideal (DRint (0 : C) 1 G)} {z : DRint (0 : C) 1 G}
     (hz : ∀ v : Ext C G, ¬ Through P' v → v.1 (z : G) < 1) {f : G}
-    (hf : IsIntegral (Algebra.adjoin C {xF C G}) f) (hfv : ∀ v : Ext C G, Through P' v → v.1 f ≤ 1) :
+    (hf : IsIntegral (Algebra.adjoin C {xF C G}) f)
+    (hfv : ∀ v : Ext C G, Through P' v → v.1 f ≤ 1) :
     ∃ N : ℕ, ∀ M ≥ N, IsIntegral (discRing (0 : C) 1) ((z : G) ^ M * f) := by
   classical
   haveI : Finite (Ext C G) := finite_ext (F := G) hp hp1
