@@ -2265,6 +2265,26 @@ Total ≈ 5–7k.
     `NodeDeformation.exists_node` (Newton iteration plus termination), as for W-models.
   * At `p` and `q` the exact form is explicit: `u = w`, `v = (s(1+s) − b₆ w²)/((1 + b₄ w²) ε)`.
 
+**Update (2026-10-09): `HarmonicTate` from `CrossingX1`, `b₆` a unit (done).**
+
+* *Target.* `TateObject.tgtModel T = projModelCode O hf`, the projective model of
+  `TateField`. It is identified with `𝒯` by `TateNormal.modelIso` (from `modelIdeal_eq_ker`).
+  Its generic point is `genericPt` (`TateNormal.toModel_comp_modelIso`).
+* *Fields.* `L₂ = TateField` embeds into `L₁` by `TateNormal.toField` (`X ↦ x/π`, `Y ↦ y/π`).
+  `L₁/L₂` is finite (`finiteDimensional_of_transcendental`, transcendence degree one).
+* *Node germs.* The germs at a chart point are the localization of the chart
+  (`ProjScheme.germs_chartι`, `mem_imageι_chartι_iff`). At `p` and `q` this is a node germ with
+  `u = w`, `v = (s(s+1) − b₆w²)/((1+b₄w²)ε)`, and `u`, `v` are non-units
+  (`TateNormal.nodeGerm_p`, `nodeGerm_q`).
+* *Assembly.* `Pres.crossing_tate` and `Pres.harmonicTate_of_crossingX1`.
+  `HarmonicTate` is now relative to a family `ℰ` of components of the conic (`{E}` for `b₆` a
+  unit, `{L₁, L₂}` for the 3-gon).
+* *Result.* With `crossingX1` proved, `TateObject.exists_character_ne_one_of_crossing` and
+  `TateOrbicurve.nondegenerate_of_crossing` need neither `HarmonicTate` nor `CrossingX1`, for
+  `IsUnit b₆`.
+* *Still open.* The 3-gon case `b₆ ∈ 𝔪`, which needs the node germ at `r` (exact node via
+  `NodeDeformation`).
+
 **`Statement.CrossingX1` corrected (2026-10-09).** As first written it was false (counterexamples
 by the CrossingX1 helper):
 * *Target not dominated by `j'`.* Take `c' = c ∪ E` with an extra special-fibre line `E` through
