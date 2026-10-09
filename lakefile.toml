@@ -30,4 +30,13 @@ rev = "bebec3fc9f2602e81c83e5236789572a541c85fb"
 [[require]]
 name = "pi1"
 git = "https://github.com/lana-agents/pi1"
-rev = "60129404bd759f1a3653e87c2c9e6fbb21ec995e"
+rev = "7647d28f361ba3c9705ed0a179b6a377d461c57a"
+
+# Serre's finiteness theorem on projective space and Zariski's connectedness theorem for integral
+# projective schemes over a complete discrete valuation ring
+# (`AlgebraicGeometry.ProjectiveSpace.isPreconnected_closedFibre`), used for
+# `SemistableReduction.Statement.zariskiConnected`.
+[[require]]
+name = "oka"
+git = "https://github.com/lana-agents/oka"
+rev = "405aadd70a16b05bd1a179a489b2c1c1299df695"

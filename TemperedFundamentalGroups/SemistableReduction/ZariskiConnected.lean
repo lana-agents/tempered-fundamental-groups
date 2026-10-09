@@ -17,8 +17,10 @@ This is Zariski's connectedness theorem: `c'` is normal (semistable), proper and
 and by Stein factorization its special fibre is connected because `Γ(c', O)` is a finite
 `O'`-algebra contained in `L`, i.e. a domain finite over the henselian `O'`, hence local. It is
 used for the component clause of `Statement.StrongComponentA` (connected special fibres of the
-summands of the W10 model). Interim, approved 2026-10-09: the elementary routes (a tree version
-of `GaussFibre.no_split`, or formal functions) are recorded in the Blueprint.
+summands of the W10 model). It is proved in `SemistableReduction/ZariskiConnectedProof.lean`
+(`Statement.zariskiConnected`), from Zariski's connectedness theorem for integral projective
+schemes over a complete DVR in oka (`AlgebraicGeometry.ProjectiveSpace.isPreconnected_closedFibre`,
+via Serre finiteness and the degree-zero theorem on formal functions).
 -/
 
 universe u
