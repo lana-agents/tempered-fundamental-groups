@@ -151,9 +151,9 @@ local notation "𝓀" => ResidueField (HenselComplete.integers C)
 set_option maxHeartbeats 4000000 in
 -- the assembly instantiates the descent over `E` (many large terms)
 include hp hp1 in
-/-- **Uniform descent at one ordinary double point**: a finite set of constants `S` such that
-every admissible `E ⊇ S` descends `P'` to a semistable point. -/
-theorem exists_finset_isSemistableAt {T : Finset G}
+/-- **Uniform descent at one ordinary double point, split form**: a finite set of constants `S`
+such that every admissible `E ⊇ S` descends `P'` to a split node. -/
+theorem exists_finset_isSplitNodeAt {T : Finset G}
     (hT : Algebra.adjoin (RatFunc C) (T : Set G) = ⊤) {c : C} (hc : ‖c‖ < 1) (hc0 : c ≠ 0)
     (P' : Ideal (Rint c G)) [P'.IsMaximal]
     (hP' : P'.comap (algebraMap (nodeRing c) (Rint c G)) = tubeIdeal c)
@@ -169,7 +169,7 @@ theorem exists_finset_isSemistableAt {T : Finset G}
       (ι : BE F₀ c₀ →+* Rint c G) (_hι : ∀ y, (ι y : G) = χ y)
       {ϖ : HenselComplete.integers E} (_hϖ : Irreducible ϖ),
       letI := algO (F₀ := F₀) c₀
-      IsSemistableAt ϖ (P'.comap ι) := by
+      IsSplitNodeAt ϖ (P'.comap ι) := by
   classical
   obtain ⟨b₁, -, hb₁, -⟩ := id hODP
   obtain ⟨b₂, hb₂, hfp, hP₁, hP₂⟩ := exists_cData hc hc0 hODP hb₁
@@ -244,7 +244,7 @@ theorem exists_finset_isSemistableAt {T : Finset G}
   have hyrange : yR (φ c₀) ∈ ι.range := hdesc _ (hin5 (by tauto))
   have hrrange' : ∀ j, r j ∈ ι.range := fun j ↦ hdesc _
     (by rw [hys]; exact Finset.mem_union_right _ (Finset.mem_image_of_mem _ (Finset.mem_univ j)))
-  refine isSemistableAt_of_descentData hp hp1 hφ hχ hdeg hθ₀ rfl hc hc0 hP' hODP hb₁ hb₂ ι hι
+  refine isSplitNodeAt_of_descentData hp hp1 hφ hχ hdeg hθ₀ rfl hc hc0 hP' hODP hb₁ hb₂ ι hι
     ?_ ?_ ?_ ?_ t₀' ?_ ?_ ?_ yu' ?_ ?_ yv' ?_ ?_ ?_ ?_ ?_ hϖ
   · exact heo
   · exact fun v f ↦ heoI (toInvExt hc0 v) f
@@ -269,6 +269,76 @@ theorem exists_finset_isSemistableAt {T : Finset G}
   · exact isAlgebraic_kE φ halg
 
 include hp hp1 in
+/-- **Uniform descent at one ordinary double point**: a finite set of constants `S` such that
+every admissible `E ⊇ S` descends `P'` to a semistable point. -/
+theorem exists_finset_isSemistableAt {T : Finset G}
+    (hT : Algebra.adjoin (RatFunc C) (T : Set G) = ⊤) {c : C} (hc : ‖c‖ < 1) (hc0 : c ≠ 0)
+    (P' : Ideal (Rint c G)) [P'.IsMaximal]
+    (hP' : P'.comap (algebraMap (nodeRing c) (Rint c G)) = tubeIdeal c)
+    (hODP : IsNodeODP hc hc0 P') :
+    ∃ S : Finset C, ∀ {E F₀ : Type w} [NontriviallyNormedField E] [IsUltrametricDist E]
+      [IsDiscreteValuationRing (HenselComplete.integers E)] (φ : E →+* C)
+      (_hφ : ∀ e, ‖φ e‖ = ‖e‖) (_hS : (S : Set C) ⊆ Set.range φ)
+      (_halg : letI := φ.toAlgebra; Algebra.IsAlgebraic E C)
+      [Field F₀] [Algebra (RatFunc E) F₀] [FiniteDimensional (RatFunc E) F₀]
+      [Algebra.IsSeparable (RatFunc E) F₀] (χ : F₀ →+* G) (_hχ : IsCompat φ χ)
+      (_hdeg : Module.finrank (RatFunc E) F₀ = Module.finrank (RatFunc C) G)
+      (_hTχ : (T : Set G) ⊆ Set.range χ) (c₀ : E) (_hcc : φ c₀ = c)
+      (ι : BE F₀ c₀ →+* Rint c G) (_hι : ∀ y, (ι y : G) = χ y)
+      {ϖ : HenselComplete.integers E} (_hϖ : Irreducible ϖ),
+      letI := algO (F₀ := F₀) c₀
+      IsSemistableAt ϖ (P'.comap ι) := by
+  obtain ⟨S, hS⟩ := exists_finset_isSplitNodeAt.{u, v, w} hp hp1 hT hc hc0 P' hP' hODP
+  refine ⟨S, ?_⟩
+  intro E F₀ _ _ _ φ hφ hSφ halg _ _ _ _ χ hχ hdeg hTχ c₀ hcc ι hι ϖ hϖ
+  letI := algO (F₀ := F₀) c₀
+  exact (hS φ hφ hSφ halg χ hχ hdeg hTχ c₀ hcc ι hι hϖ).isSemistableAt
+
+include hp hp1 in
+/-- **Uniform descent of node points, split form**: a finite set of constants `S` such that for
+every admissible `E ⊇ S`, every ordinary double point over the node of the normalized node chart
+descends to a split node of `B_E`. -/
+theorem exists_finset_forall_isSplitNodeAt {T : Finset G}
+    (hT : Algebra.adjoin (RatFunc C) (T : Set G) = ⊤) {c : C} (hc : ‖c‖ < 1) (hc0 : c ≠ 0) :
+    ∃ S : Finset C, ∀ {E F₀ : Type w} [NontriviallyNormedField E] [IsUltrametricDist E]
+      [IsDiscreteValuationRing (HenselComplete.integers E)] (φ : E →+* C)
+      (_hφ : ∀ e, ‖φ e‖ = ‖e‖) (_hS : (S : Set C) ⊆ Set.range φ)
+      (_halg : letI := φ.toAlgebra; Algebra.IsAlgebraic E C)
+      [Field F₀] [Algebra (RatFunc E) F₀] [FiniteDimensional (RatFunc E) F₀]
+      [Algebra.IsSeparable (RatFunc E) F₀] (χ : F₀ →+* G) (_hχ : IsCompat φ χ)
+      (_hdeg : Module.finrank (RatFunc E) F₀ = Module.finrank (RatFunc C) G)
+      (_hTχ : (T : Set G) ⊆ Set.range χ) (c₀ : E) (_hcc : φ c₀ = c)
+      (ι : BE F₀ c₀ →+* Rint c G) (_hι : ∀ y, (ι y : G) = χ y)
+      {ϖ : HenselComplete.integers E} (_hϖ : Irreducible ϖ)
+      (P' : Ideal (Rint c G)) [P'.IsMaximal]
+      (_hP' : P'.comap (algebraMap (nodeRing c) (Rint c G)) = tubeIdeal c)
+      (_hODP : IsNodeODP hc hc0 P'),
+      letI := algO (F₀ := F₀) c₀
+      IsSplitNodeAt ϖ (P'.comap ι) := by
+  classical
+  haveI := finite_ext (F := G) hp hp1
+  letI : Fintype (OuterBranch C G) := Fintype.ofFinite _
+  let Sb : OuterBranch C G → Finset C := fun b ↦
+    if h : (placeIdeal hc b.1 b.2.2).comap (algebraMap (nodeRing c) (Rint c G)) =
+        tubeIdeal c ∧ IsNodeODP hc hc0 (placeIdeal hc b.1 b.2.2) then
+      haveI := placeIdeal_isMaximal hc b.1 b.2.2
+      Classical.choose (exists_finset_isSplitNodeAt.{u, v, w} hp hp1 hT hc hc0
+        (placeIdeal hc b.1 b.2.2) h.1 h.2)
+    else ∅
+  refine ⟨Finset.univ.biUnion Sb, ?_⟩
+  intro E F₀ _ _ _ φ hφ hS halg _ _ _ _ χ hχ hdeg hTχ c₀ hcc ι hι ϖ hϖ P' _ hP' hODP
+  obtain ⟨b₁, -, hb₁, -⟩ := id hODP
+  obtain ⟨-, -, -, hP₁, -⟩ := exists_cData hc hc0 hODP hb₁
+  subst hP₁
+  have h : (placeIdeal hc b₁.1 b₁.2.2).comap (algebraMap (nodeRing c) (Rint c G)) =
+      tubeIdeal c ∧ IsNodeODP hc hc0 (placeIdeal hc b₁.1 b₁.2.2) := ⟨hP', hODP⟩
+  have hsub : Sb b₁ ⊆ Finset.univ.biUnion Sb := Finset.subset_biUnion_of_mem Sb (Finset.mem_univ _)
+  simp only [Sb, dif_pos h] at hsub
+  exact Classical.choose_spec (exists_finset_isSplitNodeAt.{u, v, w} hp hp1 hT hc hc0
+    (placeIdeal hc b₁.1 b₁.2.2) h.1 h.2) φ hφ
+    ((Finset.coe_subset.mpr hsub).trans hS) halg χ hχ hdeg hTχ c₀ hcc ι hι hϖ
+
+include hp hp1 in
 /-- **Uniform descent of node points** (O1, W10-facing form): a finite set of constants `S` such
 that for every admissible `E ⊇ S`, every ordinary double point over the node of the normalized
 node chart descends to a semistable point of `B_E`. -/
@@ -289,28 +359,11 @@ theorem exists_finset_forall_isSemistableAt {T : Finset G}
       (_hODP : IsNodeODP hc hc0 P'),
       letI := algO (F₀ := F₀) c₀
       IsSemistableAt ϖ (P'.comap ι) := by
-  classical
-  haveI := finite_ext (F := G) hp hp1
-  letI : Fintype (OuterBranch C G) := Fintype.ofFinite _
-  let Sb : OuterBranch C G → Finset C := fun b ↦
-    if h : (placeIdeal hc b.1 b.2.2).comap (algebraMap (nodeRing c) (Rint c G)) =
-        tubeIdeal c ∧ IsNodeODP hc hc0 (placeIdeal hc b.1 b.2.2) then
-      haveI := placeIdeal_isMaximal hc b.1 b.2.2
-      Classical.choose (exists_finset_isSemistableAt.{u, v, w} hp hp1 hT hc hc0
-        (placeIdeal hc b.1 b.2.2) h.1 h.2)
-    else ∅
-  refine ⟨Finset.univ.biUnion Sb, ?_⟩
-  intro E F₀ _ _ _ φ hφ hS halg _ _ _ _ χ hχ hdeg hTχ c₀ hcc ι hι ϖ hϖ P' _ hP' hODP
-  obtain ⟨b₁, -, hb₁, -⟩ := id hODP
-  obtain ⟨-, -, -, hP₁, -⟩ := exists_cData hc hc0 hODP hb₁
-  subst hP₁
-  have h : (placeIdeal hc b₁.1 b₁.2.2).comap (algebraMap (nodeRing c) (Rint c G)) =
-      tubeIdeal c ∧ IsNodeODP hc hc0 (placeIdeal hc b₁.1 b₁.2.2) := ⟨hP', hODP⟩
-  have hsub : Sb b₁ ⊆ Finset.univ.biUnion Sb := Finset.subset_biUnion_of_mem Sb (Finset.mem_univ _)
-  simp only [Sb, dif_pos h] at hsub
-  exact Classical.choose_spec (exists_finset_isSemistableAt.{u, v, w} hp hp1 hT hc hc0
-    (placeIdeal hc b₁.1 b₁.2.2) h.1 h.2) φ hφ
-    ((Finset.coe_subset.mpr hsub).trans hS) halg χ hχ hdeg hTχ c₀ hcc ι hι hϖ
+  obtain ⟨S, hS⟩ := exists_finset_forall_isSplitNodeAt.{u, v, w} hp hp1 hT hc hc0
+  refine ⟨S, ?_⟩
+  intro E F₀ _ _ _ φ hφ hSφ halg _ _ _ _ χ hχ hdeg hTχ c₀ hcc ι hι ϖ hϖ P' _ hP' hODP
+  letI := algO (F₀ := F₀) c₀
+  exact (hS φ hφ hSφ halg χ hχ hdeg hTχ c₀ hcc ι hι hϖ P' hP' hODP).isSemistableAt
 
 end Point
 

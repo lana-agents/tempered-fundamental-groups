@@ -230,9 +230,11 @@ variable {O B : Type u} {V₁ V₂ k : Type*} [CommRing O] [IsDomain O]
   [CommRing V₁] [IsDomain V₁] [IsLocalRing V₁] [CommRing V₂] [IsDomain V₂] [IsLocalRing V₂]
   [Field k]
 
-/-- **The node lemma from branch data on a ring**: under the hypotheses of
-`exists_node_of_branches`, `B` is étale-locally the node at `𝔭` (`IsAnnulusAt`). -/
-theorem isAnnulusAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B →+* V₁) (φ₂ : B →+* V₂)
+/-- **The node lemma from branch data on a ring, with split node**: under the hypotheses of
+`exists_node_of_branches`, `B` is étale-locally the node at `𝔭` (`IsAnnulusAt`), and
+the node is split (`IsSplitNodeAt`). -/
+theorem isAnnulusAt_and_isSplitNodeAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B →+* V₁)
+    (φ₂ : B →+* V₂)
     (r₁ : V₁ →+* k) (r₂ : V₂ →+* k) (hr₁ : ∀ a, r₁ a = 0 ↔ a ∈ maximalIdeal V₁)
     (hr₂ : ∀ b, r₂ b = 0 ↔ b ∈ maximalIdeal V₂) (hcomp : ∀ b, r₁ (φ₁ b) = r₂ (φ₂ b))
     (h𝔭 : ∀ b, b ∈ 𝔭 ↔ r₁ (φ₁ b) = 0) {ϖ : O} (hϖ : Irreducible ϖ)
@@ -247,7 +249,7 @@ theorem isAnnulusAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B �
     (hv0 : φ₂ v' ≠ 0) {x y : B} {c₀ : O} (hc₀ : c₀ ≠ 0) (hxy : x * y = algebraMap O B c₀)
     {d : ℕ} (hd : 1 ≤ d) {η : V₁} (hη : r₁ η ≠ 0) (hx₁ : φ₁ x = η * φ₁ u' ^ d) (hx₂ : φ₂ x = 0)
     (hy : φ₂ y ≠ 0) :
-    IsAnnulusAt ϖ x y d 𝔭 := by
+    IsAnnulusAt ϖ x y d 𝔭 ∧ IsSplitNodeAt ϖ 𝔭 := by
   classical
   set D := Localization.AtPrime 𝔭
   have hinj : Function.Injective (algebraMap B D) :=
@@ -336,12 +338,42 @@ theorem isAnnulusAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B �
     refine Ideal.IsPrime.mul_notMem ‹_› ht ?_
     rw [h𝔭, hη₁, map_mul]
     exact mul_ne_zero hη fun h ↦ hs' ((h𝔭 _).mpr h)
-  refine isAnnulusAt_of_isOrdinaryDoublePoint hϖ 𝔭 H hc₀ hxy hd hs'' hη' ?_ ?_
+  refine isAnnulusAt_and_isSplitNodeAt_of_isOrdinaryDoublePoint hϖ 𝔭 H hc₀ hxy hd hs'' hη' ?_ ?_
   · have : t * s' * x - t * η' * u' ^ d = algebraMap O B ϖ * z := by
       rw [← hz]; ring
     rw [this]
     exact Ideal.mul_mem_right _ _ (Ideal.subset_span (by simp))
   · rw [RingHom.mem_ker, hψ₂]; exact hy
+
+/-- **The node lemma from branch data on a ring**: under the hypotheses of
+`exists_node_of_branches`, `B` is étale-locally the node at `𝔭` (`IsAnnulusAt`). -/
+theorem isAnnulusAt_of_branches_alg (𝔭 : Ideal B) [𝔭.IsPrime] (φ₁ : B →+* V₁) (φ₂ : B →+* V₂)
+    (r₁ : V₁ →+* k) (r₂ : V₂ →+* k) (hr₁ : ∀ a, r₁ a = 0 ↔ a ∈ maximalIdeal V₁)
+    (hr₂ : ∀ b, r₂ b = 0 ↔ b ∈ maximalIdeal V₂) (hcomp : ∀ b, r₁ (φ₁ b) = r₂ (φ₂ b))
+    (h𝔭 : ∀ b, b ∈ 𝔭 ↔ r₁ (φ₁ b) = 0) {ϖ : O} (hϖ : Irreducible ϖ)
+    (hϖ0 : algebraMap O B ϖ ≠ 0) (hϖ₁ : φ₁ (algebraMap O B ϖ) = 0)
+    (hϖ₂ : φ₂ (algebraMap O B ϖ) = 0)
+    (hker : ∀ b, φ₁ b = 0 → φ₂ b = 0 → ∃ t ∉ 𝔭, ∃ z, t * b = algebraMap O B ϖ * z)
+    (hfp : ∀ a b, r₁ a = r₂ b → ∃ y s, s ∉ 𝔭 ∧ φ₁ y = a * φ₁ s ∧ φ₂ y = b * φ₂ s)
+    (hO₁ : ∀ a : V₁, ∃ o : O, r₁ (φ₁ (algebraMap O B o)) = r₁ a)
+    (hO₂ : ∀ b : V₂, ∃ o : O, r₁ (φ₁ (algebraMap O B o)) = r₂ b)
+    {u' v' : B} (hu₁ : maximalIdeal V₁ = Ideal.span {φ₁ u'}) (hu₂ : φ₂ u' = 0)
+    (hv₂ : maximalIdeal V₂ = Ideal.span {φ₂ v'}) (hv₁ : φ₁ v' = 0) (hu0 : φ₁ u' ≠ 0)
+    (hv0 : φ₂ v' ≠ 0) {x y : B} {c₀ : O} (hc₀ : c₀ ≠ 0) (hxy : x * y = algebraMap O B c₀)
+    {d : ℕ} (hd : 1 ≤ d) {η : V₁} (hη : r₁ η ≠ 0) (hx₁ : φ₁ x = η * φ₁ u' ^ d) (hx₂ : φ₂ x = 0)
+    (hy : φ₂ y ≠ 0) :
+    IsAnnulusAt ϖ x y d 𝔭 :=
+  (isAnnulusAt_and_isSplitNodeAt_of_branches_alg 𝔭 φ₁ φ₂ r₁ r₂ hr₁ hr₂ hcomp h𝔭 hϖ hϖ0 hϖ₁ hϖ₂
+    hker hfp hO₁ hO₂ hu₁ hu₂ hv₂ hv₁ hu0 hv0 hc₀ hxy hd hη hx₁ hx₂ hy).1
+
+/-- `isAnnulusAt_and_isSplitNodeAt_of_branches_alg` for bundled branch data: split node. -/
+theorem BranchData.isSplitNodeAt {𝔭 : Ideal B} [𝔭.IsPrime] {φ₁ : B →+* V₁} {φ₂ : B →+* V₂}
+    {r₁ : V₁ →+* k} {r₂ : V₂ →+* k} {ϖ : O} {u' v' x y : B} {c₀ : O} {d : ℕ}
+    (h : BranchData 𝔭 φ₁ φ₂ r₁ r₂ ϖ u' v' x y c₀ d) : IsSplitNodeAt ϖ 𝔭 := by
+  obtain ⟨η, hη, hx₁⟩ := h.hx₁
+  exact (isAnnulusAt_and_isSplitNodeAt_of_branches_alg 𝔭 φ₁ φ₂ r₁ r₂ h.hr₁ h.hr₂ h.hcomp h.h𝔭
+    h.hϖ h.hϖ0 h.hϖ₁ h.hϖ₂ h.hker h.hfp h.hO₁ h.hO₂ h.hu₁ h.hu₂ h.hv₂ h.hv₁ h.hu0 h.hv0 h.hc₀
+    h.hxy h.hd hη hx₁ h.hx₂ h.hy).2
 
 /-- `isAnnulusAt_of_branches_alg` for bundled branch data. -/
 theorem BranchData.isAnnulusAt {𝔭 : Ideal B} [𝔭.IsPrime] {φ₁ : B →+* V₁} {φ₂ : B →+* V₂}

@@ -96,6 +96,55 @@ local notation "𝓀" => ResidueField (HenselComplete.integers C)
 
 set_option maxHeartbeats 1000000 in
 -- the branch types are elaboration-heavy
+/-- **Split node at the descended node point** from the descent data: `B_E` is étale-locally
+the node at `P' ∩ B_E`, and the node is split (rational residues `hres`). -/
+theorem isSplitNodeAt_of_descentData (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
+    [IsDiscreteValuationRing (HenselComplete.integers E)] [FiniteDimensional (RatFunc E) F₀]
+    [Algebra.IsSeparable (RatFunc E) F₀]
+    (hφ : ∀ e, ‖φ e‖ = ‖e‖) (hχ : IsCompat φ χ)
+    (hdeg : Module.finrank (RatFunc E) F₀ = Module.finrank (RatFunc C) F')
+    {θ₀ : F₀} (hθ : Algebra.adjoin (RatFunc C) {χ θ₀} = ⊤)
+    {c₀ : E} {c : C} (hcc : φ c₀ = c) (hc : ‖c‖ < 1) (hc0 : c ≠ 0)
+    {P' : Ideal (Rint c F')} [P'.IsMaximal]
+    (hP' : P'.comap (algebraMap (nodeRing c) (Rint c F')) = tubeIdeal c)
+    (hODP : IsNodeODP hc hc0 P') {b₁ : OuterBranch C F'} (hb₁ : outerBranches hc P' = {b₁})
+    {b₂ : OuterBranch C (Inv c hc0 F')} (hb₂ : innerBranches hc hc0 P' = {b₂})
+    (ι : BE F₀ c₀ →+* Rint c F') (hι : ∀ y, (ι y : F') = χ y)
+    (heo : ∀ (v : Ext C F') (f : F₀), ∃ e, v.1 (χ f) = vE φ e)
+    (hei : ∀ (v : GaussExtension (0 : C) (invRad hc0 1) F') (f : F₀), ∃ e, v.1 (χ f) = vE φ e)
+    (hLD₁ : letI := kEAlgebra φ; LinDisj (kE φ) 𝓀 (resE χ b₁.1))
+    (hLD₂ : letI := kEAlgebra φ; LinDisj (kE φ) 𝓀 (resE (χInv hc0 χ) b₂.1))
+    (t₀ : BE F₀ c₀) (ht₀ : ι t₀ ∉ P')
+    (ht₀o : ∀ v : Ext C F', v ≠ b₁.1 → redHom hc v (ι t₀) = 0)
+    (ht₀i : ∀ w : Ext C (Inv c hc0 F'), w ≠ b₂.1 → redHomInv hc hc0 w (ι t₀) = 0)
+    (yu : BE F₀ c₀) (hyu₁ : b₁.2.1.valuation (redHom hc b₁.1 (ι yu)) = exp (-1))
+    (hyu₂ : redHomInv hc hc0 b₂.1 (ι yu) = 0)
+    (yv : BE F₀ c₀) (hyv₂ : b₂.2.1.valuation (redHomInv hc hc0 b₂.1 (ι yv)) = exp (-1))
+    (hyv₁ : redHom hc b₁.1 (ι yv) = 0)
+    (hspan : ∀ y : Rint c F', IsSpanned 𝓀 ι.range (redHom hc b₁.1) (redHomInv hc hc0 b₂.1) y)
+    (hres : letI := kEAlgebra φ; ∀ b : BE F₀ c₀, ∃ t : kE φ,
+      placeHom hc b₁.1 b₁.2.2 (ι b) = algebraMap (kE φ) 𝓀 t)
+    (halgk : letI := kEAlgebra φ; Algebra.IsAlgebraic (kE φ) 𝓀)
+    {ϖ : HenselComplete.integers E} (hϖ : Irreducible ϖ) :
+    letI := algO (F₀ := F₀) c₀
+    IsSplitNodeAt ϖ (P'.comap ι) := by
+  classical
+  subst hcc
+  have hc₀0 : c₀ ≠ 0 := by rintro rfl; exact hc0 (map_zero φ)
+  have hc₀1 : ‖c₀‖ < 1 := by rw [← hφ]; exact hc
+  letI := algO (F₀ := F₀) c₀
+  haveI : IsNoetherianRing (BE F₀ c₀) := isNoetherianRing_BE F₀ hc₀0 hc₀1.le
+  haveI : IsIntegrallyClosed (BE F₀ c₀) := isIntegrallyClosed_BE F₀ c₀
+  haveI := faithfulSMul_algO (F₀ := F₀) c₀
+  haveI := finiteType_algO (F₀ := F₀) hc₀0 hc₀1.le
+  letI := isLocalRing_placeSub (Q := b₁.2.1) (M := resE χ b₁.1) fun _ ha ↦ resE_inv_mem ha
+  letI := isLocalRing_placeSub (Q := b₂.2.1) (M := resE (χInv hc0 χ) b₂.1)
+    fun _ ha ↦ resE_inv_mem ha
+  haveI : (P'.comap ι).IsPrime := Ideal.comap_isPrime ι P'
+  obtain ⟨_, _, -, H⟩ := branchData hp hp1 hφ hχ hdeg hθ hc hc0 hODP hb₁ hb₂ hι heo hei hLD₁
+    hLD₂ t₀ ht₀ ht₀o ht₀i yu hyu₁ hyu₂ yv hyv₂ hyv₁ hspan hres halgk hϖ
+  exact H.isSplitNodeAt
+
 /-- **Semistability at the descended node point** from the descent data: `B_E` is étale-locally
 the node at `P' ∩ B_E`. -/
 theorem isSemistableAt_of_descentData (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
@@ -128,22 +177,9 @@ theorem isSemistableAt_of_descentData (hp : p.Prime) (hp1 : ‖(p : C)‖ < 1)
     {ϖ : HenselComplete.integers E} (hϖ : Irreducible ϖ) :
     letI := algO (F₀ := F₀) c₀
     IsSemistableAt ϖ (P'.comap ι) := by
-  classical
-  subst hcc
-  have hc₀0 : c₀ ≠ 0 := by rintro rfl; exact hc0 (map_zero φ)
-  have hc₀1 : ‖c₀‖ < 1 := by rw [← hφ]; exact hc
   letI := algO (F₀ := F₀) c₀
-  haveI : IsNoetherianRing (BE F₀ c₀) := isNoetherianRing_BE F₀ hc₀0 hc₀1.le
-  haveI : IsIntegrallyClosed (BE F₀ c₀) := isIntegrallyClosed_BE F₀ c₀
-  haveI := faithfulSMul_algO (F₀ := F₀) c₀
-  haveI := finiteType_algO (F₀ := F₀) hc₀0 hc₀1.le
-  letI := isLocalRing_placeSub (Q := b₁.2.1) (M := resE χ b₁.1) fun _ ha ↦ resE_inv_mem ha
-  letI := isLocalRing_placeSub (Q := b₂.2.1) (M := resE (χInv hc0 χ) b₂.1)
-    fun _ ha ↦ resE_inv_mem ha
-  haveI : (P'.comap ι).IsPrime := Ideal.comap_isPrime ι P'
-  obtain ⟨_, _, -, H⟩ := branchData hp hp1 hφ hχ hdeg hθ hc hc0 hODP hb₁ hb₂ hι heo hei hLD₁
-    hLD₂ t₀ ht₀ ht₀o ht₀i yu hyu₁ hyu₂ yv hyv₂ hyv₁ hspan hres halgk hϖ
-  exact IsAnnulusAt.isSemistableAt (BranchData.isAnnulusAt H)
+  exact (isSplitNodeAt_of_descentData hp hp1 hφ hχ hdeg hθ hcc hc hc0 hP' hODP hb₁ hb₂ ι hι heo
+    hei hLD₁ hLD₂ t₀ ht₀ ht₀o ht₀i yu hyu₁ hyu₂ yv hyv₂ hyv₁ hspan hres halgk hϖ).isSemistableAt
 
 end Descent
 

@@ -7,6 +7,7 @@ import TemperedFundamentalGroups.SemistableReduction.NodeDeformation
 import TemperedFundamentalGroups.SemistableReduction.UnramifiedNode
 import TemperedFundamentalGroups.SemistableReduction.AnnulusAt
 import TemperedFundamentalGroups.SemistableReduction.NodeNormal
+import TemperedFundamentalGroups.SemistableReduction.SplitNode
 
 /-!
 # The node lemma (W7, S9)
@@ -83,10 +84,13 @@ variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O]
   {B : Type u} [CommRing B] [IsDomain B] [IsIntegrallyClosed B] [Algebra O B]
   [Algebra.FiniteType O B] [FaithfulSMul O B]
 
-/-- **The node lemma** (S9): at a point `𝔭` of a normal chart `B` over the base node `x y = c₀`
+/-- **The node lemma with split node** (S9): the node lemma, and the node is split (the common
+étale neighbourhood is a localization of `B`, so its point has the residue field of `O`). The
+node lemma (S9): at a point `𝔭` of a normal chart `B` over the base node `x y = c₀`
 at which the special fibre is an ordinary double point with branch orders `d`, `B` is
 étale-locally the node `O[u, v] ⧸ (u v - ϖ ^ n)` with `x = ε u ^ d`, `y = ε' v ^ d`. -/
-theorem isAnnulusAt_of_isOrdinaryDoublePoint {ϖ : O} (hϖ : Irreducible ϖ) (𝔭 : Ideal B)
+theorem isAnnulusAt_and_isSplitNodeAt_of_isOrdinaryDoublePoint {ϖ : O} (hϖ : Irreducible ϖ)
+    (𝔭 : Ideal B)
     [𝔭.IsPrime] {u' v' : B} {𝔔₁ 𝔔₂ : Ideal (Localization.AtPrime 𝔭)}
     (H : IsOrdinaryDoublePoint ϖ (algebraMap B (Localization.AtPrime 𝔭) u')
       (algebraMap B (Localization.AtPrime 𝔭) v') 𝔔₁ 𝔔₂)
@@ -94,7 +98,7 @@ theorem isAnnulusAt_of_isOrdinaryDoublePoint {ϖ : O} (hϖ : Irreducible ϖ) (�
     {s η : B} (hs : s ∉ 𝔭) (hη : η ∉ 𝔭)
     (hx : s * x - η * u' ^ d ∈ Ideal.span {algebraMap O B ϖ, v'})
     (hy : algebraMap B (Localization.AtPrime 𝔭) y ∉ 𝔔₂) :
-    IsAnnulusAt ϖ x y d 𝔭 := by
+    IsAnnulusAt ϖ x y d 𝔭 ∧ IsSplitNodeAt ϖ 𝔭 := by
   classical
   let D := Localization.AtPrime 𝔭
   let ιD := algebraMap B D
@@ -296,24 +300,65 @@ theorem isAnnulusAt_of_isOrdinaryDoublePoint {ϖ : O} (hϖ : Irreducible ϖ) (�
     exact Ideal.subset_span (by simp)
   have hunit : ∀ a b : C₀, a * b = 1 → IsUnit (algebraMap C₀ C a) := fun a b hab ↦
     IsUnit.of_mul_eq_one (b := algebraMap C₀ C b) (by rw [← map_mul, hab, map_one])
-  refine ⟨n, C, inferInstance, g, algebraMap N C, 𝔮, hg, hfN, h𝔮, ?_, ?_, ?_, ?_,
-    (hunit e₀ e₀i he₀u).unit, (hunit f₀ f₀i hf₀u).unit, ?_, ?_⟩
-  · change Ideal.comap (algebraMap B C₀) (Ideal.comap (algebraMap C₀ C) 𝔮) = 𝔭
+  have hc𝔮 : 𝔮.comap g = 𝔭 := by
+    change Ideal.comap (algebraMap B C₀) (Ideal.comap (algebraMap C₀ C) 𝔮) = 𝔭
     rw [hP𝔮]
     change Ideal.comap (algebraMap B C₀) (Ideal.comap (algebraMap C₀ D) (maximalIdeal D)) = 𝔭
     rw [Ideal.comap_comap, ← IsScalarTower.algebraMap_eq]
     exact Localization.AtPrime.under_maximalIdeal
-  · ext o
+  have hcO : (algebraMap N C).comp (algebraMap O N) = g.comp (algebraMap O B) := by
+    ext o
     simp only [RingHom.comp_apply, g]
     rw [hNC, AlgHom.commutes, ← IsScalarTower.algebraMap_apply O B C₀]
-  · rw [hNC]
+  have hu𝔮 : algebraMap N C (Node.u (ϖ ^ n)) ∈ 𝔮 := by
+    rw [hNC]
     simpa [χ] using Ideal.mem_map_of_mem _ huP
-  · rw [hNC]
+  have hv𝔮 : algebraMap N C (Node.v (ϖ ^ n)) ∈ 𝔮 := by
+    rw [hNC]
     simpa [χ] using Ideal.mem_map_of_mem _ hvP
+  -- the residue field of `𝔮` is that of `O`
+  have hresP : ∀ c : C₀, ∃ o : O, c - algebraMap O C₀ o ∈ 𝔮.comap (algebraMap C₀ C) := by
+    intro c
+    obtain ⟨o, ho⟩ := H.residue (φ₀ c)
+    refine ⟨o, ?_⟩
+    rw [hP𝔮]
+    change algebraMap C₀ D (c - algebraMap O C₀ o) ∈ maximalIdeal D
+    rw [hC₀D, map_sub, hφO]
+    exact ho
+  have hϖP : algebraMap O C₀ ϖ ∈ 𝔮.comap (algebraMap C₀ C) := by
+    rw [hP𝔮]
+    change algebraMap C₀ D (algebraMap O C₀ ϖ) ∈ maximalIdeal D
+    rw [hC₀D, hφO, hmax]
+    exact Ideal.subset_span (Set.mem_insert _ _)
+  have hsurj : Function.Surjective ((Ideal.Quotient.mk 𝔮).comp (g.comp (algebraMap O B))) := by
+    intro z
+    obtain ⟨c, rfl⟩ := Ideal.Quotient.mk_surjective z
+    obtain ⟨o, ho⟩ := residue_of_isLocalization_away hϖ.maximalIdeal_eq.le f 𝔮 hϖP hresP c
+    refine ⟨o, (Ideal.Quotient.eq.2 ?_).symm⟩
+    convert ho using 2
+    simp only [RingHom.comp_apply, g]
+    rw [← IsScalarTower.algebraMap_apply, ← IsScalarTower.algebraMap_apply]
+  refine ⟨⟨n, C, inferInstance, g, algebraMap N C, 𝔮, hg, hfN, h𝔮, hc𝔮, hcO, hu𝔮, hv𝔮,
+    (hunit e₀ e₀i he₀u).unit, (hunit f₀ f₀i hf₀u).unit, ?_, ?_⟩,
+    n, C, inferInstance, g, algebraMap N C, 𝔮, hg, hfN, h𝔮, hc𝔮, hcO, hu𝔮, hv𝔮, hsurj⟩
   · simp only [IsUnit.unit_spec, g, RingHom.comp_apply, hx₀, hNC, map_mul, map_pow]
     simp [χ]
   · simp only [IsUnit.unit_spec, g, RingHom.comp_apply, hy₀, hNC, map_mul, map_pow]
     simp [χ]
+
+/-- **The node lemma** (S9): at a point `𝔭` of a normal chart `B` over the base node `x y = c₀`
+at which the special fibre is an ordinary double point with branch orders `d`, `B` is
+étale-locally the node `O[u, v] ⧸ (u v - ϖ ^ n)` with `x = ε u ^ d`, `y = ε' v ^ d`. -/
+theorem isAnnulusAt_of_isOrdinaryDoublePoint {ϖ : O} (hϖ : Irreducible ϖ) (𝔭 : Ideal B)
+    [𝔭.IsPrime] {u' v' : B} {𝔔₁ 𝔔₂ : Ideal (Localization.AtPrime 𝔭)}
+    (H : IsOrdinaryDoublePoint ϖ (algebraMap B (Localization.AtPrime 𝔭) u')
+      (algebraMap B (Localization.AtPrime 𝔭) v') 𝔔₁ 𝔔₂)
+    {x y : B} {c₀ : O} (hc₀ : c₀ ≠ 0) (hxy : x * y = algebraMap O B c₀) {d : ℕ} (hd : 1 ≤ d)
+    {s η : B} (hs : s ∉ 𝔭) (hη : η ∉ 𝔭)
+    (hx : s * x - η * u' ^ d ∈ Ideal.span {algebraMap O B ϖ, v'})
+    (hy : algebraMap B (Localization.AtPrime 𝔭) y ∉ 𝔔₂) :
+    IsAnnulusAt ϖ x y d 𝔭 :=
+  (isAnnulusAt_and_isSplitNodeAt_of_isOrdinaryDoublePoint hϖ 𝔭 H hc₀ hxy hd hs hη hx hy).1
 
 end Assembly
 

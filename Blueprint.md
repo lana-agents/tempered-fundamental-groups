@@ -2393,3 +2393,27 @@ axioms `propext`, `Classical.choice`, `Quot.sound`). About 2.8k lines in 21 file
 * `j'` need not be compatible with the `O₂`-structure of `L₂`. The hypothesis that `ψ` lies over
   `O` gives the compatibility on `O` (`baseHom_target`). Unique extension over the complete `O`
   (`eq_of_comap_eq_dvr`) puts `O₁`, `O₂` into the relevant valuation rings.
+
+**Split nodes for `StrongComponentA` (helper (b), 2026-10-09).**
+
+* *Ring level.* `IsSplitNodeAt ϖ 𝔭` is a common étale neighbourhood with the node at its singular
+  point (`u, v ∈ 𝔮`) whose point `𝔮` has the residue field of `O`. `IsSplitSemistableAt` means
+  `O[X]` étale-locally or a split node (`SplitNode`, `SplitNodeGen`).
+  * Generization: étale maps are quasi-finite, and the node off `u = 0` (or `v = 0`) is
+    `O[X][1/X]`.
+* *Node descent costs no new constants.* The neighbourhood of the node lemma S9 is a
+  localization of `B`, and O1 already has rational residues (`hres`). Hence:
+  * the split forms `isAnnulusAt_and_isSplitNodeAt_of_isOrdinaryDoublePoint`,
+    `exists_finset_forall_isSplitNodeAt`;
+  * `W10Route.nodeDescentSplitStatement`, with the same `S`.
+
+  The original theorems are re-derived from these.
+* *G4′* (`W10.TreeChartsSplit`, `W10Route.treeChartsSplit`). Every prime of every chart of the
+  normalized `E`-tree model is in `SplitClass`: either `O_E[X]` étale-locally, or a split node
+  that is the center of a valuation `W` routed to an edge chart (`RoutedEdge`), with the same
+  local ring as the normalized edge chart. Inputs:
+  * `SmoothDescentSplitStatement` (part (a));
+  * the split node descent.
+* *Scheme level.* `projModelCode_hasSplitNodes`, `exists_component_model_split`: the component
+  model code has `HasSplitNodes`.
+* *Open:* `HasGeomIrreducibleComponents` (linear disjointness at the vertex Gauss points, ≈ 1.5k).
