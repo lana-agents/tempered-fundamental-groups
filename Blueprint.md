@@ -2252,6 +2252,19 @@ finite étale `R`-algebras over `K`.
       `TateG1`, `TateCrossing`, `TateThreeGon`, `TransferTate`, `NonzeroCharacter`,
       `TheoremBFinal`; ≈4k lines) need their model identifications transported along the
       theta isomorphism. `CrossingX1S` already allows a target over any `O₂`.
+  * *The level needs `H = {1, σ}` (early check, 2026-10-09).*
+    * With `B = K' ⊗ R` and `H = 1`, `Hom_R(B, Ω) = {t₁, t₂}` (the two embeddings of `K'`). The
+      fibre would be `{t₁, t₂} × P_ȳ`, on which the deck group `ℤ` is not transitive, so no
+      character.
+    * Take `H = {1, σ}` (`σ ⊗ 1`, over the trivial `A`), so that `H⁰ = H`. The fibre is
+      `({t₁, t₂} × P_ȳ)/⟨σ⟩ ≅ P_ȳ`, since `σ` swaps `t₁` and `t₂`; this is a `ℤ`-torsor again.
+    * `ρ(σ)` is the semilinear involution `(X₀:X₁:X₂) ↦ (X₀:X₁:−X₂)`, `π ↦ −π`, of the model
+      `X₁²X₂ + X₀X₁X₂ = πX₀³ + πb₄X₀X₂² + b₆X₂³` (every term changes sign; `b₄, b₆ ∈ K`).
+      Through the theta presentation it is an `O`-automorphism.
+    * On the special fibre, `C = {X₂ = 0}` is fixed pointwise, `E` is preserved and
+      `p = [1:0:0]`, `q = [1:−1:0]` are fixed. So `σ` acts trivially on the dual 2-gon, lifts to
+      the `ℤ`-cover commuting with the deck shifts, and the orientation (the `ℤ`-character) is
+      preserved.
   * B4. The IUT corollary for every `E_q` (≈0.2k). `v(q) ≥ 2` uses the existing route; `v(q) = 1`
     uses B1–B3.
   * Total ≈2.2–3.2k, stop and report at 3k.
