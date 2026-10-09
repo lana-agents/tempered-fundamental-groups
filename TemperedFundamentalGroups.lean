@@ -38,6 +38,7 @@ import TemperedFundamentalGroups.Andre.TateNormalAlgebra
 import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TateRestrictLevel
+import TemperedFundamentalGroups.Andre.TateRestrictLoop
 import TemperedFundamentalGroups.Andre.TateRestrictModel
 import TemperedFundamentalGroups.Andre.TateRestrictObject
 import TemperedFundamentalGroups.Andre.TateRestrictSigma
