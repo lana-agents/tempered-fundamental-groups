@@ -30,6 +30,16 @@ namespace SemistableReduction
 variable {K L : Type u} [Field K] [Field L] [Algebra K L] {O : ValuationSubring K}
   [IsDiscreteValuationRing O]
 
+/-- **The node germ `P` is an ordinary double point**: `P` is the image of an injective map from a
+noetherian normal local domain `D` which is an ordinary double point `u' v' = ϖ ^ n` (the input of
+the divisor lemma `IsOrdinaryDoublePoint.eq_unit_mul_of_dvd`), with `u'`, `v'` mapping to `u`,
+`v`. -/
+def IsODPGerm (O : ValuationSubring K) (ϖ : O) (P : Subring L) (u v : L) (n : ℕ) : Prop :=
+  ∃ (D : Type u) (_ : CommRing D) (_ : IsDomain D) (_ : IsLocalRing D) (_ : IsNoetherianRing D)
+    (_ : IsIntegrallyClosed D) (_ : Algebra O D) (u' v' : D) (𝔔₁ 𝔔₂ : Ideal D) (ι : D →+* L),
+    Function.Injective ι ∧ ι.range = P ∧ (∀ o : O, ι (algebraMap O D o) = algebraMap K L o) ∧
+    ι u' = u ∧ ι v' = v ∧ u' * v' = algebraMap O D ϖ ^ n ∧ IsOrdinaryDoublePoint ϖ u' v' 𝔔₁ 𝔔₂
+
 /-- **Node germs at split nodes without loops** (XL1). -/
 theorem exists_nodeGerm_of_split {ϖ : O} (hϖ : Irreducible ϖ) {n : ℕ} (hn : 1 ≤ n)
     {A : Type u} [CommRing A] [IsDomain A] [Algebra O A] [Algebra.FiniteType O A]
@@ -53,7 +63,7 @@ theorem exists_nodeGerm_of_split {ϖ : O} (hϖ : Irreducible ϖ) {n : ℕ} (hn :
           Subring.closure (Set.range (fun o : O ↦ algebraMap K L (o : K)) ∪ {u, v})) ∧
         (∀ o : O, (φ (algebraMap O _ o) : L) = algebraMap K L (o : K)) ∧
         (φ (Node.u _) : L) = u ∧ (φ (Node.v _) : L) = v) ∧
-      (∃ a b s : A, s ∉ 𝔭 ∧ u = ι a / ι s ∧ v = ι b / ι s) := by
+      (∃ a b s : A, s ∉ 𝔭 ∧ u = ι a / ι s ∧ v = ι b / ι s) ∧ IsODPGerm O ϖ P u v n := by
   classical
   -- the étale chart
   obtain ⟨C, _, g, f, 𝔮, hg, hf, h𝔮, hc, hO, hu, hv, hres⟩ := hsplit
@@ -99,7 +109,7 @@ theorem exists_nodeGerm_of_split {ϖ : O} (hϖ : Irreducible ϖ) {n : ℕ} (hn :
   haveI := hQprime P₂ inferInstance hle₂
   have hneD : P₁.map (algebraMap A D) ≠ P₂.map (algebraMap A D) := fun h ↦ hne (by
     rw [← hQcomap P₁ inferInstance hle₁, h, hQcomap P₂ inferInstance hle₂])
-  obtain ⟨u, v, 𝔔₁, 𝔔₂, huv, H, -⟩ := exists_exact_node_of_split hϖ hn 𝔭 𝔮 hc hu hv hres
+  obtain ⟨hDic, u, v, 𝔔₁, 𝔔₂, huv, H, -⟩ := exists_exact_node_of_split hϖ hn 𝔭 𝔮 hc hu hv hres
     _ _ (hϖD P₁ hP₁) (hϖD P₂ hP₂) (hminD P₁ inferInstance hle₁ hmin₁)
     (hminD P₂ inferInstance hle₂ hmin₂) hneD
   haveI := H.isPrime₁
@@ -198,7 +208,7 @@ theorem exists_nodeGerm_of_split {ϖ : O} (hϖ : Irreducible ϖ) {n : ℕ} (hn :
     haveI : Module.Flat (Node O (ϖ ^ n)) D := flat_node_of_isOrdinaryDoublePoint hϖ 𝔭 huv' H
     exact Module.Flat.of_linearEquiv
       (AlgEquiv.ofRingEquiv (f := e) (fun _ ↦ rfl)).toLinearEquiv.symm
-  refine ⟨P, ιD u, ιD v, hG, ?_, ⟨hPloc, ?_, ?_, ?_⟩, htr, ⟨φ, hflat, ?_, ?_, ?_, ?_⟩, ?_⟩
+  refine ⟨P, ιD u, ιD v, hG, ?_, ⟨hPloc, ?_, ?_, ?_⟩, htr, ⟨φ, hflat, ?_, ?_, ?_, ?_⟩, ?_, ?_⟩
   · ext f
     constructor
     · rintro ⟨d, rfl⟩
@@ -239,5 +249,8 @@ theorem exists_nodeGerm_of_split {ϖ : O} (hϖ : Irreducible ϖ) {n : ℕ} (hn :
     refine ⟨a * t, b * s, s * t, (s * t).2, ?_, ?_⟩
     · rw [hιDmk, map_mul, map_mul, mul_div_mul_right _ _ ht]
     · rw [hιDmk, map_mul, map_mul, mul_comm (ι s.1), mul_div_mul_right _ _ hs]
+  · haveI : IsNoetherianRing D := IsLocalization.isNoetherianRing 𝔭.primeCompl D inferInstance
+    exact ⟨D, inferInstance, inferInstance, inferInstance, inferInstance, hDic, inferInstance, u, v,
+      𝔔₁, 𝔔₂, ιD, hιDinj, rfl, hιDO, rfl, rfl, huv, H⟩
 
 end SemistableReduction
