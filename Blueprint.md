@@ -2166,6 +2166,27 @@ so the special fibre is connected (Zariski). *Routes to discharge it:*
 * `Statement.HarmonicX` is proved (`SemistableReduction.harmonicX`). The crossing forms of
   Theorem B and of the IUT corollary no longer assume it.
 
+**Status of `StrongComponentA`, continued (2026-10-09).**
+* *(a), NoLoops and the node clause* (`NodeBranchVertex`, `NoLoopsBranches`, `EdgeNodeClause`,
+  `ComponentUnfolded`).
+  * Setting: at a node point whose germs are the normalized edge chart `O[t, c'/t]`, localized at
+    a valuation `W` centred on its node (the edge case of G4′).
+  * Going down along `nodeChart ⊆ normChart` gives branch valuations over both Gauss vertices of
+    the edge. `nodeChart` is integrally closed (`isIntegrallyClosed_nodeChart`).
+  * Their centres are generic points of two distinct components through the node. Maximality uses
+    the dimension bound.
+  * The germs from `K(X)` lie in both (distinct) Gauss rings.
+* *Top level:* `Statement.strongComponentA_of` gives `StrongComponentA` from two inputs:
+  `W10.TreeComponentsUnfolded` and `Statement.ZariskiConnected`. W7 and G4 are proved.
+  * `W10.TreeComponentsUnfolded` is targeted: every semistable component model with the points of
+    the normalized tree model is split, has no loops and is unfolded.
+  * It is to follow from: G4′ (`TreeChartsSplit`, split nodes, the edge form of node points), plus
+    `noLoops_isUnfolded_projModelCode`, plus `HasGeomIrreducibleComponents` (≈1.5k lines, decision
+    pending).
+* *Theorem B:* `TateOrbicurve.nondegenerate_of_unfolded` and
+  `TateObject.exists_character_ne_one_of_unfolded` assume only these two inputs. `HarmonicX`,
+  `CrossingX1` and `NodeOfTwoComponents` are proved.
+
 **Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
 `∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line
 (`W10Line.exists_invariant_line`) and the `G × Gal`-stability of the Gauss tree needs the line to
