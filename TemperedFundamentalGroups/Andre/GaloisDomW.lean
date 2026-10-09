@@ -325,7 +325,7 @@ theorem dom_midW (hW : SemistableReduction.Statement.StrongComponentA.{u})
     have h' : ε' = 0 := by simpa [ε] using congrArg κ h
     rw [h', map_zero] at hsε'
     exact zero_ne_one hsε'
-  obtain ⟨c₁', c₁, e₁, ι₁, j₁, hss₁, hsplit₁, hloop₁, he₁, hι₁, -, hι₁S, -, hj₁d, hj₁ι, hstab,
+  obtain ⟨c₁', c₁, e₁, ι₁, j₁, hss₁, hsplit₁, hloop₁, he₁, hι₁, hι₁S, hj₁d, hj₁ι, hstab,
     hconn, L₁, _, _, _, _, _, _, j₁', hK'L₁, hWM, hj₁'⟩ := hcomp ε hε.1 hε0 hε.2
   let Q := C ⧸ Ideal.span {1 - ε'}
   haveI : Algebra.Etale R Q := quotient_etale hε'.1
