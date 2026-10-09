@@ -148,6 +148,27 @@ theorem nodeBranches_of {z : c.scheme} {P : Subring L} {a b : L} {m : ℕ}
     refine hbt.inv (hcomap hv₂ hz₂) ?_
     rw [← ValuationSubring.valuation_le_one_iff, map_inv₀, hb₂, inv_one]
 
+include hW hϖ hloops in
+/-- **The branches at a node**, given the node core of its germs. -/
+theorem exists_nodeBranches_of_core {z : c.scheme} (hz : IsNodePt c z) {P : Subring L}
+    {a b : L} {m : ℕ} (hPg : (P : Set L) = germs c j z)
+    (hcore : NodeCore P (algebraMap O L) (algebraMap O L ϖ) a b m) [IsLocalRing P]
+    [IsNoetherianRing P] :
+    ∃ (v₁ v₂ : Set c.scheme) (hv₁ : v₁ ∈ components c) (hv₂ : v₂ ∈ components c),
+      z ∈ v₁ ∧ z ∈ v₂ ∧ NodeBranches O ϖ P (algebraMap O L) a b m (Wc hW hv₁) (Wc hW hv₂) := by
+  obtain ⟨w₁, hw₁, w₂, hw₂, hne, h₁, h₂⟩ := hloops z hz
+  have hb := fun {w} (hw : w ∈ components c) (hzw : z ∈ w) ↦
+    branch hW hϖ hloops hz hPg hcore hw hzw (Wc_spec hW hw)
+  rcases hb hw₁ h₁ with ⟨ha₁, hb₁⟩ | ⟨hb₁, ha₁⟩ <;> rcases hb hw₂ h₂ with ⟨ha₂, hb₂⟩ | ⟨hb₂, ha₂⟩
+  · exact absurd (branch_ne hW hϖ hPg hcore hw₁ hw₂ h₁ h₂ (Wc_spec hW hw₁) (Wc_spec hW hw₂)
+      ha₁ hb₁ ha₂ hb₂) hne
+  · exact ⟨w₁, w₂, hw₁, hw₂, h₁, h₂,
+      nodeBranches_of hW hϖ hPg hcore hw₁ hw₂ h₁ h₂ ha₁ hb₁ hb₂ ha₂⟩
+  · exact ⟨w₂, w₁, hw₂, hw₁, h₂, h₁,
+      nodeBranches_of hW hϖ hPg hcore hw₂ hw₁ h₂ h₁ ha₂ hb₂ hb₁ ha₁⟩
+  · exact absurd (branch_ne hW hϖ hPg hcore.swap hw₁ hw₂ h₁ h₂ (Wc_spec hW hw₁)
+      (Wc_spec hW hw₂) hb₁ ha₁ hb₂ ha₂) hne
+
 include hW hϖ hsplit hloops in
 /-- **The germs at a node with their branches.** -/
 theorem exists_nodeBranches {z : c.scheme} (hz : IsNodePt c z) :
@@ -161,18 +182,7 @@ theorem exists_nodeBranches {z : c.scheme} (hz : IsNodePt c z) :
   obtain ⟨P, a, b, m, hPg, hcore, hloc, hnoeth, hdiv⟩ := node_data hW hϖ hsplit hloops hz
   haveI := hloc
   haveI := hnoeth
-  refine ⟨P, a, b, m, hPg, hcore, hloc, hnoeth, hdiv, ?_⟩
-  obtain ⟨w₁, hw₁, w₂, hw₂, hne, h₁, h₂⟩ := hloops z hz
-  have hb := fun {w} (hw : w ∈ components c) (hzw : z ∈ w) ↦
-    branch hW hϖ hloops hz hPg hcore hw hzw (Wc_spec hW hw)
-  rcases hb hw₁ h₁ with ⟨ha₁, hb₁⟩ | ⟨hb₁, ha₁⟩ <;> rcases hb hw₂ h₂ with ⟨ha₂, hb₂⟩ | ⟨hb₂, ha₂⟩
-  · exact absurd (branch_ne hW hϖ hPg hcore hw₁ hw₂ h₁ h₂ (Wc_spec hW hw₁) (Wc_spec hW hw₂)
-      ha₁ hb₁ ha₂ hb₂) hne
-  · exact ⟨w₁, w₂, hw₁, hw₂, h₁, h₂,
-      nodeBranches_of hW hϖ hPg hcore hw₁ hw₂ h₁ h₂ ha₁ hb₁ hb₂ ha₂⟩
-  · exact ⟨w₂, w₁, hw₂, hw₁, h₂, h₁,
-      nodeBranches_of hW hϖ hPg hcore hw₂ hw₁ h₂ h₁ ha₂ hb₂ hb₁ ha₁⟩
-  · exact absurd (branch_ne hW hϖ hPg hcore.swap hw₁ hw₂ h₁ h₂ (Wc_spec hW hw₁)
-      (Wc_spec hW hw₂) hb₁ ha₁ hb₂ ha₂) hne
+  exact ⟨P, a, b, m, hPg, hcore, hloc, hnoeth, hdiv,
+    exists_nodeBranches_of_core hW hϖ hloops hz hPg hcore⟩
 
 end TemperedFundamentalGroups.SemistableReduction.CrossingSource
