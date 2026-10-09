@@ -187,7 +187,7 @@ section Length
 variable [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
 
 /-- **Positive lower bound of the weights of the special points** ((X0) of `HarmonicX`). -/
-lemma WData.exists_weight_pos (hX : SemistableReduction.Statement.HarmonicX.{u})
+lemma WData.exists_weight_pos (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {X : TempObj O R A} (D : WData x X.Lv) [NoetherianSpace X.Lv.Z] [T0Space X.Lv.Z]
     [QuasiSober X.Lv.Z] (hdim : topologicalKrullDim X.Lv.Z ≤ 1) :
@@ -246,7 +246,7 @@ lemma Pres.injective_out_vtx {X : TempObj O R A} (P : Pres x X)
   rw [← Quotient.out_eq u, ← Quotient.out_eq u', hq]
 
 /-- **Finiteness**: only finitely many fibre elements have length `≤ ℓ₀ ≠ ⊤`. -/
-theorem Pres.finite_len_le (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem Pres.finite_len_le (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {X : TempObj O R A} (P : Pres x X) (g : (tempFibre O R A V hV).obj X) {ℓ₀ : ℝ≥0∞}
     (hℓ₀ : ℓ₀ ≠ ⊤) : {γ | P.len V hV ϖ g γ ≤ ℓ₀}.Finite := by
@@ -270,14 +270,14 @@ theorem Pres.finite_len_le (hX : SemistableReduction.Statement.HarmonicX.{u})
   rwa [Functor.map_hom_inv'_apply, Functor.map_hom_inv'_apply] at this
 
 /-- **Finiteness** for `lenW`. -/
-theorem finite_lenW_le (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem finite_lenW_le (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     (p : PtGal (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x))) {ℓ₀ : ℝ≥0∞}
     (hℓ₀ : ℓ₀ ≠ ⊤) : {γ | lenW V hV x ϖ p γ ≤ ℓ₀}.Finite :=
   (Classical.choice (Pres.nonempty p.mem)).finite_len_le V hV hX hN ϖ hϖ p.g hℓ₀
 
 /-- **Monotonicity**: lengths do not increase along morphisms of members. -/
-theorem Pres.len_map_le (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem Pres.len_map_le (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {X Y : TempObj O R A} (P : Pres x X) (Q : Pres x Y) (a : X ⟶ Y)
     (g γ : (tempFibre O R A V hV).obj X) :
@@ -295,7 +295,7 @@ theorem Pres.len_map_le (hX : SemistableReduction.Statement.HarmonicX.{u})
     (WData.isHarmonicWeight hX hN ϖ hϖ m P.D Q.D P.hdim Q.hdim) _ _
 
 /-- **Monotonicity** for `lenW` along pointed morphisms. -/
-theorem lenW_map_le (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem lenW_map_le (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {p q : PtGal (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x))} (f : p ⟶ q)
     (γ : (tempFibre O R A V hV).obj p.G) : lenW V hV x ϖ q (f.1 γ) ≤ lenW V hV x ϖ p γ := by

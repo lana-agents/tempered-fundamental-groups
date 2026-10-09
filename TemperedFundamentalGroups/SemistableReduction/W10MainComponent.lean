@@ -7,17 +7,19 @@ import TemperedFundamentalGroups.SemistableReduction.W10Main
 import TemperedFundamentalGroups.SemistableReduction.W10ComponentTree
 import TemperedFundamentalGroups.SemistableReduction.W10LineX
 import TemperedFundamentalGroups.SemistableReduction.W10TreeUnfolded
-import TemperedFundamentalGroups.SemistableReduction.StrongComponentA
+import TemperedFundamentalGroups.SemistableReduction.StrongComponentAS
+import TemperedFundamentalGroups.SemistableReduction.W10TreeUnfoldedProof
 import TemperedFundamentalGroups.SemistableReduction.StrongAProof
 import TemperedFundamentalGroups.SemistableReduction.W10RouteFinal
 
 /-!
-# W10 with components: `Statement.StrongComponentA` (modulo targeted inputs)
+# W10 with components: `Statement.StrongComponentAS` (modulo Zariski connectedness)
 
-Blueprint §10.3.8. `strongComponentA_of_W7_of_tree`: the strengthened copy of
+Blueprint §10.3.8. `strongComponentAS_of_W7_of_tree`: the strengthened copy of
 `strongA_of_W7_of_tree` (W10Main) on the given `G`-invariant x-line, from W7, the descent of the
-tree charts (G4), `W10.TreeComponentsUnfolded` (split, without loops, unfolded component models)
-and `Statement.ZariskiConnected` (connected special fibres of the summands). The dimension clause
+tree charts (G4), `W10.TreeComponentsUnfolded` (split nodes, no loops, unfolded component models)
+and `Statement.ZariskiConnected` (connected special fibres of the summands);
+`Statement.strongComponentAS_of`: from `ZariskiConnected` alone. The dimension clause
 is unconditional (`ModelCode.topologicalKrullDim_le_one_of_iso`).
 -/
 
@@ -35,10 +37,10 @@ attribute [local instance] polyAlgebra
 
 set_option maxHeartbeats 800000 in
 -- a single long proof: the W10 assembly with the component inputs (instance-heavy applications)
-theorem strongComponentA_of_W7_of_tree (h7 : W7.Statement.{u, u})
+theorem strongComponentAS_of_W7_of_tree (h7 : W7.Statement.{u, u})
     (htree : W10.TreeChartsSemistable.{u}) (hU : W10.TreeComponentsUnfolded.{u})
     (hZ : TemperedFundamentalGroups.SemistableReduction.Statement.ZariskiConnected.{u}) :
-    TemperedFundamentalGroups.SemistableReduction.Statement.StrongComponentA.{u} := by
+    TemperedFundamentalGroups.SemistableReduction.Statement.StrongComponentAS.{u} := by
   intro K _ _ O _ _ _ p hp hpO R _ _ _ _ hR x hfin B _ _ _ _ _ _ G _ _ _ _ _ _ hequiv hxG I _ c₀
     j₀ hj₀
   -- the x-line (given)
@@ -237,7 +239,7 @@ theorem strongComponentA_of_W7_of_tree (h7 : W7.Statement.{u, u})
           (Comp K E B 𝔪)).points →
       TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSemistable ϖ'
         (projModelCode (NormedField.valuation (K := E)).valuationSubring hg) →
-      TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSplit ϖ'
+      TemperedFundamentalGroups.SemistableReduction.ModelCode.HasSplitNodes ϖ'
         (projModelCode (NormedField.valuation (K := E)).valuationSubring hg) ∧
       TemperedFundamentalGroups.SemistableReduction.ModelCode.NoLoops
         (projModelCode (NormedField.valuation (K := E)).valuationSubring hg) ∧
@@ -270,14 +272,12 @@ end SemistableReduction
 
 namespace TemperedFundamentalGroups.SemistableReduction.Statement
 
-/-- **`StrongComponentA` from its two targeted inputs**: the component models over `E` are split,
-without loops and unfolded (`W10.TreeComponentsUnfolded`), and Zariski connectedness
-(`Statement.ZariskiConnected`). W7 and G4 are proved (`W7.statement`,
-`W10Route.treeChartsSemistable`). -/
-theorem strongComponentA_of (hU : _root_.SemistableReduction.W10.TreeComponentsUnfolded.{u})
-    (hZ : ZariskiConnected.{u}) : StrongComponentA.{u} :=
-  _root_.SemistableReduction.W10Assembly.strongComponentA_of_W7_of_tree
+/-- **`StrongComponentAS` from Zariski connectedness**: W7, G4, G4′ and the component models
+(`W10.treeComponentsUnfolded`) are proved. -/
+theorem strongComponentAS_of (hZ : ZariskiConnected.{u}) : StrongComponentAS.{u} :=
+  _root_.SemistableReduction.W10Assembly.strongComponentAS_of_W7_of_tree
     _root_.SemistableReduction.W7.statement
-    _root_.SemistableReduction.W10Route.treeChartsSemistable hU hZ
+    _root_.SemistableReduction.W10Route.treeChartsSemistable
+    _root_.SemistableReduction.W10.treeComponentsUnfolded hZ
 
 end TemperedFundamentalGroups.SemistableReduction.Statement

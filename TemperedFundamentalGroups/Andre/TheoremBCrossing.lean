@@ -59,7 +59,7 @@ lemma decomp_E_not_singleton : ¬ ∃ y, (decomp (A := A) T).E = {y} := by
 /-- **Theorem B (scheme case) without `HarmonicTate` and `HarmonicX`**, for Tate data with `b₆`
 a unit (2-gon) or with `c = b₆ − π² b₄² ≠ 0` dividing `π` (3-gon with an exact node at `r`). -/
 theorem exists_character_ne_one_of_crossing
-    (hW : SemistableReduction.Statement.StrongComponentA.{u})
+    (hW : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1)
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
@@ -69,17 +69,17 @@ theorem exists_character_ne_one_of_crossing
     ∃ τ : temperedPi1 O R A V hV, character T V hV τ ≠ 1 := by
   haveI : Fact (Squarefree (TateNormal.dpoly T.π T.b₄ T.b₆)) := ⟨hd⟩
   by_cases hu : IsUnit T.b₆
-  · exact exists_character_ne_one T V hV hW p hp hpm hR SemistableReduction.harmonicX hN ϖ hϖ
+  · exact exists_character_ne_one T V hV hW p hp hpm hR hN ϖ hϖ
       {(decomp (A := A) T).E}
       (fun S hS => by
         rw [Set.mem_singleton_iff.1 hS]
         exact ⟨subset_rfl, decomp_E_not_singleton T⟩)
-      (fun P a => P.harmonicTate_of_crossingX1 T SemistableReduction.crossingX1 hu hx hϖ a) hd hx
+      (fun P a => P.harmonicTate_of_crossingX1 T SemistableReduction.crossingX1S hu hx hϖ a) hd hx
   · obtain ⟨hc0, hcπ⟩ := hb.resolve_left hu
     have hm : T.b₆ ∈ IsLocalRing.maximalIdeal O := (IsLocalRing.mem_maximalIdeal _).2 hu
-    exact exists_character_ne_one T V hV hW p hp hpm hR SemistableReduction.harmonicX hN ϖ hϖ _
+    exact exists_character_ne_one T V hV hW p hp hpm hR hN ϖ hϖ _
       (threeGon_lines T hm)
-      (fun P a => P.harmonicTate_of_crossingX1_threeGon T SemistableReduction.crossingX1 hm hc0
+      (fun P a => P.harmonicTate_of_crossingX1_threeGon T SemistableReduction.crossingX1S hm hc0
         hcπ hx hϖ a) hd hx
 
 end TateObject
@@ -153,7 +153,7 @@ curve `W` with a
 good Tate presentation (`HasGoodTatePresentation`, e.g. `E_q` in normal form with `v(q) ≥ 2`,
 `hasGoodTatePresentation_of_normalForm`), `temperedPi1 [Y/A]` has an open normal subgroup with
 infinite quotient. -/
-theorem nondegenerate_of_crossing (hSCA : SemistableReduction.Statement.StrongComponentA.{u})
+theorem nondegenerate_of_crossing (hSCA : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hℓ : 1 ≤ ℓ)
     (hM : (M : Set W.toAffine.Point).Finite)

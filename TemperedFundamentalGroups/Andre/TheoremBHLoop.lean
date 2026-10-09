@@ -97,7 +97,7 @@ end Pres
 model (G1). -/
 theorem Pres.finite_hcw [CharZero K] [IsDiscreteValuationRing O]
     [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
-    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {X : TempObj O R A} (P : Pres x X) (a : X ⟶ TateObject.X₀ (A := A) T)
     (g : (tempFibre O R A V hV).obj X)
@@ -140,7 +140,7 @@ namespace TateObject
 variable [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
 
 /-- **The loop hypothesis `hne` from one loop of `Y₀`** (modulo G1). -/
-theorem hne_of_loop [IsAlgClosed Ω] (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem hne_of_loop [IsAlgClosed Ω] (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {Y₀ : TempObj O R A} (Q : Pres x Y₀) (y₀ : (tempFibre O R A V hV).obj Y₀)
     (a₀ : Y₀ ⟶ X₀ (A := A) T) (ha₀ : (tempFibre O R A V hV).map a₀ y₀ = basePoint T V hV)
@@ -217,7 +217,7 @@ theorem exists_character_eq_of_loop [IsAlgClosed Ω]
     (hgal : IsGaloisClass (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
     (hdom : IsDominating (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
     (hrig : IsRigid (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
-    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {Y₀ : TempObj O R A} (hY₀ : galClassW O R A Ω (Level.IsW x) Y₀) (Q : Pres x Y₀)
     (y₀ : (tempFibre O R A V hV).obj Y₀)

@@ -53,10 +53,10 @@ characteristic) and
 length `≤ ℓ₀ < ⊤` over `δ(d) x₀` in every pointed member over `(X₀, x₀)`), some element of
 `temperedPi1` has character `d`. -/
 theorem exists_character_eq_of_lenW
-    (hW : SemistableReduction.Statement.StrongComponentA.{u})
+    (hW : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O)
-    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u})
     (hR : ringKrullDim R = 1) (ϖ : O) (hϖ : Irreducible ϖ) (d : Multiplicative ℤ)
     (ℓ₀ : ℝ≥0∞) (hℓ₀ : ℓ₀ ≠ ⊤)
@@ -79,10 +79,10 @@ in every pointed member, it suffices that fibre elements lift along pointed morp
 without increasing `lenW` (`hlift`, path lifting from (X1) of `HarmonicX`), and that one pointed
 member over `(X₀, x₀)` has an element over `δ(d) x₀` (`hbase`). -/
 theorem exists_character_eq_of_lenW_lift
-    (hW : SemistableReduction.Statement.StrongComponentA.{u})
+    (hW : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O)
-    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u})
     (hR : ringKrullDim R = 1) (ϖ : O) (hϖ : Irreducible ϖ) (d : Multiplicative ℤ)
     (hlift : ∀ {p q : PtGal (tempFibre O R A V hV)
@@ -129,10 +129,10 @@ loop of translation `n ≠ 0` for `lenW`, `temperedPi1 [Y/A]` has an open normal
 infinite quotient. -/
 theorem nondegenerate_of_lenW {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) (hπ : π ≠ 0)
     (hπm : π ∈ IsLocalRing.maximalIdeal O)
-    (hSC : SemistableReduction.Statement.StrongComponentA.{u})
+    (hSC : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O)
-    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u})
     (hR : ringKrullDim (geomOrbicurveRing W ℓ M) = 1) (ϖ : O) (hϖ : Irreducible ϖ)
     (n : ℤ) (hn : n ≠ 0) (ℓ₀ : ℝ≥0∞) (hℓ₀ : ℓ₀ ≠ ⊤)

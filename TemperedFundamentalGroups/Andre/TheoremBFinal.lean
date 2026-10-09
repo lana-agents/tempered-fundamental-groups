@@ -6,6 +6,7 @@ Authors: Christian Merten
 import TemperedFundamentalGroups.Andre.TateLoop
 import TemperedFundamentalGroups.Andre.TateG1
 import TemperedFundamentalGroups.Orbicurve.Smooth
+import TemperedFundamentalGroups.SemistableReduction.HarmonicXProof
 
 /-!
 # Theorem B: assembly (Blueprint §10.3.8)
@@ -103,10 +104,9 @@ character `temperedPi1 → ℤ`. The inputs beyond W10/`HarmonicX`/`NodeOfTwoCom
 targeted `HarmonicTate`, and the hypotheses on the Tate data: `d` squarefree (the Tate model
 is irreducible) and the **non-degeneracy condition `hx : Transcendental K T.x`** (false for
 constant data, Blueprint §10.3.8). -/
-theorem exists_character_ne_one (hW : SemistableReduction.Statement.StrongComponentA.{u})
+theorem exists_character_ne_one (hW : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1)
-    (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     (ℰ : Set (Set (X₀ (A := A) T).Lv.Z))
     (hℰ : ∀ S ∈ ℰ, S ⊆ (decomp (A := A) T).E ∧ ¬ ∃ y, S = {y})
@@ -121,7 +121,8 @@ theorem exists_character_ne_one (hW : SemistableReduction.Statement.StrongCompon
   obtain ⟨t₀, ht₀⟩ := Q.exists_tree_head i₀
   obtain ⟨κ, d, hd1, hκ⟩ := Q.exists_loop_of_harmonicTate V hV T (Q.iso.inv ≫ f₀)
     ℰ hℰ (hHT Q _) (fun i hi hc => Pres.eta_notMem_C T Q _ i hi hc) ht₀ hi₀
-  obtain ⟨τ, hτ⟩ := exists_character_eq_of_loop V hV T hgal hdom hrig hX hN ϖ hϖ p₀.mem Q p₀.g
+  obtain ⟨τ, hτ⟩ := exists_character_eq_of_loop V hV T hgal hdom hrig
+    SemistableReduction.harmonicXS hN ϖ hϖ p₀.mem Q p₀.g
     f₀ hf₀ d κ hκ (fun X P a => P.exists_tree_tateNu T hd hx a)
   exact ⟨τ, hτ ▸ hd1⟩
 
@@ -148,11 +149,10 @@ perfect residue field), `HarmonicX`, `NodeOfTwoComponents` and the targeted `Har
 (for the members over the Tate object), `temperedPi1 [Y/A]` has an open normal subgroup with
 infinite quotient. The non-degeneracy condition on the Tate data (`x` transcendental) and the
 irreducibility of the Tate model are discharged (`transcendental_data_x`, `squarefree_dpoly`). -/
-theorem nondegenerate (hSCA : SemistableReduction.Statement.StrongComponentA.{u})
+theorem nondegenerate (hSCA : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hℓ : 1 ≤ ℓ)
     (hM : (M : Set W.toAffine.Point).Finite)
-    (hX : SemistableReduction.Statement.HarmonicX.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) (hπ : π ≠ 0) (hπm : π ∈ IsLocalRing.maximalIdeal O)
     (ℰ : Set (Set (TateObject.X₀ (A := A') (data hW hπ hπm ℓ M)).Lv.Z))
@@ -176,7 +176,7 @@ theorem nondegenerate (hSCA : SemistableReduction.Statement.StrongComponentA.{u}
     exact W.isUnit_Δ.ne_zero hW'
   refine nondegenerate_of_character_ne_one A A' V hV hW hπ hπm ?_
   exact TateObject.exists_character_ne_one (data hW hπ hπm ℓ M) V hV hSCA p hp hpm
-    (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM) hX hN ϖ hϖ ℰ hℰ hHT
+    (ringKrullDim_geomOrbicurveRing_of_charZero hℓ hM) hN ϖ hϖ ℰ hℰ hHT
     (TateNormal.squarefree_dpoly π b₄ b₆ h2 hΔ) (transcendental_data_x hW hπ hπm ℓ M)
 
 end TateOrbicurve

@@ -109,7 +109,7 @@ lemma not_isContracted_of_two {O' : Type u} [CommRing O'] [IsLocalRing O']
 
 /-- **x-lengths of nodes are unique** ((X2) of `Statement.HarmonicX` for the identity, on a
 walk with one node). -/
-theorem WData.isXLength_unique (hX : SemistableReduction.Statement.HarmonicX.{u}) (ϖ : O)
+theorem WData.isXLength_unique (hX : SemistableReduction.Statement.HarmonicXS.{u}) (ϖ : O)
     (hϖ : Irreducible ϖ) {X : TempObj O R A} (D : WData x X.Lv) {y : D.c'.scheme}
     (hy : SemistableReduction.ModelCode.IsNodePt D.c' y) {l l' : ℚ}
     (hl : SemistableReduction.ModelCode.IsXLength (D.ϖL ϖ) D.O' D.ϖ' D.c' D.j₁ D.xL y l)
@@ -148,7 +148,7 @@ theorem WData.isXLength_unique (hX : SemistableReduction.Statement.HarmonicX.{u}
 /-- **x-lengths give edge lifting** along the map of special fibres of a morphism of the
 tempered category between objects with W-model data ((X0), (X1) of `Statement.HarmonicX` and
 `Statement.NodeOfTwoComponents`). -/
-theorem WData.isEdgeLifting (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem WData.isEdgeLifting (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {X Y : TempObj O R A} (m : X ⟶ Y) (D : WData x X.Lv) (D' : WData x Y.Lv)
     [NoetherianSpace X.Lv.Z] [T0Space X.Lv.Z] [QuasiSober X.Lv.Z]

@@ -13,7 +13,7 @@ Blueprint §10.3.8 (StrongComponentA (a), (b)). **`W10.TreeComponentsUnfolded`**
 `W10.TreeChartsSemistable` (same data: a semistable Gauss tree over `C`, a finite set `S` of
 constants, every complete discretely valued `E`-form), with the conclusion that every projective
 model `projModelCode O_E g` with the points of the normalized `E`-tree model which is semistable
-is split, has no loops and is unfolded on the x-line `X`. It is a definition only (a targeted
+has split nodes, has no loops and is unfolded on the x-line `X`. It is a definition only (a targeted
 input of `strongComponentA_of_W7`); it is to be proved from the classification of the points of
 the charts (G4′, split nodes), `noLoops_isUnfolded_projModelCode` and the geometric irreducibility
 of the components.
@@ -62,7 +62,7 @@ def TreeComponentsUnfolded : Prop :=
         ((gaussJoinModel (NormedField.valuation (K := E)) aE cE).normalization F₀).points →
       TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSemistable ϖ
         (projModelCode (NormedField.valuation (K := E)).valuationSubring hg) →
-      TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSplit ϖ
+      TemperedFundamentalGroups.SemistableReduction.ModelCode.HasSplitNodes ϖ
         (projModelCode (NormedField.valuation (K := E)).valuationSubring hg) ∧
       TemperedFundamentalGroups.SemistableReduction.ModelCode.NoLoops
         (projModelCode (NormedField.valuation (K := E)).valuationSubring hg) ∧

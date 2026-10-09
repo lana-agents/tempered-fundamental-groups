@@ -16,8 +16,13 @@ import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.PointLift
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
+import TemperedFundamentalGroups.Andre.QuadraticLevel
+import TemperedFundamentalGroups.Andre.RamifiedQuadratic
+import TemperedFundamentalGroups.Andre.RamifiedQuadraticGal
 import TemperedFundamentalGroups.Andre.Refinement
+import TemperedFundamentalGroups.Andre.TateChartMap
 import TemperedFundamentalGroups.Andre.TateCovering
+import TemperedFundamentalGroups.Andre.TateCoveringEq
 import TemperedFundamentalGroups.Andre.TateCrossing
 import TemperedFundamentalGroups.Andre.TateCrossingField
 import TemperedFundamentalGroups.Andre.TateCrossingWalk
@@ -32,6 +37,9 @@ import TemperedFundamentalGroups.Andre.TateNodePoints
 import TemperedFundamentalGroups.Andre.TateNormalAlgebra
 import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateOrbicurve
+import TemperedFundamentalGroups.Andre.TateRestrictLevel
+import TemperedFundamentalGroups.Andre.TateRestrictModel
+import TemperedFundamentalGroups.Andre.TateRestrictSigma
 import TemperedFundamentalGroups.Andre.TateSurjective
 import TemperedFundamentalGroups.Andre.TateThreeGon
 import TemperedFundamentalGroups.Andre.TateWinding
@@ -334,6 +342,7 @@ import TemperedFundamentalGroups.SemistableReduction.StrongA
 import TemperedFundamentalGroups.SemistableReduction.StrongAProof
 import TemperedFundamentalGroups.SemistableReduction.StrongComponent
 import TemperedFundamentalGroups.SemistableReduction.StrongComponentA
+import TemperedFundamentalGroups.SemistableReduction.StrongComponentAS
 import TemperedFundamentalGroups.SemistableReduction.TameLocal
 import TemperedFundamentalGroups.SemistableReduction.TensorIdempotent
 import TemperedFundamentalGroups.SemistableReduction.TrdegOne
