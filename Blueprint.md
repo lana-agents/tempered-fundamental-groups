@@ -2187,6 +2187,16 @@ so the special fibre is connected (Zariski). *Routes to discharge it:*
   `TateObject.exists_character_ne_one_of_unfolded` assume only these two inputs. `HarmonicX`,
   `CrossingX1` and `NodeOfTwoComponents` are proved.
 
+**Status, end of 2026-10-09.**
+* `W10.TreeComponentsUnfolded` is proved from `W10.TreeComponentsGeomIrred` (`W10.treeComponentsUnfolded_of`).
+  The proof uses G4′ (`W10Route.treeChartsSplit`), `projModelCode_split_of_points`,
+  `exists_routedEdge_of_isNodePt` and `noLoops_isUnfolded_projModelCode`.
+* `TateOrbicurve.nondegenerate_of_geomIrred` (Theorem B for IUT) assumes exactly two targeted inputs:
+  * `W10.TreeComponentsGeomIrred`: geometric irreducibility of the components. About 1.5k lines,
+    via the DVR at the generic point, a vertex Gauss point and `linDisj_resE`. Not started; the
+    decision is pending.
+  * `Statement.ZariskiConnected`: the long-term route is the owner's decision.
+
 **Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
 `∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line
 (`W10Line.exists_invariant_line`) and the `G × Gal`-stability of the Gauss tree needs the line to
