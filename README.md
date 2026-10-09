@@ -111,7 +111,7 @@ Every file must be imported from the root module `TemperedFundamentalGroups.lean
 ```bash
 lake exe cache get                       # fetch the Mathlib build cache
 lake build                               # build the library
-lake exe mk_all --lib TemperedFundamentalGroups --git   # regenerate the root module after adding files
+bash scripts/mk_all.sh TemperedFundamentalGroups   # regenerate the root module (keeping its header) after adding files
 ```
 
 ## Validation
@@ -121,7 +121,8 @@ check that a change is complete:
 
 * `before.sh` warms the Mathlib build cache before work starts.
 * `validation.sh` checks the worktree is clean, that every `.lean` file is
-  imported (`mk_all --check`), and that everything builds with warnings as
+  imported (`scripts/mk_all.sh --check`, i.e. `mk_all --check` below the root
+  module's copyright header), and that everything builds with warnings as
   errors (`lake build --wfail`).
 
 Run it locally with `bash .orchestra/validation.sh`.

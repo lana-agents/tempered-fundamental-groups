@@ -10,8 +10,9 @@ if ! [ -z "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-# Verify all .lean files are imported.
-lake exe mk_all --lib TemperedFundamentalGroups --git --check || exit 1
+# Verify all .lean files are imported (`mk_all --check` on the import list below the root module's
+# copyright header; the header itself must be present).
+bash scripts/mk_all.sh TemperedFundamentalGroups --check || exit 1
 
 # Fetch build cache
 lake exe cache get
