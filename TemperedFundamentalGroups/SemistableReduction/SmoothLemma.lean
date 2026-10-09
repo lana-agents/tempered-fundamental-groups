@@ -149,18 +149,18 @@ section Polynomial
 variable {O B : Type u} [CommRing O] [IsDomain O] [IsIntegrallyClosed O] [IsNoetherianRing O]
   [CommRing B] [IsDomain B] [Algebra O B] [Algebra.FiniteType O B]
 
-/-- **The smooth-point lemma (S)**: at a prime `𝔭` of a domain `B` of finite type over a
-noetherian normal domain `O`, if the maximal ideal of `B_𝔭` is `(ϖ, u)` for an element `u`
+/-- **The smooth-point lemma (S), smooth form**: at a prime `𝔭` of a domain `B` of finite type
+over a noetherian normal domain `O`, if the maximal ideal of `B_𝔭` is `(ϖ, u)` for an element `u`
 transcendental over `O` and the residue field of `B_𝔭` is that of `O`, then `B` is étale-locally
 the affine line `O[u]` at `𝔭` (`u` is a coordinate of the étale chart). -/
-theorem isSemistableAt_of_maximalIdeal_eq_span {ϖ : O} {u : B} (hu : Transcendental O u)
+theorem isEtaleLocallyAt_of_maximalIdeal_eq_span {ϖ : O} {u : B} (hu : Transcendental O u)
     (𝔭 : Ideal B) [𝔭.IsPrime]
     (hmax : maximalIdeal (Localization.AtPrime 𝔭) =
       Ideal.span {algebraMap O (Localization.AtPrime 𝔭) ϖ,
         algebraMap B (Localization.AtPrime 𝔭) u})
     (hres : ∀ z : Localization.AtPrime 𝔭, ∃ o : O,
       z - algebraMap O (Localization.AtPrime 𝔭) o ∈ maximalIdeal (Localization.AtPrime 𝔭)) :
-    IsSemistableAt ϖ 𝔭 := by
+    IsEtaleLocallyAt O O[X] 𝔭 := by
   let D := Localization.AtPrime 𝔭
   letI : Algebra O[X] B := (aeval u).toRingHom.toAlgebra
   have hXB : ∀ q : O[X], algebraMap O[X] B q = aeval u q := fun _ ↦ rfl
@@ -196,7 +196,19 @@ theorem isSemistableAt_of_maximalIdeal_eq_span {ϖ : O} {u : B} (hu : Transcende
     · obtain ⟨o, ho⟩ := hres z
       exact ⟨C o, by rwa [hXD, aeval_C, ← IsScalarTower.algebraMap_apply]⟩
   haveI : Algebra.IsUnramifiedAt O[X] 𝔭 := hunr
-  exact .inr (isEtaleLocallyAt_of_isUnramifiedAt hinj 𝔭)
+  exact isEtaleLocallyAt_of_isUnramifiedAt hinj 𝔭
+
+/-- **The smooth-point lemma (S)** (semistable form of `isEtaleLocallyAt_of_maximalIdeal_eq_span`).
+-/
+theorem isSemistableAt_of_maximalIdeal_eq_span {ϖ : O} {u : B} (hu : Transcendental O u)
+    (𝔭 : Ideal B) [𝔭.IsPrime]
+    (hmax : maximalIdeal (Localization.AtPrime 𝔭) =
+      Ideal.span {algebraMap O (Localization.AtPrime 𝔭) ϖ,
+        algebraMap B (Localization.AtPrime 𝔭) u})
+    (hres : ∀ z : Localization.AtPrime 𝔭, ∃ o : O,
+      z - algebraMap O (Localization.AtPrime 𝔭) o ∈ maximalIdeal (Localization.AtPrime 𝔭)) :
+    IsSemistableAt ϖ 𝔭 :=
+  .inr (isEtaleLocallyAt_of_maximalIdeal_eq_span hu 𝔭 hmax hres)
 
 /-- **The smooth-point lemma on the generic fibre (G)**: at a prime `𝔭` of a domain `B` of
 finite type over a noetherian normal domain `O` of characteristic `0`, lying over `0 ⊆ O`, if the

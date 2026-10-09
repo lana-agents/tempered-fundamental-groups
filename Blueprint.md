@@ -2130,6 +2130,25 @@ characteristic, perfect residue field, `IsDomain R`, `G` acting on `R`) plus the
 mixed-characteristic hypothesis, so as stated it is out of reach of the W-chain (W7 is proved for
 residue characteristic `p > 0`); Theorem B only needs it for IUT's `K_v`.
 
+**Connected special fibres: `Statement.ZariskiConnected` (2026-10-09, approved interim).**
+The component clause needs `ConnectedSpace (specialFibre c₁.toSpec)`. It is taken as the named,
+targeted hypothesis `Statement.ZariskiConnected` (`SemistableReduction/ZariskiConnected.lean`):
+a semistable projective model over `O'` (finite over a complete DVR, char 0) with integral
+generic fibre (scheme-theoretically dominant `Spec L ⟶ c'` over `O'`) has a connected special
+fibre. *Why true:* semistable ⇒ normal and flat; projective ⇒ proper; Stein factorization gives
+`Γ(c', O)` finite over `O'` and inside `L`, a domain finite over the henselian `O'`, hence local,
+so the special fibre is connected (Zariski). *Routes to discharge it:*
+* (i) a tree version of G8 (`GaussFibre.no_split`): traces of Newton iterates on all charts of
+  the tree model and a Liouville theorem for restricted functions on the tree, or induction over
+  the tree via blow-downs `T → M_ρ` with a disc version of `no_split` for connected fibres.
+  The single-vertex `no_split` does not suffice: in the coarse model the closures of the two
+  halves of a splitting may meet over child directions, so the CRT idempotent need not exist.
+  ≈ 3–5k, high risk.
+* (ii) formal functions over the complete `O'` (Stein factorization): a Mathlib-level project,
+  probably larger than (i).
+* (iii) avoid it by working with connected components of special fibres of levels: a refactor
+  of the tempered/Galois-object layer.
+
 **Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
 `∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line
 (`W10Line.exists_invariant_line`) and the `G × Gal`-stability of the Gauss tree needs the line to

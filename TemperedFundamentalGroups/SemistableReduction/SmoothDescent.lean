@@ -183,11 +183,11 @@ lemma transcendental_of_valuation_eq {v : Ext C F'}
 set_option maxHeartbeats 800000 in
 -- the proof assembles many reductions in one context
 include hp hp1 in
-/-- **Descent of a smooth point to `O_E` (S)**: at the point `𝔭 = ιD⁻¹ P'` of the vertex chart
-`BD` over `O_E`, under a point `P'` of `R'` over `(𝔪_C, x)` at which the special fibre over `C`
-is smooth, `BD` is étale-locally the affine line `O_E[u]`, provided `E` is large enough
+/-- **Descent of a smooth point to `O_E` (S), smooth form**: at the point `𝔭 = ιD⁻¹ P'` of the
+vertex chart `BD` over `O_E`, under a point `P'` of `R'` over `(𝔪_C, x)` at which the special fibre
+over `C` is smooth, `BD` is étale-locally the affine line `O_E[u]`, provided `E` is large enough
 (`hdeg`, `hθ`, `hinj`, `hgen`, `hspan`) and `𝔭` is `κ_E`-rational (`hrat`). -/
-theorem isSemistableAt_of_isDiscSmooth [IsDiscreteValuationRing (HenselComplete.integers E)]
+theorem isEtaleLocallyAt_of_isDiscSmooth [IsDiscreteValuationRing (HenselComplete.integers E)]
     (hdeg : Module.finrank (RatFunc E) F₀ = Module.finrank (RatFunc C) F')
     {θ₀ : F₀} (hθ : Algebra.adjoin (RatFunc C) {χ θ₀} = ⊤)
     (hinj : ∀ W W' : Ext C F', W.1.comap χ = W'.1.comap χ → W = W')
@@ -201,7 +201,8 @@ theorem isSemistableAt_of_isDiscSmooth [IsDiscreteValuationRing (HenselComplete.
     (hsm : IsDiscSmooth P')
     (hrat : ∀ z : BD E F₀, ∃ e : HenselComplete.integers E, ιD χ hφ hχ (z - cstD e) ∈ P') :
     letI := bdAlgebra (E := E) (F₀ := F₀)
-    IsSemistableAt ϖ (P'.comap (ιD χ hφ hχ)) := by
+    IsEtaleLocallyAt (HenselComplete.integers E) (HenselComplete.integers E)[X]
+      (P'.comap (ιD χ hφ hχ)) := by
   classical
   letI := bdAlgebra (E := E) (F₀ := F₀)
   haveI := finiteType_BD (E := E) (F₀ := F₀)
@@ -419,7 +420,28 @@ theorem isSemistableAt_of_isDiscSmooth [IsDiscreteValuationRing (HenselComplete.
       rw [hφ]
       exact (HenselComplete.mem_maximalIdeal_iff_norm_lt_one o).1 ho)
     (fun z ↦ hrat z)
-  exact isSemistableAt_of_maximalIdeal_eq_span htr 𝔭 hmax hres
+  exact isEtaleLocallyAt_of_maximalIdeal_eq_span htr 𝔭 hmax hres
+
+include hp hp1 in
+/-- **Descent of a smooth point to `O_E` (S)**, semistable form of
+`isEtaleLocallyAt_of_isDiscSmooth`. -/
+theorem isSemistableAt_of_isDiscSmooth [IsDiscreteValuationRing (HenselComplete.integers E)]
+    (hdeg : Module.finrank (RatFunc E) F₀ = Module.finrank (RatFunc C) F')
+    {θ₀ : F₀} (hθ : Algebra.adjoin (RatFunc C) {χ θ₀} = ⊤)
+    (hinj : ∀ W W' : Ext C F', W.1.comap χ = W'.1.comap χ → W = W')
+    (hgen : ∀ W : Ext C F', IntermediateField.adjoin 𝓀
+      (resE χ W : Set (ResidueField W.1.valuationSubring)) = ⊤)
+    (hspan : ∀ v₁ v₂ : Ext C F', ∀ y,
+      IsSpanned 𝓀 (ιD χ hφ hχ (F₀ := F₀)).range (redD v₁) (redD v₂) y)
+    {ϖ : HenselComplete.integers E} (hϖ : Irreducible ϖ)
+    (P' : Ideal (DRint (0 : C) 1 F')) [P'.IsMaximal]
+    (hP' : P'.comap (algebraMap (discRing (0 : C) 1) (DRint (0 : C) 1 F')) = discIdeal (0 : C) 1)
+    (hsm : IsDiscSmooth P')
+    (hrat : ∀ z : BD E F₀, ∃ e : HenselComplete.integers E, ιD χ hφ hχ (z - cstD e) ∈ P') :
+    letI := bdAlgebra (E := E) (F₀ := F₀)
+    IsSemistableAt ϖ (P'.comap (ιD χ hφ hχ)) :=
+  letI := bdAlgebra (E := E) (F₀ := F₀)
+  .inr (isEtaleLocallyAt_of_isDiscSmooth hp hp1 hφ hχ hdeg hθ hinj hgen hspan hϖ P' hP' hsm hrat)
 
 end Main
 

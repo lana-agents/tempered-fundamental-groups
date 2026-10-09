@@ -14,9 +14,10 @@ of `Statement.StrongA`** (mixed characteristic, perfect residue field, `IsDomain
 `R` and `B`) together with a `G`-invariant x-line `x ∈ R` (`R` finite over `K[x]`; invariance
 because the W10 construction needs a `G`-invariant line for the stability of the Gauss tree).
 Its output is the output conjunction of `StrongA`, followed by the dimension bound of the special
-fibre and the component clause of `Statement.StrongComponent` (clopen semistable sub-models of
-the connected components of the generic fibre with connected special fibres, unfolded W-models on
-the x-line). Blueprint §10.3.8 (targeted for Theorem B, 2026-10-07).
+fibre and the component clause of `Statement.StrongComponent` without its two unused clauses
+`IsClosedImmersion ι₁`, `IsOpenImmersion j₁` (clopen semistable sub-models of the connected
+components of the generic fibre with connected special fibres, unfolded W-models on the x-line).
+Blueprint §10.3.8 (targeted for Theorem B, 2026-10-07).
 
 * `Statement.strongA_of_strongComponentA`: projection (the meaning of `StrongA` is unchanged);
 * `Statement.strongComponentA_of_strongComponent`: dropping clauses (the old `StrongComponent`,
@@ -81,8 +82,7 @@ def Statement.StrongComponentA : Prop :=
           e₁.hom ≫ c₁'.toSpec ≫ Spec.map (CommRingCat.ofHom
             ((algebraMap K K').restrict O O' (fun x hx => by
               rw [← ‹O'.comap (algebraMap K K') = O›] at hx; exact hx))) = c₁.toSpec ∧
-          IsOpenImmersion ι₁ ∧ IsClosedImmersion ι₁ ∧ ι₁ ≫ c.toSpec = c₁.toSpec ∧
-          IsOpenImmersion j₁ ∧ IsSchemeTheoreticallyDominant j₁ ∧
+          IsOpenImmersion ι₁ ∧ ι₁ ≫ c.toSpec = c₁.toSpec ∧ IsSchemeTheoreticallyDominant j₁ ∧
           j₁ ≫ ι₁ = Spec.map (CommRingCat.ofHom (Ideal.Quotient.mk (Ideal.span {1 - ε}))) ≫ j ∧
           (∀ gσ : G × (K' ≃ₐ[K] K'), Algebra.TensorProduct.congr (gσ.2⁻¹)
               (MulSemiringAction.toAlgAut G K B gσ.1⁻¹) ε = ε →
@@ -118,7 +118,10 @@ theorem Statement.strongComponentA_of_strongComponent (h : Statement.StrongCompo
     hj₀
   obtain ⟨K', i1, i2, i3, i4, O', hO', i5, ϖ', hϖ', c', c, e, j, act, dom, hss, -, -, he, -, hjd,
     hjS, hact, hactj, hdom, hdomS, -, hdim, hcomp⟩ := h K O R hR x hx B G ι c₀ j₀ hj₀
-  exact ⟨K', i1, i2, i3, i4, O', hO', i5, ϖ', hϖ', c', c, e, j, act, dom, hss, he, hjd, hjS, hact,
-    hactj, hdom, hdomS, hdim, hcomp⟩
+  refine ⟨K', i1, i2, i3, i4, O', hO', i5, ϖ', hϖ', c', c, e, j, act, dom, hss, he, hjd, hjS, hact,
+    hactj, hdom, hdomS, hdim, fun ε h1 h2 h3 => ?_⟩
+  obtain ⟨c₁', c₁, e₁, ι₁, j₁, a1, a2, a3, a4, a5, -, a6, -, a7, a8, a9, a10, a11⟩ :=
+    hcomp ε h1 h2 h3
+  exact ⟨c₁', c₁, e₁, ι₁, j₁, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11⟩
 
 end TemperedFundamentalGroups.SemistableReduction
