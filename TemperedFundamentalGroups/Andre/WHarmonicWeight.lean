@@ -220,7 +220,7 @@ lemma WData.image_compSet {X Y : TempObj O R A} (m : X ⟶ Y) (D : WData x X.Lv)
 /-- **x-lengths are harmonic weights** along the map of special fibres of a morphism of the
 tempered category between objects with W-model data (from (X0), (X2) of
 `Statement.HarmonicX` and `Statement.NodeOfTwoComponents`). -/
-theorem WData.isHarmonicWeight (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem WData.isHarmonicWeight (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {X Y : TempObj O R A} (m : X ⟶ Y) (D : WData x X.Lv) (D' : WData x Y.Lv)
     [NoetherianSpace X.Lv.Z] [T0Space X.Lv.Z] [QuasiSober X.Lv.Z]

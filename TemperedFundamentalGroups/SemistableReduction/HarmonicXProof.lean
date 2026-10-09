@@ -82,8 +82,8 @@ lemma exp_sum {K K₁ K₂ L₁ L₂ : Type u} [Field K] [Field K₁] [Field K�
     _ = p ^ (e₁ * n' * m) := by
         rw [h1, pow_right_comm _ m e₂, pow_right_comm _ n' e₂, h2, ← pow_mul, ← pow_mul, mul_assoc]
 
-/-- **`Statement.HarmonicX` holds.** -/
-theorem harmonicX : Statement.HarmonicX.{u} := by
+/-- **`Statement.HarmonicXS` holds.** -/
+theorem harmonicXS : Statement.HarmonicXS.{u} := by
   intro K _ _ O _ _ ϖ hϖ K₁ K₂ _ _ _ _ _ _ O₁ O₂ h₁ h₂ _ _ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ x c c' ψ j j' hU₁ hU₂ hj hψO _ _ hsplit₁ hsplit₂ hloops₁
     hloops₂
@@ -109,7 +109,7 @@ theorem harmonicX : Statement.HarmonicX.{u} := by
       ∀ l', IsXLength (algebraMap K L₂ ϖ) O₂ ϖ₂ c' j' x y' l' → l' = e' * n' / e₂ := by
     intro y' hy'
     obtain ⟨Q, u', v', n', a', β', e', α', ε', v₁', v₂', hv₁', hv₂', H', HB', hQg, hy₁', hy₂', -,
-      -, hdiv', hsec'⟩ := exists_unfoldedNodeGerm hU₂ hϖ₂ hsplit₂.1 hloops₂ hy'
+      -, hdiv', hsec'⟩ := exists_unfoldedNodeGerm hU₂ hϖ₂ hsplit₂ hloops₂ hy'
     refine ⟨Q, u', v', ε', n', a', β', e', α', v₁', v₂', hv₁', hv₂', H', HB', hQg, hy₁', hy₂',
       fun l' hl' ↦ ?_⟩
     rw [hL₂] at hl'
@@ -117,7 +117,7 @@ theorem harmonicX : Statement.HarmonicX.{u} := by
   refine ⟨fun y hy ↦ ?_, ?_, ?_, x3 h₁ h₂ hϖ₂ hψO⟩
   · -- (X0)
     rw [hL₁]
-    exact x0 hU₁ hϖ₁ hsplit₁.1 hloops₁ he₁ hϖK₁ y hy
+    exact x0 hU₁ hϖ₁ hsplit₁ hloops₁ he₁ hϖK₁ y hy
   · -- (X1)
     intro y' hy' w₁' hw₁' w₂' hw₂' hne hyw₁ hyw₂ v hv hψv l' hl'
     obtain ⟨Q, u', v', ε', n', a', β', e', α', v₁', v₂', hv₁', hv₂', H', HB', hQg, hy₁', hy₂',
@@ -132,9 +132,9 @@ theorem harmonicX : Statement.HarmonicX.{u} := by
       w₂' hw₁' hw₂' hne hyw₁ hyw₂ Q u' v' n' hQg H'.germ HB'.core.u_nonunit HB'.core.v_nonunit
       v hv hψv
     have hnode : ∀ i, IsNodePt c (w.x i) := fun i ↦ (w.joins i).1
-    choose l hl using fun i ↦ (x0 hU₁ hϖ₁ hsplit₁.1 hloops₁ he₁ hϖK₁ (w.x i) (hnode i)).1
-    obtain ⟨E, hE, hrel, hends⟩ := walk_exponents hϖ₁ hϖ₂ he₁ he₂ hϖK₁ hϖK₂ hU₁ hU₂ hsplit₁.1
-      hloops₁ hsplit₂.1 hloops₂ hj hv₁' hv₂' H' HB' hy' hQg hy₁' hy₂' hw₁' hw₂' hne hyw₁ hyw₂ w
+    choose l hl using fun i ↦ (x0 hU₁ hϖ₁ hsplit₁ hloops₁ he₁ hϖK₁ (w.x i) (hnode i)).1
+    obtain ⟨E, hE, hrel, hends⟩ := walk_exponents hϖ₁ hϖ₂ he₁ he₂ hϖK₁ hϖK₂ hU₁ hU₂ hsplit₁
+      hloops₁ hsplit₂ hloops₂ hj hv₁' hv₂' H' HB' hy' hQg hy₁' hy₂' hw₁' hw₂' hne hyw₁ hyw₂ w
       hcross (by rw [hw0]; exact hψv) hwk l hl
     have hϖL : algebraMap K₁ L₁ (ϖ₁ : K₁) = algebraMap O₁ L₁ ϖ₁ := algebraMap_O_K ϖ₁
     have hWϖ : ∀ i, (Wc hW (w.mem_components i)).valuation (algebraMap O₁ L₁ ϖ₁) < 1 :=
@@ -196,8 +196,8 @@ theorem harmonicX : Statement.HarmonicX.{u} := by
       hl'eq⟩ := hy'data y' hy'
     have hl₁ : ∀ i, IsXLength (algebraMap K₁ L₁ (algebraMap K K₁ ϖ)) O₁ ϖ₁ c j
         (algebraMap L₂ L₁ x) (w.x i) (l i) := fun i ↦ by rw [← hL₁]; exact hl i
-    obtain ⟨E, -, hrel, hends⟩ := walk_exponents hϖ₁ hϖ₂ he₁ he₂ hϖK₁ hϖK₂ hU₁ hU₂ hsplit₁.1
-      hloops₁ hsplit₂.1 hloops₂ hj hv₁' hv₂' H' HB' hy' hQg hy₁' hy₂' hw₁' hw₂' hne hyw₁ hyw₂ w
+    obtain ⟨E, -, hrel, hends⟩ := walk_exponents hϖ₁ hϖ₂ he₁ he₂ hϖK₁ hϖK₂ hU₁ hU₂ hsplit₁
+      hloops₁ hsplit₂ hloops₂ hj hv₁' hv₂' H' HB' hy' hQg hy₁' hy₂' hw₁' hw₂' hne hyw₁ hyw₂ w
       hcross hψ0 hψk l hl₁
     rw [hl'eq l' hl']
     have h1 : (e' : ℚ) * |(E (Fin.last w.k) : ℚ) - E 0| ≤ (∑ i, l i) * e₁ := by
@@ -213,5 +213,12 @@ theorem harmonicX : Statement.HarmonicX.{u} := by
     have h2 : (e' : ℚ) * |(E (Fin.last w.k) : ℚ) - E 0| * e₂ = e' * (e₁ * n') := by
       rw [mul_assoc, hends]
     nlinarith
+
+/-- **`Statement.HarmonicX` holds** (from `HarmonicXS`). -/
+theorem harmonicX : Statement.HarmonicX.{u} := by
+  intro K _ _ O _ _ ϖ hϖ K₁ K₂ _ _ _ _ _ _ O₁ O₂ h₁ h₂ _ _ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ x c c' ψ j j' hU₁ hU₂ hj hψO hs₁ hs₂ hsplit₁ hsplit₂
+  exact harmonicXS K O ϖ hϖ K₁ K₂ O₁ O₂ h₁ h₂ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ x c c' ψ j j' hU₁ hU₂ hj hψO hs₁
+    hs₂ hsplit₁.1 hsplit₂.1
 
 end TemperedFundamentalGroups.SemistableReduction

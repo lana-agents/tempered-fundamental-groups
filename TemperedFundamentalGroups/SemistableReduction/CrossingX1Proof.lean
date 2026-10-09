@@ -56,7 +56,7 @@ def CrossingX1Inc : Prop :=
       (fun y hy ↦ by rw [← h₂] at hy; exact hy))) =
       c.toSpec ≫ Spec.map (CommRingCat.ofHom ((algebraMap K K₁).restrict O O₁
         (fun y hy ↦ by rw [← h₁] at hy; exact hy))) →
-    ModelCode.IsSplit ϖ₁ c → ModelCode.NoLoops c →
+    ModelCode.HasSplitNodes ϖ₁ c → ModelCode.NoLoops c →
     Dense (Set.range j'.base) →
     ∀ (y' : c'.scheme) (w₁' w₂' : Set c'.scheme), w₁' ∈ ModelCode.components c' →
       w₂' ∈ ModelCode.components c' → w₁' ≠ w₂' → y' ∈ w₁' → y' ∈ w₂' →
@@ -81,7 +81,7 @@ theorem crossingX1_inc : CrossingX1Inc.{u} := by
     _ _ _ _ x c c' ψ j j' hunf hj hψO hsplit0 hloops hdense y' w₁' w₂' hw₁ hw₂ hne hy₁ hy₂ P u v n
     hPg hG hu hv v₀ hv₀ hψv₀
   have hW : IsWModel O₁ L₁ x c j := hunf.isWModel
-  have hsplit := hsplit0.1
+  have hsplit := hsplit0
   set ι := algebraMap L₂ L₁ with hι
   -- the generic point of the target is dense
   have hdom : ∀ y, j' (closedPoint L₂) ⤳ y := by
@@ -400,8 +400,8 @@ theorem crossingX1_inc : CrossingX1Inc.{u} := by
     (Nat.mul_pos he₁ hn) hM hbound hcontr hend (hnot w₂' hw₂ hy₂) hv₀ hv₀c hstart hz₀ hψz₀ hR₀
   exact ⟨w, h1, h2, h3, e₂, he₂, hinc⟩
 
-/-- **`Statement.CrossingX1` holds.** -/
-theorem crossingX1 : Statement.CrossingX1.{u} := by
+/-- **`Statement.CrossingX1S` holds.** -/
+theorem crossingX1S : Statement.CrossingX1S.{u} := by
   intro K _ _ O _ _ K₁ K₂ _ _ _ _ _ _ O₁ O₂ h₁ h₂ _ _ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ _ _ _ _ _ _ _ _ _ _
     _ _ _ _ x c c' ψ j j' hunf hj hψO hsplit0 hloops hdense y' w₁' w₂' hw₁ hw₂ hne hy₁ hy₂ hP
     v₀ hv₀ hψv₀
@@ -410,5 +410,12 @@ theorem crossingX1 : Statement.CrossingX1.{u} := by
     ψ j j' hunf hj hψO hsplit0 hloops hdense y' w₁' w₂' hw₁ hw₂ hne hy₁ hy₂ P u v n hPg hG hu hv
     v₀ hv₀ hψv₀
   exact ⟨w, h1, h2, h3⟩
+
+/-- **`Statement.CrossingX1` holds** (from `CrossingX1S`). -/
+theorem crossingX1 : Statement.CrossingX1.{u} := by
+  intro K _ _ O _ _ K₁ K₂ _ _ _ _ _ _ O₁ O₂ h₁ h₂ _ _ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ _ _ _ _ _ _ _ _ _ _
+    _ _ _ _ x c c' ψ j j' hunf hj hψO hsplit0 hloops
+  exact crossingX1S K O K₁ K₂ O₁ O₂ h₁ h₂ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ x c c' ψ j j' hunf hj hψO hsplit0.1
+    hloops
 
 end TemperedFundamentalGroups.SemistableReduction

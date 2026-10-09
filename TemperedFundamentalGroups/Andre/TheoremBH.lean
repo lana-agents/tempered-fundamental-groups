@@ -103,7 +103,7 @@ theorem exists_character_eq_of_hcw
     (hgal : IsGaloisClass (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
     (hdom : IsDominating (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
     (hrig : IsRigid (tempFibre O R A V hV) (galClassW O R A Ω (Level.IsW x)))
-    (hX : SemistableReduction.Statement.HarmonicX.{u})
+    (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     (Y₀ : TempObj O R A) (hY₀ : galClassW O R A Ω (Level.IsW x) Y₀)
     (y₀ : (tempFibre O R A V hV).obj Y₀) (a₀ : Y₀ ⟶ X₀ (A := A) T)

@@ -139,7 +139,7 @@ variable [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.m
 `κ` of `U`, there is `ℓ₀ < ⊤` such that at every component vertex `ŵ` some conjugate
 `D⁻¹ κ D` by a deck transformation `D` moves `gen ŵ` to the generic point of the end of a walk
 from `ŵ` of weight `≤ ℓ₀`. -/
-theorem exists_conj (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem exists_conj (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     (hns : Q.NoPt) (κ : Q.U ≅ Q.U) :
     ∃ ℓ₀ : ℝ≥0∞, ℓ₀ ≠ ⊤ ∧ ∀ (ŵ : (curveConfig Q.Lv.Z Q.hdim).Tree
@@ -417,7 +417,7 @@ section Loop
 variable [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
 
 /-- Walk lifting along morphisms of members ((X1) of `HarmonicX`). -/
-lemma isWalkLifting (hX : SemistableReduction.Statement.HarmonicX.{u})
+lemma isWalkLifting (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     (f : P.U ⟶ Q.U) :
     IsWalkLifting (sfm P Q f) (covMap P Q f) (P.D.weight ϖ) (Q.D.weight ϖ) :=
@@ -426,7 +426,7 @@ lemma isWalkLifting (hX : SemistableReduction.Statement.HarmonicX.{u})
     (WData.isEdgeLifting hX hN ϖ hϖ f P.D Q.D P.hdim Q.hdim)
 
 /-- **Heights do not increase under automorphisms preserving `ν`.** -/
-lemma dN_img_le (hX : SemistableReduction.Statement.HarmonicX.{u})
+lemma dN_img_le (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     (π : P.U ≅ P.U) (hns : P.NoPt) (ν : irreducibleComponents P.Lv.Z → Prop)
     (hν : ∀ i i', sfm P P π.hom '' (curveConfig P.Lv.Z P.hdim).C i =
@@ -458,7 +458,7 @@ lemma dN_img_le (hX : SemistableReduction.Statement.HarmonicX.{u})
 automorphism `κ` of `U₀` with the conjugation bound `ℓ₀` (`exists_conj`), and a set `ν` of
 components (not contracted by `mm`, preserved by automorphisms, nonempty), every fibre element
 `u` of `U` has an automorphism `π` lifting a deck conjugate of `κ` with `HC(u, π u) ≤ ℓ₀`. -/
-theorem exists_hc_loop (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem exists_hc_loop (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {Ω : Type u} [Field Ω] [IsAlgClosed Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
     (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)

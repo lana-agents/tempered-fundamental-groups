@@ -243,7 +243,7 @@ variable [CharZero K] [IsAdicComplete (IsLocalRing.maximalIdeal O) O] [IsDomain 
 
 /-- **Crossing a node of the Tate model** on the special fibre of a member: a component mapped
 onto `S` has a walk with special points over `y` to a component mapped onto `S'`. -/
-lemma exists_incWalk_crossing (hC : SemistableReduction.Statement.CrossingX1.{u})
+lemma exists_incWalk_crossing (hC : SemistableReduction.Statement.CrossingX1S.{u})
     (hx : Transcendental K T.x) {ϖ : O} (hϖ : Irreducible ϖ) (a : Q.U ⟶ X₀ (A := A) T)
     {S S' : Set (X₀ (A := A) T).Lv.Z} (hS : S ∈ irreducibleComponents (X₀ (A := A) T).Lv.Z)
     (hS' : S' ∈ irreducibleComponents (X₀ (A := A) T).Lv.Z) (hne : S ≠ S')
@@ -272,7 +272,7 @@ lemma exists_incWalk_crossing (hC : SemistableReduction.Statement.CrossingX1.{u}
 
 /-- **`HarmonicTate` from `CrossingX1` for the 3-gon** (`b₆ ∈ 𝔪`), when
 `c = b₆ − π² b₄² ≠ 0` divides `π` (so that `r` is an exact node). -/
-theorem harmonicTate_of_crossingX1_threeGon (hC : SemistableReduction.Statement.CrossingX1.{u})
+theorem harmonicTate_of_crossingX1_threeGon (hC : SemistableReduction.Statement.CrossingX1S.{u})
     (hb : T.b₆ ∈ IsLocalRing.maximalIdeal O) (hc0 : T.b₆ - T.π ^ 2 * T.b₄ ^ 2 ≠ 0)
     (hcπ : T.b₆ - T.π ^ 2 * T.b₄ ^ 2 ∣ T.π) (hx : Transcendental K T.x) {ϖ : O}
     (hϖ : Irreducible ϖ) (a : Q.U ⟶ X₀ (A := A) T) :

@@ -12,13 +12,13 @@ import TemperedFundamentalGroups.SemistableReduction.ProjSplitPoints
 import TemperedFundamentalGroups.SemistableReduction.GaussTreeFinite
 
 /-!
-# `W10.TreeComponentsUnfolded` from the geometric irreducibility of the components
+# `W10.TreeComponentsUnfolded` holds
 
-`W10.treeComponentsUnfolded_of`: G4′ (`W10Route.treeChartsSplit`, split nodes and the edge form
+`W10.treeComponentsUnfolded`: G4′ (`W10Route.treeChartsSplit`, split nodes and the edge form
 of node points, `projModelCode_split_of_points`, `exists_routedEdge_of_isNodePt`) and
 `noLoops_isUnfolded_projModelCode` give split nodes, no loops and unfoldedness of every component
-model; the remaining part of `IsSplit`, the geometric irreducibility of the components, is the
-targeted hypothesis `W10.TreeComponentsGeomIrred` (same data).
+model. (`W10.TreeComponentsGeomIrred`, the geometric irreducibility of the components, is the
+remaining part of `IsSplit`; it is not needed, since only split nodes are used downstream.)
 -/
 
 universe u
@@ -74,20 +74,14 @@ lemma comap_valuation_lt_one_iff {F F' : Type*} [Field F] [Field F'] [Algebra F 
     ValuationSubring.valuation_le_one_iff, ValuationSubring.mem_comap, Ne, Ne,
     valuation_comap_eq_one_iff]
 
-/-- **`TreeComponentsUnfolded` from `TreeComponentsGeomIrred`.** -/
-theorem treeComponentsUnfolded_of (hG : TreeComponentsGeomIrred.{u}) :
-    TreeComponentsUnfolded.{u} := by
+/-- **`TreeComponentsUnfolded` holds** (split nodes, no loops, unfolded). -/
+theorem treeComponentsUnfolded : TreeComponentsUnfolded.{u} := by
   intro C _ _ _ _ p hp hp1 F' _ _ _ _ _ ι _ _ a c hc hconv hred hss T hT
   obtain ⟨S₁, hS₁⟩ := W10Route.treeChartsSplit C p hp hp1 F' ι a c hc hconv hred hss T hT
-  obtain ⟨S₂, hS₂⟩ := hG C p hp hp1 F' ι a c hc hconv hred hss T hT
-  classical
-  refine ⟨S₁ ∪ S₂, ?_⟩
+  refine ⟨S₁, ?_⟩
   intro E _ _ _ φ hφ hS hal _ _ aE cE haE hcE F₀ _ _ _ _ _ _ _ _ χ hχ hfr hTχ ϖ hϖ n g hg hpts
     hssg
-  have hS₁' : (S₁ : Set C) ⊆ Set.range φ := fun z hz ↦ hS (by simp [hz])
-  have hS₂' : (S₂ : Set C) ⊆ Set.range φ := fun z hz ↦ hS (by simp [hz])
-  have hclass := hS₁ E φ hφ hS₁' hal aE cE haE hcE F₀ χ hχ hfr hTχ ϖ hϖ
-  have hgi := hS₂ E φ hφ hS₂' hal aE cE haE hcE F₀ χ hχ hfr hTχ ϖ hϖ n g hg hpts hssg
+  have hclass := hS₁ E φ hφ hS hal aE cE haE hcE F₀ χ hχ hfr hTχ ϖ hϖ
   have hcE0 : ∀ i, cE i ≠ 0 := fun i h ↦ hc i (by rw [← hcE i, h, map_zero])
   have hconvE := W10Assembly.isConvex_descent φ hφ haE hcE hconv
   have hredE := W10Assembly.isReduced_descent φ hφ haE hcE hred
@@ -124,7 +118,12 @@ theorem treeComponentsUnfolded_of (hG : TreeComponentsGeomIrred.{u}) :
     TemperedFundamentalGroups.SemistableReduction.noLoops_isUnfolded_projModelCode
     (NormedField.valuation (K := E)).valuationSubring hx aE cE hcE0 (NormedField.valuation (K := E))
     rfl hconvE hredE hg hpts hϖ hssg hnode
-  exact ⟨⟨hsn, hgi⟩, hnl, hunf⟩
+  exact ⟨hsn, hnl, hunf⟩
+
+/-- `TreeComponentsUnfolded` (kept for the earlier interface; the hypothesis is not needed). -/
+theorem treeComponentsUnfolded_of (_hG : TreeComponentsGeomIrred.{u}) :
+    TreeComponentsUnfolded.{u} :=
+  treeComponentsUnfolded
 
 end W10
 

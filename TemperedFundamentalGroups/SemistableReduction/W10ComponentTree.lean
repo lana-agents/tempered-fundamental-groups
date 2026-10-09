@@ -8,14 +8,14 @@ import TemperedFundamentalGroups.SemistableReduction.W10ComponentData
 import TemperedFundamentalGroups.SemistableReduction.ZariskiConnected
 
 /-!
-# The output of `StrongComponentA` from a semistable Gauss tree over `E`
+# The output of `StrongComponentAS` from a semistable Gauss tree over `E`
 
 `strongComponentA_body_of_tree`: the strengthened copy of `strongA_body_of_tree` (W10MainE). In
 addition to its hypotheses it takes `Statement.ZariskiConnected` (connected special fibres of the
 summands, transported to `O` along `eComp`) and, for every component model over the tree
 (`hunf`: any `g` whose projective model has the points of the normalized tree model and is
 semistable), split nodes, no loops and unfoldedness on the line `xB`; it gives all clauses of
-`Statement.StrongComponentA` with `K' = E` (`strongComponentA_body_of_data`).
+`Statement.StrongComponentAS` with `K' = E` (`strongComponentA_body_of_data`).
 -/
 
 universe u
@@ -61,7 +61,7 @@ variable {K : Type u} [Field K] [CharZero K] (O : ValuationSubring K)
   [Module.IsTorsionFree K[X] B] [Algebra K B] [IsScalarTower K K[X] B] [Algebra.Smooth K B]
   {E : Type u} [NontriviallyNormedField E] [IsUltrametricDist E] [Algebra K E]
 
-/-- **The output of `StrongComponentA` from a semistable Galois-stable Gauss tree over `E`.** -/
+/-- **The output of `StrongComponentAS` from a semistable Galois-stable Gauss tree over `E`.** -/
 theorem strongComponentA_body_of_tree [IsDiscreteValuationRing O]
     [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
     (hZ : TemperedFundamentalGroups.SemistableReduction.Statement.ZariskiConnected.{u})
@@ -107,7 +107,7 @@ theorem strongComponentA_body_of_tree [IsDiscreteValuationRing O]
         ((gaussJoinModel νE aE cE).normalization (Comp K E B 𝔪)).points →
       TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSemistable ϖ'
         (projModelCode (νE).valuationSubring hg) →
-      TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSplit ϖ'
+      TemperedFundamentalGroups.SemistableReduction.ModelCode.HasSplitNodes ϖ'
         (projModelCode (νE).valuationSubring hg) ∧
       TemperedFundamentalGroups.SemistableReduction.ModelCode.NoLoops
         (projModelCode (νE).valuationSubring hg) ∧
@@ -143,7 +143,7 @@ theorem strongComponentA_body_of_tree [IsDiscreteValuationRing O]
           (e₁ : c₁.scheme ≅ c₁'.scheme) (ι₁ : c₁.scheme ⟶ c.scheme)
           (j₁ : Spec (CommRingCat.of (TensorProduct K E B ⧸ Ideal.span {1 - ε})) ⟶ c₁.scheme),
           TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSemistable ϖ' c₁' ∧
-          TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSplit ϖ' c₁' ∧
+          TemperedFundamentalGroups.SemistableReduction.ModelCode.HasSplitNodes ϖ' c₁' ∧
           TemperedFundamentalGroups.SemistableReduction.ModelCode.NoLoops c₁' ∧
           e₁.hom ≫ c₁'.toSpec ≫ Spec.map (CommRingCat.ofHom
             ((algebraMap K E).restrict O O' (fun x hx => by

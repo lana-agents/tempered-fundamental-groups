@@ -7,12 +7,12 @@ import TemperedFundamentalGroups.SemistableReduction.W10ComponentClause
 import TemperedFundamentalGroups.SemistableReduction.SemistableFibreDim
 
 /-!
-# The output of `StrongComponentA` from the W10 data
+# The output of `StrongComponentAS` from the W10 data
 
 `strongComponentA_body_of_data`: the strengthened copy of `strongA_body_of_data` (W10Final). Under
 its hypotheses and, for the summands `projModelCode O' (hg 𝔪)`, split nodes, no loops,
 connected special fibres and unfoldedness on the line `xB`, the W10 assembly satisfies all
-clauses of `Statement.StrongComponentA` with `K' = E`: those of `StrongA`, the dimension bound
+clauses of `Statement.StrongComponentAS` with `K' = E`: those of `StrongA`, the dimension bound
 (`ModelCode.topologicalKrullDim_le_one_of_iso`) and the component clause (`component_clause`).
 -/
 
@@ -28,7 +28,7 @@ open TemperedFundamentalGroups W10Fields ProjScheme ZariskiModel
 
 attribute [local instance] polyAlgebra compAlgO
 
-/-- **The output of `StrongComponentA` from the W10 data.** -/
+/-- **The output of `StrongComponentAS` from the W10 data.** -/
 theorem strongComponentA_body_of_data {K : Type u} [Field K] (O : ValuationSubring K)
     [IsDiscreteValuationRing O]
     {B : Type u} [CommRing B] [Algebra K[X] B] [Module.Finite K[X] B]
@@ -65,7 +65,7 @@ theorem strongComponentA_body_of_data {K : Type u} [Field K] (O : ValuationSubri
       ∀ 𝔪 l, LocallyDominates (algebraMap O (Comp K E B 𝔪)).range (RingHom.id _)
         (projChart (algebraMap O' (Comp K E B 𝔪)).range (g 𝔪) l).subtype (f 𝔪))
     (xB : B)
-    (hsp : ∀ 𝔪, TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSplit ϖ'
+    (hsp : ∀ 𝔪, TemperedFundamentalGroups.SemistableReduction.ModelCode.HasSplitNodes ϖ'
       (projModelCode O' (hg 𝔪)))
     (hnl : ∀ 𝔪, TemperedFundamentalGroups.SemistableReduction.ModelCode.NoLoops
       (projModelCode O' (hg 𝔪)))
@@ -103,7 +103,7 @@ theorem strongComponentA_body_of_data {K : Type u} [Field K] (O : ValuationSubri
           (e₁ : c₁.scheme ≅ c₁'.scheme) (ι₁ : c₁.scheme ⟶ c.scheme)
           (j₁ : Spec (CommRingCat.of (TensorProduct K E B ⧸ Ideal.span {1 - ε})) ⟶ c₁.scheme),
           TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSemistable ϖ' c₁' ∧
-          TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSplit ϖ' c₁' ∧
+          TemperedFundamentalGroups.SemistableReduction.ModelCode.HasSplitNodes ϖ' c₁' ∧
           TemperedFundamentalGroups.SemistableReduction.ModelCode.NoLoops c₁' ∧
           e₁.hom ≫ c₁'.toSpec ≫ Spec.map (CommRingCat.ofHom
             ((algebraMap K E).restrict O O' (fun x hx => by

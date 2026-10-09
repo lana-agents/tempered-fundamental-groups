@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Andre.GaloisDom2
-import TemperedFundamentalGroups.SemistableReduction.StrongComponentA
+import TemperedFundamentalGroups.SemistableReduction.StrongComponentAS
 
 /-!
 # Galois objects over W-model levels (Blueprint §10.3.6, items 1–2)
@@ -57,7 +57,7 @@ def Level.IsW (x : R) (Lv : Level O R A) : Prop :=
     (_ : IsDiscreteValuationRing O') (ϖ' : O') (_ : Irreducible ϖ')
     (c' : ModelCode O') (e : Lv.c.scheme ≅ c'.scheme),
     SemistableReduction.ModelCode.IsSemistable ϖ' c' ∧
-    SemistableReduction.ModelCode.IsSplit ϖ' c' ∧ SemistableReduction.ModelCode.NoLoops c' ∧
+    SemistableReduction.ModelCode.HasSplitNodes ϖ' c' ∧ SemistableReduction.ModelCode.NoLoops c' ∧
     e.hom ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom
       ((algebraMap K K').restrict O O' (fun x hx => by rw [← h] at hx; exact hx))) =
       Lv.c.toSpec ∧
@@ -265,7 +265,7 @@ component clause of `StrongComponentA` recorded on the level): if a connected Ga
 `B` with a point `t₀` receives maps `f_k` from the levels of finitely many pointed objects
 `(X_k, x_k)`, then a member of `galClassW (Level.IsW x)` (`x` the x-line of
 `exists_finite_aeval`) dominates every `(X_k, x_k)`. -/
-theorem dom_midW (hW : SemistableReduction.Statement.StrongComponentA.{u})
+theorem dom_midW (hW : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1) {n : ℕ}
     (P : Fin n → Σ X : TempObj O R A, (tempFibre O R A V hV).obj X)
@@ -497,7 +497,7 @@ theorem dom_midW (hW : SemistableReduction.Statement.StrongComponentA.{u})
       congr 3)
 
 /-- **(dom)** The Galois objects over W-model levels dominate. -/
-theorem isDominating_galClassW (hW : SemistableReduction.Statement.StrongComponentA.{u})
+theorem isDominating_galClassW (hW : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1) :
     IsDominating (tempFibre O R A V hV)
@@ -528,7 +528,7 @@ theorem isDominating_galClassW (hW : SemistableReduction.Statement.StrongCompone
 
 /-- **(gal), (dom), (rig)** for the Galois objects over W-model levels (scheme case), from W10
 with components. -/
-theorem galoisLimitDataW (hW : SemistableReduction.Statement.StrongComponentA.{u})
+theorem galoisLimitDataW (hW : SemistableReduction.Statement.StrongComponentAS.{u})
     [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
     (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1) :
     IsGaloisClass (tempFibre O R A V hV)

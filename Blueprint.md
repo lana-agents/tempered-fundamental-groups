@@ -2197,6 +2197,24 @@ so the special fibre is connected (Zariski). *Routes to discharge it:*
     decision is pending.
   * `Statement.ZariskiConnected`: the long-term route is the owner's decision.
 
+**(β) applied: split nodes suffice (2026-10-09, approved).** Dry check: `IsSplit.2`
+(`HasGeomIrreducibleComponents`) is never used. CrossingX1, HarmonicX and the node lemmas use only
+`HasSplitNodes`, and nothing on the Andre side reads `.2`.
+* *Generalised copies:* `Statement.CrossingX1S`, `Statement.HarmonicXS` and
+  `Statement.StrongComponentAS` (`HasSplitNodes` in place of `IsSplit`). `crossingX1S` and
+  `harmonicXS` are proved, and `crossingX1`, `harmonicX` and `strongComponentAS_of_strongComponentA`
+  are derived from them. The originals are untouched.
+* *In place* (Andre-internal structures, consumers only get stronger): `WData.split` and the
+  `Level.IsW` field are now `HasSplitNodes`, and `galoisLimitDataW` takes `StrongComponentAS`.
+  * The internal lemmas take `HarmonicXS` / `CrossingX1S`.
+  * The public Theorem B forms (`exists_character_ne_one`, `nondegenerate`, the crossing forms)
+    drop the `HarmonicX` hypothesis and take `StrongComponentAS`.
+* *W10 chain:* it produces `StrongComponentAS` with only split nodes. `W10.treeComponentsUnfolded`
+  is unconditional, `Statement.strongComponentAS_of hZ` holds, and
+  `TateOrbicurve.nondegenerate_of_zariski` needs only `Statement.ZariskiConnected`.
+  * `W10.TreeComponentsGeomIrred` is no longer needed.
+  * The earlier `strongComponentA_of` (`IsSplit` output) is replaced by `strongComponentAS_of`.
+
 **Invariant line (2026-10-09, approved).** `Statement.StrongComponentA` additionally assumes
 `∀ g : G, g • x = x`: the W10 construction builds its models from a `G`-invariant line
 (`W10Line.exists_invariant_line`) and the `G × Gal`-stability of the Gauss tree needs the line to

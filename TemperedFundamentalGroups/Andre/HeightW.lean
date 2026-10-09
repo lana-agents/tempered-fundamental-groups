@@ -88,7 +88,7 @@ lemma WData.weight_ne_top {Lv : Level O R A} (D : WData x Lv) (ϖ : O) (z : Lv.Z
   split_ifs <;> simp
 
 /-- **Monotonicity of the height-corrected length condition** along morphisms of members. -/
-theorem Pres.hcw_map (hX : SemistableReduction.Statement.HarmonicX.{u})
+theorem Pres.hcw_map (hX : SemistableReduction.Statement.HarmonicXS.{u})
     (hN : SemistableReduction.Statement.NodeOfTwoComponents.{u}) (ϖ : O) (hϖ : Irreducible ϖ)
     {X Y : TempObj O R A} (P : Pres x X) (Q : Pres x Y) (m : X ⟶ Y)
     (aY : Y ⟶ TateObject.X₀ (A := A) T) (g γ : (tempFibre O R A V hV).obj X) (ℓ : ℝ≥0∞)

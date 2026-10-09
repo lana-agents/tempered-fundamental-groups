@@ -268,7 +268,7 @@ connectedness of the special fibre and unfoldedness of the summands. -/
 theorem component_clause (ϖ' : O') (xB : B)
     (hss : ∀ 𝔪, TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSemistable ϖ'
       (projModelCode O' (hg 𝔪)))
-    (hsp : ∀ 𝔪, TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSplit ϖ'
+    (hsp : ∀ 𝔪, TemperedFundamentalGroups.SemistableReduction.ModelCode.HasSplitNodes ϖ'
       (projModelCode O' (hg 𝔪)))
     (hnl : ∀ 𝔪, TemperedFundamentalGroups.SemistableReduction.ModelCode.NoLoops
       (projModelCode O' (hg 𝔪)))
@@ -284,7 +284,7 @@ theorem component_clause (ϖ' : O') (xB : B)
       (e₁ : c₁.scheme ≅ c₁'.scheme) (ι₁ : c₁.scheme ⟶ (c O O' n hg θ hθ0).scheme)
       (j₁ : Spec (CommRingCat.of (TensorProduct K E B ⧸ Ideal.span {1 - ε})) ⟶ c₁.scheme),
       TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSemistable ϖ' c₁' ∧
-      TemperedFundamentalGroups.SemistableReduction.ModelCode.IsSplit ϖ' c₁' ∧
+      TemperedFundamentalGroups.SemistableReduction.ModelCode.HasSplitNodes ϖ' c₁' ∧
       TemperedFundamentalGroups.SemistableReduction.ModelCode.NoLoops c₁' ∧
       e₁.hom ≫ c₁'.toSpec ≫ Spec.map (CommRingCat.ofHom
         ((algebraMap K E).restrict O O' (fun x hx => by

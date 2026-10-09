@@ -53,7 +53,7 @@ structure WData (x : R) (Lv : Level O R A) where
   /-- The identification of the model of the level with the W-model. -/
   e : Lv.c.scheme ≅ c'.scheme
   semistable : SemistableReduction.ModelCode.IsSemistable ϖ' c'
-  split : SemistableReduction.ModelCode.IsSplit ϖ' c'
+  split : SemistableReduction.ModelCode.HasSplitNodes ϖ' c'
   noLoops : SemistableReduction.ModelCode.NoLoops c'
   toSpec_eq : e.hom ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom
       ((algebraMap K K').restrict O O' (fun y hy => by rw [← hO'] at hy; exact hy))) =
@@ -126,7 +126,7 @@ variable [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.m
 
 /-- **Morphisms between objects over levels with W-model data are x-harmonic** (from the
 targeted `Statement.HarmonicX`). -/
-theorem WData.isHarmonicX (hX : SemistableReduction.Statement.HarmonicX.{u}) (ϖ : O)
+theorem WData.isHarmonicX (hX : SemistableReduction.Statement.HarmonicXS.{u}) (ϖ : O)
     (hϖ : Irreducible ϖ) {X Y : TempObj O R A} (m : X ⟶ Y) (D : WData x X.Lv)
     (D' : WData x Y.Lv) :
     SemistableReduction.ModelCode.IsHarmonicX D.O' D'.O' D.ϖ' D'.ϖ' (D.ϖL ϖ) (D'.ϖL ϖ) D.xL

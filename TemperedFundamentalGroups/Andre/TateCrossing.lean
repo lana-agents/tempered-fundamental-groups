@@ -199,7 +199,7 @@ variable [CharZero K] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
 
 omit [Algebra.Smooth K R] in
 /-- **`CrossingX1` for the model map of a member to the Tate model.** -/
-theorem crossing_tate (hC : SemistableReduction.Statement.CrossingX1.{u})
+theorem crossing_tate (hC : SemistableReduction.Statement.CrossingX1S.{u})
     (hx : Transcendental K T.x) {ϖ : O} (hϖ : Irreducible ϖ) (a : Q.U ⟶ X₀ (A := A) T)
     (y' : (tgtModel T).scheme) (w₁' w₂' : Set (tgtModel T).scheme)
     (hw₁ : w₁' ∈ SemistableReduction.ModelCode.components (tgtModel T))
@@ -248,7 +248,7 @@ theorem crossing_tate (hC : SemistableReduction.Statement.CrossingX1.{u})
 omit [Algebra.Smooth K R] in
 /-- **`HarmonicTate` from `CrossingX1`** when `b₆` is a unit (the special fibre of the Tate model
 is the 2-gon `C ∪ E` with nodes `p`, `q`). -/
-theorem harmonicTate_of_crossingX1 (hC : SemistableReduction.Statement.CrossingX1.{u})
+theorem harmonicTate_of_crossingX1 (hC : SemistableReduction.Statement.CrossingX1S.{u})
     (hb : IsUnit T.b₆) (hx : Transcendental K T.x) {ϖ : O} (hϖ : Irreducible ϖ)
     (a : Q.U ⟶ X₀ (A := A) T) : Q.HarmonicTate T {(decomp (A := A) T).E} a := by
   have hCc := mem_irreducibleComponents_C (A := A) T
