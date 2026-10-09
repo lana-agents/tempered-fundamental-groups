@@ -15,7 +15,7 @@ import TemperedFundamentalGroups.SemistableReduction.TypeFourKummerAssembly
 import TemperedFundamentalGroups.SemistableReduction.OffSkeleton
 import TemperedFundamentalGroups.SemistableReduction.TypeFourCoreG
 import TemperedFundamentalGroups.SemistableReduction.ExhaustLimit
-import TemperedFundamentalGroups.SemistableReduction.TypeThreeGermTwo
+import TemperedFundamentalGroups.SemistableReduction.Type3Germ
 import TemperedFundamentalGroups.SemistableReduction.ExhaustDescent
 import TemperedFundamentalGroups.SemistableReduction.ExhaustGlue
 
@@ -35,12 +35,12 @@ Blueprint §9.12 (final glue). Of the leaves of `W7.Leaves`, the following are p
   `TypeFour.DegRed.degreeReductionFor`) with part (G) `TypeFour.coreGFor`;
 * (D⇐) and (T⇐) (O12) modulo the two `δ`-count steps, the two-sided type-3 germ and the type-4
   leaf: `ExhaustGluing.smoothOfDiscCond_and_exhaustingOfTube`;
-* the (one-sided) type-3 germ from the two-sided one: `S8A.typeThreeGermFor_of_two`;
+* the type-3 germ (O6.1h), two-sided: `S8A.typeThreeGermTwoFor` (via STAB3, O13), and one-sided:
+  `S8A.typeThreeGermFor`;
 * the `δ`-count steps `ExhaustDescentFor`, `ExhaustGlueFor`: `ExhaustDescent.exhaustDescentFor`,
   `ExhaustGlue.exhaustGlueFor`.
 
-`W7.OpenLeaves` collects the remaining ones: the two-sided type-3 germ `S8A.TypeThreeGermTwoFor`
-and R5.
+`W7.OpenLeaves` collects the remaining one: R5 (`S8A.R5MeasureFor`).
 **`W10Assembly.strongA_of_openLeaves`**.
 -/
 
@@ -54,11 +54,6 @@ namespace W7
 
 /-- The still open local leaves of `W7.Statement` (Blueprint §9.12). -/
 structure OpenLeaves : Prop where
-  /-- The two-sided type-3 germ (O6.1h). -/
-  typeThreeTwo : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
-    [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
-    ∀ (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F] [IsScalarTower C (RatFunc C) F]
-    [FiniteDimensional (RatFunc C) F], DefinedOverDVR C F → S8A.TypeThreeGermTwoFor C F
   /-- R5 (O6.2), for Galois `F`. -/
   r5 : ∀ (C : Type u) [NontriviallyNormedField C] [IsUltrametricDist C] [IsAlgClosed C]
     [CharZero C] (p : ℕ), p.Prime → ‖(p : C)‖ < 1 →
@@ -75,14 +70,14 @@ theorem typeFourGood (C : Type u) [NontriviallyNormedField C]
   TypeFour.typeFourGoodFor_of_coreG hp hp1 (fun L _ _ _ _ _ _ ↦ TypeFour.coreGFor hp hp1 L)
     (fun _ _ _ _ _ _ _ _ _ ↦ a6For hp hp1)
 
-/-- (D⇐) and (T⇐) from the open leaves. -/
-theorem OpenLeaves.smooth_exh (h : OpenLeaves.{u}) (C : Type u) [NontriviallyNormedField C]
+/-- (D⇐) and (T⇐) (proved). -/
+theorem smooth_exh (C : Type u) [NontriviallyNormedField C]
     [IsUltrametricDist C] [IsAlgClosed C] [CharZero C] (p : ℕ) (hp : p.Prime)
     (hp1 : ‖(p : C)‖ < 1) (F : Type u) [Field F] [Algebra (RatFunc C) F] [Algebra C F]
-    [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F]
-    (hdef : DefinedOverDVR C F) : SmoothOfDiscCond C F ∧ ExhaustingOfTube C F :=
+    [IsScalarTower C (RatFunc C) F] [FiniteDimensional (RatFunc C) F] :
+    SmoothOfDiscCond C F ∧ ExhaustingOfTube C F :=
   smoothOfDiscCond_and_exhaustingOfTube hp hp1 (ExhaustDescent.exhaustDescentFor hp hp1)
-    (ExhaustGlue.exhaustGlueFor hp hp1) (h.typeThreeTwo C p hp hp1 F hdef)
+    (ExhaustGlue.exhaustGlueFor hp hp1) (S8A.typeThreeGermTwoFor hp hp1)
     (typeFourGood C p hp hp1 F)
 
 /-- The leaves of `W7.Statement` from the still open ones. -/
@@ -97,22 +92,22 @@ theorem leaves_of_open (h : OpenLeaves.{u}) : Leaves.{u, u} where
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _
     exact discCondOfSmooth hp hp1
   exhOfTube := by
-    intro C _ _ _ _ p hp hp1 F _ _ _ _ _ hdef
-    exact (h.smooth_exh C p hp hp1 F hdef).2
+    intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _
+    exact (smooth_exh C p hp hp1 F).2
   smoothOfDisc := by
-    intro C _ _ _ _ p hp hp1 F _ _ _ _ _ hdef
-    exact (h.smooth_exh C p hp hp1 F hdef).1
+    intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _
+    exact (smooth_exh C p hp hp1 F).1
   l7 := by
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _ hdef
     exact S8A.l7For_of (tubeOfExhausting_of_definedOverDVR hp hp1 hdef
       (offSkeletonOfExhausting hp hp1 (nodeDataOfODP hp hp1 hdef)))
-      (h.smooth_exh C p hp hp1 F hdef).1
+      (smooth_exh C p hp hp1 F).1
   a6 := by
     intro C _ _ _ _ p hp hp1 E _ _ _ _ _ L _ _ _ _ _ _ _ _
     exact a6For hp hp1
   typeThree := by
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ hdef
-    exact S8A.typeThreeGermFor_of_two (h.typeThreeTwo C p hp hp1 F hdef)
+    exact S8A.typeThreeGermFor hp hp1 hdef
   r5 := h.r5
   finiteBad := by
     intro C _ _ _ _ p hp hp1 F _ _ _ _ _ _
@@ -123,7 +118,7 @@ theorem leaves_of_open (h : OpenLeaves.{u}) : Leaves.{u, u} where
   descent := S8A.s8cDescent_of
     (fun _ _ _ _ _ _ hp hp1 _ _ _ _ _ _ hdef ↦
       offSkeletonOfExhausting hp hp1 (nodeDataOfODP hp hp1 hdef))
-    (fun C _ _ _ _ p hp hp1 F _ _ _ _ _ hdef ↦ (h.smooth_exh C p hp hp1 F hdef).2)
+    (fun C _ _ _ _ p hp hp1 F _ _ _ _ _ _ ↦ (smooth_exh C p hp hp1 F).2)
 
 /-- **`W7.Statement` from the still open leaves.** -/
 theorem statement_of_openLeaves (h : OpenLeaves.{u}) : W7.Statement.{u, u} :=
