@@ -199,6 +199,66 @@ def hom : D₁.obj hX₁ ⟶ D₂.obj hX₂ where
       rw [CoveringCode.pullbackPt_actFun, pullbackPt_homH, m.h_act, toH'_equivT, homR_equivT,
         toH'_equivT]
 
+section Functor
+
+lemma homψ_id {X' : TempObj O R A'} (D : IndData μ X') :
+    homψ D D (𝟙 X') (MonoidHom.id D.S) = 𝟙 _ :=
+  D.c_hom_ext fun x => by
+    rw [inc_homψ, Category.comp_id]
+    exact Category.id_comp _
+
+lemma hom_id {X' : TempObj O R A'} (D : IndData μ X') (hX : IndFaithful X') :
+    hom D D hX hX (𝟙 X') (MonoidHom.id D.S) (fun _ => rfl) (fun _ => rfl) = 𝟙 (D.obj hX) := by
+  refine TempObj.Hom.ext (FiniteLevel.Hom.ext (AlgHom.ext fun y => D.ext_ev fun x => ?_)
+    (MonoidHom.ext fun g => ?_)) (homψ_id D) (funext fun q => ?_)
+  · change D.ev x (homF D D (𝟙 X') (MonoidHom.id D.S) (fun _ => rfl) y) = D.ev x y
+    rw [ev_homF]
+    rfl
+  · obtain ⟨t, rfl⟩ := (D.equivT hX).surjective g
+    change homR D D hX hX (𝟙 X') (MonoidHom.id D.S) _ = _
+    rw [homR_equivT]
+    rfl
+  · refine CoveringCode.pullback_ext X'.P (D.foldS hX) (Subtype.ext ?_) rfl
+    change (homψS D D hX hX (𝟙 X') (MonoidHom.id D.S) q.1.1).1 = q.1.1.1
+    rw [homψS_coe, homψ_id]
+    rfl
+
+variable {X₃ : TempObj O R A'} (D₃ : IndData μ X₃) (hX₃ : IndFaithful X₃) (m' : X₂ ⟶ X₃)
+  (θ' : D₂.S →* D₃.S) (hθα' : ∀ x, D₃.α (θ' x) = D₂.α x)
+  (hθβ' : ∀ k, θ' (D₂.β k) = D₃.β (m'.φ.r k))
+
+lemma homψ_comp : homψ D₁ D₂ m θ ≫ homψ D₂ D₃ m' θ' = homψ D₁ D₃ (m ≫ m') (θ'.comp θ) :=
+  D₁.c_hom_ext fun x => by
+    rw [inc_homψ_assoc, inc_homψ, inc_homψ, TempObj.comp_ψ, Category.assoc]
+    rfl
+
+include hθβ hθβ' in
+lemma hom_comp :
+    hom D₁ D₂ hX₁ hX₂ m θ hθα hθβ ≫ hom D₂ D₃ hX₂ hX₃ m' θ' hθα' hθβ' =
+      hom D₁ D₃ hX₁ hX₃ (m ≫ m') (θ'.comp θ) (fun x => (hθα' (θ x)).trans (hθα x))
+        (fun k => (congrArg θ' (hθβ k)).trans (hθβ' _)) := by
+  refine TempObj.Hom.ext (FiniteLevel.Hom.ext (AlgHom.ext fun y => D₁.ext_ev fun x => ?_)
+    (MonoidHom.ext fun g => ?_)) (homψ_comp D₁ D₂ m θ D₃ m' θ') (funext fun q => ?_)
+  · change D₁.ev x (homF D₁ D₂ m θ hθα (homF D₂ D₃ m' θ' hθα' y)) =
+      D₁.ev x (homF D₁ D₃ (m ≫ m') (θ'.comp θ) _ y)
+    rw [ev_homF, ev_homF, ev_homF]
+    rfl
+  · obtain ⟨t, rfl⟩ := (D₁.equivT hX₁).surjective g
+    change homR D₂ D₃ hX₂ hX₃ m' θ' (homR D₁ D₂ hX₁ hX₂ m θ _) =
+      homR D₁ D₃ hX₁ hX₃ (m ≫ m') (θ'.comp θ) _
+    rw [homR_equivT, homR_equivT, homR_equivT]
+    rfl
+  · refine CoveringCode.pullback_ext X₃.P (D₃.foldS hX₃) (Subtype.ext ?_) ?_
+    · change (homψS D₂ D₃ hX₂ hX₃ m' θ' (homψS D₁ D₂ hX₁ hX₂ m θ q.1.1)).1 =
+        (homψS D₁ D₃ hX₁ hX₃ (m ≫ m') (θ'.comp θ) q.1.1).1
+      rw [homψS_coe, homψS_coe, homψS_coe, ← homψ_comp, Scheme.Hom.comp_apply]
+    · change (m'.h (CoveringCode.pullbackPt X₂.P (D₂.foldS hX₂) (homH D₁ D₂ hX₁ hX₂ m θ q))).1.2 =
+        ((m ≫ m').h (CoveringCode.pullbackPt X₁.P (D₁.foldS hX₁) q)).1.2
+      rw [pullbackPt_homH]
+      rfl
+
+end Functor
+
 end IndData
 
 end
