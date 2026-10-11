@@ -76,6 +76,7 @@ import TemperedFundamentalGroups.Andre.TheoremBHLoop
 import TemperedFundamentalGroups.Andre.TheoremBUnfolded
 import TemperedFundamentalGroups.Andre.TheoremBW
 import TemperedFundamentalGroups.Andre.Transfer
+import TemperedFundamentalGroups.Andre.TransferCompare
 import TemperedFundamentalGroups.Andre.TransferGeneric
 import TemperedFundamentalGroups.Andre.TransferTate
 import TemperedFundamentalGroups.Andre.Transport
