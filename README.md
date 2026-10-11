@@ -76,18 +76,27 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   `Y → [Y/A]` (`restrictHom_eq_temperedPi1Map`, `Andre/TransferCompare.lean`).
   Changing the valued field `(K, O) → (K', O')` gives the continuous homomorphism
   `temperedPi1FieldMap : temperedPi1 O' R' A' →* temperedPi1 O R A` (`Tempered/FieldChange.lean`;
-  models are base-changed to `O'`, `Models/BaseChange.lean`, and replaced by the image of the generic
-  fibre, `Models/Image.lean`). It factors as the pure field change followed by
+  models are base-changed to `O'`, `Models/BaseChange.lean`, and replaced by the image of the
+  generic fibre, `Models/Image.lean`). It factors as the pure field change followed by
   `temperedPi1Map μ` (`temperedPi1FieldMap_comp`, `temperedPi1FieldMap_eq_comp`), so its image fixes
   the base point of a finite étale `Spec R' → Spec R` (e.g. `R' = K' ⊗_K R`)
   (`Tempered/FieldChangeImage.lean`). If `O'` is finite over `O`, the pure field change is an
   isomorphism of topological groups `temperedPi1FieldEquiv` (`Tempered/FieldChangePure.lean`, via
   restriction of scalars of models along a closed immersion `ℙᵐ_{O'} ⟶ ℙᴺ_O`,
-  `Models/RestrictScalars.lean`, and the criterion `FibreFunctor/SectionRestrict.lean`), so
-  `temperedPi1FieldMap hO μ` is an open embedding onto that stabilizer, of finite index
-  (`isOpenEmbedding_temperedPi1FieldMap`, `range_temperedPi1FieldMap`,
-  `finiteIndex_range_temperedPi1FieldMap`); with Theorem A on both sides André's groups agree,
-  `andreFieldEquiv` (`Andre/FieldChange.lean`).
+  `Models/RestrictScalars.lean`, and the criterion `FibreFunctor/SectionRestrict.lean`). This
+  holds whenever `O` is a complete DVR and `K'/K` is finite separable (`valMap_finite`,
+  `Tempered/FieldChangeFinite.lean`: the integral closure of a complete DVR is local and is the
+  unique valuation ring over it, `Setup/CompleteDVRExtension.lean`), giving the unconditional
+  `temperedPi1FieldEquiv'`. Hence `temperedPi1FieldMap hO μ` has the same image as
+  `temperedPi1Map μ` (`range_temperedPi1FieldMap_eq`): an open embedding onto the finite-index
+  stabilizer for `Spec R' → Spec R` finite étale (`isOpenEmbedding_temperedPi1FieldMap'`,
+  `range_temperedPi1FieldMap'`, `finiteIndex_range_temperedPi1FieldMap'`), for orbifold covers
+  and the mixed case (`*_temperedPi1FieldMap_orbifold`, `*_mixed`,
+  `Tempered/FieldChangeOrbifold.lean`), and an open subgroup of finite index for finite étale maps
+  of orbifolds `[Spec R' / A'] → [Spec R / A]` (`isOpen_range_temperedPi1FieldMap_etaleOrb`,
+  `finiteIndex_range_temperedPi1FieldMap_etaleOrb`; there `temperedPi1Map` has finite kernel,
+  `finite_ker_temperedPi1Map_etaleOrb`, injectivity is open). With Theorem A on both sides
+  André's groups agree, `andreFieldEquiv'` (`Andre/FieldChange.lean`).
   The comparison maps are natural: `temperedToEtale_temperedPi1Map` (with `etalePi1Map μ`,
   `Tempered/BaseChangeEtale.lean`) and `andreEquiv'_temperedPi1Map` (with `andreGroupMap μ`,
   `Andre/Functoriality.lean`).

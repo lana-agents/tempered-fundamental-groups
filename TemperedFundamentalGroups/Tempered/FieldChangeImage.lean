@@ -29,11 +29,10 @@ finite étale over `R`:
   surjective), then so is `temperedPi1FieldMap hO μ` onto the stabilizer — an open subgroup of
   finite index.
 
-**Remaining** (not formalized): the pure field change
-`temperedPi1FieldMap hO (OrbMap.id R' A') : temperedPi1 O' R' A' →* temperedPi1 O R' A'` is an
-isomorphism of topological groups (for `K'/K` finite and `O'` finite over `O`, e.g. `O`
-henselian). This needs a transfer of models over `O'` (closed subschemes of `ℙ^m_{O'}`) to
-models over `O`, i.e. a projective embedding of `ℙ^m_{O'}` over `O`.
+The pure field change is an isomorphism of topological groups for `O'` finite over `O`
+(`temperedPi1FieldEquiv`, `Tempered/FieldChangePure.lean`), which holds for `O` a complete DVR
+and `K'/K` finite separable (`valMap_finite`, `Tempered/FieldChangeFinite.lean`); the orbifold
+analogues are in `Tempered/FieldChangeOrbifold.lean`.
 -/
 
 universe u
