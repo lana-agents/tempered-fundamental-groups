@@ -8,6 +8,7 @@ import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.DualGraphMap
 import TemperedFundamentalGroups.Andre.DualGraphPi1
+import TemperedFundamentalGroups.Andre.FieldChange
 import TemperedFundamentalGroups.Andre.FracGalois
 import TemperedFundamentalGroups.Andre.FracMap
 import TemperedFundamentalGroups.Andre.FunctionFieldFinite
