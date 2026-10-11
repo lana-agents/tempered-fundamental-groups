@@ -69,11 +69,19 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   (`R = R'`, `A` finite, `R` a noetherian domain, `A'` acting faithfully, `A` acting
   `K`-linearly): `temperedPi1Map_injective_orbifold`, `isOpenEmbedding_temperedPi1Map_orbifold`,
   `range_temperedPi1Map_orbifold`, `finiteIndex_range_temperedPi1Map_orbifold`
-  (`Tempered/OrbifoldCover.lean`, via induced coverings `Tempered/Induced*.lean`).
+  (`Tempered/OrbifoldCover.lean`, via induced coverings `Tempered/Induced*.lean`), and for the
+  composite `Spec R' → Spec R → [Spec R / A]` (`temperedPi1Map_injective_mixed`,
+  `isOpenEmbedding_temperedPi1Map_mixed`, `finiteIndex_range_temperedPi1Map_mixed`,
+  `Tempered/MixedCover.lean`). The restriction `restrictHom` of T1 is the special case
+  `Y → [Y/A]` (`restrictHom_eq_temperedPi1Map`, `Andre/TransferCompare.lean`).
   Changing the valued field `(K, O) → (K', O')` gives the continuous homomorphism
   `temperedPi1FieldMap : temperedPi1 O' R' A' →* temperedPi1 O R A` (`Tempered/FieldChange.lean`;
   models are base-changed to `O'`, `Models/BaseChange.lean`, and replaced by the image of the generic
-  fibre, `Models/Image.lean`).
+  fibre, `Models/Image.lean`). It factors as the pure field change followed by
+  `temperedPi1Map μ` (`temperedPi1FieldMap_comp`, `temperedPi1FieldMap_eq_comp`), so its image fixes
+  the base point of a finite étale `Spec R' → Spec R` (e.g. `R' = K' ⊗_K R`), and it is an open
+  embedding onto that stabilizer if the pure field change is a homeomorphism
+  (`Tempered/FieldChangeImage.lean`; that last hypothesis is not yet formalized).
   The comparison maps are natural: `temperedToEtale_temperedPi1Map` (with `etalePi1Map μ`,
   `Tempered/BaseChangeEtale.lean`) and `andreEquiv'_temperedPi1Map` (with `andreGroupMap μ`,
   `Andre/Functoriality.lean`).
