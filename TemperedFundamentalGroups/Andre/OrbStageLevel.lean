@@ -282,6 +282,160 @@ theorem levelCls_surjective_obj : Function.Surjective (levelCls V hV (obj D hX h
   rw [ha]
   exact congrArg _ ht
 
+variable (hsurj : Function.Surjective (levelCls V hV (obj D hX hp hc)))
+
+/-- **The action of the stage group of `OrbGal.obj` on level classes** `F_L / H⁰`
+(`hsurj`: `levelCls_surjective_obj`). -/
+abbrev stageLevelO : stageGroup (tempFibre O R A V hV) (obj D hX hp hc) →*
+    Equiv.Perm (LevelCls Ω (obj D hX hp hc)) :=
+  stageCls V hV hsurj
+
+include hidem hgal hsym hact hbase in
+/-- **The kernel of the action on level classes is the deck group of `Z̃`.** -/
+theorem ker_stageLevelO :
+    (stageLevelO V hV D hX hp hc hsurj).ker = (deckStageO V hV D hX hp hc).range := by
+  obtain ⟨t₀, e₀, he₀⟩ := id hbase
+  ext σ
+  rw [mem_range_deckStageO_iff V hV D hX hp hc hidem hgal hsym hact t₀ e₀ he₀, MonoidHom.mem_ker]
+  constructor
+  · intro h u
+    rw [sameLevel_iff, ← stageCls_levelCls V hV hsurj, h]
+    rfl
+  · intro h
+    refine Equiv.ext fun c => ?_
+    obtain ⟨u, rfl⟩ := hsurj c
+    rw [stageCls_levelCls]
+    exact (sameLevel_iff V hV D hX hp hc _ _).1 (h u)
+
+/-- The stage group element of an automorphism with level part `twF x γ` acts as `(x, γ)`. -/
+lemma stageLevelO_stageOf (a : obj D hX hp hc ≅ obj D hX hp hc) (g : twGroup D)
+    (ha : a.hom.φ.f = twF D g.1.1 g.1.2 g.2) :
+    stageLevelO V hV D hX hp hc hsurj (stageOf a) =
+      twPerm Ω D hX hp hc (MulOpposite.op g) := by
+  refine Equiv.ext fun c => ?_
+  induction c using Quotient.inductionOn with | h t => ?_
+  rw [stageCls_stageOf_mk]
+  exact congrArg (fun f => Quotient.mk _ (t.comp f)) ha
+
+include hidem hgal hsym hact hbase in
+/-- **Every element of the stage group is induced by a twisted automorphism** `twIso`. -/
+lemma exists_stageOf_tw (σ : stageGroup (tempFibre O R A V hV) (obj D hX hp hc)) :
+    ∃ (g : twGroup D) (a : obj D hX hp hc ≅ obj D hX hp hc),
+      a.hom.φ.f = twF D g.1.1 g.1.2 g.2 ∧ σ = stageOf a := by
+  obtain ⟨t₀, e₀, he₀⟩ := id hbase
+  let q₀ := basePre D hX hp hc V hV t₀ e₀ he₀
+  obtain ⟨x, γ, hγ, eψ, heψ, hj, hj', τ, hτ, hq⟩ :=
+    exists_iso_preMap D hX hp hc V hV hgal hsym hact t₀ e₀ he₀
+      (Quotient.out (σ.1 (Quotient.mk _ q₀)))
+  refine ⟨⟨(x, γ), hγ⟩, twIso D hX hp hc x γ hγ eψ heψ hj hj' τ hτ, rfl,
+    stage_ext V hV D hX hp hc hidem hgal hsym hact t₀ e₀ he₀ (Quotient.mk _ q₀) ?_⟩
+  rw [stageOf_apply]
+  exact (Quotient.out_eq _).symm.trans (congrArg (Quotient.mk _) hq.symm)
+
+include hidem hgal hsym hact hbase in
+/-- **The image of the stage group on level classes is exactly the image of the twisted
+pairs** (`⊆`: every automorphism is twisted; `⊇`: every twisted pair is an automorphism). -/
+theorem range_stageLevelO :
+    (stageLevelO V hV D hX hp hc hsurj).range = (twPerm Ω D hX hp hc).range := by
+  ext π
+  constructor
+  · rintro ⟨σ, rfl⟩
+    obtain ⟨g, a, ha, rfl⟩ := exists_stageOf_tw V hV D hX hp hc hidem hbase hgal hsym hact σ
+    exact ⟨MulOpposite.op g, (stageLevelO_stageOf V hV D hX hp hc hsurj a g ha).symm⟩
+  · rintro ⟨g, rfl⟩
+    obtain ⟨a, ha⟩ := exists_twIso V hV D hX hp hc hbase hact g.unop.1.1 g.unop.1.2 g.unop.2
+    exact ⟨stageOf a, stageLevelO_stageOf V hV D hX hp hc hsurj a g.unop ha⟩
+
+include hidem hgal hsym hact hbase in
+lemma stageLevelO_mem_range (σ : stageGroup (tempFibre O R A V hV) (obj D hX hp hc)) :
+    stageLevelO V hV D hX hp hc hsurj σ ∈ (twPerm Ω D hX hp hc).range :=
+  (range_stageLevelO V hV D hX hp hc hidem hbase hgal hsym hact hsurj).le ⟨σ, rfl⟩
+
+/-- **The stage group of `OrbGal.obj` maps onto `(SemilinearAut R A B)ᵐᵒᵖ`**: `σ ↦ γ` for
+`σ` acting on level classes as the twisted pair `(x, γ)`. -/
+def stageSemilinO :
+    stageGroup (tempFibre O R A V hV) (obj D hX hp hc) →* (SemilinearAut R A X₁.Lv.L.B)ᵐᵒᵖ :=
+  (twRangeEquiv V hV D hX hp hc hidem hbase).toMonoidHom.comp
+    ((stageLevelO V hV D hX hp hc hsurj).codRestrict (twPerm Ω D hX hp hc).range
+      (stageLevelO_mem_range V hV D hX hp hc hidem hbase hgal hsym hact hsurj))
+
+/-- `stageSemilinO σ = γ` if `σ` acts on level classes as a twisted pair `(x, γ)`. -/
+lemma stageSemilinO_eq (σ : stageGroup (tempFibre O R A V hV) (obj D hX hp hc))
+    (g : (twGroup D)ᵐᵒᵖ) (h : stageLevelO V hV D hX hp hc hsurj σ = twPerm Ω D hX hp hc g) :
+    stageSemilinO V hV D hX hp hc hidem hbase hgal hsym hact hsurj σ = twSnd D g := by
+  have h' : (stageLevelO V hV D hX hp hc hsurj).codRestrict (twPerm Ω D hX hp hc).range
+      (stageLevelO_mem_range V hV D hX hp hc hidem hbase hgal hsym hact hsurj) σ =
+      ⟨twPerm Ω D hX hp hc g, g, rfl⟩ := Subtype.ext h
+  rw [stageSemilinO, MonoidHom.comp_apply, h']
+  exact twRangeEquiv_apply V hV D hX hp hc hidem hbase g
+
+/-- The value of `stageSemilinO` on the stage group element of an automorphism with level part
+`twF x γ` is `γ`. -/
+lemma stageSemilinO_stageOf (a : obj D hX hp hc ≅ obj D hX hp hc) (g : twGroup D)
+    (ha : a.hom.φ.f = twF D g.1.1 g.1.2 g.2) :
+    stageSemilinO V hV D hX hp hc hidem hbase hgal hsym hact hsurj (stageOf a) =
+      MulOpposite.op g.1.2 :=
+  stageSemilinO_eq V hV D hX hp hc hidem hbase hgal hsym hact hsurj _ (MulOpposite.op g)
+    (stageLevelO_stageOf V hV D hX hp hc hsurj a g ha)
+
+/-- **The kernel of `stageSemilinO` is the deck group of `Z̃`.** -/
+theorem ker_stageSemilinO :
+    (stageSemilinO V hV D hX hp hc hidem hbase hgal hsym hact hsurj).ker =
+      (deckStageO V hV D hX hp hc).range := by
+  rw [← ker_stageLevelO V hV D hX hp hc hidem hbase hgal hsym hact hsurj]
+  ext σ
+  rw [MonoidHom.mem_ker, MonoidHom.mem_ker, stageSemilinO, MonoidHom.comp_apply,
+    MulEquiv.coe_toMonoidHom, MulEquiv.map_eq_one_iff, Subtype.ext_iff]
+  rfl
+
+/-- **`stageSemilinO` is surjective**: every semilinear automorphism of `B` is realised. -/
+theorem stageSemilinO_surjective :
+    Function.Surjective (stageSemilinO V hV D hX hp hc hidem hbase hgal hsym hact hsurj) := by
+  intro γ
+  obtain ⟨g, rfl⟩ := twSnd_surjective D γ
+  obtain ⟨σ, hσ⟩ := (range_stageLevelO V hV D hX hp hc hidem hbase hgal hsym hact hsurj).ge
+    ⟨g, rfl⟩
+  exact ⟨σ, stageSemilinO_eq V hV D hX hp hc hidem hbase hgal hsym hact hsurj σ g hσ⟩
+
+include hidem hgal hsym hact hbase in
+/-- The deck group of `Z̃` is a normal subgroup of the stage group. -/
+theorem range_deckStageO_normal : (deckStageO V hV D hX hp hc).range.Normal := by
+  rw [← ker_stageSemilinO V hV D hX hp hc hidem hbase hgal hsym hact
+    (levelCls_surjective_obj V hV D hX hp hc hbase hgal hsym hact)]
+  infer_instance
+
+/-- **`Π_U / deck ≃* (SemilinearAut R A B)ᵐᵒᵖ`** (the kernel of `stageSemilinO` being the deck
+group, `ker_stageSemilinO`). -/
+def stageQuotEquivO :
+    stageGroup (tempFibre O R A V hV) (obj D hX hp hc) ⧸
+        (stageSemilinO V hV D hX hp hc hidem hbase hgal hsym hact hsurj).ker ≃*
+      (SemilinearAut R A X₁.Lv.L.B)ᵐᵒᵖ :=
+  QuotientGroup.quotientKerEquivOfSurjective _
+    (stageSemilinO_surjective V hV D hX hp hc hidem hbase hgal hsym hact hsurj)
+
+include hidem hgal hsym hact hbase in
+/-- **G6, orbifold case: the stage group `Π_U` of `U = OrbGal.obj` is an extension of
+`(SemilinearAut R A B)ᵐᵒᵖ` by the deck group of `Z̃`**: `deckStageO` is injective, its image is
+the kernel of the action on level classes, whose image is the image of the twisted pairs
+`(x, γ)`, acting with kernel `{(x, 1) | α x = 1}`; and `stageSemilinO` is surjective with kernel
+the deck group:
+`1 → π₁(Z̃ → Z₁) → Π_U → (SemilinearAut R A B)ᵐᵒᵖ → 1`. -/
+theorem stageGroupO_extension :
+    Function.Injective (deckStageO V hV D hX hp hc) ∧
+      (stageLevelO V hV D hX hp hc hsurj).ker = (deckStageO V hV D hX hp hc).range ∧
+      (stageLevelO V hV D hX hp hc hsurj).range = (twPerm Ω D hX hp hc).range ∧
+      (∀ g, g ∈ (twPerm Ω D hX hp hc).ker ↔ D.α g.unop.1.1 = 1 ∧ g.unop.1.2 = 1) ∧
+      Function.Surjective (stageSemilinO V hV D hX hp hc hidem hbase hgal hsym hact hsurj) ∧
+      (stageSemilinO V hV D hX hp hc hidem hbase hgal hsym hact hsurj).ker =
+        (deckStageO V hV D hX hp hc).range := by
+  obtain ⟨t₀, e₀, he₀⟩ := id hbase
+  exact ⟨deckStageO_injective V hV D hX hp hc hidem hgal hsym hact t₀ e₀ he₀,
+    ker_stageLevelO V hV D hX hp hc hidem hbase hgal hsym hact hsurj,
+    range_stageLevelO V hV D hX hp hc hidem hbase hgal hsym hact hsurj,
+    mem_ker_twPerm D hX hp hc hidem t₀,
+    stageSemilinO_surjective V hV D hX hp hc hidem hbase hgal hsym hact hsurj,
+    ker_stageSemilinO V hV D hX hp hc hidem hbase hgal hsym hact hsurj⟩
+
 end Stage
 
 end OrbGal
