@@ -94,9 +94,12 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   and the mixed case (`*_temperedPi1FieldMap_orbifold`, `*_mixed`,
   `Tempered/FieldChangeOrbifold.lean`), and an open subgroup of finite index for finite étale maps
   of orbifolds `[Spec R' / A'] → [Spec R / A]` (`isOpen_range_temperedPi1FieldMap_etaleOrb`,
-  `finiteIndex_range_temperedPi1FieldMap_etaleOrb`; there `temperedPi1Map` has finite kernel,
-  `finite_ker_temperedPi1Map_etaleOrb`, injectivity is open). With Theorem A on both sides
-  André's groups agree, `andreFieldEquiv'` (`Andre/FieldChange.lean`).
+  `finiteIndex_range_temperedPi1FieldMap_etaleOrb`), where `temperedPi1Map` and the field change are
+  open embeddings (`isOpenEmbedding_temperedPi1Map_etaleOrb`,
+  `isOpenEmbedding_temperedPi1FieldMap_etaleOrb`, `Tempered/EtaleOrbCover.lean`). With Theorem A on
+  both sides André's groups agree, `andreFieldEquiv'` (`Andre/FieldChange.lean`); the direct
+  field change `andreFieldMap` (restriction of scalars of semistable coverings,
+  `Andre/FieldChangeDirect.lean`) is its inverse (`andreFieldEquivDirect_symm`).
   The comparison maps are natural: `temperedToEtale_temperedPi1Map` (with `etalePi1Map μ`,
   `Tempered/BaseChangeEtale.lean`) and `andreEquiv'_temperedPi1Map` (with `andreGroupMap μ`,
   `Andre/Functoriality.lean`).
@@ -128,7 +131,11 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   orbifold Galois objects `galClassO` (`Ind_1^S Z̃` over levels induced from scheme levels that
   are Galois over `[Spec R / A]`, `Andre/OrbGalois*.lean`, with Galois closures over
   `[Spec R / A]`, `Andre/OrbClosure.lean`); the deck group of `Z̃` is the kernel of the action of
-  each stage group on level classes (`mem_range_deckStageO_iff`, `Andre/OrbStageGroup.lean`).
+  each stage group on level classes (`mem_range_deckStageO_iff`, `Andre/OrbStageGroup.lean`), and
+  `stageGroupO_extension` (`Andre/OrbStageLevel.lean`) gives `1 → deck → Π_U →
+  (SemilinearAut R A B)ᵐᵒᵖ → 1`, the image on level classes being the action of
+  `S ×_A SemilinearAut R A B` modulo `ker α × 1`; transition maps preserve deck groups and induce
+  the maps of trees (`Andre/OrbStageFunctor.lean`).
 
 ### Not covered
 
