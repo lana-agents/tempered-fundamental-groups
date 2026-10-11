@@ -127,7 +127,8 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   `andreGroupHomeoLimO : andreGroup ≃ₜ* stageLimitO` (`Andre/OrbStageLimit.lean`), over the
   orbifold Galois objects `galClassO` (`Ind_1^S Z̃` over levels induced from scheme levels that
   are Galois over `[Spec R / A]`, `Andre/OrbGalois*.lean`, with Galois closures over
-  `[Spec R / A]`, `Andre/OrbClosure.lean`).
+  `[Spec R / A]`, `Andre/OrbClosure.lean`); the deck group of `Z̃` is the kernel of the action of
+  each stage group on level classes (`mem_range_deckStageO_iff`, `Andre/OrbStageGroup.lean`).
 
 ### Not covered
 
