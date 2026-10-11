@@ -61,7 +61,10 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   `μ : OrbMap R A R' A'` (`[Spec R' / A'] → [Spec R / A]`: an injective `K`-algebra map `R → R'`
   and a compatible group homomorphism `A' →* A`; finite étale covers, removal of points, orbifold
   covers) induces a continuous homomorphism `temperedPi1 O R' A' V hV →* temperedPi1 O R A V hV`,
-  by base change of tempered coverings (`TempObj.bcFunctor`, `R' ⊗_R B` with `H ×_A A'`).
+  by base change of tempered coverings (`TempObj.bcFunctor`, `R' ⊗_R B` with `H ×_A A'`). For a
+  finite étale cover `Spec R' → Spec R` (trivial groups) it is injective with open image of finite
+  index, the stabilizer of the base point of the cover (`temperedPi1Map_injective`,
+  `mem_range_temperedPi1Map`, `finiteIndex_range_temperedPi1Map`, `Tempered/CoverImage.lean`).
 * **Zariski connectedness for model codes**
   `TemperedFundamentalGroups.SemistableReduction.Statement.zariskiConnected`
   (`SemistableReduction/ZariskiConnectedProof.lean`). A projective model over the valuation ring

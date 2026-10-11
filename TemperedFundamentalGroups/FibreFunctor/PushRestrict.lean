@@ -164,7 +164,8 @@ theorem range_restrict : (FibreAut.restrict G e).range = D.stab := by
     exact ⟨D.lift γ hγ, D.restrict_lift γ hγ⟩
 
 /-- The action of `Aut F` on the fibre `F E`. -/
-@[reducible] noncomputable def fibreAction (D : PushData G e) : MulAction (FibreAut F) (F.obj D.E) where
+@[reducible] noncomputable def fibreAction (D : PushData G e) :
+    MulAction (FibreAut F) (F.obj D.E) where
   smul γ x := γ.app D.E x
   one_smul _ := rfl
   mul_smul _ _ _ := rfl
@@ -174,7 +175,7 @@ lemma stab_eq : D.stab = @MulAction.stabilizer _ _ _ D.fibreAction D.x₀ := rfl
 theorem finiteIndex_range_restrict [Finite (F.obj D.E)] :
     (FibreAut.restrict G e).range.FiniteIndex := by
   letI := D.fibreAction
-  rw [range_restrict, stab_eq]
+  rw [D.range_restrict, D.stab_eq]
   refine ⟨?_⟩
   rw [MulAction.index_stabilizer]
   exact Set.ncard_ne_zero_of_mem (MulAction.mem_orbit_self D.x₀) (Set.toFinite _)

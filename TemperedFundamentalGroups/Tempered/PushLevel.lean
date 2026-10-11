@@ -77,7 +77,8 @@ def pushHom (L' : FiniteLevel R' A') : L'.H →* SemilinearAut R A (L'.push R A)
   (SemilinearAut.congr (L'.pushE R A).symm).comp (pushAut R A L')
 
 lemma pushHom_σ (L' : FiniteLevel R' A') (g : L'.H) (x : (L'.push R A).B) :
-    (L'.pushHom R A g).σ x = (L'.pushE R A).symm ((g : SemilinearAut R' A' L'.B).σ (L'.pushE R A x)) :=
+    (L'.pushHom R A g).σ x =
+      (L'.pushE R A).symm ((g : SemilinearAut R' A' L'.B).σ (L'.pushE R A x)) :=
   rfl
 
 lemma pushHom_injective (L' : FiniteLevel R' A') : Function.Injective (L'.pushHom R A) := by

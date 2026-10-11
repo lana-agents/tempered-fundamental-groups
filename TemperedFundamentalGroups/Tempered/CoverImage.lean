@@ -278,9 +278,294 @@ def coverHom (X : TempObj O R' A') : X.push R A ⟶ coverObj O R A R' where
       coverObj_act_one _
     exact (X.coverH_act _ x).trans h1.symm
 
+lemma coverHom_natural {X Y : TempObj O R' A'} (m : X ⟶ Y) :
+    pushHom R A m ≫ coverHom R A Y = coverHom R A X := by
+  refine Hom.ext (FiniteLevel.Hom.ext (AlgHom.ext fun z => ?_) (MonoidHom.ext fun g => ?_))
+    ?_ (funext fun x => ?_)
+  · change (FiniteLevel.pushMap R A m.φ).f (Y.Lv.L.coverMapF z) = X.Lv.L.coverMapF z
+    rw [FiniteLevel.pushMap_f, FiniteLevel.coverMapF_apply, FiniteLevel.coverMapF_apply,
+      AlgEquiv.apply_symm_apply, AlgHom.commutes]
+  · apply Subtype.ext
+    rw [(coverEt R A R').eq_act_of_mem ((_ : (coverEt R A R').level.H)).2,
+      (coverEt R A R').eq_act_of_mem ((_ : (coverEt R A R').level.H)).2]
+    rfl
+  · change m.ψ ≫ Y.Lv.c.toSpec ≫ _ = X.Lv.c.toSpec ≫ _
+    rw [← Category.assoc, m.ψ_toSpec]
+  · apply Subtype.ext
+    refine Prod.ext (Subtype.ext ?_) rfl
+    change Y.coverψ (m.h x).1.1.1 = X.coverψ x.1.1.1
+    rw [m.fst_h, ← Scheme.Hom.comp_apply, ← Category.assoc, m.ψ_toSpec]
+
+variable (Ω) in
+lemma coverFib_coverHom (X : TempObj O R' A') (q : PreFibre Ω V hV (X.push R A)) :
+    etaleToTempFibreEquiv O R A V hV (coverEt R A R')
+      (fibreMap V hV (coverHom R A X) (Quotient.mk'' q)) = q.1.1.comp X.Lv.L.coverMapF := rfl
+
+lemma coverFibrePt_eq_iff (X : TempObj O R' A') (y : Fibre Ω V hV (X.push R A)) :
+    fibreMap V hV (coverHom R A X) y = coverFibrePt V hV ↔
+      etaleToTempFibreEquiv O R A V hV (coverEt R A R') (fibreMap V hV (coverHom R A X) y) =
+        coverPt R A R' Ω :=
+  Equiv.eq_symm_apply _
+
+lemma pushRes_comp_coverMapF (X : TempObj O R' A') (t : X.Lv.L.B →ₐ[R'] Ω) :
+    (X.Lv.L.pushRes R A t).comp X.Lv.L.coverMapF = coverPt R A R' Ω := by
+  ext z
+  simp only [AlgHom.comp_apply, FiniteLevel.pushRes_apply, FiniteLevel.coverMapF_apply,
+    AlgEquiv.apply_symm_apply, AlgHom.commutes]
+  rfl
+
+/-- The `R'`-linear geometric point attached to a geometric point over the base point. -/
+def pushUnres (X : TempObj O R' A') (t : (X.Lv.L.push R A).B →ₐ[R] Ω)
+    (h : t.comp X.Lv.L.coverMapF = coverPt R A R' Ω) : X.Lv.L.B →ₐ[R'] Ω :=
+  { (t : (X.Lv.L.push R A).B →+* Ω).comp ((X.Lv.L.pushE R A).symm : X.Lv.L.B →+* _) with
+    commutes' := fun r => by
+      have := AlgHom.congr_fun h ((coverE R A R').symm r)
+      simp only [AlgHom.comp_apply, FiniteLevel.coverMapF_apply, AlgEquiv.apply_symm_apply,
+        coverPt, AlgHom.coe_restrictScalars', AlgEquiv.coe_toAlgHom, Algebra.ofId_apply] at this
+      exact this }
+
+lemma pushRes_pushUnres (X : TempObj O R' A') (t : (X.Lv.L.push R A).B →ₐ[R] Ω)
+    (h : t.comp X.Lv.L.coverMapF = coverPt R A R' Ω) :
+    X.Lv.L.pushRes R A (X.pushUnres t h) = t := by
+  ext x
+  change t ((X.Lv.L.pushE R A).symm (X.Lv.L.pushE R A x)) = t x
+  rw [AlgEquiv.symm_apply_apply]
+
+lemma range_pushι (X : TempObj O R' A') (y : Fibre Ω V hV (X.push R A)) :
+    (∃ x, pushι R A V hV X x = y) ↔ fibreMap V hV (coverHom R A X) y = coverFibrePt V hV := by
+  rw [coverFibrePt_eq_iff]
+  constructor
+  · rintro ⟨x, rfl⟩
+    induction x using Quotient.inductionOn with | h q' => ?_
+    rw [pushι_mk, coverFib_coverHom]
+    exact X.pushRes_comp_coverMapF q'.1.1
+  · induction y using Quotient.inductionOn with | h q => ?_
+    rw [coverFib_coverHom]
+    intro h
+    refine ⟨Quotient.mk'' ⟨(X.pushUnres q.1.1 h, q.1.2), ?_⟩, ?_⟩
+    · change q.1.2.1.1.1 = (X.Lv.sp V hV (X.pushUnres q.1.1 h)).1
+      rw [← push_sp V hV (R := R) (A := A), pushRes_pushUnres]
+      exact q.2
+    · rw [pushι_mk]
+      apply congrArg Quotient.mk''
+      apply Subtype.ext
+      exact Prod.ext (X.pushRes_pushUnres q.1.1 h) rfl
+
 end TempObj
 
+section Counit
+
+variable (μ : OrbMap R A R' A')
+
+namespace FiniteLevel
+
+/-- `bcι` as an `R`-algebra map into the pushed base change. -/
+def bcιR (L : FiniteLevel R A) : L.B →ₐ[R] ((L.baseChange μ).push R A).B :=
+  ((L.baseChange μ).pushE R A).symm.toAlgHom.comp
+    { (L.bcι μ) with
+      commutes' := fun r => by
+        change L.bcι μ (algebraMap R L.B r) = _
+        rw [bcι_algebraMap, ← IsScalarTower.algebraMap_apply] }
+
+lemma bcιR_apply (L : FiniteLevel R A) (y : L.B) :
+    L.bcιR μ y = ((L.baseChange μ).pushE R A).symm (L.bcι μ y) := rfl
+
+/-- The counit `push (bc L) ⟶ L` on levels. -/
+def counitMap (L : FiniteLevel R A) : (L.baseChange μ).push R A ⟶ L where
+  f := L.bcιR μ
+  r := (L.bcPr μ).comp ((L.baseChange μ).pushEquiv R A).symm.toMonoidHom
+  r_a _ := Subsingleton.elim _ _
+  f_σ g y := by
+    rw [bcιR_apply, bcιR_apply]
+    apply ((L.baseChange μ).pushE R A).injective
+    rw [AlgEquiv.apply_symm_apply, ← pushEquiv_symm_σ, bcσ_bcι]
+    rfl
+
+/-- The multiplication `R' ⊗_R B' → B'`, on the coded base change of the pushed level. -/
+def unitF (L' : FiniteLevel R' A') : ((L'.push R A).baseChange μ).B →ₐ[R'] L'.B :=
+  (Algebra.TensorProduct.lift (Algebra.ofId R' L'.B) (L'.pushE R A).toAlgHom
+    fun _ _ => Commute.all _ _).comp ((L'.push R A).bcE' μ).toAlgHom
+
+lemma unitF_bcι (L' : FiniteLevel R' A') (y : (L'.push R A).B) :
+    L'.unitF μ ((L'.push R A).bcι μ y) = L'.pushE R A y := by
+  simp [unitF, bcE_bcι]
+
+lemma unitF_σ (L' : FiniteLevel R' A') (g : L'.H) (z : R' ⊗[R] (L'.push R A).B)
+    (p : (L'.push R A).Hfp μ) (hp : p.1.1 = L'.pushEquiv R A g) :
+    Algebra.TensorProduct.lift (Algebra.ofId R' L'.B) (L'.pushE R A).toAlgHom
+        (fun _ _ => Commute.all _ _) ((bcAut μ (L'.push R A) p).σ z) =
+      (g : SemilinearAut R' A' L'.B).σ (Algebra.TensorProduct.lift (Algebra.ofId R' L'.B)
+        (L'.pushE R A).toAlgHom (fun _ _ => Commute.all _ _) z) := by
+  induction z using TensorProduct.induction_on with
+  | zero => simp
+  | tmul a b =>
+    rw [bcAut_σ_tmul, Algebra.TensorProduct.lift_tmul, Algebra.TensorProduct.lift_tmul,
+      map_mul, hp, Subsingleton.elim p.1.2 1, one_smul]
+    simp only [Algebra.ofId_apply, AlgEquiv.coe_toAlgHom]
+    rw [SemilinearAut.σ_algebraMap_of_a_eq_one (Subsingleton.elim _ _), pushEquiv_σ,
+      AlgEquiv.apply_symm_apply]
+  | add x y hx hy => rw [RingEquiv.map_add, map_add, hx, hy, map_add, RingEquiv.map_add]
+
+/-- The group homomorphism `H' → H(push) ×_A A'`. -/
+def unitK (L' : FiniteLevel R' A') : L'.H →* (L'.push R A).Hfp μ where
+  toFun g := ⟨(L'.pushEquiv R A g, 1), Subsingleton.elim _ _⟩
+  map_one' := by ext <;> simp
+  map_mul' _ _ := by ext <;> simp
+
+/-- The unit `L' ⟶ bc (push L')` on levels. -/
+def unitMap (L' : FiniteLevel R' A') : L' ⟶ (L'.push R A).baseChange μ where
+  f := L'.unitF μ
+  r := ((L'.push R A).bcEquiv μ).toMonoidHom.comp (L'.unitK μ)
+  r_a _ := Subsingleton.elim _ _
+  f_σ g y := by
+    have h := L'.unitF_σ μ g ((L'.push R A).bcE' μ y) (L'.unitK μ g) rfl
+    change L'.unitF μ ((((L'.push R A).bcEquiv μ (L'.unitK μ g) : ((L'.push R A).baseChange μ).H) :
+      SemilinearAut R' A' ((L'.push R A).baseChange μ).B).σ y) = _
+    rw [bcEquiv_σ]
+    simp only [unitF, AlgHom.comp_apply, AlgEquiv.coe_toAlgHom, AlgEquiv.apply_symm_apply]
+    exact h
+
+end FiniteLevel
+
+namespace TempObj
+
+lemma counit_j_ψ (Y : TempObj O R A) :
+    (Spec.map (CommRingCat.ofHom (((Y.Lv.L.baseChange μ).pushE R A).symm :
+        (Y.Lv.L.baseChange μ).B →+* ((Y.Lv.L.baseChange μ).push R A).B)) ≫
+      Spec.map (CommRingCat.ofHom (Y.Lv.L.bcι μ)) ≫ Y.Lv.j) ≫ 𝟙 _ =
+      Spec.map (CommRingCat.ofHom ((Y.Lv.L.counitMap μ).f :
+        Y.Lv.L.B →+* ((Y.Lv.L.baseChange μ).push R A).B)) ≫ Y.Lv.j := by
+  rw [Category.comp_id, ← Category.assoc, ← Spec.map_comp]
+  rfl
+
+/-- **The counit** `push (bc Y) ⟶ Y`. -/
+def counit (Y : TempObj O R A) : (Y.baseChange μ).push R A ⟶ Y where
+  φ := Y.Lv.L.counitMap μ
+  ψ := 𝟙 _
+  ψ_toSpec := Category.id_comp _
+  j_ψ := Y.counit_j_ψ μ
+  h := id
+  continuous_h := continuous_id
+  fst_h _ := rfl
+  h_act _ _ := rfl
+
+lemma unit_j_ψ (X : TempObj O R' A') :
+    X.Lv.j ≫ 𝟙 _ =
+      Spec.map (CommRingCat.ofHom (X.Lv.L.unitF μ :
+          ((X.Lv.L.push R A).baseChange μ).B →+* X.Lv.L.B)) ≫
+        Spec.map (CommRingCat.ofHom ((X.Lv.L.push R A).bcι μ)) ≫
+          Spec.map (CommRingCat.ofHom ((X.Lv.L.pushE R A).symm :
+            X.Lv.L.B →+* (X.Lv.L.push R A).B)) ≫ X.Lv.j := by
+  have h : CommRingCat.ofHom ((X.Lv.L.pushE R A).symm : X.Lv.L.B →+* (X.Lv.L.push R A).B) ≫
+      CommRingCat.ofHom ((X.Lv.L.push R A).bcι μ) ≫
+        CommRingCat.ofHom (X.Lv.L.unitF μ :
+          ((X.Lv.L.push R A).baseChange μ).B →+* X.Lv.L.B) = 𝟙 _ := by
+    refine CommRingCat.hom_ext (RingHom.ext fun b => ?_)
+    change X.Lv.L.unitF μ ((X.Lv.L.push R A).bcι μ ((X.Lv.L.pushE R A).symm b)) = b
+    rw [FiniteLevel.unitF_bcι, AlgEquiv.apply_symm_apply]
+  rw [Category.comp_id, ← Category.assoc, ← Category.assoc, ← Spec.map_comp, ← Spec.map_comp, h,
+    Spec.map_id, Category.id_comp]
+
+/-- **The unit** `X' ⟶ bc (push X')`. -/
+def unit (X : TempObj O R' A') : X ⟶ (X.push R A).baseChange μ where
+  φ := X.Lv.L.unitMap μ
+  ψ := 𝟙 _
+  ψ_toSpec := Category.id_comp _
+  j_ψ := X.unit_j_ψ μ
+  h := id
+  continuous_h := continuous_id
+  fst_h _ := rfl
+  h_act g x := by
+    change X.P.act g x = X.P.act ((X.Lv.L.pushEquiv R A).symm ((X.Lv.L.push R A).bcPr μ
+      ((X.Lv.L.push R A).bcEquiv μ (X.Lv.L.unitK μ g)))) x
+    rw [FiniteLevel.bcPr_bcEquiv]
+    change _ = X.P.act ((X.Lv.L.pushEquiv R A).symm (X.Lv.L.pushEquiv R A g)) x
+    rw [MulEquiv.symm_apply_apply]
+
+lemma counit_pushι (Y : TempObj O R A) (z : Fibre Ω V hV (Y.baseChange μ)) :
+    fibreMap V hV (Y.counit μ) (pushι R A V hV (Y.baseChange μ) z) = bcFibreEquiv μ V hV Y z := by
+  induction z using Quotient.inductionOn with | h q => ?_
+  apply congrArg Quotient.mk''
+  apply Subtype.ext
+  refine Prod.ext ?_ rfl
+  ext y
+  change q.1.1 ((Y.Lv.L.baseChange μ).pushE R A (((Y.Lv.L.baseChange μ).pushE R A).symm
+    (Y.Lv.L.bcι μ y))) = q.1.1 (Y.Lv.L.bcι μ y)
+  rw [AlgEquiv.apply_symm_apply]
+
+lemma unit_pushι (X : TempObj O R' A') (x : Fibre Ω V hV X) :
+    bcFibreEquiv μ V hV (X.push R A) (fibreMap V hV (X.unit μ) x) = pushι R A V hV X x := by
+  induction x using Quotient.inductionOn with | h q => ?_
+  apply congrArg Quotient.mk''
+  apply Subtype.ext
+  refine Prod.ext ?_ rfl
+  ext y
+  change q.1.1 (X.Lv.L.unitF μ ((X.Lv.L.push R A).bcι μ y)) = q.1.1 (X.Lv.L.pushE R A y)
+  rw [FiniteLevel.unitF_bcι]
+
+end TempObj
+
+end Counit
+
 end Cover
+
+section Image
+
+variable [SMulCommClass A K R] (μ : OrbMap R A R' A')
+
+/-- **The push data** of a finite étale cover (scheme case). -/
+def coverPushData : PushData (TempObj.bcFunctor (O := O) μ) (TempObj.bcFibreIso μ V hV) where
+  P := TempObj.pushFunctor O R A
+  ι X' := TempObj.pushι R A V hV X'
+  ι_injective X' := TempObj.pushι_injective V hV X'
+  ι_natural m x := TempObj.pushι_natural V hV m x
+  E := coverObj O R A R'
+  x₀ := coverFibrePt V hV
+  τ X' := TempObj.coverHom R A X'
+  τ_natural m := TempObj.coverHom_natural m
+  range_ι X' y := TempObj.range_pushι V hV X' y
+  π Y := TempObj.counit μ Y
+  π_ι Y z := TempObj.counit_pushι V hV μ Y z
+  u X' := TempObj.unit μ X'
+  u_ι X' x := TempObj.unit_pushι V hV μ X' x
+
+/-- **A finite étale cover induces an injection of tempered fundamental groups.** -/
+theorem temperedPi1Map_injective : Function.Injective (temperedPi1Map (O := O) μ V hV) :=
+  (coverPushData V hV μ).injective_restrict
+
+/-- **The image is the stabilizer of the base point of the cover** `Spec R' → Spec R`. -/
+theorem mem_range_temperedPi1Map (γ : temperedPi1 O R A V hV) :
+    γ ∈ (temperedPi1Map (O := O) μ V hV).range ↔
+      γ.app (coverObj O R A R') (coverFibrePt V hV) = coverFibrePt V hV := by
+  rw [show (temperedPi1Map (O := O) μ V hV).range = (coverPushData V hV μ).stab from
+    (coverPushData V hV μ).range_restrict]
+  rfl
+
+theorem isOpen_range_temperedPi1Map :
+    IsOpen ((temperedPi1Map (O := O) μ V hV).range : Set (temperedPi1 O R A V hV)) := by
+  rw [show (temperedPi1Map (O := O) μ V hV).range = (coverPushData V hV μ).stab from
+    (coverPushData V hV μ).range_restrict]
+  exact (coverPushData V hV μ).isOpen_stab
+
+theorem finiteIndex_range_temperedPi1Map :
+    (temperedPi1Map (O := O) μ V hV).range.FiniteIndex := by
+  haveI : Finite ((coverEt R A R').B →ₐ[R] Ω) := by
+    haveI := (coverEt R A R').finite
+    infer_instance
+  haveI : Finite ((tempFibre O R A V hV).obj (coverPushData V hV μ).E) :=
+    Finite.of_equiv ((coverEt R A R').B →ₐ[R] Ω)
+      (etaleToTempFibreEquiv O R A V hV (coverEt R A R')).symm
+  exact (coverPushData V hV μ).finiteIndex_range_restrict
+
+/-- `γ'` fixes a fibre element of `X'` iff its image fixes the corresponding fibre element of
+`push X'` (`temperedPi1Map` is compatible with the basic open subgroups). -/
+theorem temperedPi1Map_app_pushι (γ : temperedPi1 O R' A' V hV) (X : TempObj O R' A')
+    (x : TempObj.Fibre Ω V hV X) :
+    (temperedPi1Map μ V hV γ).app (X.push R A) (TempObj.pushι R A V hV X x) =
+      TempObj.pushι R A V hV X (γ.app X x) :=
+  (coverPushData V hV μ).restrict_app_ι γ X x
+
+end Image
 
 end
 
