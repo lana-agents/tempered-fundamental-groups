@@ -151,6 +151,33 @@ lemma GaloisLimit.eq_stageOf {C : Type*} [Category C] {Φ : C ⥤ Type*} {G : C}
   obtain ⟨σ, a, ha⟩ := σ
   exact ⟨a, Subtype.ext (Equiv.ext fun x ↦ congrFun ha x)⟩
 
+section Torsor
+
+variable {Lv : Level O R A} {E : Type u} [TopologicalSpace E] {p : E → Lv.Z}
+
+/-- **The deck group of a universal covering is a torsor on each fibre**: `τ ↦ τ e₀` is a
+bijection from `deckGroup Lv p` onto the fibre of `p` through `e₀`. For the tree covering of the
+dual graph the fibre over the root is the set of reduced closed walks at the root vertex, so the
+deck group is the fundamental group of the dual graph. -/
+noncomputable def deckFibreEquiv (hp : IsUniversalCovering.{u, u, u, u} p) (e₀ : E) :
+    deckGroup Lv p ≃ {e : E // p e = p e₀} :=
+  Equiv.ofBijective (fun τ ↦ ⟨τ.1 e₀, τ.2 e₀⟩) ⟨fun τ τ' h ↦ by
+    have h' : τ.1 e₀ = τ'.1 e₀ := congrArg Subtype.val h
+    apply Subtype.ext
+    apply Homeomorph.ext
+    intro e
+    have := lift_ext hp hp.isCoveringMap τ.1.continuous τ'.1.continuous
+      (funext fun e ↦ by simp only [Function.comp_apply, τ.2 e, τ'.2 e]) e₀ h'
+    exact congrFun this e, fun e ↦ by
+    obtain ⟨τ, hτ, hτe⟩ := exists_lift Lv hp 1 (e₁ := e₀) (e₂ := e.1)
+      (by rw [e.2, map_one, Homeomorph.one_apply])
+    exact ⟨⟨τ, fun e' ↦ by rw [hτ, map_one, Homeomorph.one_apply]⟩, Subtype.ext hτe⟩⟩
+
+lemma deckFibreEquiv_apply (hp : IsUniversalCovering.{u, u, u, u} p) (e₀ : E)
+    (τ : deckGroup Lv p) : (deckFibreEquiv hp e₀ τ).1 = τ.1 e₀ := rfl
+
+end Torsor
+
 section Universal
 
 variable [Subsingleton A] {Lv : Level O R A} [Finite Lv.L.H] [Subsingleton Lv.L.H]
