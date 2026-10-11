@@ -21,8 +21,11 @@ cases F7 (scheme case), F7′ (orbifold covers) and the mixed case give:
   `temperedPi1 O R' 1 ⊆ temperedPi1 O R' A'` trivially (`finite_ker_temperedPi1Map_etaleOrb`,
   `ker_inf_range_temperedPi1Map_etaleOrb`).
 
-Injectivity of `temperedPi1Map ν` (i.e. triviality of this finite kernel) is not formalized: it
-needs induced coverings along finite étale maps of orbifolds (F7 with nontrivial groups).
+If moreover `A'` acts faithfully on `R'`, the kernel is trivial: `temperedPi1Map ν` and the field
+change `temperedPi1FieldMap hO ν` are injective open embeddings
+(`temperedPi1Map_injective_etaleOrb`, `isOpenEmbedding_temperedPi1Map_etaleOrb`,
+`temperedPi1FieldMap_injective_etaleOrb`, `isOpenEmbedding_temperedPi1FieldMap_etaleOrb`, in
+`Tempered/EtaleOrbCover.lean`, using the statements of this file).
 
 **Field change.** For `O` a complete DVR and `K'/K` finite separable, the pure field change is
 an isomorphism (`temperedPi1FieldEquiv'`), so for **any** map of orbifolds `μ` the field change

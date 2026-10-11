@@ -556,6 +556,7 @@ import TemperedFundamentalGroups.Tempered.BaseChangeLevel
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.CoverImage
+import TemperedFundamentalGroups.Tempered.EtaleOrbCover
 import TemperedFundamentalGroups.Tempered.FieldChange
 import TemperedFundamentalGroups.Tempered.FieldChangeComp
 import TemperedFundamentalGroups.Tempered.FieldChangeFinite

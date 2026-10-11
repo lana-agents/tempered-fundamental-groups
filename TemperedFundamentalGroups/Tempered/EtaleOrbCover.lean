@@ -8,9 +8,41 @@ import TemperedFundamentalGroups.Tempered.FieldChangeOrbifold
 import TemperedFundamentalGroups.Andre.GaloisClass
 
 /-!
-# Finite étale maps of orbifolds: `temperedPi1Map` is injective (Blueprint §11, F7/F8)
+# Finite étale maps of orbifolds: `temperedPi1Map` is an open embedding (Blueprint §11, F7/F8)
 
-Draft.
+Let `ν : OrbMap R A R' A'` be a finite étale map of orbifolds `[Spec R' / A'] → [Spec R / A]`
+(`R → R'` finite étale, `R`, `R'` noetherian domains, `A`, `A'` finite, `A'` acting faithfully on
+`R'`). Then `temperedPi1Map ν` is injective and an open embedding
+(`temperedPi1Map_injective_etaleOrb`, `isOpenEmbedding_temperedPi1Map_etaleOrb`); by the
+isomorphism of the pure field change, so is the field change `temperedPi1FieldMap hO ν`
+(`temperedPi1FieldMap_injective_etaleOrb`, `isOpenEmbedding_temperedPi1FieldMap_etaleOrb`).
+Its image is open of finite index (`Tempered/FieldChangeOrbifold.lean`).
+
+**Proof of injectivity.** Let `E' = Ind_{A'} 1` be the cover `Spec R' → [Spec R' / A']`, whose
+base point has stabilizer the image `N'` of `temperedPi1 O R' 1` (F7′,
+`range_temperedPi1Map_orbifold`). Since `ker (temperedPi1Map ν) ⊓ N' = ⊥`
+(`ker_inf_range_temperedPi1Map_etaleOrb`), it suffices that an element `g` of the kernel acts
+trivially on the fibre of `E'`. We use
+
+* the morphism `m₁ : E' ⟶ etaleToTemp E'_et` to the tempered covering of the equivariant finite
+  étale algebra `E'_et = Π_{x : A'} R'^{(x)}` underlying `E'`; it is injective on fibres since
+  `E'` is one-sheeted (`m₁_fibre_injective`);
+* the equivariant finite étale algebra `Yet = Π_{a : A} R'^{(a)}` over `[Spec R / A]`
+  (`R'` induced along `A`) and the morphism `f : E'_et ⟶ bcEt ν Yet`,
+  `r ⊗ φ ↦ (x ↦ r · φ (α x))` (`EtaleOrbCover.f`). It is injective on geometric points
+  (`comp_F_injective`): a geometric point of `E'_et` lies on one copy `x`, two copies `x, x'`
+  inducing the same point of `Yet` satisfy `α x = α x'`, and `x' x⁻¹ ∈ ker α` then fixes a
+  geometric point of `Spec R'` over `R`, hence acts trivially on `R'` by rigidity
+  (`algHom_eq_of_comp_eq`, `R'` connected) and is `1` by faithfulness.
+
+The image `γ` of `g` in the étale fundamental group lies in the kernel of `etalePi1Map ν`
+(`temperedToEtale_temperedPi1Map`), so it acts trivially on the fibre of `bcEt ν Yet`, hence by
+naturality along `f` on the fibre of `E'_et`, and `g` acts trivially on the fibre of `E'` by
+naturality along `m₁`.
+
+**Open embedding.** `temperedPi1Map ν ∘ temperedPi1Map (cov R' A')` is the mixed composite
+`Spec R' → Spec R → [Spec R / A]`, an open embedding; as `temperedPi1Map (cov R' A')` is an open
+embedding onto an open subgroup, `temperedPi1Map ν` is an open map.
 -/
 
 universe u
@@ -22,6 +54,16 @@ set_option linter.unusedSectionVars false
 namespace TemperedFundamentalGroups
 
 noncomputable section
+
+/-- An automorphism restricting to `1` along `G` acts trivially on the fibres of objects in the
+image of `G`. -/
+lemma FibreAut.app_eq_of_restrict_eq_one {C : Type*} [Category C] {C' : Type*} [Category C']
+    {F : C ⥤ Type u} {F' : C' ⥤ Type u} {G : C' ⥤ C} {e : G ⋙ F ≅ F'} (σ : FibreAut F)
+    (h : FibreAut.restrict G e σ = 1) (c : C') (x : F.obj (G.obj c)) :
+    σ.app (G.obj c) x = x := by
+  have h1 := congrArg (fun τ : FibreAut F' => e.inv.app c (τ.app c (e.hom.app c x))) h
+  simp only [FibreAut.restrict_app, FibreAut.one_app, Iso.hom_inv_id_app_apply] at h1
+  exact h1
 
 namespace OrbifoldCover
 
@@ -349,6 +391,121 @@ end Points
 end Etale
 
 end EtaleOrbCover
+
+section Main
+
+open EtaleOrb EtaleOrbCover
+
+variable {K : Type u} [Field K] {O : ValuationSubring K}
+  {R : Type u} [CommRing R] [Algebra K R] [IsDomain R] [IsNoetherianRing R]
+  {A : Type u} [Group A] [MulSemiringAction A R] [SMulCommClass A K R] [Finite A]
+  {R' : Type u} [CommRing R'] [Algebra K R'] [Algebra R R'] [IsScalarTower K R R']
+  [IsDomain R'] [IsNoetherianRing R'] [Algebra.Etale R R'] [Module.Finite R R']
+  {A' : Type u} [Group A'] [MulSemiringAction A' R'] [SMulCommClass A' K R'] [Finite A']
+  [FaithfulSMul A' R'] (ν : OrbMap R A R' A')
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  [Algebra R' Ω] [IsScalarTower K R' Ω] [IsScalarTower R R' Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+/-- An element of the kernel of `temperedPi1Map ν` acts trivially on the fibre of `E'_et`. -/
+lemma app_Eet_of_ker (g : temperedPi1 O R' A' V hV) (hg : temperedPi1Map ν V hV g = 1)
+    (t : (etaleFibre R' A' Ω).obj (Eet O R' A')) :
+    (temperedToEtale O R' A' V hV g).app (Eet O R' A') t = t := by
+  set γ := temperedToEtale O R' A' V hV g
+  have h1 : etalePi1Map ν Ω γ = 1 := by
+    rw [← temperedToEtale_temperedPi1Map, hg, map_one]
+  apply comp_F_injective ν
+  have h2 := FibreAut.app_naturality γ (f O ν) t
+  have h3 := FibreAut.app_eq_of_restrict_eq_one (G := EquivEtaleBC.bcEtFunctor ν) γ h1
+    (Yet R' R A) ((etaleFibre R' A' Ω).map (f O ν) t)
+  exact h2.symm.trans h3
+
+/-- **F7 for finite étale maps of orbifolds: `temperedPi1Map ν` is injective.**
+
+Here `ν : [Spec R' / A'] → [Spec R / A]` with `R → R'` finite étale, `R`, `R'` noetherian
+domains, `A`, `A'` finite and `A'` acting faithfully on `R'`. Faithfulness is needed: elements
+of `A'` acting trivially on `R'` give automorphisms of the fibre functor of `[Spec R' / A']`
+which can die in `temperedPi1 O R A` (e.g. `R' = R`, `A = 1`, `A' ≠ 1` acting trivially). -/
+theorem temperedPi1Map_injective_etaleOrb : Function.Injective (temperedPi1Map ν V hV) := by
+  rw [injective_iff_map_eq_one]
+  intro g hg
+  have hE : ∀ y : TempObj.Fibre Ω V hV (E O R' A'), g.app (E O R' A') y = y := fun y =>
+    m₁_fibre_injective V hV _ _ (by
+      have h1 := FibreAut.app_naturality g (m₁ O R' A') y
+      have h2 := app_Eet_of_ker ν V hV g hg (etaleToTempFibreEquiv O R' A' V hV (Eet O R' A')
+        (TempObj.fibreMap V hV (m₁ O R' A') y))
+      rw [temperedToEtale, FibreAut.restrict_app] at h2
+      change etaleToTempFibreEquiv O R' A' V hV (Eet O R' A') (g.app _
+        ((etaleToTempFibreEquiv O R' A' V hV (Eet O R' A')).symm
+          (etaleToTempFibreEquiv O R' A' V hV (Eet O R' A')
+            (TempObj.fibreMap V hV (m₁ O R' A') y)))) = _ at h2
+      rw [Equiv.symm_apply_apply] at h2
+      change g.app _ (TempObj.fibreMap V hV (m₁ O R' A') y) =
+        TempObj.fibreMap V hV (m₁ O R' A') (g.app _ y) at h1
+      rw [← h1]
+      exact h2)
+  have hmem : g ∈ (temperedPi1Map (O := O) (cov R' A') V hV).range := by
+    rw [range_temperedPi1Map_orbifold, SpanPushData.mem_stab]
+    exact hE _
+  have := ker_inf_range_temperedPi1Map_etaleOrb ν V hV
+  rw [eq_bot_iff] at this
+  exact (Subgroup.mem_bot).1 (this ⟨hg, hmem⟩)
+
+/-- **F7 for finite étale maps of orbifolds: `temperedPi1Map ν` is an open embedding.** -/
+theorem isOpenEmbedding_temperedPi1Map_etaleOrb :
+    Topology.IsOpenEmbedding (temperedPi1Map ν V hV) := by
+  set f := temperedPi1Map ν V hV
+  set c := temperedPi1Map (O := O) (cov R' A') V hV
+  have hc := isOpenEmbedding_temperedPi1Map_orbifold (O := O) (cov R' A') V hV
+  have hm := isOpenEmbedding_temperedPi1Map_mixed (O := O) (cov R A) (under ν) V hV
+  rw [← temperedPi1Map_comp_cov_eq, MonoidHom.coe_comp] at hm
+  refine Topology.IsOpenEmbedding.of_continuous_injective_isOpenMap
+    (continuous_temperedPi1Map ν V hV) (temperedPi1Map_injective_etaleOrb ν V hV) ?_
+  intro U hU
+  rw [isOpen_iff_mem_nhds]
+  rintro _ ⟨u, hu, rfl⟩
+  set W := c ⁻¹' ((u * ·) ⁻¹' U)
+  have hW : IsOpen W := (hU.preimage (continuous_const_mul u)).preimage hc.continuous
+  have h1 : (f u * ·) '' ((f ∘ c) '' W) ∈ nhds (f u) :=
+    (isOpenMap_mul_left (f u) _ (hm.isOpenMap W hW)).mem_nhds
+      ⟨1, ⟨1, by simp [W, hu], by simp⟩, by simp⟩
+  refine Filter.mem_of_superset h1 ?_
+  rintro _ ⟨_, ⟨w, hw, rfl⟩, rfl⟩
+  exact ⟨u * c w, hw, by simp [map_mul]⟩
+
+end Main
+
+section FieldChange
+
+variable {K : Type u} [Field K] {O : ValuationSubring K}
+  [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+  {K' : Type u} [Field K'] [Algebra K K'] [FiniteDimensional K K'] [Algebra.IsSeparable K K']
+  {O' : ValuationSubring K'} (hO : O'.comap (algebraMap K K') = O)
+  {R : Type u} [CommRing R] [Algebra K R] [IsDomain R] [IsNoetherianRing R]
+  {A : Type u} [Group A] [MulSemiringAction A R] [SMulCommClass A K R] [Finite A]
+  {R' : Type u} [CommRing R'] [Algebra K' R'] [Algebra K R'] [IsScalarTower K K' R']
+  [Algebra R R'] [IsScalarTower K R R'] [IsDomain R'] [IsNoetherianRing R']
+  [Algebra.Etale R R'] [Module.Finite R R']
+  {A' : Type u} [Group A'] [MulSemiringAction A' R'] [SMulCommClass A' K R']
+  [SMulCommClass A' K' R'] [Finite A'] [FaithfulSMul A' R'] (ν : OrbMap R A R' A')
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra K' Ω] [IsScalarTower K K' Ω]
+  [Algebra R Ω] [IsScalarTower K R Ω] [Algebra R' Ω] [IsScalarTower K' R' Ω]
+  [IsScalarTower K R' Ω] [IsScalarTower R R' Ω]
+  (V : ValuationSubring Ω) (hV' : V.comap (algebraMap K' Ω) = O')
+
+/-- **F8 for finite étale maps of orbifolds** `[Spec R' / A'] → [Spec R / A]`: the field change
+is injective (`O` a complete DVR, `K'/K` finite separable, `A'` acting faithfully on `R'`). -/
+theorem temperedPi1FieldMap_injective_etaleOrb :
+    Function.Injective (temperedPi1FieldMap hO ν V hV') :=
+  (temperedPi1FieldMap_injective_iff hO ν V hV').2 (temperedPi1Map_injective_etaleOrb ν V _)
+
+/-- **F8 for finite étale maps of orbifolds: the field change is an open embedding.** -/
+theorem isOpenEmbedding_temperedPi1FieldMap_etaleOrb :
+    Topology.IsOpenEmbedding (temperedPi1FieldMap hO ν V hV') :=
+  (isOpenEmbedding_temperedPi1FieldMap_iff hO ν V hV').2
+    (isOpenEmbedding_temperedPi1Map_etaleOrb ν V _)
+
+end FieldChange
 
 end
 
