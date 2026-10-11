@@ -28,6 +28,7 @@ import TemperedFundamentalGroups.Andre.QuadraticLevel
 import TemperedFundamentalGroups.Andre.RamifiedQuadratic
 import TemperedFundamentalGroups.Andre.RamifiedQuadraticGal
 import TemperedFundamentalGroups.Andre.Refinement
+import TemperedFundamentalGroups.Andre.StageFunctor
 import TemperedFundamentalGroups.Andre.StageGroup
 import TemperedFundamentalGroups.Andre.StageLimit
 import TemperedFundamentalGroups.Andre.TateChartMap
