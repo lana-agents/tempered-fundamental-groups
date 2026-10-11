@@ -38,74 +38,80 @@ instance isSchemeTheoreticallyDominant_toImage {X Y : Scheme.{u}} (f : X ⟶ Y) 
 
 namespace ModelCode
 
-variable {R : Type u} [CommRing R] (c : ModelCode R) {T : Scheme.{u}} (j : T ⟶ c.I.subscheme)
-  [QuasiCompact j]
+variable {R : Type u} [CommRing R] (c : ModelCode R)
+
+/-- The closed immersion `c ⟶ ℙᵐ_R`. -/
+noncomputable def ι : c.scheme ⟶ projSpace R c.m := c.I.subschemeι
+
+instance : IsClosedImmersion c.ι :=
+  inferInstanceAs (IsClosedImmersion c.I.subschemeι)
+
+lemma ι_toSpec : c.ι ≫ projSpace.toSpec R c.m = c.toSpec := rfl
+
+instance : QuasiSeparatedSpace c.scheme :=
+  quasiSeparatedSpace_of_quasiSeparated c.toSpec
+
+variable {T : Scheme.{u}} (j : T ⟶ c.scheme) [QuasiCompact j]
 
 /-- **The scheme-theoretic image** of `j : T ⟶ c`, as a model code. -/
-noncomputable abbrev image : ModelCode R := ⟨c.m, (j ≫ c.I.subschemeι).ker⟩
+noncomputable abbrev image : ModelCode R := ⟨c.m, (j ≫ c.ι).ker⟩
 
 /-- The factorization `T ⟶ image`. -/
-noncomputable def toImg : T ⟶ (c.image j).I.subscheme := (j ≫ c.I.subschemeι).toImage
+noncomputable def toImg : T ⟶ (c.image j).scheme := (j ≫ c.ι).toImage
 
 instance : IsSchemeTheoreticallyDominant (c.toImg j) :=
   isSchemeTheoreticallyDominant_toImage _
 
-lemma toImg_subschemeι : c.toImg j ≫ (c.image j).I.subschemeι = j ≫ c.I.subschemeι :=
+lemma toImg_ι : c.toImg j ≫ (c.image j).ι = j ≫ c.ι :=
   Scheme.Hom.toImage_imageι _
 
-lemma ker_le : c.I.subschemeι.ker ≤ (c.image j).I.subschemeι.ker := by
-  change _ ≤ (j ≫ c.I.subschemeι).ker.subschemeι.ker
-  exact (Scheme.Hom.le_ker_comp j c.I.subschemeι).trans
-    (Scheme.IdealSheafData.ker_subschemeι _).ge
+lemma ker_le : c.ι.ker ≤ (c.image j).ι.ker := by
+  change _ ≤ (j ≫ c.ι).ker.subschemeι.ker
+  exact (Scheme.Hom.le_ker_comp j c.ι).trans (Scheme.IdealSheafData.ker_subschemeι _).ge
 
 /-- The closed immersion `image ⟶ c`. -/
-noncomputable def imgι : (c.image j).I.subscheme ⟶ c.I.subscheme :=
-  IsClosedImmersion.lift c.I.subschemeι (c.image j).I.subschemeι (c.ker_le j)
+noncomputable def imgι : (c.image j).scheme ⟶ c.scheme :=
+  IsClosedImmersion.lift c.ι (c.image j).ι (c.ker_le j)
 
 @[reassoc (attr := simp)]
-lemma imgι_subschemeι : c.imgι j ≫ c.I.subschemeι = (c.image j).I.subschemeι :=
+lemma imgι_ι : c.imgι j ≫ c.ι = (c.image j).ι :=
   IsClosedImmersion.lift_fac _ _ _
 
 instance : IsClosedImmersion (c.imgι j) := by
-  have : IsClosedImmersion (c.imgι j ≫ c.I.subschemeι) := by
-    rw [imgι_subschemeι]
+  have : IsClosedImmersion (c.imgι j ≫ c.ι) := by
+    rw [imgι_ι]
     infer_instance
-  exact IsClosedImmersion.of_comp_isClosedImmersion _ c.I.subschemeι
+  exact IsClosedImmersion.of_comp_isClosedImmersion _ c.ι
 
 @[reassoc (attr := simp)]
 lemma toImg_imgι : c.toImg j ≫ c.imgι j = j := by
-  rw [← cancel_mono c.I.subschemeι, Category.assoc, imgι_subschemeι, toImg_subschemeι]
+  rw [← cancel_mono c.ι, Category.assoc, imgι_ι, toImg_ι]
 
 @[reassoc]
 lemma imgι_toSpec : c.imgι j ≫ c.toSpec = (c.image j).toSpec := by
-  change c.imgι j ≫ c.I.subschemeι ≫ projSpace.toSpec R c.m =
-    (c.image j).I.subschemeι ≫ projSpace.toSpec R c.m
-  rw [← Category.assoc, imgι_subschemeι]
+  rw [← ι_toSpec, ← ι_toSpec, imgι_ι_assoc]
 
-variable {d : ModelCode R} {T' : Scheme.{u}} (j' : T' ⟶ d.I.subscheme) [QuasiCompact j']
-  (g : c.I.subscheme ⟶ d.I.subscheme) (a : T ⟶ T') (h : j ≫ g = a ≫ j')
+variable {d : ModelCode R} {T' : Scheme.{u}} (j' : T' ⟶ d.scheme) [QuasiCompact j']
+  (g : c.scheme ⟶ d.scheme) (a : T ⟶ T') (h : j ≫ g = a ≫ j')
 
 include h in
-lemma imageMap_ker_le :
-    (d.image j').I.subschemeι.ker ≤ (c.imgι j ≫ g ≫ d.I.subschemeι).ker := by
-  change (j' ≫ d.I.subschemeι).ker.subschemeι.ker ≤ _
+lemma imageMap_ker_le : (d.image j').ι.ker ≤ (c.imgι j ≫ g ≫ d.ι).ker := by
+  change (j' ≫ d.ι).ker.subschemeι.ker ≤ _
   rw [Scheme.IdealSheafData.ker_subschemeι]
-  have h1 : (c.toImg j ≫ c.imgι j ≫ g ≫ d.I.subschemeι).ker =
-      (c.imgι j ≫ g ≫ d.I.subschemeι).ker := by
+  have h1 : (c.toImg j ≫ c.imgι j ≫ g ≫ d.ι).ker = (c.imgι j ≫ g ≫ d.ι).ker := by
     rw [Scheme.Hom.ker_comp, (c.toImg j).ker_eq_bot, Scheme.IdealSheafData.map_bot]
   rw [← h1, toImg_imgι_assoc, ← Category.assoc, h, Category.assoc]
   exact Scheme.Hom.le_ker_comp _ _
 
 /-- **Functoriality of images**: a commutative square `j ≫ g = a ≫ j'` induces
 `image j ⟶ image j'`. -/
-noncomputable def imageMap : (c.image j).I.subscheme ⟶ (d.image j').I.subscheme :=
-  IsClosedImmersion.lift (d.image j').I.subschemeι (c.imgι j ≫ g ≫ d.I.subschemeι)
-    (c.imageMap_ker_le j j' g a h)
+noncomputable def imageMap : (c.image j).scheme ⟶ (d.image j').scheme :=
+  IsClosedImmersion.lift (d.image j').ι (c.imgι j ≫ g ≫ d.ι) (c.imageMap_ker_le j j' g a h)
 
 @[reassoc (attr := simp)]
 lemma imageMap_imgι : c.imageMap j j' g a h ≫ d.imgι j' = c.imgι j ≫ g := by
-  rw [← cancel_mono d.I.subschemeι, Category.assoc, imgι_subschemeι, imageMap,
-    IsClosedImmersion.lift_fac, Category.assoc]
+  rw [← cancel_mono d.ι, Category.assoc, imgι_ι, imageMap, IsClosedImmersion.lift_fac,
+    Category.assoc]
 
 @[reassoc (attr := simp)]
 lemma toImg_imageMap : c.toImg j ≫ c.imageMap j j' g a h = a ≫ d.toImg j' := by

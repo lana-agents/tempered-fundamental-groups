@@ -6,6 +6,7 @@ Authors: LANA Project
 import TemperedFundamentalGroups.Tempered.BaseChange
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Models.BaseChange
+import TemperedFundamentalGroups.Models.Image
 import TemperedFundamentalGroups.Andre.Pullback
 
 /-!
@@ -128,48 +129,93 @@ lemma fcEnd_one : Lv.fcEnd hO 1 = 𝟙 _ := by
     exact Category.comp_id _
   · rw [fcEnd_toSpec, Category.id_comp]
 
-/-- **The action of `H` on `𝒯 ×_O O'`.** -/
-def fcAct : Lv.L.H →* Aut (Lv.fcC hO).scheme :=
+lemma fcJ_fst : Lv.fcJ hO μ ≫ Lv.c.bcFst (valMap hO) =
+    Spec.map (CommRingCat.ofHom (Lv.L.bcι μ)) ≫ Lv.j :=
+  ModelCode.bcLift_fst _ _ _ _ _
+
+lemma fcJ_toSpec : Lv.fcJ hO μ ≫ (Lv.fcC hO).toSpec =
+    Spec.map (CommRingCat.ofHom (levelStructureMap O' R' A' (Lv.L.baseChange μ))) :=
+  ModelCode.bcLift_toSpec _ _ _ _ _
+
+/-- `j'` is equivariant for the action of `g ∈ H'` through `bcPr g`. -/
+lemma fcJ_fcEnd (g : (Lv.L.baseChange μ).H) :
+    Lv.fcJ hO μ ≫ Lv.fcEnd hO (Lv.L.bcPr μ g) =
+      Spec.map (CommRingCat.ofHom
+        ((g : SemilinearAut R' A' (Lv.L.baseChange μ).B).σ.symm :
+          (Lv.L.baseChange μ).B →+* (Lv.L.baseChange μ).B)) ≫ Lv.fcJ hO μ := by
+  refine Lv.c.bc_hom_ext (valMap hO) ?_ ?_
+  · simp only [Category.assoc]
+    rw [fcEnd_fst, ← Category.assoc (Lv.fcJ hO μ), fcJ_fst]
+    refine Eq.trans (Category.assoc _ _ _) ?_
+    refine (congrArg (Spec.map (CommRingCat.ofHom (Lv.L.bcι μ)) ≫ ·)
+      (Lv.ρ_j (Lv.L.bcPr μ g))).symm.trans ?_
+    simp only [← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    congr 3
+    exact (RingHom.ext fun y => FiniteLevel.bcσ_symm_bcι μ Lv.L g y).symm
+  · simp only [Category.assoc, fcEnd_toSpec]
+    rw [fcJ_toSpec, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+    refine congrArg (fun φ => Spec.map (CommRingCat.ofHom φ)) (RingHom.ext fun o => ?_)
+    exact (levelStructureMap_σ O' R' A' _
+      (g : SemilinearAut R' A' (Lv.L.baseChange μ).B)⁻¹ o).symm
+
+instance fcJ_qc : QuasiCompact (Lv.fcJ hO μ) := quasiCompact_of_compactSpace _
+
+/-- The model over `O'`: the scheme-theoretic image of `j'` in `𝒯 ×_O O'`. -/
+abbrev fcI : ModelCode O' := (Lv.fcC hO).image (Lv.fcJ hO μ)
+
+/-- The action of `g ∈ H'` on the image. -/
+def imgEnd (g : (Lv.L.baseChange μ).H) : (Lv.fcI hO μ).scheme ⟶ (Lv.fcI hO μ).scheme :=
+  (Lv.fcC hO).imageMap (Lv.fcJ hO μ) (Lv.fcJ hO μ) (Lv.fcEnd hO (Lv.L.bcPr μ g)) _
+    (Lv.fcJ_fcEnd hO μ g)
+
+@[reassoc]
+lemma imgEnd_imgι (g : (Lv.L.baseChange μ).H) :
+    Lv.imgEnd hO μ g ≫ (Lv.fcC hO).imgι (Lv.fcJ hO μ) =
+      (Lv.fcC hO).imgι (Lv.fcJ hO μ) ≫ Lv.fcEnd hO (Lv.L.bcPr μ g) :=
+  ModelCode.imageMap_imgι _ _ _ _ _ _
+
+lemma imgEnd_comp (g g' : (Lv.L.baseChange μ).H) :
+    Lv.imgEnd hO μ g ≫ Lv.imgEnd hO μ g' = Lv.imgEnd hO μ (g' * g) := by
+  rw [← cancel_mono ((Lv.fcC hO).imgι (Lv.fcJ hO μ)), Category.assoc, imgEnd_imgι,
+    imgEnd_imgι_assoc, imgEnd_imgι, fcEnd_comp, map_mul]
+
+lemma imgEnd_one : Lv.imgEnd hO μ 1 = 𝟙 _ := by
+  rw [← cancel_mono ((Lv.fcC hO).imgι (Lv.fcJ hO μ)), imgEnd_imgι, map_one, fcEnd_one,
+    Category.comp_id, Category.id_comp]
+
+/-- **The action of `H'` on the image.** -/
+def imgAct : (Lv.L.baseChange μ).H →* Aut (Lv.fcI hO μ).scheme :=
   MonoidHom.mk' (fun g =>
-    { hom := Lv.fcEnd hO g
-      inv := Lv.fcEnd hO g⁻¹
-      hom_inv_id := by rw [fcEnd_comp, inv_mul_cancel, fcEnd_one]
-      inv_hom_id := by rw [fcEnd_comp, mul_inv_cancel, fcEnd_one] })
+    { hom := Lv.imgEnd hO μ g
+      inv := Lv.imgEnd hO μ g⁻¹
+      hom_inv_id := by rw [imgEnd_comp, inv_mul_cancel, imgEnd_one]
+      inv_hom_id := by rw [imgEnd_comp, mul_inv_cancel, imgEnd_one] })
     fun g g' => by
       ext1
       simp only [Aut.Aut_mul_def, Iso.trans_hom]
-      exact (Lv.fcEnd_comp hO g' g).symm
+      exact (Lv.imgEnd_comp hO μ g' g).symm
 
-lemma fcAct_hom (g : Lv.L.H) : (Lv.fcAct hO g).hom = Lv.fcEnd hO g := rfl
+lemma imgAct_hom (g : (Lv.L.baseChange μ).H) : (Lv.imgAct hO μ g).hom = Lv.imgEnd hO μ g := rfl
 
-/-- **The level with model over `(K', O')`.** -/
+lemma imgEnd_toSpec (g : (Lv.L.baseChange μ).H) :
+    Lv.imgEnd hO μ g ≫ (Lv.fcI hO μ).toSpec = (Lv.fcI hO μ).toSpec := by
+  rw [← ModelCode.imgι_toSpec, imgEnd_imgι_assoc, fcEnd_toSpec]
+
+/-- **The level with model over `(K', O')`**: the base-changed level, the scheme-theoretic
+image of `Spec (R' ⊗_R B)` in `𝒯 ×_O O'`. -/
 def fieldChange : Level O' R' A' where
   L := Lv.L.baseChange μ
-  c := Lv.fcC hO
-  j := Lv.fcJ hO μ
-  j_toSpec := ModelCode.bcLift_toSpec _ _ _ _ _
-  ρ := (Lv.fcAct hO).comp (Lv.L.bcPr μ)
-  ρ_toSpec g := Lv.fcEnd_toSpec hO _
-  ρ_j g := by
-    refine Lv.c.bc_hom_ext (valMap hO) ?_ ?_
-    · simp only [MonoidHom.comp_apply, fcAct_hom, Category.assoc]
-      have e1 : Lv.fcJ hO μ ≫ Lv.c.bcFst (valMap hO) =
-          Spec.map (CommRingCat.ofHom (Lv.L.bcι μ)) ≫ Lv.j :=
-        ModelCode.bcLift_fst _ _ _ _ _
-      have e2 : Lv.fcEnd hO (Lv.L.bcPr μ g) ≫ Lv.c.bcFst (valMap hO) =
-          Lv.c.bcFst (valMap hO) ≫ (Lv.ρ (Lv.L.bcPr μ g)).hom := Lv.fcEnd_fst hO _
-      rw [e2, ← Category.assoc (Lv.fcJ hO μ), e1]
-      refine Eq.trans ?_ (Category.assoc _ _ _).symm
-      refine Eq.trans ?_ (congrArg (Spec.map (CommRingCat.ofHom (Lv.L.bcι μ)) ≫ ·)
-        (Lv.ρ_j (Lv.L.bcPr μ g)))
-      simp only [← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
-      congr 3
-      exact RingHom.ext fun y => FiniteLevel.bcσ_symm_bcι μ Lv.L g y
-    · simp only [MonoidHom.comp_apply, fcAct_hom, Category.assoc, fcEnd_toSpec]
-      rw [fcJ, ModelCode.bcLift_toSpec, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
-      refine congrArg (fun φ => Spec.map (CommRingCat.ofHom φ)) (RingHom.ext fun o => ?_)
-      exact levelStructureMap_σ O' R' A' _
-        (g : SemilinearAut R' A' (Lv.L.baseChange μ).B)⁻¹ o
+  c := Lv.fcI hO μ
+  j := (Lv.fcC hO).toImg (Lv.fcJ hO μ)
+  j_toSpec := by
+    rw [← ModelCode.imgι_toSpec, ModelCode.toImg_imgι_assoc, fcJ_toSpec]
+  ρ := Lv.imgAct hO μ
+  ρ_toSpec g := Lv.imgEnd_toSpec hO μ g
+  ρ_j g := (ModelCode.toImg_imageMap _ _ _ _ _ (Lv.fcJ_fcEnd hO μ g)).symm
+
+instance : IsSchemeTheoreticallyDominant (Lv.fieldChange hO μ).j := by
+  change IsSchemeTheoreticallyDominant ((Lv.fcC hO).toImg (Lv.fcJ hO μ))
+  infer_instance
 
 end Level
 
