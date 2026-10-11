@@ -79,9 +79,15 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   models are base-changed to `O'`, `Models/BaseChange.lean`, and replaced by the image of the generic
   fibre, `Models/Image.lean`). It factors as the pure field change followed by
   `temperedPi1Map μ` (`temperedPi1FieldMap_comp`, `temperedPi1FieldMap_eq_comp`), so its image fixes
-  the base point of a finite étale `Spec R' → Spec R` (e.g. `R' = K' ⊗_K R`), and it is an open
-  embedding onto that stabilizer if the pure field change is a homeomorphism
-  (`Tempered/FieldChangeImage.lean`; that last hypothesis is not yet formalized).
+  the base point of a finite étale `Spec R' → Spec R` (e.g. `R' = K' ⊗_K R`)
+  (`Tempered/FieldChangeImage.lean`). If `O'` is finite over `O`, the pure field change is an
+  isomorphism of topological groups `temperedPi1FieldEquiv` (`Tempered/FieldChangePure.lean`, via
+  restriction of scalars of models along a closed immersion `ℙᵐ_{O'} ⟶ ℙᴺ_O`,
+  `Models/RestrictScalars.lean`, and the criterion `FibreFunctor/SectionRestrict.lean`), so
+  `temperedPi1FieldMap hO μ` is an open embedding onto that stabilizer, of finite index
+  (`isOpenEmbedding_temperedPi1FieldMap`, `range_temperedPi1FieldMap`,
+  `finiteIndex_range_temperedPi1FieldMap`); with Theorem A on both sides André's groups agree,
+  `andreFieldEquiv` (`Andre/FieldChange.lean`).
   The comparison maps are natural: `temperedToEtale_temperedPi1Map` (with `etalePi1Map μ`,
   `Tempered/BaseChangeEtale.lean`) and `andreEquiv'_temperedPi1Map` (with `andreGroupMap μ`,
   `Andre/Functoriality.lean`).

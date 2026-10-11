@@ -8,6 +8,7 @@ import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.DualGraphMap
 import TemperedFundamentalGroups.Andre.DualGraphPi1
+import TemperedFundamentalGroups.Andre.FieldChange
 import TemperedFundamentalGroups.Andre.FracGalois
 import TemperedFundamentalGroups.Andre.FracMap
 import TemperedFundamentalGroups.Andre.FunctionFieldFinite
@@ -93,11 +94,13 @@ import TemperedFundamentalGroups.FibreFunctor.GaloisLimit
 import TemperedFundamentalGroups.FibreFunctor.LengthLimit
 import TemperedFundamentalGroups.FibreFunctor.PushRestrict
 import TemperedFundamentalGroups.FibreFunctor.Realization
+import TemperedFundamentalGroups.FibreFunctor.SectionRestrict
 import TemperedFundamentalGroups.FibreFunctor.SpanPushRestrict
 import TemperedFundamentalGroups.FibreFunctor.SpanRealization
 import TemperedFundamentalGroups.Models.BaseChange
 import TemperedFundamentalGroups.Models.Image
 import TemperedFundamentalGroups.Models.Projective
+import TemperedFundamentalGroups.Models.RestrictScalars
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.Exact
 import TemperedFundamentalGroups.Orbicurve.GenericPoint
@@ -544,6 +547,7 @@ import TemperedFundamentalGroups.Tempered.CoverImage
 import TemperedFundamentalGroups.Tempered.FieldChange
 import TemperedFundamentalGroups.Tempered.FieldChangeComp
 import TemperedFundamentalGroups.Tempered.FieldChangeImage
+import TemperedFundamentalGroups.Tempered.FieldChangePure
 import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.InducedAlg
 import TemperedFundamentalGroups.Tempered.InducedCounit
