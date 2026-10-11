@@ -214,6 +214,103 @@ lemma exists_stab_eq (hsym : ∀ a : A, ∃ g : SemilinearAut R A B, g.a = a)
 
 end Stab
 
+section CoreQ
+
+variable {K : Type u} [Field K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
+  {R : Type u} [CommRing R] [Algebra K R] {A : Type u} [Group A] [MulSemiringAction A R]
+  [SMulCommClass A K R] [IsNoetherianRing R] [Finite A]
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+  (A₁ : Type u) [Group A₁] [Subsingleton A₁] [MulSemiringAction A₁ R]
+
+/-- **Domination from a Galois-over-`[Spec R / A]` component** `Q` with a model `𝒯₁`: the core
+level of `Q` (over `A₁`) satisfies the conditions of `galClassO` and `dom_coreO` applies. -/
+theorem dom_coreQ {n : ℕ} (Pt : Fin n → Σ X : TempObj O R A, (tempFibre O R A V hV).obj X)
+    (Q : Type u) [CommRing Q] [Algebra R Q] [Algebra.Etale R Q] [Module.Finite R Q]
+    (hQc : ∀ e : Q, IsIdempotentElem e → e = 0 ∨ e = 1)
+    (hQg : ∀ t t' : Q →ₐ[R] Ω, ∃ σ : Q ≃ₐ[R] Q, t.comp (σ : Q →ₐ[R] Q) = t')
+    (hQsym : ∀ a : A, ∃ γ : SemilinearAut R A Q, γ.a = a)
+    (s' : Q →ₐ[R] Ω) (c₁ : ModelCode O) (j₁ : Spec (CommRingCat.of Q) ⟶ c₁.scheme)
+    (hj₁ : j₁ ≫ c₁.toSpec = Spec.map (CommRingCat.ofHom
+      ((algebraMap R Q).comp ((algebraMap K R).comp O.subtype))))
+    [IsSchemeTheoreticallyDominant j₁]
+    (hss : ∃ (K' : Type u) (_ : Field K') (_ : Algebra K K') (_ : FiniteDimensional K K')
+      (O' : ValuationSubring K') (h : O'.comap (algebraMap K K') = O)
+      (_ : IsDiscreteValuationRing O') (ϖ' : O') (_ : Irreducible ϖ')
+      (c' : ModelCode O') (e : c₁.scheme ≅ c'.scheme),
+      SemistableReduction.ModelCode.IsSemistable ϖ' c' ∧
+        e.hom ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom
+          ((algebraMap K K').restrict O O' (fun x hx => by rw [← h] at hx; exact hx))) =
+          c₁.toSpec)
+    [ConnectedSpace (specialFibre c₁.toSpec)]
+    (hdim : topologicalKrullDim (specialFibre c₁.toSpec) ≤ 1)
+    (hact : ∀ γ : SemilinearAut R A Q, ∃ ψ : c₁.scheme ⟶ c₁.scheme, ψ ≫ c₁.toSpec = c₁.toSpec ∧
+      j₁ ≫ ψ = Spec.map (CommRingCat.ofHom (γ.σ : Q →+* Q)) ≫ j₁)
+    (f : ∀ k, (Pt k).1.Lv.L.B →ₐ[R] Q)
+    (hf : ∀ k, s'.comp (f k) = (Quotient.out (Pt k).2 : PreFibre Ω V hV (Pt k).1).1.1)
+    (dom : ∀ k, c₁.scheme ⟶ (Pt k).1.Lv.c.scheme)
+    (hdomS : ∀ k, dom k ≫ (Pt k).1.Lv.c.toSpec = c₁.toSpec)
+    (hdomj : ∀ k, j₁ ≫ dom k = Spec.map (CommRingCat.ofHom (f k : (Pt k).1.Lv.L.B →+* Q)) ≫
+      (Pt k).1.Lv.j) :
+    ∃ G, galClassO O R A Ω A₁ G ∧ Nonempty ((tempFibre O R A V hV).obj G) ∧
+      ∀ k, ∃ (m : G ⟶ (Pt k).1) (u : (tempFibre O R A V hV).obj G),
+        (tempFibre O R A V hV).map m u = (Pt k).2 := by
+  let L : FiniteLevel R A₁ := trivialHLevel Q
+  haveI : Subsingleton L.H := subsingleton_trivialLevel Q
+  let φQ : Q ≃ₐ[R] L.B := coreEquiv (A := A₁) Q
+  let Lv : Level O R A₁ := coreLevel Q c₁ j₁ hj₁
+  haveI : Subsingleton Lv.L.H := subsingleton_trivialLevel Q
+  haveI : IsIso (CommRingCat.ofHom (φQ : Q →+* L.B)) := φQ.toRingEquiv.toCommRingCatIso.isIso_hom
+  haveI hdomj' : IsSchemeTheoreticallyDominant Lv.j :=
+    (inferInstance : IsSchemeTheoreticallyDominant
+      (Spec.map (CommRingCat.ofHom (φQ : Q →+* L.B)) ≫ j₁))
+  haveI : Nonempty Lv.Z := inferInstanceAs (Nonempty (specialFibre c₁.toSpec))
+  haveI : ConnectedSpace Lv.Z := inferInstanceAs (ConnectedSpace (specialFibre c₁.toSpec))
+  let z₀ : Lv.Z := Classical.arbitrary _
+  have hconn : ∀ e : L.B, IsIdempotentElem e → e = 0 ∨ e = 1 := fun e he => by
+    rcases hQc (φQ.symm e) (he.map φQ.symm) with h | h
+    · left; simpa using congrArg φQ h
+    · right; simpa using congrArg φQ h
+  have hgalL : ∀ t t' : L.B →ₐ[R] Ω, ∃ σ : L.B ≃ₐ[R] L.B, t.comp (σ : L.B →ₐ[R] L.B) = t' := by
+    intro t t'
+    obtain ⟨σ', hσ'⟩ := hQg (t.comp (φQ : Q →ₐ[R] L.B)) (t'.comp (φQ : Q →ₐ[R] L.B))
+    refine ⟨(φQ.symm.trans σ').trans φQ, ?_⟩
+    ext y
+    have := DFunLike.congr_fun hσ' (φQ.symm y)
+    simpa using this
+  have hsymL : ∀ a : A, ∃ γ : SemilinearAut R A L.B, γ.a = a := fun a => by
+    obtain ⟨γ, hγ⟩ := hQsym a
+    exact ⟨SemilinearAut.transport φQ.symm γ, hγ⟩
+  have hactL : ∀ γ : SemilinearAut R A Lv.L.B, ∃ ψ : Lv.c.scheme ⟶ Lv.c.scheme,
+      ψ ≫ Lv.c.toSpec = Lv.c.toSpec ∧
+      Lv.j ≫ ψ = Spec.map (CommRingCat.ofHom (γ.σ : Lv.L.B →+* Lv.L.B)) ≫ Lv.j := fun γ => by
+    obtain ⟨ψ, hψ, hjψ⟩ := hact (SemilinearAut.transport φQ γ)
+    refine ⟨ψ, hψ, ?_⟩
+    change (Spec.map (CommRingCat.ofHom (φQ : Q →+* L.B)) ≫ j₁) ≫ ψ =
+      Spec.map (CommRingCat.ofHom (γ.σ : L.B →+* L.B)) ≫
+        Spec.map (CommRingCat.ofHom (φQ : Q →+* L.B)) ≫ j₁
+    rw [Category.assoc, hjψ, ← Category.assoc, ← Category.assoc, ← Spec.map_comp,
+      ← Spec.map_comp, ← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+    congr 3
+    ext y
+    simp
+  have hssL : IsSemistableLevel Lv := by
+    obtain ⟨K', i1, i2, i3, O', hO', i4, ϖ', hϖ', c', e, h1, h2⟩ := hss
+    exact ⟨K', i1, i2, i3, O', hO', i4, ϖ', hϖ', c', e, h1, h2⟩
+  let t : L.B →ₐ[R] Ω := s'.comp (φQ.symm : L.B →ₐ[R] Q)
+  exact dom_coreO V hV A₁ Pt Lv hdim z₀ hgalL hconn hsymL hactL hssL t
+    (fun k => (φQ : Q →ₐ[R] L.B).comp (f k))
+    (fun k => by
+      rw [← hf k]
+      ext y
+      simp [t])
+    dom hdomS (fun k => by
+      change (Spec.map (CommRingCat.ofHom (φQ : Q →+* L.B)) ≫ j₁) ≫ dom k = _
+      rw [Category.assoc, hdomj, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
+      rfl)
+
+end CoreQ
+
 end
 
 end TemperedFundamentalGroups
