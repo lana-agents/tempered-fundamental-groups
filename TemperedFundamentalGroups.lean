@@ -23,6 +23,7 @@ import TemperedFundamentalGroups.Andre.GaloisDomW
 import TemperedFundamentalGroups.Andre.GaloisObject
 import TemperedFundamentalGroups.Andre.HeightW
 import TemperedFundamentalGroups.Andre.LengthW
+import TemperedFundamentalGroups.Andre.LevelClass
 import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.OrbClosure
 import TemperedFundamentalGroups.Andre.OrbGalois
@@ -33,7 +34,9 @@ import TemperedFundamentalGroups.Andre.OrbGaloisGal
 import TemperedFundamentalGroups.Andre.OrbGaloisLevel
 import TemperedFundamentalGroups.Andre.OrbGaloisMid
 import TemperedFundamentalGroups.Andre.OrbGaloisRigid
+import TemperedFundamentalGroups.Andre.OrbStageFunctor
 import TemperedFundamentalGroups.Andre.OrbStageGroup
+import TemperedFundamentalGroups.Andre.OrbStageLevel
 import TemperedFundamentalGroups.Andre.OrbStageLimit
 import TemperedFundamentalGroups.Andre.PointLift
 import TemperedFundamentalGroups.Andre.ProjPoints
