@@ -95,6 +95,7 @@ import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.SpanPushRestrict
 import TemperedFundamentalGroups.FibreFunctor.SpanRealization
 import TemperedFundamentalGroups.Models.BaseChange
+import TemperedFundamentalGroups.Models.Image
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.Exact
@@ -539,6 +540,7 @@ import TemperedFundamentalGroups.Tempered.BaseChangeLevel
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.CoverImage
+import TemperedFundamentalGroups.Tempered.FieldChange
 import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.InducedAlg
 import TemperedFundamentalGroups.Tempered.InducedCounit
