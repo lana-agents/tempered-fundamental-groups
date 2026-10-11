@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: LANA Project
 -/
 import TemperedFundamentalGroups.Andre.Functoriality
-import TemperedFundamentalGroups.Tempered.FieldChangePure
+import TemperedFundamentalGroups.Tempered.FieldChangeFinite
 
 /-!
 # Change of the valued field and Theorem A (Blueprint §11, F8)
@@ -15,6 +15,8 @@ dimension one, a domain) which is also smooth over `K`. Theorem A over `(K', O')
 `(K, O)`, together with the pure field change `temperedPi1FieldEquiv` (F8), identify André's
 groups: `andreFieldEquiv : andreGroup O' R' A' ≃ₜ* andreGroup O R' A'`, compatibly with the
 restrictions `temperedPi1 → andreGroup` of Theorem A (`andreFieldEquiv_andreRestrict`).
+For `K'/K` finite, `O'` is automatically finite over `O` (`valMap_finite`), giving the
+unconditional `andreFieldEquiv'`.
 -/
 
 universe u
@@ -60,6 +62,18 @@ theorem andreFieldEquiv_andreRestrict (γ : temperedPi1 O' R' A' V hV') :
   rw [← andreEquiv'_apply V hV' hp' hR, ← andreEquiv'_apply V _ hp hR, andreFieldEquiv,
     ContinuousMulEquiv.trans_apply, ContinuousMulEquiv.symm_apply_apply,
     ContinuousMulEquiv.trans_apply, temperedPi1FieldEquiv_apply]
+
+/-- **André's groups over `(K', O')` and over `(K, O)` agree** for `K'/K` finite
+(unconditional version of `andreFieldEquiv`: `O'` is finite over `O` by `valMap_finite`). -/
+def andreFieldEquiv' [FiniteDimensional K K'] :
+    andreGroup O' R' A' V hV' ≃ₜ* andreGroup O R' A' V (TempObj.comap_eq hO V hV') :=
+  andreFieldEquiv hO (valMap_finite hO) V hV' hp hp' hR
+
+theorem andreFieldEquiv'_andreRestrict [FiniteDimensional K K'] (γ : temperedPi1 O' R' A' V hV') :
+    andreFieldEquiv' hO V hV' hp hp' hR (andreRestrict O' R' A' V hV' γ) =
+      andreRestrict O R' A' V (TempObj.comap_eq hO V hV')
+        (temperedPi1FieldMap hO (OrbMap.id R' A') V hV' γ) :=
+  andreFieldEquiv_andreRestrict hO (valMap_finite hO) V hV' hp hp' hR γ
 
 end
 
