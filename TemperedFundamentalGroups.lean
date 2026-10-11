@@ -90,6 +90,7 @@ import TemperedFundamentalGroups.FibreFunctor.GaloisGroupLimit
 import TemperedFundamentalGroups.FibreFunctor.GaloisLimit
 import TemperedFundamentalGroups.FibreFunctor.LengthLimit
 import TemperedFundamentalGroups.FibreFunctor.PushRestrict
+import TemperedFundamentalGroups.FibreFunctor.SpanPushRestrict
 import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.SpanRealization
 import TemperedFundamentalGroups.Models.Projective
