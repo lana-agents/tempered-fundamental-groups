@@ -201,6 +201,137 @@ lemma comp_toOne {X Y : TempObj O R A'} (m : X ⟶ Y) : m ≫ toOne Y = toOne X 
     change toOneψ Y (m.h x).1.1.1 = toOneψ X x.1.1.1
     rw [m.fst_h, ← Scheme.Hom.comp_apply, ← Category.assoc, m.ψ_toSpec]
 
+section Fibre
+
+variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+lemma unitE_symm (r : R) : (unitE (A' := A')).symm r = algebraMap R (unitEt R A').B r := by
+  rw [← AlgEquiv.commutes unitE.symm r]
+  rfl
+
+lemma algHom_unit_ext (t t' : (unitEt R A').B →ₐ[R] Ω) : t = t' := by
+  ext y
+  rw [← unitE.symm_apply_apply y, unitE_symm, t.commutes, t'.commutes]
+
+variable (A') in
+/-- The base point of the trivial covering. -/
+def onePt : TempObj.Fibre Ω V hV (one O R A') :=
+  (etaleToTempFibreEquiv O R A' V hV (unitEt R A')).symm ((Algebra.ofId R Ω).comp unitE.toAlgHom)
+
+lemma eq_onePt (x : TempObj.Fibre Ω V hV (one O R A')) : x = onePt A' V hV :=
+  (etaleToTempFibreEquiv O R A' V hV (unitEt R A')).injective (algHom_unit_ext _ _)
+
+end Fibre
+
+section Push
+
+variable [Finite A] [IsDomain R] [IsNoetherianRing R] [FaithfulSMul A' R]
+
+/-- The level groups are finite. -/
+local instance (Y : TempObj O R A) : Fintype Y.Lv.L.H :=
+  @Fintype.ofFinite _ Y.Lv.L.finite_H
+
+local instance (Y : TempObj O R A) : DecidableEq Y.Lv.L.H := Classical.decEq _
+
+variable (μ)
+
+/-- The push of a good covering. -/
+abbrev P (X' : TempObj O R A') (hX : Good X') : TempObj O R A :=
+  (IndData.pushData μ X').obj (indFaithful hX)
+
+lemma pushθβ {X' Y' : TempObj O R A'} (m : X' ⟶ Y') (k : X'.Lv.L.H) :
+    MonoidHom.id A ((IndData.pushData μ X').β k) = (IndData.pushData μ Y').β (m.φ.r k) := by
+  change μ.α (k : SemilinearAut R A' X'.Lv.L.B).a =
+    μ.α ((m.φ.r k : Y'.Lv.L.H) : SemilinearAut R A' Y'.Lv.L.B).a
+  rw [m.φ.r_a]
+
+/-- The push of a morphism of good coverings. -/
+abbrev Pmap {X' Y' : TempObj O R A'} (hX : Good X') (hY : Good Y') (m : X' ⟶ Y') :
+    P μ X' hX ⟶ P μ Y' hY :=
+  IndData.hom (IndData.pushData μ X') (IndData.pushData μ Y') (indFaithful hX) (indFaithful hY) m
+    (MonoidHom.id A) (fun _ => rfl) (pushθβ μ m)
+
+lemma Pmap_congr {X' Y' : TempObj O R A'} (hX : Good X') (hY : Good Y') {m m' : X' ⟶ Y'}
+    (h : m = m') : Pmap μ hX hY m = Pmap μ hX hY m' := by
+  subst h
+  rfl
+
+lemma Pmap_comp {X' Y' Z' : TempObj O R A'} (hX : Good X') (hY : Good Y') (hZ : Good Z')
+    (m : X' ⟶ Y') (m' : Y' ⟶ Z') :
+    Pmap μ hX hY m ≫ Pmap μ hY hZ m' = Pmap μ hX hZ (m ≫ m') :=
+  IndData.hom_comp _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+variable {μ}
+
+lemma good_one : Good (one O R A') := by
+  intro r s h
+  have h' : (unitE (A' := A')).symm r = unitE.symm s := by
+    rw [unitE_symm, unitE_symm]
+    exact h
+  exact unitE.symm.injective h'
+
+end Push
+
+section Range
+
+variable [Finite A] [IsDomain R] [IsNoetherianRing R] [FaithfulSMul A' R]
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+/-- **The image of `ι`** is the fibre over the base point of the cover. -/
+lemma range_ι (X' : TempObj O R A') (hX : Good X') (y : TempObj.Fibre Ω V hV (P μ X' hX)) :
+    (∃ x, (IndData.pushData μ X').ι (indFaithful hX) V hV x = y) ↔
+      TempObj.fibreMap V hV (Pmap μ hX good_one (toOne X')) y =
+        (IndData.pushData μ (one O R A')).ι (indFaithful good_one) V hV (onePt A' V hV) := by
+  constructor
+  · rintro ⟨x, rfl⟩
+    rw [← IndData.ι_natural, eq_onePt V hV (TempObj.fibreMap V hV (toOne X') x)]
+  · intro h
+    induction y using Quotient.inductionOn with
+    | h q =>
+    set D₁ := IndData.pushData μ (one O R A')
+    set D := IndData.pushData μ X'
+    obtain ⟨x, t₀, ht⟩ := D.exists_comp_ev (q.1.1 : (P μ X' hX).Lv.L.B →+* Ω)
+    obtain ⟨q₀, hq₀⟩ := Quotient.exists_rep (onePt (O := O) (R := R) A' V hV)
+    rw [← hq₀] at h
+    obtain ⟨g, hg⟩ := MulAction.mem_orbit_iff.1 (Quotient.exact h.symm)
+    obtain ⟨⟨s, k⟩, htg⟩ := (D₁.equivT (indFaithful good_one)).surjective g.1
+    have hs : s = 1 := by
+      have := D₁.equivT_symm_mem_H0 (indFaithful good_one) g.2
+      rwa [← htg, MulEquiv.symm_apply_apply] at this
+    have hpre : ((TempObj.preMap V hV (Pmap μ hX good_one (toOne X')) q).1.1 :
+        (D₁.obj (indFaithful good_one)).Lv.L.B →+* Ω) =
+        (t₀.comp ((toOneF X'.Lv.L : (unitEt R A').B →ₐ[R] X'.Lv.L.B) :
+          (unitEt R A').B →+* X'.Lv.L.B)).comp (D₁.ev x) := by
+      refine RingHom.ext fun y => ?_
+      exact (RingHom.congr_fun ht _).trans
+        (congrArg t₀ (IndData.ev_homF D D₁ (toOne X') (MonoidHom.id A) (fun _ => rfl) x y))
+    have h1 := D₁.comp_σ_symm (indFaithful good_one) hpre s k
+    have h2 : ((q₀.1.1 : (one O R A').Lv.L.B →+* Ω)).comp (D₁.ev 1) =
+        ((TempObj.preMap V hV (Pmap μ hX good_one (toOne X')) q).1.1 :
+          (D₁.obj (indFaithful good_one)).Lv.L.B →+* Ω).comp
+          (((D₁.equivT (indFaithful good_one) (s, k) : D₁.level.H) :
+            SemilinearAut R A D₁.level.B).σ.symm : D₁.level.B →+* D₁.level.B) := by
+      refine RingHom.ext fun y => ?_
+      have := congrArg (fun q' : TempObj.PreFibre Ω V hV (D₁.obj (indFaithful good_one)) =>
+        q'.1.1 y) hg
+      refine this.symm.trans ?_
+      change (TempObj.preMap V hV (Pmap μ hX good_one (toOne X')) q).1.1 (g.1.1.σ.symm y) = _
+      rw [← htg]
+      rfl
+    have hcomp := D₁.eq_of_comp_ev (h2.trans h1)
+    rw [hs, one_mul, eq_comm, mul_inv_eq_one] at hcomp
+    obtain ⟨k', hk'mem, hk'a⟩ := X'.Lv.L.surjective k.1.a
+    have hβ : D.β ⟨k', hk'mem⟩ = x := by
+      change μ.α k'.a = x
+      rw [hk'a]
+      exact hcomp.symm
+    obtain ⟨z, hz⟩ := D.mem_range_ι (indFaithful hX) V hV q ⟨k', hk'mem⟩ t₀ (by rw [hβ]; exact ht)
+    exact ⟨z, hz⟩
+
+end Range
+
 end OrbifoldCover
 
 end
