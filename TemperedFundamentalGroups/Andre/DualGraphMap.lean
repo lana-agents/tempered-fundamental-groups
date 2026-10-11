@@ -296,9 +296,10 @@ def ModelCode.IsHarmonicDualGraphMap {K₁ K₂ L₁ L₂ : Type u} [Field K₁]
   IsDualGraphMap ψ ∧ IsHarmonicX O₁ O₂ ϖ₁ ϖ₂ ϖ₁₀ ϖ₂₀ x₁ x₂ j₁ j₂ ψ
 
 /-- **Maps of unfolded W-models are harmonic maps of dual graphs** (G4): under the hypotheses of
-`Statement.HarmonicXS` (split nodes only), for a closed `ψ` (e.g. `ModelCode.isClosedMap_of_comp_eq` over a common
-base), `ψ` is a map of dual graphs (G1 from closedness and `dim Z c' ≤ 1`, G2 from `x3`, G3 from
-(X1) and the x-length of the target node from (X0)) which is x-harmonic (`harmonicX`). -/
+`Statement.HarmonicXS` (split nodes only), for a closed `ψ` (e.g.
+`ModelCode.isClosedMap_of_comp_eq` over a common base), `ψ` is a map of dual graphs (G1 from
+closedness and `dim Z c' ≤ 1`, G2 from `x3`, G3 from (X1) and the x-length of the target node
+from (X0)) which is x-harmonic (`harmonicXS`). -/
 theorem isHarmonicDualGraphMap_of_harmonicXS (K : Type u) [Field K] [CharZero K]
     (O : ValuationSubring K) [IsDiscreteValuationRing O]
     [IsAdicComplete (IsLocalRing.maximalIdeal O) O] (ϖ : O) (hϖ : Irreducible ϖ)
