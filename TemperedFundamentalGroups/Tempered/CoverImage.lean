@@ -541,6 +541,12 @@ theorem mem_range_temperedPi1Map (γ : temperedPi1 O R A V hV) :
     (coverPushData V hV μ).range_restrict]
   rfl
 
+/-- **`temperedPi1 O R' A' V hV` is an open subgroup of `temperedPi1 O R A V hV`**: the map is an
+open embedding. -/
+theorem isOpenEmbedding_temperedPi1Map :
+    Topology.IsOpenEmbedding (temperedPi1Map (O := O) μ V hV) :=
+  (coverPushData V hV μ).isOpenEmbedding_restrict
+
 theorem isOpen_range_temperedPi1Map :
     IsOpen ((temperedPi1Map (O := O) μ V hV).range : Set (temperedPi1 O R A V hV)) := by
   rw [show (temperedPi1Map (O := O) μ V hV).range = (coverPushData V hV μ).stab from

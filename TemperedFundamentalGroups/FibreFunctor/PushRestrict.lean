@@ -180,6 +180,27 @@ theorem finiteIndex_range_restrict [Finite (F.obj D.E)] :
   rw [MulAction.index_stabilizer]
   exact Set.ncard_ne_zero_of_mem (MulAction.mem_orbit_self D.x₀) (Set.toFinite _)
 
+include D in
+theorem isInducing_restrict : Topology.IsInducing (FibreAut.restrict G e) := by
+  classical
+  rw [IsTopologicalGroup.isInducing_iff_nhds_one]
+  refine le_antisymm ((FibreAut.continuous_restrict G e).tendsto' 1 1 (map_one _)).le_comap ?_
+  rw [((FibreAut.nhds_one_hasBasis F).comap _).le_basis_iff (FibreAut.nhds_one_hasBasis F')]
+  intro S _
+  refine ⟨S.image (fun p => (⟨D.P.obj p.1, D.ι p.1 p.2⟩ : Σ c : C, F.obj c)), trivial,
+    fun γ hγ p hp => ?_⟩
+  have := hγ _ (Finset.mem_image_of_mem _ hp)
+  exact (D.restrict_app_ι_eq_iff γ p.1 p.2).1 this
+
+include D in
+/-- **`FibreAut.restrict G e` is an open embedding** onto the stabilizer of `x₀`. -/
+theorem isOpenEmbedding_restrict : Topology.IsOpenEmbedding (FibreAut.restrict G e) := by
+  refine ⟨⟨D.isInducing_restrict, D.injective_restrict⟩, ?_⟩
+  have : Set.range (FibreAut.restrict G e) = (D.stab : Set (FibreAut F)) := by
+    rw [← D.range_restrict, MonoidHom.coe_range]
+  rw [this]
+  exact D.isOpen_stab
+
 end PushData
 
 end TemperedFundamentalGroups

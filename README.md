@@ -62,8 +62,8 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   and a compatible group homomorphism `A' →* A`; finite étale covers, removal of points, orbifold
   covers) induces a continuous homomorphism `temperedPi1 O R' A' V hV →* temperedPi1 O R A V hV`,
   by base change of tempered coverings (`TempObj.bcFunctor`, `R' ⊗_R B` with `H ×_A A'`). For a
-  finite étale cover `Spec R' → Spec R` (trivial groups) it is injective with open image of finite
-  index, the stabilizer of the base point of the cover (`temperedPi1Map_injective`,
+  finite étale cover `Spec R' → Spec R` (trivial groups) it is an open embedding with image of
+  finite index (`isOpenEmbedding_temperedPi1Map`), the stabilizer of the base point of the cover (`temperedPi1Map_injective`,
   `mem_range_temperedPi1Map`, `finiteIndex_range_temperedPi1Map`, `Tempered/CoverImage.lean`).
   The comparison maps are natural: `temperedToEtale_temperedPi1Map` (with `etalePi1Map μ`,
   `Tempered/BaseChangeEtale.lean`) and `andreEquiv'_temperedPi1Map` (with `andreGroupMap μ`,
