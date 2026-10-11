@@ -28,6 +28,7 @@ import TemperedFundamentalGroups.Andre.QuadraticLevel
 import TemperedFundamentalGroups.Andre.RamifiedQuadratic
 import TemperedFundamentalGroups.Andre.RamifiedQuadraticGal
 import TemperedFundamentalGroups.Andre.Refinement
+import TemperedFundamentalGroups.Andre.StageLimit
 import TemperedFundamentalGroups.Andre.TateChartMap
 import TemperedFundamentalGroups.Andre.TateCovering
 import TemperedFundamentalGroups.Andre.TateCoveringEq
@@ -82,6 +83,7 @@ import TemperedFundamentalGroups.Andre.WData
 import TemperedFundamentalGroups.Andre.WEdgeLifting
 import TemperedFundamentalGroups.Andre.WHarmonicWeight
 import TemperedFundamentalGroups.FibreFunctor.Character
+import TemperedFundamentalGroups.FibreFunctor.GaloisGroupLimit
 import TemperedFundamentalGroups.FibreFunctor.GaloisLimit
 import TemperedFundamentalGroups.FibreFunctor.LengthLimit
 import TemperedFundamentalGroups.FibreFunctor.PushRestrict

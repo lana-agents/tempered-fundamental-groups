@@ -81,6 +81,11 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   (`edgeMap`), compatibly with incidence, with edge lifting along crossing walks. Maps of
   unfolded split semistable W-models are such maps, harmonic for the x-lengths
   (`SemistableReduction.isHarmonicDualGraphMap_of_harmonicX`).
+* **André's group as a limit of stage groups** (Blueprint §11.3, G6.1–G6.2).
+  `TemperedFundamentalGroups.andreGroupEquivLim` (`Andre/StageLimit.lean`):
+  `andreGroup ≃* stageLimit`, the inverse limit over pointed Galois objects `U_Lv` over semistable
+  W-model levels of their stage groups `Π_Lv` (permutations of the fibre induced by `Aut U_Lv`),
+  from the group form of K1 `GaloisLimit.fibreAutEquiv` (`FibreFunctor/GaloisGroupLimit.lean`).
 
 ### Not covered
 
