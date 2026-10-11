@@ -508,6 +508,81 @@ lemma fcS_sp (X : TempObj O R A) (t : (X.Lv.fieldChange hO μ).L.B →ₐ[R'] Ω
   refine (congrArg (X.Lv.c.bcFst (valMap hO)) h1.symm).trans (h2.symm.trans ?_)
   exact congrArg Subtype.val (sp_congr' hO V hV' (point_fc hO μ X t) _ _)
 
+
+section FibreEquiv
+
+variable (X : TempObj O R A)
+
+lemma sp_eq (q : PreFibre Ω V hV' (X.fieldChange hO μ)) :
+    q.1.2.1.1 = (X.Lv.fieldChange hO μ).sp V hV' q.1.1 := Subtype.ext q.2
+
+/-- Restriction of pairs `(t', p')`. -/
+def fcPreRes (q : PreFibre Ω V hV' (X.fieldChange hO μ)) :
+    PreFibre Ω V (comap_eq hO V hV') X :=
+  ⟨(X.Lv.L.bcRes μ q.1.1, CoveringCode.pullbackPt X.P (X.Lv.fcS hO μ) q.1.2), by
+    change (X.Lv.fcS hO μ q.1.2.1.1).1 = _
+    rw [sp_eq hO μ V hV' X q, fcS_sp]⟩
+
+/-- Extension of pairs `(t, p)`. -/
+def fcPreExt (q : PreFibre Ω V (comap_eq hO V hV') X) :
+    PreFibre Ω V hV' (X.fieldChange hO μ) :=
+  ⟨(X.Lv.L.bcExt μ q.1.1, ⟨((X.Lv.fieldChange hO μ).sp V hV' (X.Lv.L.bcExt μ q.1.1), q.1.2.1.2),
+    by
+      change (X.Lv.fcS hO μ ((X.Lv.fieldChange hO μ).sp V hV' (X.Lv.L.bcExt μ q.1.1)),
+        q.1.2.1.2) ∈ X.P.carrier
+      rw [fcS_sp, FiniteLevel.bcRes_bcExt, ← Subtype.ext q.2]
+      exact q.1.2.2⟩), rfl⟩
+
+lemma fcPreRes_ext (q : PreFibre Ω V (comap_eq hO V hV') X) :
+    fcPreRes hO μ V hV' X (fcPreExt hO μ V hV' X q) = q := by
+  refine Subtype.ext (Prod.ext (FiniteLevel.bcRes_bcExt μ _ _) ?_)
+  refine Subtype.ext (Prod.ext ?_ rfl)
+  change X.Lv.fcS hO μ ((X.Lv.fieldChange hO μ).sp V hV' (X.Lv.L.bcExt μ q.1.1)) = q.1.2.1.1
+  rw [fcS_sp, FiniteLevel.bcRes_bcExt, ← Subtype.ext q.2]
+
+lemma fcPreExt_res (q : PreFibre Ω V hV' (X.fieldChange hO μ)) :
+    fcPreExt hO μ V hV' X (fcPreRes hO μ V hV' X q) = q := by
+  refine Subtype.ext (Prod.ext (FiniteLevel.bcExt_bcRes μ _ _) ?_)
+  refine CoveringCode.pullback_ext X.P (X.Lv.fcS hO μ) ?_ rfl
+  change (X.Lv.fieldChange hO μ).sp V hV' (X.Lv.L.bcExt μ (X.Lv.L.bcRes μ q.1.1)) = q.1.2.1.1
+  rw [FiniteLevel.bcExt_bcRes, sp_eq hO μ V hV' X q]
+
+lemma fcPreRes_smul (g : (X.fieldChange hO μ).Lv.L.H0) (q : PreFibre Ω V hV' (X.fieldChange hO μ)) :
+    fcPreRes hO μ V hV' X (g • q) =
+      (⟨X.Lv.L.bcPr μ g.1, FiniteLevel.bcPr_mem_H0 μ X.Lv.L g.2⟩ : X.Lv.L.H0) •
+        fcPreRes hO μ V hV' X q := by
+  apply Subtype.ext
+  refine Prod.ext (FiniteLevel.bcRes_fibreAct μ X.Lv.L g q.1.1) ?_
+  exact CoveringCode.pullbackPt_actFun X.P (X.Lv.L.bcPr μ) (X.Lv.fcS_ρs hO μ) g.1 q.1.2
+
+lemma fcPreExt_smul (h : X.Lv.L.H0) (q : PreFibre Ω V (comap_eq hO V hV') X) :
+    fcPreExt hO μ V hV' X (h • q) =
+      (show (X.fieldChange hO μ).Lv.L.H0 from X.Lv.L.bcH0 μ h) • fcPreExt hO μ V hV' X q := by
+  have := fcPreRes_smul hO μ V hV' X (X.Lv.L.bcH0 μ h) (fcPreExt hO μ V hV' X q)
+  rw [fcPreRes_ext] at this
+  have hh : (⟨X.Lv.L.bcPr μ (X.Lv.L.bcH0 μ h : (X.Lv.L.baseChange μ).H),
+      FiniteLevel.bcPr_mem_H0 μ X.Lv.L (X.Lv.L.bcH0 μ h).2⟩ : X.Lv.L.H0) = h :=
+    Subtype.ext (FiniteLevel.bcPr_bcH0 μ X.Lv.L h)
+  rw [hh] at this
+  rw [← this, fcPreExt_res]
+
+/-- **The fibre after changing the valued field** is the fibre of the given covering. -/
+def fcFibreEquiv : Fibre Ω V hV' (X.fieldChange hO μ) ≃ Fibre Ω V (comap_eq hO V hV') X where
+  toFun := Quotient.map (fcPreRes hO μ V hV' X) fun q q' ⟨g, hg⟩ => by
+    rw [← hg, fcPreRes_smul]
+    exact ⟨_, rfl⟩
+  invFun := Quotient.map (fcPreExt hO μ V hV' X) fun q q' ⟨g, hg⟩ => by
+    rw [← hg, fcPreExt_smul]
+    exact ⟨_, rfl⟩
+  left_inv x := by
+    induction x using Quotient.inductionOn
+    exact congrArg Quotient.mk'' (fcPreExt_res hO μ V hV' X _)
+  right_inv x := by
+    induction x using Quotient.inductionOn
+    exact congrArg Quotient.mk'' (fcPreRes_ext hO μ V hV' X _)
+
+end FibreEquiv
+
 end Fibre
 
 end TempObj
