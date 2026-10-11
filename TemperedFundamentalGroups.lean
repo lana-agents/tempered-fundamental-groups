@@ -524,6 +524,7 @@ import TemperedFundamentalGroups.Setup.Schmidt
 import TemperedFundamentalGroups.Setup.SmoothNormal
 import TemperedFundamentalGroups.Setup.Valuation
 import TemperedFundamentalGroups.Tempered.BaseChange
+import TemperedFundamentalGroups.Tempered.BaseChangeEtale
 import TemperedFundamentalGroups.Tempered.BaseChangeLevel
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
