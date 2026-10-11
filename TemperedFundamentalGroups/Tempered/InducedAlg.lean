@@ -122,6 +122,28 @@ def indConst (b : B') : IndAlg B' α := fun _ => b
 
 end Ind
 
+section Map
+
+variable {B₁ B₂ : Type u} [CommRing B₁] [Algebra R B₁] [CommRing B₂] [Algebra R B₂]
+  {S₁ S₂ : Type u} [Group S₁] [Group S₂] {α₁ : S₁ →* A} {α₂ : S₂ →* A}
+
+/-- The map `IndAlg B₂ α₂ → IndAlg B₁ α₁`, `φ ↦ (x ↦ f (φ (θ x)))`, for `α₂ ∘ θ = α₁`. -/
+def indMap (θ : S₁ → S₂) (hθ : ∀ x, α₂ (θ x) = α₁ x) (f : B₂ →ₐ[R] B₁) :
+    IndAlg B₂ α₂ →ₐ[R] IndAlg B₁ α₁ where
+  toFun φ x := (f (φ (θ x) : B₂) : B₁)
+  map_one' := funext fun x => f.map_one
+  map_mul' φ ψ := funext fun x => f.map_mul (φ (θ x) : B₂) (ψ (θ x))
+  map_zero' := funext fun x => f.map_zero
+  map_add' φ ψ := funext fun x => f.map_add (φ (θ x) : B₂) (ψ (θ x))
+  commutes' r := funext fun x => by
+    change f (algebraMap R B₂ ((α₂ (θ x))⁻¹ • r)) = algebraMap R B₁ ((α₁ x)⁻¹ • r)
+    rw [AlgHom.commutes, hθ]
+
+lemma indMap_apply (θ : S₁ → S₂) (hθ : ∀ x, α₂ (θ x) = α₁ x) (f : B₂ →ₐ[R] B₁)
+    (φ : IndAlg B₂ α₂) (x : S₁) : (indMap θ hθ f φ x : B₁) = f (φ (θ x)) := rfl
+
+end Map
+
 section Action
 
 variable {B' : Type u} [CommRing B'] [Algebra R B'] {S : Type u} [Group S] {α : S →* A}

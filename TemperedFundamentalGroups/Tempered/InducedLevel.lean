@@ -352,10 +352,10 @@ def lv (hX : IndFaithful X') : Level O R A where
           (D.ev (t.1 * x * (D.β t.2)⁻¹)) := by
       refine RingHom.ext fun y => ?_
       exact D.ev_equivT_symm hX t x y
-    rw [MonoidHom.comp_apply, MulEquiv.coe_toMonoidHom, MulEquiv.symm_apply_apply, act_hom, specMap_ev_j_assoc,
-      inc_actHom, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp, hring,
-      CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc, specMap_ev_j, ← Category.assoc,
-      X'.Lv.ρ_j, Category.assoc]
+    rw [MonoidHom.comp_apply, MulEquiv.coe_toMonoidHom, MulEquiv.symm_apply_apply, act_hom,
+      specMap_ev_j_assoc, inc_actHom, ← Category.assoc, ← Spec.map_comp,
+      ← CommRingCat.ofHom_comp, hring, CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc,
+      specMap_ev_j, ← Category.assoc, X'.Lv.ρ_j, Category.assoc]
 
 /-! ### The covering space -/
 
