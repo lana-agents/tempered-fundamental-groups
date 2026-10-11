@@ -541,6 +541,7 @@ import TemperedFundamentalGroups.Tempered.InducedAlg
 import TemperedFundamentalGroups.Tempered.InducedFibre
 import TemperedFundamentalGroups.Tempered.InducedHom
 import TemperedFundamentalGroups.Tempered.InducedLevel
+import TemperedFundamentalGroups.Tempered.InducedRange
 import TemperedFundamentalGroups.Tempered.InducedUnit
 import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Tempered.PushLevel
