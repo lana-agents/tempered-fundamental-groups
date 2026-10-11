@@ -183,6 +183,60 @@ lemma mk_preMap_eq (f g : obj D hX hp hc ⟶ Y) (hf : D.ev₁.comp f.φ.f = D.ev
           (congr_arg₂ (fun a b => Y.P.act a b) (inv_mul_cancel_right _ _) (hsheet e).symm))
     exact (congrArg _ eg).trans (hmid.trans ef.symm)
 
+variable (hgal : ∀ t t' : X₁.Lv.L.B →ₐ[R] Ω, ∃ σ : X₁.Lv.L.B ≃ₐ[R] X₁.Lv.L.B,
+      t.comp (σ : X₁.Lv.L.B →ₐ[R] X₁.Lv.L.B) = t')
+    (hsym : ∀ a : A, ∃ γ : SemilinearAut R A X₁.Lv.L.B, γ.a = a)
+    (hact : ∀ γ : SemilinearAut R A X₁.Lv.L.B, ∃ ψ : X₁.Lv.c.scheme ⟶ X₁.Lv.c.scheme,
+      ψ ≫ X₁.Lv.c.toSpec = X₁.Lv.c.toSpec ∧
+      X₁.Lv.j ≫ ψ = Spec.map (CommRingCat.ofHom (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫ X₁.Lv.j)
+
+include hidem hgal hsym hact in
+/-- **Rigidity on the nose at the base pair**: two morphisms out of `OrbGal.obj` agreeing on the
+base pair induce the same map of fibres. -/
+theorem fibreMap_eq_of_preMap_eq
+    (h : preMap V hV f (basePre D hX hp hc V hV t₀ e₀ he₀) =
+      preMap V hV g (basePre D hX hp hc V hV t₀ e₀ he₀)) :
+    fibreMap V hV f = fibreMap V hV g := by
+  have hf := ev₁_comp_eq_of_preMap_eq D hX hp hc V hV hidem t₀ e₀ he₀ f g h
+  have hψ := inc_ψ_eq D hX hp hc f g hf
+  have h0 : f.h (Θo D hX hp hc ⟨1, e₀⟩) = g.h (Θo D hX hp hc ⟨1, e₀⟩) :=
+    congrArg (fun q => q.1.2) h
+  have hsheet := h_eq_of_inc_ψ_eq D hX hp hc e₀ f g hψ h0
+  funext w
+  obtain ⟨q, rfl⟩ := Quotient.mk_surjective w
+  obtain ⟨x, γ, hγ, eψ, heψ, hj, hj', τ, hτ, rfl⟩ :=
+    exists_iso_preMap D hX hp hc V hV hgal hsym hact t₀ e₀ he₀ q
+  exact mk_preMap_eq D hX hp hc V hV f g hf hsheet x γ hγ t₀ (τ e₀) _ rfl
+    (twHom_h_one D hX hp hc x γ hγ heψ hj τ.continuous hτ e₀)
+
+lemma preMap_conjHom (k : Y.Lv.L.H0) (q : PreFibre Ω V hV Y) :
+    preMap V hV (conjHom Y k) q = k • q := rfl
+
+lemma fibreMap_surjective_of_iso {X X' : TempObj O R A} (F : X ≅ X') :
+    Function.Surjective (fibreMap V hV F.hom) := fun w =>
+  ⟨fibreMap V hV F.inv w, by
+    rw [← Function.comp_apply (f := fibreMap V hV F.hom), ← fibreMap_comp, F.inv_hom_id]
+    obtain ⟨q, rfl⟩ := Quotient.mk_surjective w
+    rfl⟩
+
+include hidem hgal hsym hact he₀ in
+/-- **Rigidity of `OrbGal.obj` on fibres** (**rig**). -/
+theorem fibreMap_eq_of_eq (u : Fibre Ω V hV (obj D hX hp hc))
+    (h : fibreMap V hV f u = fibreMap V hV g u) : fibreMap V hV f = fibreMap V hV g := by
+  obtain ⟨q, rfl⟩ := Quotient.mk_surjective u
+  obtain ⟨x, γ, hγ, eψ, heψ, hj, hj', τ, hτ, rfl⟩ :=
+    exists_iso_preMap D hX hp hc V hV hgal hsym hact t₀ e₀ he₀ q
+  set F := twIso D hX hp hc x γ hγ eψ heψ hj hj' τ hτ
+  obtain ⟨k, hk⟩ := Quotient.exact h
+  have key := fibreMap_eq_of_preMap_eq D hX hp hc V hV hidem t₀ e₀ he₀ (F.hom ≫ f)
+    (F.hom ≫ g ≫ conjHom Y k) hgal hsym hact (by
+      rw [preMap_comp, preMap_comp, preMap_comp, preMap_conjHom]
+      exact hk.symm)
+  rw [fibreMap_comp, fibreMap_comp, fibreMap_comp, fibreMap_conjHom] at key
+  funext w
+  obtain ⟨w', rfl⟩ := fibreMap_surjective_of_iso V hV F w
+  exact congrFun key w'
+
 end Nose
 
 end OrbGal
