@@ -26,6 +26,7 @@ import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.OrbClosure
 import TemperedFundamentalGroups.Andre.OrbGalois
 import TemperedFundamentalGroups.Andre.OrbGaloisAut
+import TemperedFundamentalGroups.Andre.OrbGaloisClass
 import TemperedFundamentalGroups.Andre.OrbGaloisGal
 import TemperedFundamentalGroups.Andre.OrbGaloisRigid
 import TemperedFundamentalGroups.Andre.PointLift
