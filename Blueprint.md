@@ -2618,6 +2618,7 @@ so `H ×_A A'` embeds into the automorphisms of `R' ⊗_R B`.
 | F6 | T1 as a special case: `R' = R`, `A'` trivial (`Y → [Y/A]`) recovers `restrictHom` | — | [P], ≈ 0.1k |
 | F7 | finite étale `R → R'`, scheme case (`A`, `A'` trivial): `temperedPi1Map` is injective with open image of finite index, the stabilizer of the base point `R' → Ω` of the cover `Spec R' → Spec R` (`temperedPi1Map_injective`, `mem_range_temperedPi1Map`, `isOpen_range_temperedPi1Map`, `finiteIndex_range_temperedPi1Map`); `γ'` fixes `x` iff its image fixes `ι x` (`temperedPi1Map_app_pushι`). Proof: the abstract `PushData` lemma (`FibreFunctor/PushRestrict.lean`: push functor `P` with fibre injections `ι`, the cover `E` with `x₀`, `τ : P X' ⟶ E` with image of `ι` = fibre over `x₀`, counit `P (G Y) ⟶ Y`, unit `X' ⟶ G (P X')`) applied to the restriction of scalars `TempObj.pushFunctor` (`Tempered/PushLevel.lean`, `Tempered/CoverImage.lean`) | `Tempered/CoverImage.lean` | [L] |
 | F7′ | the orbifold case (`A' ≤ A`, `R = R'`; T3 of §10.3.2) and mixed cases: the push needs induction `H' ↦ H ×^{H'} …` (a `ModelCode` for `∐_{A/A'} 𝒯`) | — | [P], ≈ 1k |
+| F9 | André's group is functorial (`andreGroupMap μ`, restriction along base change of semistable coverings: the model is kept, so semistability is preserved) and Theorem A is natural: `andreRestrict_temperedPi1Map`, `andreEquiv'_temperedPi1Map` | `Andre/Functoriality.lean` | [L] |
 | F8 | base change of the valued field `(K, O) → (K', O')` (finite): `temperedPi1 O' (K' ⊗ R) → temperedPi1 O R` via restriction of scalars of `O'`-models to `O`; identification with the geometric part (Theorem A on both sides) | — | [P], ≈ 1k |
 
 ### 11.2 Dual graphs and their functoriality
@@ -2630,7 +2631,8 @@ fibres (in particular every morphism of tempered coverings between semistable le
 | # | Statement | Status |
 |---|---|---|
 | G1 | components map onto components or are contracted to points (`curveConfig_contr_or`, `Topology/UniversalLength.lean`) | [L] (topological form) |
-| G2 | (X3, XL10) a node not over a node maps to a smooth point on exactly one component | [P], ≈ 0.3k |
+| G2 | (X3, XL10) a node not over a node maps to a point on exactly one component (`ModelCode.x3`, `SemistableReduction/HarmonicX3.lean`) | [L] |
 | G3 | (X1 without lengths) edge lifting: from every component over a branch of a node `y'` a crossing walk to the other branch (`crossingX1`) | [L] |
-| G4 | the bundled **harmonic map of dual graphs** `DualGraphMap ψ` (vertex map to vertices ⊕ points, edge map to edges ⊕ points, incidence-compatible, edge lifting), built from G1–G3 | [P], ≈ 0.4k |
-| G5 | thickness relations (X0, X2 and the length equality of X1): `Statement.HarmonicX` | parked (§9.7), ≈ 3k |
+| G5 | metric harmonicity for unfolded W-models: positive x-lengths (X0), crossing walks of the same total length (X1), no shortening (X2), X3: `Statement.HarmonicX` proved (`harmonicX`, `SemistableReduction/HarmonicXProof.lean`) | [L] |
+| G4 | the bundled **harmonic map of dual graphs** `DualGraphMap ψ` (vertex map to vertices ⊕ points, edge map to edges ⊕ points, incidence-compatible, edge lifting), packaging G1–G3/G5 | [P], ≈ 0.4k |
+| G6 | dual-graph description of the tempered group: for a semistable level the covering spaces of `Z c` are the coverings of the dual graph (components are simply connected for the topology of `Z`? no: `Z` is a noetherian space whose irreducible components are unibranch curves; its covering spaces are determined by the dual graph), so `Π_Lv = π₁(dual graph) ⋊ …` and `andreGroup = lim Π_Lv` ([SemiAnbd]; roadmap P13) | [P], ≈ 2–3k |

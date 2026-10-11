@@ -9,6 +9,7 @@ import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.FracGalois
 import TemperedFundamentalGroups.Andre.FracMap
 import TemperedFundamentalGroups.Andre.FunctionFieldFinite
+import TemperedFundamentalGroups.Andre.Functoriality
 import TemperedFundamentalGroups.Andre.GTransitive
 import TemperedFundamentalGroups.Andre.GTransitiveAux
 import TemperedFundamentalGroups.Andre.GaloisClass
