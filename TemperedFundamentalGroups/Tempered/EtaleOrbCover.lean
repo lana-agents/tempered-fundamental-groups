@@ -122,6 +122,8 @@ variable (O R' A') in
 def m₁ : E O R' A' ⟶ (etaleToTemp O R' A').obj (Eet O R' A') :=
   toEt (E O R' A') (Eet O R' A') φE
 
+section Fibre
+
 variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R' Ω] [IsScalarTower K R' Ω]
   (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
 
@@ -145,6 +147,8 @@ lemma m₁_fibre_injective (y y' : TempObj.Fibre Ω V hV (E O R' A'))
     have h2 := (q'.1.2).2.2
     simp only [Set.mem_setOf_eq, Nat.lt_one_iff] at h1 h2
     rw [h1, h2]
+
+end Fibre
 
 /-! ### The equivariant algebra `Π_{a : A} R'` over `[Spec R / A]` -/
 
@@ -257,6 +261,90 @@ def f : Eet O R' A' ⟶ EquivEtaleBC.bcEt ν (Yet R' R A) where
         (Eet O R' A').act_a]
     | add z z' hz hz' =>
       rw [RingEquiv.map_add, _root_.map_add, hz, hz', _root_.map_add, RingEquiv.map_add]
+
+lemma F_tmul (y : (Yet R' R A).B) :
+    F O ν ((FiniteLevel.bcE (Yet R' R A).level).symm ((1 : R') ⊗ₜ y)) = G O ν y := by
+  change Algebra.TensorProduct.lift (Algebra.ofId R' _) (G O ν) (fun _ _ => Commute.all _ _)
+    (FiniteLevel.bcE (Yet R' R A).level ((FiniteLevel.bcE (Yet R' R A).level).symm
+      ((1 : R') ⊗ₜ y))) = _
+  rw [AlgEquiv.apply_symm_apply, Algebra.TensorProduct.lift_tmul, map_one, one_mul]
+
+lemma ev_G (x : A') (ψ : YAlg R' A) :
+    (D O R' A').ev x (G O ν (eY.symm ψ)) =
+      (unitE (R := R') (A' := (⊥ : Subgroup A'))).symm (ψ (ν.α x) : R') := by
+  change ((D O R' A').e ((D O R' A').e.symm (G₀ O ν (eY (eY.symm ψ)))) x :
+    (one O R' (⊥ : Subgroup A')).Lv.L.B) = _
+  rw [AlgEquiv.apply_symm_apply, AlgEquiv.apply_symm_apply]
+  rfl
+
+section Points
+
+variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [Algebra R' Ω]
+  [IsScalarTower K R' Ω] [IsScalarTower R R' Ω]
+
+/-- A geometric point of `E'_et = Π_{x : A'} R'^{(x)}` lies on one copy `x`. -/
+lemma exists_point_eq (t : (Eet O R' A').B →ₐ[R'] Ω) :
+    ∃ x : A', ∀ y, t y = algebraMap R' Ω
+      (x • unitE (R := R') (A' := (⊥ : Subgroup A')) ((D O R' A').ev x y)) := by
+  obtain ⟨x, t₀, ht⟩ := (D O R' A').exists_comp_ev
+    (show (D O R' A').level.B →+* Ω from t.toRingHom)
+  refine ⟨x, fun y => ?_⟩
+  rw [← onCopy_unit (cov R' A') x t t₀ ht]
+  exact RingHom.congr_fun ht y
+
+/-- An element of `ker α` acts on `R'` by an `R`-algebra automorphism. -/
+def kerAlgHom (w : A') (hw : ν.α w = 1) : R' →ₐ[R] R' where
+  toRingHom := MulSemiringAction.toRingHom A' R' w
+  commutes' r := by
+    change w • algebraMap R R' r = algebraMap R R' r
+    rw [← ν.map_smul, hw, one_smul]
+
+/-- **Rigidity**: an element of `ker α` fixing a geometric point of `Spec R'` acts trivially on
+`R'` (`R'` is a domain, finite étale over `R`), hence is trivial if `A'` acts faithfully. -/
+lemma eq_one_of_ker [FaithfulSMul A' R'] (w : A') (hw : ν.α w = 1)
+    (h : ∀ s : R', algebraMap R' Ω (w • s) = algebraMap R' Ω s) : w = 1 := by
+  have hid : kerAlgHom ν w hw = AlgHom.id R R' := by
+    refine algHom_eq_of_comp_eq (fun e he => IsIdempotentElem.iff_eq_zero_or_one.1 he) _ _
+      (IsScalarTower.toAlgHom R R' Ω) (AlgHom.ext fun s => ?_)
+    exact h s
+  refine eq_of_smul_eq_smul (α := R') fun s => ?_
+  rw [one_smul]
+  exact AlgHom.congr_fun hid s
+
+/-- **The geometric points of `E'_et` are separated by `Yet`**: precomposition with
+`F : R' ⊗_R Yet → E'_et` is injective on geometric points. -/
+lemma comp_F_injective [FaithfulSMul A' R'] (t t' : (Eet O R' A').B →ₐ[R'] Ω)
+    (h : t.comp (F O ν) = t'.comp (F O ν)) : t = t' := by
+  obtain ⟨x, hx⟩ := exists_point_eq t
+  obtain ⟨x', hx'⟩ := exists_point_eq t'
+  classical
+  have key : ∀ ψ : YAlg R' A, algebraMap R' Ω (x • show R' from ψ (ν.α x)) =
+      algebraMap R' Ω (x' • show R' from ψ (ν.α x')) := by
+    intro ψ
+    have := AlgHom.congr_fun h ((FiniteLevel.bcE (Yet R' R A).level).symm ((1 : R') ⊗ₜ
+      eY.symm ψ))
+    simp only [AlgHom.comp_apply, F_tmul] at this
+    rw [hx, hx', ev_G, ev_G, AlgEquiv.apply_symm_apply, AlgEquiv.apply_symm_apply] at this
+    exact this
+  have hα : ν.α x = ν.α x' := by
+    by_contra hne
+    have := key (Pi.single (M := fun a : A => TwAlg R' (MonoidHom.id A a)) (ν.α x) 1)
+    rw [Pi.single_eq_same, Pi.single_eq_of_ne' hne] at this
+    change algebraMap R' Ω (x • (1 : R')) = algebraMap R' Ω (x' • (0 : R')) at this
+    rw [smul_one, smul_zero, map_one, map_zero] at this
+    exact one_ne_zero this
+  have hw : ν.α (x' * x⁻¹) = 1 := by
+    rw [map_mul, map_inv, hα, mul_inv_cancel]
+  have hxx : x' * x⁻¹ = 1 := eq_one_of_ker ν _ hw fun s => by
+    have := key (fun _ => x⁻¹ • s)
+    change algebraMap R' Ω (x • x⁻¹ • s) = algebraMap R' Ω (x' • x⁻¹ • s) at this
+    rw [smul_inv_smul, ← mul_smul] at this
+    exact this.symm
+  obtain rfl : x' = x := mul_inv_eq_one.1 hxx
+  ext y
+  rw [hx, hx']
+
+end Points
 
 end Etale
 
