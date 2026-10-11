@@ -123,6 +123,11 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   fundamental group of the dual graph: `deckLoopEquiv : deckGroup ≃* Loop` with the group of
   reduced closed walks at the root under concatenation and reduction
   (`Andre/DualGraphPi1.lean`, `Topology/DualGraphPi1.lean`).
+  For an orbifold `[Spec R / A]` (`A` finite, acting `K`-linearly; Blueprint §11.3, G6.7–G6.9):
+  `andreGroupHomeoLimO : andreGroup ≃ₜ* stageLimitO` (`Andre/OrbStageLimit.lean`), over the
+  orbifold Galois objects `galClassO` (`Ind_1^S Z̃` over levels induced from scheme levels that
+  are Galois over `[Spec R / A]`, `Andre/OrbGalois*.lean`, with Galois closures over
+  `[Spec R / A]`, `Andre/OrbClosure.lean`).
 
 ### Not covered
 

@@ -71,6 +71,7 @@ variable (c c' : D.S) (γ γ' : SemilinearAut R A X₁.Lv.L.B) (hγ : γ.a = D.�
   (hτc' : Continuous τ') (hτ' : ∀ e, p (τ' e) = specialFibreMap ψ' hψ' (p e))
 
 set_option maxHeartbeats 1000000 in
+-- rewriting inside `Θo` (the coded covering space) is slow
 lemma twHom_comp_h (hcc : c * c' = 1) (hττ : ∀ e, τ' (τ e) = e) (e : E) :
     (twHom D hX hp hc c' γ' hγ' hψ' hjψ' hτc' hτ').h
       ((twHom D hX hp hc c γ hγ hψ hjψ hτc hτ).h (Θo D hX hp hc ⟨1, e⟩)) =
@@ -250,6 +251,7 @@ lemma exists_semilinear_comp
   rw [this, RingEquiv.symm_apply_apply]
 
 set_option maxHeartbeats 1000000 in
+-- rewriting inside `Θo` (the coded covering space) is slow
 /-- **Every pair is a twisted translate of the base pair**: for every pair `q` of the fibre of
 `OrbGal.obj` there is an automorphism mapping the base pair `(t₀ ∘ ev₁, (1, e₀))` to `q`. -/
 theorem exists_iso_preMap
