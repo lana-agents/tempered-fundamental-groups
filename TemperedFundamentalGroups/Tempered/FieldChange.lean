@@ -158,7 +158,8 @@ lemma fcJ_fcEnd (g : (Lv.L.baseChange μ).H) :
     exact (levelStructureMap_σ O' R' A' _
       (g : SemilinearAut R' A' (Lv.L.baseChange μ).B)⁻¹ o).symm
 
-instance fcJ_qc : QuasiCompact (Lv.fcJ hO μ) := quasiCompact_of_compactSpace _
+instance (priority := high) fcJ_qc : QuasiCompact (Lv.fcJ hO μ) :=
+  quasiCompact_of_compactSpace _
 
 /-- The model over `O'`: the scheme-theoretic image of `j'` in `𝒯 ×_O O'`. -/
 abbrev fcI : ModelCode O' := (Lv.fcC hO).image (Lv.fcJ hO μ)
@@ -304,6 +305,94 @@ lemma fcψ_toSpec : fcψ hO μ m ≫ (Y.Lv.fcI hO μ).toSpec = (X.Lv.fcI hO μ).
   rw [← ModelCode.imgι_toSpec, fcψ_imgι_assoc, fcψ0_toSpec, ModelCode.imgι_toSpec]
 
 end Hom
+
+
+section Hom2
+
+variable {X Y : TempObj O R A} (m : X ⟶ Y)
+
+/-- **Equivariance of the model map** (automatic, since `j'` is scheme-theoretically dominant in
+the image and the models are separated). -/
+lemma imgEnd_fcψ (g : (X.Lv.L.baseChange μ).H) :
+    X.Lv.imgEnd hO μ g ≫ fcψ hO μ m =
+      fcψ hO μ m ≫ Y.Lv.imgEnd hO μ ((FiniteLevel.bcMap μ m.φ).r g) := by
+  refine ext_of_isSchemeTheoreticallyDominant_of_isSeparated (Y.Lv.fcI hO μ).toSpec ?_
+    ((X.Lv.fcC hO).toImg (X.Lv.fcJ hO μ)) ?_
+  · rw [Category.assoc, Category.assoc, fcψ_toSpec, X.Lv.imgEnd_toSpec, Y.Lv.imgEnd_toSpec,
+      fcψ_toSpec]
+  · have a1 := (X.Lv.fcC hO).toImg_imageMap (X.Lv.fcJ hO μ) (X.Lv.fcJ hO μ)
+      (X.Lv.fcEnd hO (X.Lv.L.bcPr μ g)) _ (X.Lv.fcJ_fcEnd hO μ g)
+    have a2 := (X.Lv.fcC hO).toImg_imageMap (X.Lv.fcJ hO μ) (Y.Lv.fcJ hO μ) (fcψ0 hO m) _
+      (fcJ_fcψ0 hO μ m)
+    have a3 := (Y.Lv.fcC hO).toImg_imageMap (Y.Lv.fcJ hO μ) (Y.Lv.fcJ hO μ)
+      (Y.Lv.fcEnd hO (Y.Lv.L.bcPr μ ((FiniteLevel.bcMap μ m.φ).r g))) _
+      (Y.Lv.fcJ_fcEnd hO μ ((FiniteLevel.bcMap μ m.φ).r g))
+    change _ ≫ (X.Lv.fcC hO).imageMap _ _ _ _ _ ≫ (X.Lv.fcC hO).imageMap _ _ _ _ _ =
+      _ ≫ (X.Lv.fcC hO).imageMap _ _ _ _ _ ≫ (Y.Lv.fcC hO).imageMap _ _ _ _ _
+    rw [reassoc_of% a1, a2, reassoc_of% a2, a3, ← Category.assoc, ← Category.assoc,
+      ← Spec.map_comp, ← Spec.map_comp, ← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+    congr 3
+    refine RingHom.ext fun y => ?_
+    apply (g : SemilinearAut R' A' (X.Lv.L.baseChange μ).B).σ.injective
+    change (g : SemilinearAut R' A' _).σ ((g : SemilinearAut R' A' _).σ.symm
+      ((FiniteLevel.bcMap μ m.φ).f y)) = (g : SemilinearAut R' A' _).σ
+        ((FiniteLevel.bcMap μ m.φ).f (((FiniteLevel.bcMap μ m.φ).r g :
+          SemilinearAut R' A' (Y.Lv.L.baseChange μ).B).σ.symm y))
+    rw [RingEquiv.apply_symm_apply, ← (FiniteLevel.bcMap μ m.φ).f_σ, RingEquiv.apply_symm_apply]
+
+/-- The map of special fibres of the models over `O'`. -/
+def fcψS : (X.Lv.fieldChange hO μ).Z → (Y.Lv.fieldChange hO μ).Z :=
+  specialFibreMap (fcψ hO μ m) (fcψ_toSpec hO μ m)
+
+lemma fcψS_coe (z : (X.Lv.fieldChange hO μ).Z) : (fcψS hO μ m z).1 = fcψ hO μ m z.1 := rfl
+
+lemma fcS_fcψS (z : (X.Lv.fieldChange hO μ).Z) :
+    Y.Lv.fcS hO μ (fcψS hO μ m z) = specialFibreMap m.ψ m.ψ_toSpec (X.Lv.fcS hO μ z) := by
+  have e : fcψ hO μ m ≫ (Y.Lv.fcC hO).imgι (Y.Lv.fcJ hO μ) ≫ Y.Lv.c.bcFst (valMap hO) =
+      (X.Lv.fcC hO).imgι (X.Lv.fcJ hO μ) ≫ X.Lv.c.bcFst (valMap hO) ≫ m.ψ := by
+    rw [fcψ_imgι_assoc, fcψ0_fst]
+  apply Subtype.ext
+  change (fcψ hO μ m ≫ (Y.Lv.fcC hO).imgι (Y.Lv.fcJ hO μ) ≫ Y.Lv.c.bcFst (valMap hO)) z.1 =
+    ((X.Lv.fcC hO).imgι (X.Lv.fcJ hO μ) ≫ X.Lv.c.bcFst (valMap hO) ≫ m.ψ) z.1
+  rw [e]
+
+lemma fcH_aux (q : (X.fieldChange hO μ).P.carrier) :
+    (m.h (CoveringCode.pullbackPt X.P (X.Lv.fcS hO μ) q)).1.1 =
+      Y.Lv.fcS hO μ (fcψS hO μ m q.1.1) := by
+  rw [fcS_fcψS]
+  apply Subtype.ext
+  rw [m.fst_h]
+  rfl
+
+/-- The map of covering spaces. -/
+def fcH : (X.fieldChange hO μ).P.carrier → (Y.fieldChange hO μ).P.carrier :=
+  CoveringCode.pullbackLiftFun Y.P (ψ := Y.Lv.fcS hO μ) (fun q => fcψS hO μ m q.1.1)
+    (fun q => m.h (CoveringCode.pullbackPt X.P (X.Lv.fcS hO μ) q)) (fcH_aux hO μ m)
+
+/-- **Change of the valued field of a morphism.** -/
+def fcHom : X.fieldChange hO μ ⟶ Y.fieldChange hO μ where
+  φ := FiniteLevel.bcMap μ m.φ
+  ψ := fcψ hO μ m
+  ψ_toSpec := fcψ_toSpec hO μ m
+  j_ψ := (X.Lv.fcC hO).toImg_imageMap (X.Lv.fcJ hO μ) (Y.Lv.fcJ hO μ) _ _ (fcJ_fcψ0 hO μ m)
+  h := fcH hO μ m
+  continuous_h := CoveringCode.continuous_pullbackLiftFun Y.P (fcH_aux hO μ m)
+    ((continuous_specialFibreMap _ _).comp (X.fieldChange hO μ).P.continuous_proj)
+    (m.continuous_h.comp (CoveringCode.continuous_pullbackPt X.P))
+  fst_h q := rfl
+  h_act g q := by
+    refine CoveringCode.pullback_ext Y.P (Y.Lv.fcS hO μ) (Subtype.ext ?_) ?_
+    · change fcψ hO μ m (X.Lv.imgEnd hO μ g q.1.1.1) =
+        Y.Lv.imgEnd hO μ ((FiniteLevel.bcMap μ m.φ).r g) (fcψ hO μ m q.1.1.1)
+      rw [← Scheme.Hom.comp_apply, imgEnd_fcψ, Scheme.Hom.comp_apply]
+    · change (m.h (CoveringCode.pullbackPt X.P (X.Lv.fcS hO μ)
+          (CoveringCode.pullbackActFun X.P (X.Lv.L.bcPr μ) (X.Lv.fcS_ρs hO μ) g q))).1.2 =
+        (Y.P.act (Y.Lv.L.bcPr μ ((FiniteLevel.bcMap μ m.φ).r g))
+          (CoveringCode.pullbackPt Y.P (Y.Lv.fcS hO μ) (fcH hO μ m q))).1.2
+      rw [CoveringCode.pullbackPt_actFun, m.h_act, FiniteLevel.bcPr_bcMap, fcH,
+        CoveringCode.pullbackPt_liftFun]
+
+end Hom2
 
 end TempObj
 
