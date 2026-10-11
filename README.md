@@ -92,7 +92,10 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   W-model levels of their stage groups `Π_Lv` (permutations of the fibre induced by `Aut U_Lv`),
   from the group form of K1 `GaloisLimit.fibreAutEquiv` (`FibreFunctor/GaloisGroupLimit.lean`).
   Each `Π_Lv` is an extension of `Aut_R(B)ᵒᵖ` by the deck group of the tree covering of the dual
-  graph (`stageGroup_extension`, `Andre/StageGroup.lean`).
+  graph (`stageGroup_extension`, `Andre/StageGroup.lean`), which is the combinatorial
+  fundamental group of the dual graph: `deckLoopEquiv : deckGroup ≃* Loop` with the group of
+  reduced closed walks at the root under concatenation and reduction
+  (`Andre/DualGraphPi1.lean`, `Topology/DualGraphPi1.lean`).
 
 ### Not covered
 

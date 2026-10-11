@@ -7,6 +7,7 @@ Authors: LANA Project
 import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.DualGraphMap
+import TemperedFundamentalGroups.Andre.DualGraphPi1
 import TemperedFundamentalGroups.Andre.FracGalois
 import TemperedFundamentalGroups.Andre.FracMap
 import TemperedFundamentalGroups.Andre.FunctionFieldFinite
@@ -553,6 +554,7 @@ import TemperedFundamentalGroups.Topology.CoverLength
 import TemperedFundamentalGroups.Topology.CoveringCode
 import TemperedFundamentalGroups.Topology.CurveCovering
 import TemperedFundamentalGroups.Topology.CurveGeneric
+import TemperedFundamentalGroups.Topology.DualGraphPi1
 import TemperedFundamentalGroups.Topology.GenericLift
 import TemperedFundamentalGroups.Topology.HeightBound
 import TemperedFundamentalGroups.Topology.HeightLength
