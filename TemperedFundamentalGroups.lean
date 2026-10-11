@@ -32,6 +32,7 @@ import TemperedFundamentalGroups.Andre.OrbGaloisGal
 import TemperedFundamentalGroups.Andre.OrbGaloisLevel
 import TemperedFundamentalGroups.Andre.OrbGaloisMid
 import TemperedFundamentalGroups.Andre.OrbGaloisRigid
+import TemperedFundamentalGroups.Andre.OrbStageLimit
 import TemperedFundamentalGroups.Andre.PointLift
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
