@@ -538,8 +538,10 @@ import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.CoverImage
 import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.InducedAlg
+import TemperedFundamentalGroups.Tempered.InducedFibre
 import TemperedFundamentalGroups.Tempered.InducedHom
 import TemperedFundamentalGroups.Tempered.InducedLevel
+import TemperedFundamentalGroups.Tempered.InducedUnit
 import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Tempered.PushLevel
 import TemperedFundamentalGroups.Topology.CountableFibres
