@@ -538,6 +538,7 @@ import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.CoverImage
 import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.InducedAlg
+import TemperedFundamentalGroups.Tempered.InducedCounit
 import TemperedFundamentalGroups.Tempered.InducedFibre
 import TemperedFundamentalGroups.Tempered.InducedHom
 import TemperedFundamentalGroups.Tempered.InducedLevel

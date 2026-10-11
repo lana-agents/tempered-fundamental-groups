@@ -71,6 +71,23 @@ lemma isOpen_copy (x : D.S) : IsOpen {z | D.copy z = x} := by
   rw [this]
   exact (D.inc x).isOpenEmbedding.isOpen_range
 
+section Push
+
+variable [Finite A]
+
+variable (μ) in
+/-- **The induction data of the push** along the orbifold cover: `S = A`, `β k = μ.α k.a`. -/
+abbrev pushData (X' : TempObj O R A') : IndData μ X' where
+  S := A
+  fintype := Fintype.ofFinite A
+  decEq := Classical.decEq A
+  α := MonoidHom.id A
+  α_surj := Function.surjective_id
+  β := μ.α.comp (SemilinearAut.toA.comp X'.Lv.L.H.subtype)
+  hβ _ := rfl
+
+end Push
+
 section Counit
 
 variable (μ) (Y : TempObj O R A) [Fintype Y.Lv.L.H] [DecidableEq Y.Lv.L.H]
@@ -258,5 +275,107 @@ def counitHom : (counitData μ Y).obj hY ⟶ Y where
     group
 
 end Counit
+
+
+section CounitFibre
+
+variable [Finite A] (Y : TempObj O R A) [Fintype Y.Lv.L.H] [DecidableEq Y.Lv.L.H]
+  (hY : IndFaithful (Y.baseChange μ))
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+/-- The group map `H → A` of the counit span. -/
+abbrev counitθ : (counitData μ Y).S →* (pushData μ (Y.baseChange μ)).S :=
+  SemilinearAut.toA.comp Y.Lv.L.H.subtype
+
+lemma counitθα (x : (counitData μ Y).S) :
+    (pushData μ (Y.baseChange μ)).α (counitθ Y x) = (counitData μ Y).α x := rfl
+
+lemma counitθβ (k : (Y.baseChange μ).Lv.L.H) :
+    counitθ Y ((counitData μ Y).β k) =
+      (pushData μ (Y.baseChange μ)).β ((𝟙 (Y.baseChange μ) : _ ⟶ _).φ.r k) :=
+  Y.Lv.L.bcPr_a μ k
+
+/-- **The span leg** `Ind_H (bc Y) ⟶ Ind_A (bc Y)`. -/
+def counitπ₁ : (counitData μ Y).obj hY ⟶ (pushData μ (Y.baseChange μ)).obj hY :=
+  hom (counitData μ Y) (pushData μ (Y.baseChange μ)) hY hY (𝟙 _) (counitθ Y) (counitθα Y)
+    (counitθβ Y)
+
+lemma counitHom_ι (z : TempObj.Fibre Ω V hV (Y.baseChange μ)) :
+    TempObj.fibreMap V hV (counitHom hY) ((counitData μ Y).ι hY V hV z) =
+      TempObj.bcFibreEquiv μ V hV Y z := by
+  induction z using Quotient.inductionOn with
+  | h q =>
+    refine congrArg Quotient.mk'' (Subtype.ext (Prod.ext ?_ ?_))
+    · ext b
+      change q.1.1 ((counitData μ Y).ev 1 (counitF b)) = q.1.1 (Y.Lv.L.bcι μ b)
+      rw [ev_counitF]
+      rfl
+    · change Y.P.act ((counitData μ Y).copy ((counitData μ Y).inc₁S hY q.1.2.1.1).1)
+        (CoveringCode.pullbackPt (Y.baseChange μ).P ((counitData μ Y).foldS hY)
+          ((counitData μ Y).incP hY q.1.2)) = q.1.2
+      rw [pullbackPt_incP, inc₁S_coe, copy_inc]
+      change Y.P.act 1 q.1.2 = q.1.2
+      rw [map_one]
+      rfl
+
+
+lemma fibreMap_id {X : TempObj O R A'} (x : TempObj.Fibre Ω V hV X) :
+    TempObj.fibreMap V hV (𝟙 X) x = x := by
+  induction x using Quotient.inductionOn with
+  | h q => rfl
+
+/-- **The counit span on fibres**: a fibre element of `Ind_H (bc Y)` over `ι z` in `Ind_A (bc Y)`
+maps to `z` in `Y`. -/
+lemma counit_fibre (hα : Function.Injective μ.α)
+    (w : TempObj.Fibre Ω V hV ((counitData μ Y).obj hY))
+    (z : TempObj.Fibre Ω V hV (Y.baseChange μ))
+    (h : TempObj.fibreMap V hV (counitπ₁ Y hY) w = (pushData μ (Y.baseChange μ)).ι hY V hV z) :
+    TempObj.fibreMap V hV (counitHom hY) w = TempObj.bcFibreEquiv μ V hV Y z := by
+  induction w using Quotient.inductionOn with
+  | h q =>
+  obtain ⟨x, t₀, ht⟩ := (counitData μ Y).exists_comp_ev
+    (q.1.1 : ((counitData μ Y).obj hY).Lv.L.B →+* Ω)
+  have hz := h
+  induction z using Quotient.inductionOn with
+  | h z =>
+  set D₂ := pushData μ (Y.baseChange μ)
+  obtain ⟨g, hg⟩ := MulAction.mem_orbit_iff.1 (Quotient.exact hz.symm)
+  obtain ⟨⟨s, k⟩, htg⟩ := (D₂.equivT hY).surjective g.1
+  have hs : s = 1 := by
+    have := D₂.equivT_symm_mem_H0 hY g.2
+    rwa [← htg, MulEquiv.symm_apply_apply] at this
+  have hpre : ((TempObj.preMap V hV (counitπ₁ Y hY) q).1.1 : (D₂.obj hY).Lv.L.B →+* Ω) =
+      t₀.comp (D₂.ev (counitθ Y x)) := by
+    refine RingHom.ext fun y => ?_
+    exact (RingHom.congr_fun ht _).trans
+      (congrArg t₀ (ev_homF (counitData μ Y) D₂ (𝟙 _) (counitθ Y) (counitθα Y) x y))
+  have h1 := D₂.comp_σ_symm hY hpre s k
+  have h2 : ((z.1.1 : (Y.baseChange μ).Lv.L.B →+* Ω)).comp (D₂.ev 1) =
+      ((TempObj.preMap V hV (counitπ₁ Y hY) q).1.1 : (D₂.obj hY).Lv.L.B →+* Ω).comp
+        (((D₂.equivT hY (s, k) : D₂.level.H) : SemilinearAut R A D₂.level.B).σ.symm :
+          D₂.level.B →+* D₂.level.B) := by
+    refine RingHom.ext fun y => ?_
+    have := congrArg (fun q' : TempObj.PreFibre Ω V hV (D₂.obj hY) => q'.1.1 y) hg
+    refine this.symm.trans ?_
+    change (TempObj.preMap V hV (counitπ₁ Y hY) q).1.1 (g.1.1.σ.symm y) = _
+    rw [← htg]
+    rfl
+  have hcomp := D₂.eq_of_comp_ev (h2.trans h1)
+  rw [hs, one_mul, eq_comm, mul_inv_eq_one] at hcomp
+  have hxa : (x : SemilinearAut R A Y.Lv.L.B).a = μ.α k.1.a := hcomp
+  let k₂ : (Y.baseChange μ).Lv.L.H := Y.Lv.L.bcEquiv μ ⟨(x, k.1.a), hxa⟩
+  have hk₂ : (counitData μ Y).β k₂ = x := FiniteLevel.bcPr_bcEquiv μ _ _
+  obtain ⟨z', hz'⟩ := (counitData μ Y).mem_range_ι hY V hV q k₂ t₀ (by rw [hk₂]; exact ht)
+  change TempObj.fibreMap V hV (counitHom hY) (Quotient.mk'' q) =
+    TempObj.bcFibreEquiv μ V hV Y (Quotient.mk'' z)
+  rw [← hz', counitHom_ι]
+  congr 1
+  apply D₂.ι_injective hY V hV hα
+  rw [← fibreMap_id V hV z', ι_natural (D₁ := counitData μ Y) (D₂ := D₂) (hX₁ := hY) (hX₂ := hY)
+    (m := 𝟙 _) (θ := counitθ Y) (hθα := counitθα Y) (hθβ := counitθβ Y), hz']
+  exact hz
+
+end CounitFibre
 
 end IndData
