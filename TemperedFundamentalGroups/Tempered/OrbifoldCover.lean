@@ -404,6 +404,85 @@ theorem isOpen_range_temperedPi1Map_orbifold :
 
 end Main
 
+
+namespace OrbifoldCover
+
+section FiniteE
+
+variable [Finite A] [IsDomain R] [IsNoetherianRing R] [FaithfulSMul A' R]
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+lemma unit_eq_algebraMap (y : (unitEt R A').B) : y = algebraMap R _ (unitE y) := by
+  rw [← unitE_symm, AlgEquiv.symm_apply_apply]
+
+lemma onCopy_unit (x : A)
+    (s : ((IndData.pushData μ (one O R A')).obj (indFaithful good_one)).Lv.L.B →ₐ[R] Ω)
+    (s₀ : (unitEt R A').B →+* Ω)
+    (hs : (s : ((IndData.pushData μ (one O R A')).obj (indFaithful good_one)).Lv.L.B →+* Ω) =
+      s₀.comp ((IndData.pushData μ (one O R A')).ev x))
+    (y : (unitEt R A').B) : s₀ y = algebraMap R Ω (x • unitE y) := by
+  have h1 := s.commutes (x • unitE y)
+  have h2 := RingHom.congr_fun hs
+    (algebraMap R (IndData.pushData μ (one O R A')).level.B (x • unitE y))
+  rw [← h1]
+  refine Eq.trans ?_ h2.symm
+  change s₀ y = s₀ (((IndData.pushData μ (one O R A')).E (algebraMap R
+    (IndData.pushData μ (one O R A')).level.B (x • unitE y)) :
+      (IndData.pushData μ (one O R A')).Alg) x)
+  rw [AlgEquiv.commutes]
+  change s₀ y = s₀ (algebraMap R (unitEt R A').B ((MonoidHom.id A x)⁻¹ • x • unitE y))
+  rw [MonoidHom.id_apply, inv_smul_smul, ← unit_eq_algebraMap]
+
+/-- The fibre of the cover `Ind_A 1'` is finite. -/
+lemma finite_fibre_E : Finite (TempObj.Fibre Ω V hV (P μ (one O R A') good_one)) := by
+  set D := IndData.pushData μ (one O R A')
+  set hD := indFaithful (good_one (O := O) (R := R) (A' := A'))
+  haveI hpts : Finite ((D.obj hD).Lv.L.B →ₐ[R] Ω) := by
+    refine Finite.of_injective
+      (fun t => (D.exists_comp_ev (t : (D.obj hD).Lv.L.B →+* Ω)).choose) fun t t' h => ?_
+    obtain ⟨t₀, ht⟩ := (D.exists_comp_ev (t : (D.obj hD).Lv.L.B →+* Ω)).choose_spec
+    obtain ⟨t₀', ht'⟩ := (D.exists_comp_ev (t' : (D.obj hD).Lv.L.B →+* Ω)).choose_spec
+    simp only at h
+    rw [← h] at ht'
+    have h0 : t₀ = t₀' := RingHom.ext fun y => by
+      exact (onCopy_unit μ _ t t₀ ht y).trans (onCopy_unit μ _ t' t₀' ht' y).symm
+    refine AlgHom.ext fun y => ?_
+    have e1 := RingHom.congr_fun ht y
+    have e2 := RingHom.congr_fun ht' y
+    rw [h0] at e1
+    exact e1.trans e2.symm
+  haveI : Finite (TempObj.PreFibre Ω V hV (D.obj hD)) := by
+    refine Finite.of_injective (fun q => q.1.1) fun q q' h => ?_
+    simp only at h
+    refine Subtype.ext (Prod.ext h ?_)
+    refine CoveringCode.pullback_ext (one O R A').P (D.foldS hD) (Subtype.ext ?_) ?_
+    · rw [q.2, q'.2, h]
+    · have h1 := (q.1.2).2.2
+      have h2 := (q'.1.2).2.2
+      simp only [Set.mem_setOf_eq, Nat.lt_one_iff] at h1 h2
+      rw [h1, h2]
+  exact Quotient.finite _
+
+end FiniteE
+
+end OrbifoldCover
+
+section Main'
+
+variable [Finite A] [IsDomain R] [IsNoetherianRing R] [FaithfulSMul A' R]
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+/-- **F7′: the image of `temperedPi1Map` has finite index.** -/
+theorem finiteIndex_range_temperedPi1Map_orbifold :
+    (temperedPi1Map (O := O) μ V hV).range.FiniteIndex :=
+  haveI : Finite ((tempFibre O R A V hV).obj (OrbifoldCover.spanPushData μ V hV).E) :=
+    OrbifoldCover.finite_fibre_E (μ := μ) V hV
+  (OrbifoldCover.spanPushData μ V hV).finiteIndex_range_restrict
+
+end Main'
+
 end
 
 end TemperedFundamentalGroups

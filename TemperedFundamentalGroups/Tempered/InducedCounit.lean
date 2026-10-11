@@ -102,6 +102,7 @@ abbrev counitData : IndData μ (Y.baseChange μ) where
 
 variable {μ Y}
 
+omit [Fintype Y.Lv.L.H] [DecidableEq Y.Lv.L.H] in
 lemma σ_symm_algebraMap (g : SemilinearAut R A Y.Lv.L.B) (r : R) :
     g.σ.symm (algebraMap R Y.Lv.L.B r) = algebraMap R Y.Lv.L.B (g.a⁻¹ • r) :=
   (g⁻¹).map_algebraMap r
@@ -142,9 +143,6 @@ lemma ev_counitF (x : Y.Lv.L.H) (b : Y.Lv.L.B) :
     (counitData μ Y).ev x (counitF b) =
       Y.Lv.L.bcι μ ((x : SemilinearAut R A Y.Lv.L.B).σ.symm b) :=
   ev_E_symm (counitData μ Y) x (counitAlg b)
-
-lemma σ_mul_apply (u v : SemilinearAut R A Y.Lv.L.B) (b : Y.Lv.L.B) :
-    (u * v).σ b = u.σ (v.σ b) := rfl
 
 /-- The group map of the counit, `(h, k) ↦ h`. -/
 def counitR : (counitData μ Y).level.H →* Y.Lv.L.H :=
@@ -379,3 +377,7 @@ lemma counit_fibre (hα : Function.Injective μ.α)
 end CounitFibre
 
 end IndData
+
+end
+
+end TemperedFundamentalGroups
