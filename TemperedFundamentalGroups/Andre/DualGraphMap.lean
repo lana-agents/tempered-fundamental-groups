@@ -296,6 +296,55 @@ def ModelCode.IsHarmonicDualGraphMap {K₁ K₂ L₁ L₂ : Type u} [Field K₁]
   IsDualGraphMap ψ ∧ IsHarmonicX O₁ O₂ ϖ₁ ϖ₂ ϖ₁₀ ϖ₂₀ x₁ x₂ j₁ j₂ ψ
 
 /-- **Maps of unfolded W-models are harmonic maps of dual graphs** (G4): under the hypotheses of
+`Statement.HarmonicXS` (split nodes only), for a closed `ψ` (e.g. `ModelCode.isClosedMap_of_comp_eq` over a common
+base), `ψ` is a map of dual graphs (G1 from closedness and `dim Z c' ≤ 1`, G2 from `x3`, G3 from
+(X1) and the x-length of the target node from (X0)) which is x-harmonic (`harmonicX`). -/
+theorem isHarmonicDualGraphMap_of_harmonicXS (K : Type u) [Field K] [CharZero K]
+    (O : ValuationSubring K) [IsDiscreteValuationRing O]
+    [IsAdicComplete (IsLocalRing.maximalIdeal O) O] (ϖ : O) (hϖ : Irreducible ϖ)
+    (K₁ K₂ : Type u) [Field K₁] [Field K₂] [Algebra K K₁] [Algebra K K₂]
+    [FiniteDimensional K K₁] [FiniteDimensional K K₂]
+    (O₁ : ValuationSubring K₁) (O₂ : ValuationSubring K₂)
+    (h₁ : O₁.comap (algebraMap K K₁) = O) (h₂ : O₂.comap (algebraMap K K₂) = O)
+    [IsDiscreteValuationRing O₁] [IsDiscreteValuationRing O₂] (ϖ₁ : O₁) (ϖ₂ : O₂)
+    (hϖ₁ : Irreducible ϖ₁) (hϖ₂ : Irreducible ϖ₂)
+    (L₁ L₂ : Type u) [Field L₁] [Field L₂] [Algebra K₁ L₁] [Algebra K₂ L₂] [Algebra L₂ L₁]
+    [Algebra K L₁] [Algebra K L₂] [IsScalarTower K K₁ L₁] [IsScalarTower K K₂ L₂]
+    [IsScalarTower K L₂ L₁] [FiniteDimensional L₂ L₁]
+    [Algebra O₁ L₁] [IsScalarTower O₁ K₁ L₁] [Algebra O₂ L₂] [IsScalarTower O₂ K₂ L₂] (x : L₂)
+    (c : TemperedFundamentalGroups.ModelCode O₁) (c' : TemperedFundamentalGroups.ModelCode O₂)
+    (ψ : c.scheme ⟶ c'.scheme)
+    (j : Spec (CommRingCat.of L₁) ⟶ c.scheme) (j' : Spec (CommRingCat.of L₂) ⟶ c'.scheme)
+    (hU₁ : ModelCode.IsUnfolded O₁ (algebraMap L₂ L₁ x) c j)
+    (hU₂ : ModelCode.IsUnfolded O₂ x c' j')
+    (hj : j ≫ ψ = Spec.map (CommRingCat.ofHom (algebraMap L₂ L₁)) ≫ j')
+    (hψO : ψ ≫ c'.toSpec ≫ Spec.map (CommRingCat.ofHom ((algebraMap K K₂).restrict O O₂
+      (fun y hy ↦ by rw [← h₂] at hy; exact hy))) =
+      c.toSpec ≫ Spec.map (CommRingCat.ofHom ((algebraMap K K₁).restrict O O₁
+        (fun y hy ↦ by rw [← h₁] at hy; exact hy))))
+    (hs₁ : ModelCode.IsSemistable ϖ₁ c) (hs₂ : ModelCode.IsSemistable ϖ₂ c')
+    (hsplit₁ : ModelCode.HasSplitNodes ϖ₁ c) (hsplit₂ : ModelCode.HasSplitNodes ϖ₂ c')
+    (hloops₁ : ModelCode.NoLoops c) (hloops₂ : ModelCode.NoLoops c')
+    (hcl : IsClosedMap ψ) :
+    IsHarmonicDualGraphMap O₁ O₂ ϖ₁ ϖ₂ (algebraMap K L₁ ϖ) (algebraMap K L₂ ϖ)
+      (algebraMap L₂ L₁ x) x j j' ψ := by
+  have hX := harmonicXS K O ϖ hϖ K₁ K₂ O₁ O₂ h₁ h₂ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ x c c' ψ j j' hU₁ hU₂ hj
+    hψO hs₁ hs₂ hsplit₁ hsplit₂ hloops₁ hloops₂
+  refine ⟨⟨fun y hy ↦ mem_Z_of_over h₁ h₂ hψO hy, fun v hv ↦ ?_, hX.2.2.2, ?_⟩, hX⟩
+  · haveI := noetherianSpace_Z c'
+    exact contracted_or_mem_components ψ hcl (fun y hy ↦ mem_Z_of_over h₁ h₂ hψO hy)
+      (topologicalKrullDim_Z_le_one hϖ₂ hs₂) hv
+  · intro y' hy' w₁' hw₁' w₂' hw₂' hne hy₁ hy₂ v hv hψv
+    -- the x-length of the target node, from (X0) for `c'`
+    obtain ⟨η₂, e₂, he₂, hϖK₂⟩ := exists_ramification h₂ hϖ hϖ₂
+    obtain ⟨l', hl'⟩ := (CrossingSource.x0 hU₂ hϖ₂ hsplit₂ hloops₂ he₂ hϖK₂ y' hy').1
+    have hL₂ : algebraMap K L₂ (ϖ : K) = algebraMap K₂ L₂ (algebraMap K K₂ ϖ) :=
+      IsScalarTower.algebraMap_apply K K₂ L₂ _
+    rw [← hL₂] at hl'
+    obtain ⟨w, hw0, hcross, hwk, -⟩ := hX.2.1 y' hy' w₁' hw₁' w₂' hw₂' hne hy₁ hy₂ v hv hψv l' hl'
+    exact ⟨w, hw0, hcross, hwk⟩
+
+/-- **Maps of unfolded W-models are harmonic maps of dual graphs** (G4): under the hypotheses of
 `Statement.HarmonicX`, for a closed `ψ` (e.g. `ModelCode.isClosedMap_of_comp_eq` over a common
 base), `ψ` is a map of dual graphs (G1 from closedness and `dim Z c' ≤ 1`, G2 from `x3`, G3 from
 (X1) and the x-length of the target node from (X0)) which is x-harmonic (`harmonicX`). -/
@@ -327,21 +376,8 @@ theorem isHarmonicDualGraphMap_of_harmonicX (K : Type u) [Field K] [CharZero K]
     (hloops₁ : ModelCode.NoLoops c) (hloops₂ : ModelCode.NoLoops c')
     (hcl : IsClosedMap ψ) :
     IsHarmonicDualGraphMap O₁ O₂ ϖ₁ ϖ₂ (algebraMap K L₁ ϖ) (algebraMap K L₂ ϖ)
-      (algebraMap L₂ L₁ x) x j j' ψ := by
-  have hX := harmonicX K O ϖ hϖ K₁ K₂ O₁ O₂ h₁ h₂ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ x c c' ψ j j' hU₁ hU₂ hj
-    hψO hs₁ hs₂ hsplit₁ hsplit₂ hloops₁ hloops₂
-  refine ⟨⟨fun y hy ↦ mem_Z_of_over h₁ h₂ hψO hy, fun v hv ↦ ?_, hX.2.2.2, ?_⟩, hX⟩
-  · haveI := noetherianSpace_Z c'
-    exact contracted_or_mem_components ψ hcl (fun y hy ↦ mem_Z_of_over h₁ h₂ hψO hy)
-      (topologicalKrullDim_Z_le_one hϖ₂ hs₂) hv
-  · intro y' hy' w₁' hw₁' w₂' hw₂' hne hy₁ hy₂ v hv hψv
-    -- the x-length of the target node, from (X0) for `c'`
-    obtain ⟨η₂, e₂, he₂, hϖK₂⟩ := exists_ramification h₂ hϖ hϖ₂
-    obtain ⟨l', hl'⟩ := (CrossingSource.x0 hU₂ hϖ₂ hsplit₂.1 hloops₂ he₂ hϖK₂ y' hy').1
-    have hL₂ : algebraMap K L₂ (ϖ : K) = algebraMap K₂ L₂ (algebraMap K K₂ ϖ) :=
-      IsScalarTower.algebraMap_apply K K₂ L₂ _
-    rw [← hL₂] at hl'
-    obtain ⟨w, hw0, hcross, hwk, -⟩ := hX.2.1 y' hy' w₁' hw₁' w₂' hw₂' hne hy₁ hy₂ v hv hψv l' hl'
-    exact ⟨w, hw0, hcross, hwk⟩
+      (algebraMap L₂ L₁ x) x j j' ψ :=
+  isHarmonicDualGraphMap_of_harmonicXS K O ϖ hϖ K₁ K₂ O₁ O₂ h₁ h₂ ϖ₁ ϖ₂ hϖ₁ hϖ₂ L₁ L₂ x c c' ψ j
+    j' hU₁ hU₂ hj hψO hs₁ hs₂ hsplit₁.1 hsplit₂.1 hloops₁ hloops₂ hcl
 
 end TemperedFundamentalGroups.SemistableReduction

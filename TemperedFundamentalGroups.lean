@@ -82,6 +82,7 @@ import TemperedFundamentalGroups.Andre.ValuativeCentre
 import TemperedFundamentalGroups.Andre.WCentre
 import TemperedFundamentalGroups.Andre.WCentreLocal
 import TemperedFundamentalGroups.Andre.WData
+import TemperedFundamentalGroups.Andre.WDualGraphMap
 import TemperedFundamentalGroups.Andre.WEdgeLifting
 import TemperedFundamentalGroups.Andre.WHarmonicWeight
 import TemperedFundamentalGroups.FibreFunctor.Character
