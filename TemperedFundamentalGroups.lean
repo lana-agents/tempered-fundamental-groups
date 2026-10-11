@@ -538,6 +538,7 @@ import TemperedFundamentalGroups.SemistableReduction.ZariskiDVR
 import TemperedFundamentalGroups.SemistableReduction.ZariskiHarmonic
 import TemperedFundamentalGroups.SemistableReduction.ZariskiModel
 import TemperedFundamentalGroups.SemistableReduction.ZariskiNormalization
+import TemperedFundamentalGroups.Setup.CompleteDVRExtension
 import TemperedFundamentalGroups.Setup.DVRNorm
 import TemperedFundamentalGroups.Setup.InvariantLine
 import TemperedFundamentalGroups.Setup.NoetherLine
@@ -554,7 +555,9 @@ import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.CoverImage
 import TemperedFundamentalGroups.Tempered.FieldChange
 import TemperedFundamentalGroups.Tempered.FieldChangeComp
+import TemperedFundamentalGroups.Tempered.FieldChangeFinite
 import TemperedFundamentalGroups.Tempered.FieldChangeImage
+import TemperedFundamentalGroups.Tempered.FieldChangeOrbifold
 import TemperedFundamentalGroups.Tempered.FieldChangePure
 import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.InducedAlg
