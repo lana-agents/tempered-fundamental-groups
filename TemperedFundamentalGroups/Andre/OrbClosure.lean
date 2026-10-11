@@ -305,7 +305,8 @@ theorem exists_galoisClosure_sym (lam : A → SemilinearAut R A B₀) (hlam : �
       rw [← hPe, AlgEquiv.symm_apply_apply]
     let Φb : B ≃+* B := Ideal.quotientEquiv _ _ Φ (hdesc Φ hΦ)
     refine ⟨⟨a, Φb, fun r => ?_⟩, rfl⟩
-    change Φb (Ideal.Quotient.mk _ (algebraMap R T r)) = Ideal.Quotient.mk _ (algebraMap R T (a • r))
+    change Φb (Ideal.Quotient.mk _ (algebraMap R T r)) =
+      Ideal.Quotient.mk _ (algebraMap R T (a • r))
     change Ideal.Quotient.mk _ (Φ (algebraMap R T r)) = _
     congr 1
     change Pe.symm (powMap (lam a) (algebraMap R T r)) = _

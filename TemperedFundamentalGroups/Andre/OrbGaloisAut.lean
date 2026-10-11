@@ -207,7 +207,8 @@ def gS (s : D.S) : (D.lv hX).L.H := D.equivT hX (s, 1)
 
 lemma gS_one : gS D hX (1 : D.S) = 1 := (D.equivT hX).map_one
 
-lemma gS_mul (s s' : D.S) : gS D hX s * gS D hX s' = gS D hX (s * s') := ((D.equivT hX).map_mul (s, 1) (s', 1)).symm.trans
+lemma gS_mul (s s' : D.S) : gS D hX s * gS D hX s' = gS D hX (s * s') :=
+  ((D.equivT hX).map_mul (s, 1) (s', 1)).symm.trans
     (congrArg _ (Prod.ext rfl (mul_one 1)))
 
 /-- The coded covering space of `OrbGal.obj` is `Ind_1^S Z̃`. -/
