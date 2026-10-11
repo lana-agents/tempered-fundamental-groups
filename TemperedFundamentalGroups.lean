@@ -23,6 +23,10 @@ import TemperedFundamentalGroups.Andre.GaloisObject
 import TemperedFundamentalGroups.Andre.HeightW
 import TemperedFundamentalGroups.Andre.LengthW
 import TemperedFundamentalGroups.Andre.NonzeroCharacter
+import TemperedFundamentalGroups.Andre.OrbGalois
+import TemperedFundamentalGroups.Andre.OrbGaloisAut
+import TemperedFundamentalGroups.Andre.OrbGaloisGal
+import TemperedFundamentalGroups.Andre.OrbGaloisRigid
 import TemperedFundamentalGroups.Andre.PointLift
 import TemperedFundamentalGroups.Andre.ProjPoints
 import TemperedFundamentalGroups.Andre.Pullback
