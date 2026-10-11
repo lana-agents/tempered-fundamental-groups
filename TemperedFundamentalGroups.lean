@@ -6,6 +6,7 @@ Authors: LANA Project
 
 import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.Defs
+import TemperedFundamentalGroups.Andre.DualGraphMap
 import TemperedFundamentalGroups.Andre.FracGalois
 import TemperedFundamentalGroups.Andre.FracMap
 import TemperedFundamentalGroups.Andre.FunctionFieldFinite

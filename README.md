@@ -74,6 +74,13 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   of a finite extension of a complete discretely valued field, with a scheme-theoretically dominant
   generic point, has a connected special fibre. It is deduced from Zariski's connectedness theorem
   `AlgebraicGeometry.ProjectiveSpace.isPreconnected_closedFibre` in `oka`. Theorem B uses it.
+* **Maps of dual graphs** (Blueprint §11.2, G4, `Andre/DualGraphMap.lean`). The bundled
+  `SemistableReduction.ModelCode.IsDualGraphMap ψ` for a morphism of models `ψ : c ⟶ c'`:
+  components go to components or points (`vertexMap`; for every closed `ψ` by
+  `contracted_or_mem_components`), nodes to nodes or to smooth points on one component
+  (`edgeMap`), compatibly with incidence, with edge lifting along crossing walks. Maps of
+  unfolded split semistable W-models are such maps, harmonic for the x-lengths
+  (`SemistableReduction.isHarmonicDualGraphMap_of_harmonicX`).
 
 ### Not covered
 
