@@ -571,6 +571,50 @@ theorem temperedPi1Map_app_pushι (γ : temperedPi1 O R' A' V hV) (X : TempObj O
       TempObj.pushι R A V hV X (γ.app X x) :=
   (coverPushData V hV μ).restrict_app_ι γ X x
 
+/-- The endomorphism of the cover induced by an `R`-algebra endomorphism `τ` of `R'`. -/
+def coverEndEt (τ : R' →ₐ[R] R') : coverEt R A R' ⟶ coverEt R A R' where
+  f := (coverE R A R').symm.toAlgHom.comp (τ.comp (coverE R A R').toAlgHom)
+  f_act _ _ := rfl
+
+lemma etaleToTempFibreEquiv_map {X Y : EquivEtale R A} (m : X ⟶ Y)
+    (z : TempObj.Fibre Ω V hV ((etaleToTemp O R A).obj X)) :
+    etaleToTempFibreEquiv O R A V hV Y (TempObj.fibreMap V hV ((etaleToTemp O R A).map m) z) =
+      (etaleToTempFibreEquiv O R A V hV X z).comp m.f := by
+  induction z using Quotient.inductionOn
+  rfl
+
+/-- **For a Galois cover the image is normal**: if every geometric point `R' → Ω` over `R` is the
+base point composed with an `R`-algebra endomorphism of `R'`, then `temperedPi1 O R' A' V hV` is a
+normal subgroup of `temperedPi1 O R A V hV`. -/
+theorem normal_range_temperedPi1Map
+    (hGal : ∀ t : R' →ₐ[R] Ω, ∃ τ : R' →ₐ[R] R',
+      t = ((Algebra.ofId R' Ω).restrictScalars R).comp τ) :
+    (temperedPi1Map (O := O) μ V hV).range.Normal := by
+  rw [show (temperedPi1Map (O := O) μ V hV).range = (coverPushData V hV μ).stab from
+    (coverPushData V hV μ).range_restrict]
+  refine ⟨fun γ hγ δ => ?_⟩
+  rw [PushData.mem_stab] at hγ ⊢
+  change γ.app (coverObj O R A R') (coverFibrePt V hV) = coverFibrePt V hV at hγ
+  change (δ * γ * δ⁻¹).app (coverObj O R A R') (coverFibrePt V hV) = coverFibrePt V hV
+  set e := etaleToTempFibreEquiv O R A V hV (coverEt R A R')
+  obtain ⟨τ, hτ⟩ := hGal ((e (δ⁻¹.app _ (coverFibrePt V hV))).comp
+    (coverE R A R').symm.toAlgHom)
+  set m := (etaleToTemp O R A).map (coverEndEt τ)
+  have hclaim : δ⁻¹.app _ (coverFibrePt V hV) =
+      TempObj.fibreMap V hV m (coverFibrePt V hV) := by
+    apply e.injective
+    rw [etaleToTempFibreEquiv_map, show e (coverFibrePt V hV) = coverPt R A R' Ω from
+      Equiv.apply_symm_apply _ _]
+    refine AlgHom.ext fun y => ?_
+    have := AlgHom.congr_fun hτ (coverE R A R' y)
+    simp only [AlgHom.comp_apply, AlgEquiv.coe_toAlgHom, AlgEquiv.symm_apply_apply] at this
+    exact this.trans (by simp [coverEndEt, coverPt])
+  rw [FibreAut.mul_app, FibreAut.mul_app, hclaim,
+    show γ.app _ (TempObj.fibreMap V hV m (coverFibrePt V hV)) =
+      TempObj.fibreMap V hV m (γ.app _ (coverFibrePt V hV)) from
+      FibreAut.app_naturality γ m (coverFibrePt V hV),
+    hγ, ← hclaim, FibreAut.app_inv_app]
+
 end Image
 
 end
