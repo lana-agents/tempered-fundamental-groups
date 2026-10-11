@@ -86,6 +86,8 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   `andreGroup ≃* stageLimit`, the inverse limit over pointed Galois objects `U_Lv` over semistable
   W-model levels of their stage groups `Π_Lv` (permutations of the fibre induced by `Aut U_Lv`),
   from the group form of K1 `GaloisLimit.fibreAutEquiv` (`FibreFunctor/GaloisGroupLimit.lean`).
+  Each `Π_Lv` is an extension of `Aut_R(B)ᵒᵖ` by the deck group of the tree covering of the dual
+  graph (`stageGroup_extension`, `Andre/StageGroup.lean`).
 
 ### Not covered
 
