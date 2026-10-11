@@ -217,7 +217,95 @@ instance : IsSchemeTheoreticallyDominant (Lv.fieldChange hO μ).j := by
   change IsSchemeTheoreticallyDominant ((Lv.fcC hO).toImg (Lv.fcJ hO μ))
   infer_instance
 
+
+/-- The map of special fibres `|𝒯''_s| → |𝒯_s|` (through `𝒯'' ⊆ 𝒯 ×_O O' ⟶ 𝒯`). -/
+def fcS (z : (Lv.fieldChange hO μ).Z) : Lv.Z :=
+  Lv.c.bcFstS (valMap hO) (specialFibreMap ((Lv.fcC hO).imgι (Lv.fcJ hO μ))
+    ((Lv.fcC hO).imgι_toSpec (Lv.fcJ hO μ)) z)
+
+lemma fcS_coe (z : (Lv.fieldChange hO μ).Z) :
+    (Lv.fcS hO μ z).1 = Lv.c.bcFst (valMap hO) ((Lv.fcC hO).imgι (Lv.fcJ hO μ) z.1) := rfl
+
+lemma continuous_fcS : Continuous (Lv.fcS hO μ) :=
+  (Lv.c.continuous_bcFstS (valMap hO)).comp (continuous_specialFibreMap _ _)
+
+lemma fcS_ρs (g : (Lv.fieldChange hO μ).L.H) (z : (Lv.fieldChange hO μ).Z) :
+    Lv.fcS hO μ ((Lv.fieldChange hO μ).ρs g z) = Lv.ρs (Lv.L.bcPr μ g) (Lv.fcS hO μ z) := by
+  have key : Lv.imgEnd hO μ g ≫ (Lv.fcC hO).imgι (Lv.fcJ hO μ) ≫ Lv.c.bcFst (valMap hO) =
+      (Lv.fcC hO).imgι (Lv.fcJ hO μ) ≫ Lv.c.bcFst (valMap hO) ≫ (Lv.ρ (Lv.L.bcPr μ g)).hom := by
+    rw [imgEnd_imgι_assoc, fcEnd_fst]
+  apply Subtype.ext
+  calc (Lv.fcS hO μ ((Lv.fieldChange hO μ).ρs g z)).1
+      = Lv.c.bcFst (valMap hO) ((Lv.fcC hO).imgι (Lv.fcJ hO μ)
+          ((Lv.fieldChange hO μ).ρs g z).1) := Lv.fcS_coe hO μ _
+    _ = Lv.c.bcFst (valMap hO) ((Lv.fcC hO).imgι (Lv.fcJ hO μ)
+          (((Lv.fieldChange hO μ).ρ g).hom z.1)) := by rw [Level.ρs_apply]
+    _ = (Lv.imgEnd hO μ g ≫ (Lv.fcC hO).imgι (Lv.fcJ hO μ) ≫ Lv.c.bcFst (valMap hO)) z.1 := by
+        simp only [Scheme.Hom.comp_apply]
+        rfl
+    _ = ((Lv.fcC hO).imgι (Lv.fcJ hO μ) ≫ Lv.c.bcFst (valMap hO) ≫
+          (Lv.ρ (Lv.L.bcPr μ g)).hom) z.1 := by rw [key]
+    _ = (Lv.ρ (Lv.L.bcPr μ g)).hom (Lv.fcS hO μ z).1 := by
+        simp only [Scheme.Hom.comp_apply]
+        rfl
+    _ = (Lv.ρs (Lv.L.bcPr μ g) (Lv.fcS hO μ z)).1 := (Level.ρs_apply _ _ _).symm
+
 end Level
+
+namespace TempObj
+
+/-- **The tempered covering over `(K', O')`**: the level with model `Level.fieldChange`, and the
+pullback of the covering space along `|𝒯''_s| → |𝒯_s|`. -/
+def fieldChange (X : TempObj O R A) : TempObj O' R' A' where
+  Lv := X.Lv.fieldChange hO μ
+  P := X.P.pullback (X.Lv.L.bcPr μ) (X.Lv.fcS_ρs hO μ) (X.Lv.continuous_fcS hO μ)
+
+section Hom
+
+variable {X Y : TempObj O R A} (m : X ⟶ Y)
+
+/-- The morphism `𝒯_X ×_O O' ⟶ 𝒯_Y ×_O O'`. -/
+def fcψ0 : (X.Lv.fcC hO).scheme ⟶ (Y.Lv.fcC hO).scheme :=
+  Y.Lv.c.bcLift (valMap hO) (X.Lv.c.bcFst (valMap hO) ≫ m.ψ) (X.Lv.fcC hO).toSpec (by
+    rw [Category.assoc, m.ψ_toSpec, ModelCode.bcFst_toSpec])
+
+@[reassoc]
+lemma fcψ0_fst : fcψ0 hO m ≫ Y.Lv.c.bcFst (valMap hO) = X.Lv.c.bcFst (valMap hO) ≫ m.ψ :=
+  ModelCode.bcLift_fst _ _ _ _ _
+
+@[reassoc]
+lemma fcψ0_toSpec : fcψ0 hO m ≫ (Y.Lv.fcC hO).toSpec = (X.Lv.fcC hO).toSpec :=
+  ModelCode.bcLift_toSpec _ _ _ _ _
+
+lemma fcJ_fcψ0 : X.Lv.fcJ hO μ ≫ fcψ0 hO m =
+    Spec.map (CommRingCat.ofHom ((FiniteLevel.bcMap μ m.φ).f :
+      (Y.Lv.L.baseChange μ).B →+* (X.Lv.L.baseChange μ).B)) ≫ Y.Lv.fcJ hO μ := by
+  refine Y.Lv.c.bc_hom_ext (valMap hO) ?_ ?_
+  · simp only [Category.assoc]
+    rw [fcψ0_fst, ← Category.assoc, Level.fcJ_fst, Level.fcJ_fst, Category.assoc, m.j_ψ,
+      ← Category.assoc, ← Category.assoc, ← Spec.map_comp, ← Spec.map_comp,
+      ← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+    congr 3
+    exact RingHom.ext fun y => (FiniteLevel.bcMap_f_bcι m.φ y).symm
+  · simp only [Category.assoc]
+    rw [fcψ0_toSpec, Level.fcJ_toSpec, Level.fcJ_toSpec]
+    exact spec_levelStructureMap O' R' A' (FiniteLevel.bcMap μ m.φ)
+
+/-- The model map `𝒯''_X ⟶ 𝒯''_Y`. -/
+def fcψ : (X.Lv.fcI hO μ).scheme ⟶ (Y.Lv.fcI hO μ).scheme :=
+  (X.Lv.fcC hO).imageMap (X.Lv.fcJ hO μ) (Y.Lv.fcJ hO μ) (fcψ0 hO m) _ (fcJ_fcψ0 hO μ m)
+
+@[reassoc]
+lemma fcψ_imgι : fcψ hO μ m ≫ (Y.Lv.fcC hO).imgι (Y.Lv.fcJ hO μ) =
+    (X.Lv.fcC hO).imgι (X.Lv.fcJ hO μ) ≫ fcψ0 hO m :=
+  ModelCode.imageMap_imgι _ _ _ _ _ _
+
+lemma fcψ_toSpec : fcψ hO μ m ≫ (Y.Lv.fcI hO μ).toSpec = (X.Lv.fcI hO μ).toSpec := by
+  rw [← ModelCode.imgι_toSpec, fcψ_imgι_assoc, fcψ0_toSpec, ModelCode.imgι_toSpec]
+
+end Hom
+
+end TempObj
 
 end
 
