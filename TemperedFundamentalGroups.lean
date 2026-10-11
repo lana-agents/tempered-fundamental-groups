@@ -542,6 +542,8 @@ import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.CoverImage
 import TemperedFundamentalGroups.Tempered.FieldChange
+import TemperedFundamentalGroups.Tempered.FieldChangeComp
+import TemperedFundamentalGroups.Tempered.FieldChangeImage
 import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.InducedAlg
 import TemperedFundamentalGroups.Tempered.InducedCounit
