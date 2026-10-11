@@ -70,6 +70,10 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   `K`-linearly): `temperedPi1Map_injective_orbifold`, `isOpenEmbedding_temperedPi1Map_orbifold`,
   `range_temperedPi1Map_orbifold`, `finiteIndex_range_temperedPi1Map_orbifold`
   (`Tempered/OrbifoldCover.lean`, via induced coverings `Tempered/Induced*.lean`).
+  Changing the valued field `(K, O) → (K', O')` gives the continuous homomorphism
+  `temperedPi1FieldMap : temperedPi1 O' R' A' →* temperedPi1 O R A` (`Tempered/FieldChange.lean`;
+  models are base-changed to `O'`, `Models/BaseChange.lean`, and replaced by the image of the generic
+  fibre, `Models/Image.lean`).
   The comparison maps are natural: `temperedToEtale_temperedPi1Map` (with `etalePi1Map μ`,
   `Tempered/BaseChangeEtale.lean`) and `andreEquiv'_temperedPi1Map` (with `andreGroupMap μ`,
   `Andre/Functoriality.lean`).

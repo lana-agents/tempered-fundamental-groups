@@ -16,8 +16,11 @@ Let `(K, O) → (K', O')` be an extension of valued fields (`O'.comap (algebraMa
 `μ : OrbMap R A R' A'` a map of orbifolds `[Spec R' / A'] → [Spec R / A]` with `R'` a
 `K'`-algebra (e.g. `R' = K' ⊗_K R`). A tempered covering of `[Spec R / A]` over `(K, O)` pulls
 back to a tempered covering of `[Spec R' / A']` over `(K', O')` (`TempObj.fieldChange`): the level
-is base-changed as in F1, the model is base-changed to `O'` (`ModelCode.baseChange`, the fibre
-product `𝒯 ×_O O'`), and the covering space is pulled back along `|𝒯'_s| → |𝒯_s|`. Its fibre at a
+is base-changed as in F1, the model is the scheme-theoretic image `𝒯''` of `Spec (R' ⊗_R B)` in
+the base change `𝒯 ×_O O'` (`ModelCode.baseChange`, `ModelCode.image`; taking the image makes
+`j'` scheme-theoretically dominant, so that base-changed model maps are automatically
+equivariant, `TempObj.imgEnd_fcψ`), and the covering space is pulled back along
+`|𝒯''_s| → |𝒯_s|`. Its fibre at a
 geometric point `Spec Ω → Spec R'` (with `V ∩ K' = O'`) is the fibre of the given covering
 (`TempObj.fcFibreIso`). Restriction of fibre-functor automorphisms gives the continuous
 homomorphism
@@ -583,9 +586,44 @@ def fcFibreEquiv : Fibre Ω V hV' (X.fieldChange hO μ) ≃ Fibre Ω V (comap_eq
 
 end FibreEquiv
 
+
+lemma fcPreRes_natural {X Y : TempObj O R A} (m : X ⟶ Y)
+    (q : PreFibre Ω V hV' (X.fieldChange hO μ)) :
+    fcPreRes hO μ V hV' Y (preMap V hV' (fcHom hO μ m) q) =
+      preMap V (comap_eq hO V hV') m (fcPreRes hO μ V hV' X q) :=
+  Subtype.ext (Prod.ext (FiniteLevel.bcRes_bcMap μ m.φ _) (pullbackPt_fcH hO μ m q.1.2))
+
+variable (O O') in
+/-- **Changing the valued field commutes with the fibre functors.** -/
+def fcFibreIso : fcFunctor O O' hO μ ⋙ tempFibre O' R' A' V hV' ≅
+    tempFibre O R A V (comap_eq hO V hV') :=
+  NatIso.ofComponents (fun X => (fcFibreEquiv hO μ V hV' X).toIso) fun {X Y} m => by
+    ext x
+    induction x using Quotient.inductionOn with
+    | h q => exact congrArg Quotient.mk'' (fcPreRes_natural hO μ V hV' m q)
+
 end Fibre
 
 end TempObj
+
+section Map
+
+variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra K' Ω] [IsScalarTower K K' Ω]
+  [Algebra R Ω] [IsScalarTower K R Ω] [Algebra R' Ω] [IsScalarTower K' R' Ω]
+  [IsScalarTower R R' Ω] (V : ValuationSubring Ω) (hV' : V.comap (algebraMap K' Ω) = O')
+
+/-- **F8: change of the valued field.** For an extension of valued fields `(K, O) → (K', O')`
+and a map of orbifolds `μ : OrbMap R A R' A'` (`R'` a `K'`-algebra), restriction along the base
+change of tempered coverings `TempObj.fcFunctor` is a continuous homomorphism
+`temperedPi1 O' R' A' →* temperedPi1 O R A`. -/
+def temperedPi1FieldMap :
+    temperedPi1 O' R' A' V hV' →* temperedPi1 O R A V (TempObj.comap_eq hO V hV') :=
+  FibreAut.restrict (TempObj.fcFunctor O O' hO μ) (TempObj.fcFibreIso O O' hO μ V hV')
+
+lemma continuous_temperedPi1FieldMap : Continuous (temperedPi1FieldMap hO μ V hV') :=
+  FibreAut.continuous_restrict _ _
+
+end Map
 
 end
 
