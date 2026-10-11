@@ -33,6 +33,7 @@ import TemperedFundamentalGroups.Andre.OrbGaloisGal
 import TemperedFundamentalGroups.Andre.OrbGaloisLevel
 import TemperedFundamentalGroups.Andre.OrbGaloisMid
 import TemperedFundamentalGroups.Andre.OrbGaloisRigid
+import TemperedFundamentalGroups.Andre.OrbStageFunctor
 import TemperedFundamentalGroups.Andre.OrbStageGroup
 import TemperedFundamentalGroups.Andre.OrbStageLevel
 import TemperedFundamentalGroups.Andre.OrbStageLimit

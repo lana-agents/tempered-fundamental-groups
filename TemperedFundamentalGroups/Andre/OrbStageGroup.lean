@@ -264,8 +264,6 @@ theorem mem_range_deckStageO_of_base (σ : stageGroup (tempFibre O R A V hV) (ob
   exact (tw_quot V hV D hX hp hc x hx γ hγ hγ1 t₀ _ _ hq'₁ rfl (τd.1 e₀) hq'₂
     (twHom_h_one D hX hp hc x γ hγ heψ hj τd.1.continuous hτ e₀)).symm
 
-set_option maxHeartbeats 1600000 in
--- see `mem_range_deckStageO_of_base`
 include hidem hgal hsym hact he₀ in
 /-- **The kernel of the action on level classes is the deck group**: an element of the stage
 group of `OrbGal.obj` comes from a deck transformation of `Z̃` iff it preserves all level
