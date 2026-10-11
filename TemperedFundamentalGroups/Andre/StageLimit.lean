@@ -19,7 +19,8 @@ fibre `Φ(U_Lv)` induced by automorphisms of `U_Lv = (Lv, Ind Z̃)`, `Z̃` the t
 special fibre) form an inverse system along pointed morphisms, and
 
 * `temperedPi1EquivLim`: `temperedPi1 ≃* lim_{(U_Lv, g)} Π_Lv`;
-* `andreGroupEquivLim`: **`andreGroup ≃* lim Π_Lv`** (with Theorem A, `andreEquiv'`).
+* `andreGroupEquivLim`: **`andreGroup ≃* lim Π_Lv`** (with Theorem A, `andreEquiv'`);
+  `temperedPi1HomeoLim`, `andreGroupHomeoLim`: the same as isomorphisms of topological groups.
 
 The description of each `Π_Lv` as an extension of the Galois group of the level by the deck group
 of the tree covering is G6.3 (`Andre/StageGroup.lean`).
@@ -80,6 +81,16 @@ lemma temperedPi1EquivLim_apply (γ : temperedPi1 O R A V hV)
 def andreGroupEquivLim [Finite A] [SMulCommClass A K R] :
     andreGroup O R A V hV ≃* stageLimit (R := R) (A := A) V hV hp hR :=
   (andreEquiv' V hV hp hR).toMulEquiv.symm.trans (temperedPi1EquivLim (A := A) V hV hp hR)
+
+/-- **`temperedPi1 ≃ₜ* lim Π_Lv`**, `lim Π_Lv` with the inverse-limit topology of the discrete
+stage groups. -/
+def temperedPi1HomeoLim : temperedPi1 O R A V hV ≃ₜ* stageLimit (R := R) (A := A) V hV hp hR :=
+  fibreAutHomeo _ _ (galoisLimitData_galW (R := R) (A := A) V hV hp hR).2.1
+
+/-- **G6, topological form: `andreGroup ≃ₜ* lim Π_Lv`.** -/
+def andreGroupHomeoLim [Finite A] [SMulCommClass A K R] :
+    andreGroup O R A V hV ≃ₜ* stageLimit (R := R) (A := A) V hV hp hR :=
+  (andreEquiv' V hV hp hR).symm.trans (temperedPi1HomeoLim (A := A) V hV hp hR)
 
 end
 

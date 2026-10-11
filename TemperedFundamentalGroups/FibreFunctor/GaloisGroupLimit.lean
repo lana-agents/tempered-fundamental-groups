@@ -18,6 +18,8 @@ objects satisfying (gal) and (rig).
 * `transition f : stageGroup Φ p.G →* stageGroup Φ q.G` for a pointed morphism `f : p ⟶ q`: the
   unique `τ` with `τ ∘ f = f ∘ σ` (`transition_comm`); `transition_id`, `transition_comp`.
 * `limGroup Φ 𝒢`: the inverse limit of the stage groups along the transition maps.
+* `fibreAutHomeo`: the same as an isomorphism of topological groups, `limGroup` carrying the
+  inverse-limit topology of the discrete stage groups.
 * `fibreAutEquiv`: with (dom), **`FibreAut Φ ≃* limGroup Φ 𝒢`**: an automorphism `α` of `Φ`
   corresponds to the family of stage group elements `σ_p` with `σ_p(p.g) = α⁻¹(p.g)`
   (`fibreAutEquiv_apply`). (Evaluating `α` itself gives an anti-isomorphism, `fibreAutEquivOp`.)
@@ -255,6 +257,65 @@ lemma fibreAutEquiv_apply (α : FibreAut Φ) (p : PtGal Φ 𝒢) :
     ((fibreAutEquiv hgal hrig hdom α).1 p).1 p.g = α⁻¹.app p.G p.g := by
   change ((MulOpposite.unop (MulOpposite.op (toStage hgal hrig α)))⁻¹.1 p).1 p.g = _
   rw [MulOpposite.unop_op, ← toStage_inv, toStage_apply]
+
+section Topology
+
+/-- The stage groups carry the discrete topology. -/
+instance (G : C) : TopologicalSpace (stageGroup Φ G) := ⊥
+
+instance (G : C) : DiscreteTopology (stageGroup Φ G) := ⟨rfl⟩
+
+lemma fibreAutEquiv_eq_iff (α : FibreAut Φ) (p : PtGal Φ 𝒢) (s : stageGroup Φ p.G) :
+    (fibreAutEquiv hgal hrig hdom α).1 p = s ↔ α⁻¹.app p.G p.g = s.1 p.g := by
+  constructor
+  · rintro rfl
+    exact (fibreAutEquiv_apply hgal hrig hdom α p).symm
+  · intro h
+    exact stageGroup_eq_of_apply_eq hrig p.mem (x := p.g)
+      ((fibreAutEquiv_apply hgal hrig hdom α p).trans h)
+
+lemma continuous_fibreAutEquiv : Continuous (fibreAutEquiv hgal hrig hdom) := by
+  refine continuous_induced_rng.2 (continuous_pi fun p ↦ continuous_discrete_rng.2 fun s ↦ ?_)
+  have : (fun α : FibreAut Φ ↦ (fibreAutEquiv hgal hrig hdom α).1 p) ⁻¹' {s} =
+      (fun α : FibreAut Φ ↦ α⁻¹) ⁻¹' {β : FibreAut Φ | β.app p.G p.g = s.1 p.g} := by
+    ext α
+    exact fibreAutEquiv_eq_iff hgal hrig hdom α p s
+  change IsOpen ((fun α : FibreAut Φ ↦ (fibreAutEquiv hgal hrig hdom α).1 p) ⁻¹' {s})
+  rw [this]
+  exact (isOpen_setOf_app_eq Φ p.G p.g _).preimage continuous_inv
+
+lemma continuous_fibreAutEquiv_symm : Continuous (fibreAutEquiv hgal hrig hdom).symm := by
+  classical
+  refine continuous_of_stabilizer Φ (fibreAutEquiv hgal hrig hdom).symm.toMonoidHom
+    fun S ↦ ?_
+  set L := S.toList
+  obtain ⟨G, hG, g, f, hf⟩ := hdom L.length fun i ↦ L.get i
+  let q : PtGal Φ 𝒢 := ⟨G, hG, g⟩
+  have hcq : Continuous (fun γ : limGroup Φ 𝒢 hgal hrig ↦ γ.1 q) :=
+    (continuous_apply q).comp continuous_subtype_val
+  have hopen : IsOpen {γ : limGroup Φ 𝒢 hgal hrig | γ.1 q = 1} :=
+    hcq.isOpen_preimage {1} (isOpen_discrete _)
+  refine Filter.mem_of_superset (hopen.mem_nhds rfl) fun γ hγ ↦ ?_
+  set α := (fibreAutEquiv hgal hrig hdom).symm γ
+  have hα : α.app G g = g := by
+    have h₁ := (fibreAutEquiv_eq_iff hgal hrig hdom α q 1).1
+      (by rw [MulEquiv.apply_symm_apply]; exact hγ)
+    change α⁻¹.app G g = g at h₁
+    calc α.app G g = α.app G (α⁻¹.app G g) := by rw [h₁]
+      _ = g := app_inv_app α G g
+  intro x hx
+  obtain ⟨i, hi⟩ := List.mem_iff_get.1 (Finset.mem_toList.2 hx)
+  change α.app x.1 x.2 = x.2
+  rw [← hi, ← hf i, app_naturality, hα]
+
+/-- **K1, topological group form**: `FibreAut Φ ≃ₜ* lim_p stageGroup Φ p.G` for the
+inverse-limit topology of the discrete stage groups. -/
+noncomputable def fibreAutHomeo : FibreAut Φ ≃ₜ* limGroup Φ 𝒢 hgal hrig :=
+  { fibreAutEquiv hgal hrig hdom with
+    continuous_toFun := continuous_fibreAutEquiv hgal hrig hdom
+    continuous_invFun := continuous_fibreAutEquiv_symm hgal hrig hdom }
+
+end Topology
 
 end GaloisLimit
 
