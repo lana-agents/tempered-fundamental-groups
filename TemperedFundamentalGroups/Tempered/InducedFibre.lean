@@ -71,12 +71,14 @@ lemma idem_mul (x : D.S) (y : D.level.B) : D.idem x * y = D.single x (D.ev x y) 
     rw [one_mul]
   · rw [zero_mul]
 
-lemma single_mul (x : D.S) (a b : X'.Lv.L.B) : D.single x (a * b) = D.single x a * D.single x b := by
+lemma single_mul (x : D.S) (a b : X'.Lv.L.B) :
+    D.single x (a * b) = D.single x a * D.single x b := by
   refine D.ext_ev fun z => ?_
   rw [map_mul, ev_single, ev_single, ev_single]
   split_ifs <;> simp
 
-lemma single_add (x : D.S) (a b : X'.Lv.L.B) : D.single x (a + b) = D.single x a + D.single x b := by
+lemma single_add (x : D.S) (a b : X'.Lv.L.B) :
+    D.single x (a + b) = D.single x a + D.single x b := by
   refine D.ext_ev fun z => ?_
   rw [map_add, ev_single, ev_single, ev_single]
   split_ifs <;> simp
