@@ -98,6 +98,7 @@ import TemperedFundamentalGroups.FibreFunctor.SpanRealization
 import TemperedFundamentalGroups.Models.BaseChange
 import TemperedFundamentalGroups.Models.Image
 import TemperedFundamentalGroups.Models.Projective
+import TemperedFundamentalGroups.Models.RestrictScalars
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.Exact
 import TemperedFundamentalGroups.Orbicurve.GenericPoint

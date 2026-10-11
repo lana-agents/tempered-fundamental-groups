@@ -341,7 +341,8 @@ lemma rsIso_hom_subschemeι :
 /-- `rsIso` lies over `Spec R₁ ⟶ Spec R₀`. -/
 @[reassoc]
 lemma rsIso_hom_toSpec :
-    (c.rsIso hf).hom ≫ (c.restrictScalars hf).toSpec = c.toSpec ≫ Spec.map (CommRingCat.ofHom f) := by
+    (c.rsIso hf).hom ≫ (c.restrictScalars hf).toSpec =
+      c.toSpec ≫ Spec.map (CommRingCat.ofHom f) := by
   rw [toSpec, ← Category.assoc, rsIso_hom_subschemeι]
   change (c.I.subschemeι ≫ ProjEmb.emb c.m (rsB_spec hf)) ≫ projSpace.toSpec R₀ _ =
     (c.I.subschemeι ≫ projSpace.toSpec R₁ c.m) ≫ _
