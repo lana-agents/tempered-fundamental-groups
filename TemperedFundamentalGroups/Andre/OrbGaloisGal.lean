@@ -261,8 +261,15 @@ theorem exists_iso_preMap
       X₁.Lv.j ≫ ψ = Spec.map (CommRingCat.ofHom (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫ X₁.Lv.j)
     (t₀ : X₁.Lv.L.B →ₐ[R] Ω) (e₀ : E) (he₀ : p e₀ = X₁.Lv.sp V hV t₀)
     (q : PreFibre Ω V hV (obj D hX hp hc)) :
-    ∃ F : obj D hX hp hc ≅ obj D hX hp hc,
-      preMap V hV F.hom (basePre D hX hp hc V hV t₀ e₀ he₀) = q := by
+    ∃ (x : D.S) (γ : SemilinearAut R A X₁.Lv.L.B) (hγ : γ.a = D.α x)
+      (eψ : X₁.Lv.c.scheme ≅ X₁.Lv.c.scheme) (heψ : eψ.hom ≫ X₁.Lv.c.toSpec = X₁.Lv.c.toSpec)
+      (hj : X₁.Lv.j ≫ eψ.hom =
+        Spec.map (CommRingCat.ofHom (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫ X₁.Lv.j)
+      (hj' : X₁.Lv.j ≫ eψ.inv =
+        Spec.map (CommRingCat.ofHom (γ⁻¹.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫ X₁.Lv.j)
+      (τ : E ≃ₜ E) (hτ : ∀ e, p (τ e) = specialFibreMap eψ.hom heψ (p e)),
+      preMap V hV (twIso D hX hp hc x γ hγ eψ heψ hj hj' τ hτ).hom
+        (basePre D hX hp hc V hV t₀ e₀ he₀) = q := by
   obtain ⟨⟨t, x⟩, hq⟩ := q
   obtain ⟨⟨g, e⟩, rfl⟩ := (Θo D hX hp hc).surjective x
   obtain ⟨⟨s, k⟩, rfl⟩ := (D.equivT hX).surjective g
@@ -295,7 +302,7 @@ theorem exists_iso_preMap
   have hpe : p e = specialFibreHomeomorph eψ heψ (p e₀) :=
     Subtype.ext ((D.inc s).isOpenEmbedding.injective hq')
   obtain ⟨τ, hτ, hτe⟩ := exists_lift_homeo hp (specialFibreHomeomorph eψ heψ) hpe
-  refine ⟨twIso D hX hp hc s γ hγ eψ heψ hj hj' τ hτ, Subtype.ext (Prod.ext htF ?_)⟩
+  refine ⟨s, γ, hγ, eψ, heψ, hj, hj', τ, hτ, Subtype.ext (Prod.ext htF ?_)⟩
   refine (twHom_h_one D hX hp hc s γ hγ heψ hj τ.continuous hτ e₀).trans ?_
   rw [hτe]
   rfl
@@ -313,11 +320,14 @@ theorem exists_iso_fibreMap
     ∃ σ : obj D hX hp hc ≅ obj D hX hp hc, fibreMap V hV σ.hom u = v := by
   obtain ⟨q₁, rfl⟩ := Quotient.mk_surjective u
   obtain ⟨q₂, rfl⟩ := Quotient.mk_surjective v
-  obtain ⟨F₁, hF₁⟩ := exists_iso_preMap D hX hp hc V hV hgal hsym hact t₀ e₀ he₀ q₁
-  obtain ⟨F₂, hF₂⟩ := exists_iso_preMap D hX hp hc V hV hgal hsym hact t₀ e₀ he₀ q₂
-  refine ⟨F₁.symm ≪≫ F₂, congrArg (Quotient.mk _) ?_⟩
-  rw [Iso.trans_hom, Iso.symm_hom, preMap_comp, ← hF₁, ← preMap_comp V hV F₁.hom F₁.inv,
-    F₁.hom_inv_id, preMap_id, hF₂]
+  obtain ⟨x₁, γ₁, hγ₁, e₁, he₁, hj₁, hj₁', τ₁, hτ₁, hF₁⟩ :=
+    exists_iso_preMap D hX hp hc V hV hgal hsym hact t₀ e₀ he₀ q₁
+  obtain ⟨x₂, γ₂, hγ₂, e₂, he₂, hj₂, hj₂', τ₂, hτ₂, hF₂⟩ :=
+    exists_iso_preMap D hX hp hc V hV hgal hsym hact t₀ e₀ he₀ q₂
+  refine ⟨(twIso D hX hp hc x₁ γ₁ hγ₁ e₁ he₁ hj₁ hj₁' τ₁ hτ₁).symm ≪≫
+    twIso D hX hp hc x₂ γ₂ hγ₂ e₂ he₂ hj₂ hj₂' τ₂ hτ₂, congrArg (Quotient.mk _) ?_⟩
+  rw [Iso.trans_hom, Iso.symm_hom, preMap_comp, ← hF₁, ← preMap_comp V hV
+    (twIso D hX hp hc x₁ γ₁ hγ₁ e₁ he₁ hj₁ hj₁' τ₁ hτ₁).hom, Iso.hom_inv_id, preMap_id, hF₂]
 
 end Main
 
