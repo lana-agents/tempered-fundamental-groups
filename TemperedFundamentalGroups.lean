@@ -546,6 +546,7 @@ import TemperedFundamentalGroups.Tempered.InducedLevel
 import TemperedFundamentalGroups.Tempered.InducedRange
 import TemperedFundamentalGroups.Tempered.InducedUnit
 import TemperedFundamentalGroups.Tempered.Level
+import TemperedFundamentalGroups.Tempered.OrbifoldCover
 import TemperedFundamentalGroups.Tempered.PushLevel
 import TemperedFundamentalGroups.Topology.CountableFibres
 import TemperedFundamentalGroups.Topology.CoverLength

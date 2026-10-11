@@ -332,7 +332,77 @@ lemma range_ι (X' : TempObj O R A') (hX : Good X') (y : TempObj.Fibre Ω V hV (
 
 end Range
 
+section Data
+
+variable [Finite A] [IsDomain R] [IsNoetherianRing R] [FaithfulSMul A' R]
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+local instance (Y : TempObj O R A) : Fintype Y.Lv.L.H :=
+  @Fintype.ofFinite _ Y.Lv.L.finite_H
+
+local instance (Y : TempObj O R A) : DecidableEq Y.Lv.L.H := Classical.decEq _
+
+variable (μ) in
+/-- **The span push data of an orbifold cover.** -/
+def spanPushData : SpanPushData (TempObj.bcFunctor (O := O) μ) (TempObj.bcFibreIso μ V hV) where
+  good := Good
+  empty X' h := isEmpty_fibre V hV X' h
+  P := P μ
+  Pmap hX hY m := Pmap μ hX hY m
+  ι X' hX := (IndData.pushData μ X').ι (indFaithful hX) V hV
+  ι_injective X' hX := (IndData.pushData μ X').ι_injective (indFaithful hX) V hV α_injective
+  ι_natural hX hY m x := IndData.ι_natural (V := V) (hV := hV) _ _ _ _ m _ _ _ x
+  E := P μ (one O R A') good_one
+  x₀ := (IndData.pushData μ (one O R A')).ι (indFaithful good_one) V hV (onePt A' V hV)
+  τ X' hX := Pmap μ hX good_one (toOne X')
+  τ_natural hX hY m := by
+    rw [Pmap_comp]
+    exact Pmap_congr μ hX good_one (comp_toOne m)
+  range_ι X' hX y := range_ι V hV X' hX y
+  u X' hX := (IndData.pushData μ X').unit (indFaithful hX)
+  u_ι X' hX x := (IndData.pushData μ X').bcFibreEquiv_unit (indFaithful hX) V hV x
+  W Y hY := (IndData.counitData μ Y).obj (indFaithful hY)
+  π₁ Y hY := IndData.counitπ₁ Y (indFaithful hY)
+  π₂ Y hY := IndData.counitHom (indFaithful hY)
+  π_surj Y hY z := ⟨(IndData.counitData μ Y).ι (indFaithful hY) V hV z, by
+    have := IndData.ι_natural (V := V) (hV := hV) (IndData.counitData μ Y)
+      (IndData.pushData μ (Y.baseChange μ)) (indFaithful hY) (indFaithful hY) (𝟙 _)
+      (IndData.counitθ Y) (IndData.counitθα Y) (IndData.counitθβ Y) z
+    rw [IndData.fibreMap_id] at this
+    exact this.symm⟩
+  π_ι Y hY z w h := IndData.counit_fibre Y (indFaithful hY) V hV α_injective w z h
+
+end Data
+
 end OrbifoldCover
+
+section Main
+
+variable [Finite A] [IsDomain R] [IsNoetherianRing R] [FaithfulSMul A' R]
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+/-- **F7′: along an orbifold cover, `temperedPi1Map` is injective.** -/
+theorem temperedPi1Map_injective_orbifold :
+    Function.Injective (temperedPi1Map (O := O) μ V hV) :=
+  (OrbifoldCover.spanPushData μ V hV).injective_restrict
+
+/-- **F7′: the image of `temperedPi1Map`** is the stabilizer of the base point of the cover. -/
+theorem range_temperedPi1Map_orbifold :
+    (temperedPi1Map (O := O) μ V hV).range = (OrbifoldCover.spanPushData μ V hV).stab :=
+  (OrbifoldCover.spanPushData μ V hV).range_restrict
+
+/-- **F7′: `temperedPi1Map` is an open embedding.** -/
+theorem isOpenEmbedding_temperedPi1Map_orbifold :
+    Topology.IsOpenEmbedding (temperedPi1Map (O := O) μ V hV) :=
+  (OrbifoldCover.spanPushData μ V hV).isOpenEmbedding_restrict
+
+theorem isOpen_range_temperedPi1Map_orbifold :
+    IsOpen (Set.range (temperedPi1Map (O := O) μ V hV)) :=
+  (isOpenEmbedding_temperedPi1Map_orbifold μ V hV).isOpen_range
+
+end Main
 
 end
 
