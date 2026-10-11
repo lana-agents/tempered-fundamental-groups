@@ -352,7 +352,217 @@ def rsπ : rsObj hO hfin (Y.fieldChange hO (OrbMap.id R' A')) ⟶ Y where
 
 end Pi
 
+
+section Natural
+
+variable {X Y : TempObj O' R' A'} (m : X ⟶ Y)
+
+/-- **Naturality of the comparison morphisms.** -/
+lemma rsW_natural : fcHom hO (OrbMap.id R' A') (rsMap hO hfin m) ≫ rsW hO hfin Y =
+    rsW hO hfin X ≫ m := by
+  refine Hom.ext ?_ ?_ (funext fun q => ?_)
+  · refine FiniteLevel.Hom.ext (AlgHom.ext fun y => ?_) (MonoidHom.ext fun g => ?_)
+    · exact FiniteLevel.bcMap_f_bcι (μ := OrbMap.id R' A') m.φ y
+    · exact FiniteLevel.bcPr_bcMap (μ := OrbMap.id R' A') m.φ g
+  · change fcψ hO (OrbMap.id R' A') (rsMap hO hfin m) ≫ rsWψ hO hfin Y = rsWψ hO hfin X ≫ m.ψ
+    rw [rsWψ, rsWψ, fcψ_imgι_assoc, fcψ0_fst_assoc]
+    change _ ≫ _ ≫ ((X.Lv.c.rsIso hfin).inv ≫ m.ψ ≫ (Y.Lv.c.rsIso hfin).hom) ≫ _ = _
+    simp only [Category.assoc, Iso.hom_inv_id, Category.comp_id]
+  · change CoveringCode.pullbackPt Y.P _ (CoveringCode.pullbackPt (rsObj hO hfin Y).P _
+      (fcH hO (OrbMap.id R' A') (rsMap hO hfin m) q)) = m.h (CoveringCode.pullbackPt X.P _
+        (CoveringCode.pullbackPt (rsObj hO hfin X).P _ q))
+    exact (congrArg (CoveringCode.pullbackPt Y.P _)
+      (pullbackPt_fcH hO (OrbMap.id R' A') (rsMap hO hfin m) q)).trans (pullbackPt_rsH hO hfin m _)
+
+end Natural
+
+section Fibre
+
+variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra K' Ω] [IsScalarTower K K' Ω]
+  [Algebra R' Ω] [IsScalarTower K' R' Ω] [IsScalarTower K R' Ω]
+  (V : ValuationSubring Ω) (hV' : V.comap (algebraMap K' Ω) = O')
+
+section FibreEquiv
+
+variable (X : TempObj O' R' A')
+
+/-- Pairs `(t, p)` over `rsObj X` give pairs over `X`. -/
+def rsPre (q : PreFibre Ω V (comap_eq hO V hV') (rsObj hO hfin X)) : PreFibre Ω V hV' X :=
+  ⟨(q.1.1, CoveringCode.pullbackPt X.P (X.Lv.rsZ hO hfin).symm q.1.2), by
+    change ((X.Lv.rsZ hO hfin).symm q.1.2.1.1 : X.Lv.c.scheme) = _
+    rw [show q.1.2.1.1 = (X.Lv.rs hO hfin).sp V (comap_eq hO V hV') q.1.1 from Subtype.ext q.2,
+      Level.rsZ_symm_sp]⟩
+
+/-- Pairs `(t, p)` over `X` give pairs over `rsObj X`. -/
+def rsPreInv (q : PreFibre Ω V hV' X) : PreFibre Ω V (comap_eq hO V hV') (rsObj hO hfin X) :=
+  ⟨(q.1.1, ⟨((X.Lv.rs hO hfin).sp V (comap_eq hO V hV') q.1.1, q.1.2.1.2), by
+    change ((X.Lv.rsZ hO hfin).symm ((X.Lv.rs hO hfin).sp V (comap_eq hO V hV') q.1.1),
+      q.1.2.1.2) ∈ X.P.carrier
+    rw [Level.rsZ_symm_sp hO hfin X.Lv V hV', ← Subtype.ext q.2]
+    exact q.1.2.2⟩), rfl⟩
+
+lemma rsPreInv_rsPre (q : PreFibre Ω V (comap_eq hO V hV') (rsObj hO hfin X)) :
+    rsPreInv hO hfin V hV' X (rsPre hO hfin V hV' X q) = q :=
+  Subtype.ext (Prod.ext rfl (CoveringCode.pullback_ext X.P _ (Subtype.ext q.2).symm rfl))
+
+lemma rsPre_rsPreInv (q : PreFibre Ω V hV' X) :
+    rsPre hO hfin V hV' X (rsPreInv hO hfin V hV' X q) = q := by
+  refine Subtype.ext (Prod.ext rfl (Subtype.ext (Prod.ext ?_ rfl)))
+  change (X.Lv.rsZ hO hfin).symm ((X.Lv.rs hO hfin).sp V (comap_eq hO V hV') q.1.1) = q.1.2.1.1
+  rw [Level.rsZ_symm_sp hO hfin X.Lv V hV']
+  exact (Subtype.ext q.2).symm
+
+lemma rsPre_smul (g : (rsObj hO hfin X).Lv.L.H0)
+    (q : PreFibre Ω V (comap_eq hO V hV') (rsObj hO hfin X)) :
+    rsPre hO hfin V hV' X (g • q) = (show X.Lv.L.H0 from g) • rsPre hO hfin V hV' X q :=
+  Subtype.ext (Prod.ext rfl (CoveringCode.pullbackPt_act X.P (MonoidHom.id _)
+    (fun g z => X.Lv.rsZ_symm_ρs hO hfin g z) (X.Lv.rsZ hO hfin).symm.continuous g.1 q.1.2))
+
+lemma rsPreInv_smul (g : X.Lv.L.H0) (q : PreFibre Ω V hV' X) :
+    rsPreInv hO hfin V hV' X (g • q) =
+      (show (rsObj hO hfin X).Lv.L.H0 from g) • rsPreInv hO hfin V hV' X q := by
+  have := rsPre_smul hO hfin V hV' X g (rsPreInv hO hfin V hV' X q)
+  rw [rsPre_rsPreInv] at this
+  rw [← this, rsPreInv_rsPre]
+
+/-- **The fibres before and after restriction of scalars agree.** -/
+def rsFibreEquiv : Fibre Ω V (comap_eq hO V hV') (rsObj hO hfin X) ≃ Fibre Ω V hV' X where
+  toFun := Quotient.map (rsPre hO hfin V hV' X) fun q q' ⟨g, hg⟩ => by
+    rw [← hg, rsPre_smul]
+    exact ⟨g, rfl⟩
+  invFun := Quotient.map (rsPreInv hO hfin V hV' X) fun q q' ⟨g, hg⟩ => by
+    rw [← hg, rsPreInv_smul]
+    exact ⟨g, rfl⟩
+  left_inv x := by
+    induction x using Quotient.inductionOn
+    exact congrArg Quotient.mk'' (rsPreInv_rsPre hO hfin V hV' X _)
+  right_inv x := by
+    induction x using Quotient.inductionOn
+    exact congrArg Quotient.mk'' (rsPre_rsPreInv hO hfin V hV' X _)
+
+lemma fibreMap_rsW (x : Fibre Ω V hV' ((rsObj hO hfin X).fieldChange hO (OrbMap.id R' A'))) :
+    fibreMap V hV' (rsW hO hfin X) x = rsFibreEquiv hO hfin V hV' X
+      (fcFibreEquiv hO (OrbMap.id R' A') V hV' (rsObj hO hfin X) x) := by
+  induction x using Quotient.inductionOn with
+  | h q => exact congrArg Quotient.mk'' (Subtype.ext (Prod.ext (AlgHom.ext fun _ => rfl) rfl))
+
+/-- **The comparison morphism is bijective on fibres.** -/
+lemma bijective_fibreMap_rsW : Function.Bijective (fibreMap V hV' (rsW hO hfin X)) := by
+  have : fibreMap V hV' (rsW hO hfin X) = ((fcFibreEquiv hO (OrbMap.id R' A') V hV'
+      (rsObj hO hfin X)).trans (rsFibreEquiv hO hfin V hV' X)) :=
+    funext (fibreMap_rsW hO hfin V hV' X)
+  rw [this]
+  exact Equiv.bijective _
+
+end FibreEquiv
+
+lemma fibreMap_rsπ (Y : TempObj O R' A')
+    (z : (tempFibre O' R' A' V hV').obj ((fcFunctor O O' hO (OrbMap.id R' A')).obj
+      (rsObj hO hfin ((fcFunctor O O' hO (OrbMap.id R' A')).obj Y)))) :
+    (tempFibre O R' A' V (comap_eq hO V hV')).map (rsπ hO hfin Y)
+      ((fcFibreIso O O' hO (OrbMap.id R' A') V hV').hom.app _ z) =
+      (fcFibreIso O O' hO (OrbMap.id R' A') V hV').hom.app Y
+        ((tempFibre O' R' A' V hV').map (rsW hO hfin _) z) := by
+  induction z using Quotient.inductionOn with
+  | h q => exact congrArg Quotient.mk'' (Subtype.ext (Prod.ext (AlgHom.ext fun _ => rfl) rfl))
+
+variable (O O') in
+/-- **Section data for the pure field change** (abstract criterion of
+`FibreFunctor/SectionRestrict.lean`). -/
+def rsSectionData : SectionData (fcFunctor O O' hO (OrbMap.id R' A'))
+    (fcFibreIso O O' hO (OrbMap.id R' A') V hV') where
+  S := rsObj hO hfin
+  map m := rsMap hO hfin m
+  w X := rsW hO hfin X
+  w_natural m := rsW_natural hO hfin m
+  w_bijective X := bijective_fibreMap_rsW hO hfin V hV' X
+  π Y := rsπ hO hfin Y
+  π_e Y z := fibreMap_rsπ hO hfin V hV' Y z
+
+end Fibre
+
 end TempObj
+
+section Map
+
+variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra K' Ω] [IsScalarTower K K' Ω]
+  [Algebra R' Ω] [IsScalarTower K' R' Ω] [IsScalarTower K R' Ω]
+  (V : ValuationSubring Ω) (hV' : V.comap (algebraMap K' Ω) = O')
+
+include hfin in
+/-- **F8, pure case: the change of the valued field is bijective** (`O'` finite over `O`). -/
+theorem bijective_temperedPi1FieldMap_pure :
+    Function.Bijective (temperedPi1FieldMap hO (OrbMap.id R' A') V hV') :=
+  (TempObj.rsSectionData O O' hO hfin V hV').bijective_restrict
+
+include hfin in
+theorem isOpenEmbedding_temperedPi1FieldMap_pure :
+    Topology.IsOpenEmbedding (temperedPi1FieldMap hO (OrbMap.id R' A') V hV') :=
+  (TempObj.rsSectionData O O' hO hfin V hV').isOpenEmbedding_restrict
+
+/-- **F8, pure case: the change of the valued field is an isomorphism of topological groups**
+`temperedPi1 O' R' A' ≃ₜ* temperedPi1 O R' A'` (`O'` finite over `O`). -/
+def temperedPi1FieldEquiv :
+    temperedPi1 O' R' A' V hV' ≃ₜ* temperedPi1 O R' A' V (TempObj.comap_eq hO V hV') :=
+  (TempObj.rsSectionData O O' hO hfin V hV').restrictEquiv
+
+lemma temperedPi1FieldEquiv_apply (γ : temperedPi1 O' R' A' V hV') :
+    temperedPi1FieldEquiv hO hfin V hV' γ = temperedPi1FieldMap hO (OrbMap.id R' A') V hV' γ :=
+  rfl
+
+end Map
+
+section Etale
+
+variable {R : Type u} [CommRing R] [Algebra K R] {A : Type u} [Group A] [MulSemiringAction A R]
+  [Algebra R R'] [IsScalarTower K R R'] (μ : OrbMap R A R' A')
+  {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra K' Ω] [IsScalarTower K K' Ω]
+  [Algebra R Ω] [IsScalarTower K R Ω] [Algebra R' Ω] [IsScalarTower K' R' Ω]
+  [IsScalarTower K R' Ω] [IsScalarTower R R' Ω]
+  (V : ValuationSubring Ω) (hV' : V.comap (algebraMap K' Ω) = O')
+  [Subsingleton A] [Subsingleton A'] [SMulCommClass A K R]
+  [Algebra.Etale R R'] [Module.Finite R R']
+
+include hfin in
+/-- **F8 (scheme case): the change of the valued field is injective** (`O'` finite over `O`,
+`R'` finite étale over `R`). -/
+theorem temperedPi1FieldMap_injective :
+    Function.Injective (temperedPi1FieldMap hO μ V hV') :=
+  temperedPi1FieldMap_injective_of_pure hO μ V hV'
+    (bijective_temperedPi1FieldMap_pure hO hfin V hV').1
+
+include hfin in
+/-- **F8 (scheme case): the change of the valued field is an open embedding.** -/
+theorem isOpenEmbedding_temperedPi1FieldMap :
+    Topology.IsOpenEmbedding (temperedPi1FieldMap hO μ V hV') :=
+  isOpenEmbedding_temperedPi1FieldMap_of_pure hO μ V hV'
+    (isOpenEmbedding_temperedPi1FieldMap_pure hO hfin V hV')
+
+include hfin in
+/-- **F8 (scheme case): the image of the change of the valued field is the stabilizer** of the
+base point of the finite étale cover `Spec R' → Spec R`. -/
+theorem range_temperedPi1FieldMap :
+    (temperedPi1FieldMap hO μ V hV').range =
+      (temperedPi1Map μ V (TempObj.comap_eq hO V hV')).range :=
+  range_temperedPi1FieldMap_of_pure hO μ V hV'
+    (bijective_temperedPi1FieldMap_pure hO hfin V hV').2
+
+include hfin in
+theorem mem_range_temperedPi1FieldMap (γ : temperedPi1 O R A V (TempObj.comap_eq hO V hV')) :
+    γ ∈ (temperedPi1FieldMap hO μ V hV').range ↔
+      γ.app (coverObj O R A R') (coverFibrePt V (TempObj.comap_eq hO V hV')) =
+        coverFibrePt V (TempObj.comap_eq hO V hV') :=
+  mem_range_temperedPi1FieldMap_of_pure hO μ V hV'
+    (bijective_temperedPi1FieldMap_pure hO hfin V hV').2 γ
+
+include hfin in
+/-- **F8 (scheme case): the image has finite index.** -/
+theorem finiteIndex_range_temperedPi1FieldMap :
+    (temperedPi1FieldMap hO μ V hV').range.FiniteIndex :=
+  finiteIndex_range_temperedPi1FieldMap_of_pure hO μ V hV'
+    (bijective_temperedPi1FieldMap_pure hO hfin V hV').2
+
+end Etale
 
 end
 

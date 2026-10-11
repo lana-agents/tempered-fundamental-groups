@@ -546,6 +546,7 @@ import TemperedFundamentalGroups.Tempered.CoverImage
 import TemperedFundamentalGroups.Tempered.FieldChange
 import TemperedFundamentalGroups.Tempered.FieldChangeComp
 import TemperedFundamentalGroups.Tempered.FieldChangeImage
+import TemperedFundamentalGroups.Tempered.FieldChangePure
 import TemperedFundamentalGroups.Tempered.Galois
 import TemperedFundamentalGroups.Tempered.InducedAlg
 import TemperedFundamentalGroups.Tempered.InducedCounit
