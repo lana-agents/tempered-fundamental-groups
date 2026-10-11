@@ -94,6 +94,7 @@ import TemperedFundamentalGroups.FibreFunctor.PushRestrict
 import TemperedFundamentalGroups.FibreFunctor.Realization
 import TemperedFundamentalGroups.FibreFunctor.SpanPushRestrict
 import TemperedFundamentalGroups.FibreFunctor.SpanRealization
+import TemperedFundamentalGroups.Models.BaseChange
 import TemperedFundamentalGroups.Models.Projective
 import TemperedFundamentalGroups.Models.Specialization
 import TemperedFundamentalGroups.Orbicurve.Exact
