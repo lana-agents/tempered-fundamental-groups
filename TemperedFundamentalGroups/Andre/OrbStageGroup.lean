@@ -70,13 +70,13 @@ lemma deckStageO_mk (τ : deckGroup (D.lv hX) (proj D hX p)) (q : PreFibre Ω V 
   change g * (1 : (D.lv hX).L.H)⁻¹ = g
   rw [inv_one, mul_one]
 
-lemma act_gS_Θo [Subsingleton X₁.Lv.L.H] (x : D.S) (e : E) :
+lemma act_gS_Θo (x : D.S) (e : E) :
     (obj D hX hp hc).P.act (gS D hX x) (Θo D hX hp hc ⟨1, e⟩) = Θo D hX hp hc ⟨gS D hX x, e⟩ := by
   refine (act_Θ (gS D hX x) _).trans ?_
   rw [indAct_apply, mul_one]
   rfl
 
-lemma ev_gS_symm [Subsingleton X₁.Lv.L.H] (x : D.S) (y : D.level.B) :
+lemma ev_gS_symm (x : D.S) (y : D.level.B) :
     D.ev 1 (((gS D hX x : (D.lv hX).L.H) : SemilinearAut R A (D.lv hX).L.B).σ.symm y) =
       D.ev x y := by
   have h := IndData.ev_equivT_symm D hX (x, 1) 1 y
