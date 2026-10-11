@@ -150,6 +150,177 @@ lemma twIso_hom : (twIso D hX hp hc c γ hγ eψ heψ hjψ hjψ' τ hτ).hom =
 
 end Iso
 
+
+section Main
+
+variable [IsSchemeTheoreticallyDominant X₁.Lv.j]
+
+lemma specMap_σ_inv (γ : SemilinearAut R A X₁.Lv.L.B) :
+    Spec.map (CommRingCat.ofHom (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫
+      Spec.map (CommRingCat.ofHom (γ⁻¹.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) = 𝟙 _ := by
+  rw [← Spec.map_comp, ← CommRingCat.ofHom_comp]
+  have h : (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B).comp (γ⁻¹.σ : X₁.Lv.L.B →+* X₁.Lv.L.B) =
+      RingHom.id _ := RingHom.ext fun b => γ.σ.apply_symm_apply b
+  rw [h]
+  exact Spec.map_id _
+
+/-- **Model isomorphisms**: if every semilinear automorphism of `B` extends to the model, the
+extensions of `γ` and `γ⁻¹` are inverse (by dominance of `j`). -/
+lemma exists_modelIso
+    (hact : ∀ γ : SemilinearAut R A X₁.Lv.L.B, ∃ ψ : X₁.Lv.c.scheme ⟶ X₁.Lv.c.scheme,
+      ψ ≫ X₁.Lv.c.toSpec = X₁.Lv.c.toSpec ∧
+      X₁.Lv.j ≫ ψ = Spec.map (CommRingCat.ofHom (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫ X₁.Lv.j)
+    (γ : SemilinearAut R A X₁.Lv.L.B) :
+    ∃ (eψ : X₁.Lv.c.scheme ≅ X₁.Lv.c.scheme) (_ : eψ.hom ≫ X₁.Lv.c.toSpec = X₁.Lv.c.toSpec),
+      X₁.Lv.j ≫ eψ.hom =
+        Spec.map (CommRingCat.ofHom (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫ X₁.Lv.j ∧
+      X₁.Lv.j ≫ eψ.inv =
+        Spec.map (CommRingCat.ofHom (γ⁻¹.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫ X₁.Lv.j := by
+  obtain ⟨ψ, hψ, hj⟩ := hact γ
+  obtain ⟨ψ', hψ', hj'⟩ := hact γ⁻¹
+  have h₁ : ψ ≫ ψ' = 𝟙 _ :=
+    ext_of_isSchemeTheoreticallyDominant_of_isSeparated X₁.Lv.c.toSpec
+      (by rw [Category.assoc, hψ', hψ, Category.id_comp]) X₁.Lv.j
+      (by rw [reassoc_of% hj, hj', ← Category.assoc, specMap_σ_inv, Category.id_comp,
+        Category.comp_id])
+  have h₂ : ψ' ≫ ψ = 𝟙 _ :=
+    ext_of_isSchemeTheoreticallyDominant_of_isSeparated X₁.Lv.c.toSpec
+      (by rw [Category.assoc, hψ, hψ', Category.id_comp]) X₁.Lv.j
+      (by
+        rw [reassoc_of% hj', hj, ← Category.assoc, Category.comp_id]
+        have := specMap_σ_inv γ⁻¹
+        rw [inv_inv] at this
+        rw [this, Category.id_comp])
+  exact ⟨⟨ψ, ψ', h₁, h₂⟩, hψ, hj, hj'⟩
+
+variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
+  (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
+
+/-- **The base pair** `(t₀ ∘ ev₁, (1, e₀))` of `OrbGal.obj`, for `e₀ ∈ Z̃` over the
+specialization of a geometric point `t₀` of `B`. -/
+def basePre (t₀ : X₁.Lv.L.B →ₐ[R] Ω) (e₀ : E) (he₀ : p e₀ = X₁.Lv.sp V hV t₀) :
+    PreFibre Ω V hV (obj D hX hp hc) :=
+  ⟨(t₀.comp D.ev₁, Θo D hX hp hc ⟨1, e₀⟩), by
+    refine (congrArg Subtype.val (Θ_fst (Lv := D.lv hX) (hp := isUniversalCovering_proj D hX hp)
+      (hc := countable_proj D hX hc) _)).trans ?_
+    refine (congrArg Subtype.val (indProj_one (proj D hX p) e₀)).trans ?_
+    refine (IndData.inc₁S_coe D hX (p e₀)).trans ?_
+    rw [he₀, ← IndData.sp_comp_ev₁]
+    rfl⟩
+
+lemma ev_algebraMap (x : D.S) (r : R) :
+    D.ev x (algebraMap R D.level.B r) = algebraMap R X₁.Lv.L.B ((D.α x)⁻¹ • r) := by
+  rw [IndData.ev_apply, AlgEquiv.commutes]
+  rfl
+
+/-- A geometric point on the copy `x` of the induced algebra is a semilinear point of `B` over
+`α x`. -/
+lemma onCopy_algebraMap (t : D.level.B →ₐ[R] Ω) (x : D.S)
+    (hx : ((t : D.level.B →ₐ[R] Ω) : D.level.B →+* Ω) (D.idem x) = 1) (r : R) :
+    D.onCopy ((t : D.level.B →ₐ[R] Ω) : D.level.B →+* Ω) x hx (algebraMap R X₁.Lv.L.B r) =
+      algebraMap R Ω (D.α x • r) := by
+  have h1 : D.ev x (algebraMap R D.level.B (D.α x • r)) = algebraMap R X₁.Lv.L.B r := by
+    rw [ev_algebraMap, inv_smul_smul]
+  rw [← h1, IndData.onCopy_ev]
+  exact t.commutes _
+
+/-- **A semilinear point over `a` is `t₀ ∘ γ`** for a semilinear automorphism `γ` over `a`, if
+`B` is Galois over `R` and `a` lifts to a semilinear automorphism of `B`. -/
+lemma exists_semilinear_comp
+    (hgal : ∀ t t' : X₁.Lv.L.B →ₐ[R] Ω, ∃ σ : X₁.Lv.L.B ≃ₐ[R] X₁.Lv.L.B,
+      t.comp (σ : X₁.Lv.L.B →ₐ[R] X₁.Lv.L.B) = t')
+    (t₀ : X₁.Lv.L.B →ₐ[R] Ω) (a : A) (γ₀ : SemilinearAut R A X₁.Lv.L.B) (hγ₀ : γ₀.a = a)
+    (t' : X₁.Lv.L.B →+* Ω) (ht' : ∀ r, t' (algebraMap R X₁.Lv.L.B r) = algebraMap R Ω (a • r)) :
+    ∃ γ : SemilinearAut R A X₁.Lv.L.B, γ.a = a ∧
+      (t₀ : X₁.Lv.L.B →+* Ω).comp (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B) = t' := by
+  let u : X₁.Lv.L.B →ₐ[R] Ω :=
+    { t'.comp (γ₀.σ.symm : X₁.Lv.L.B →+* X₁.Lv.L.B) with
+      commutes' := fun r => by
+        change t' ((γ₀⁻¹).σ (algebraMap R X₁.Lv.L.B r)) = _
+        rw [(γ₀⁻¹).map_algebraMap, ht', SemilinearAut.inv_a, hγ₀, smul_inv_smul] }
+  obtain ⟨δ, hδ⟩ := hgal t₀ u
+  let δ' : SemilinearAut R A X₁.Lv.L.B :=
+    ⟨1, δ.toRingEquiv, fun r => by
+      rw [one_smul]
+      exact δ.commutes r⟩
+  refine ⟨δ' * γ₀, by rw [SemilinearAut.mul_a, hγ₀, one_mul], RingHom.ext fun b => ?_⟩
+  change t₀ (δ (γ₀.σ b)) = t' b
+  have := DFunLike.congr_fun hδ (γ₀.σ b)
+  change t₀ (δ (γ₀.σ b)) = t' (γ₀.σ.symm (γ₀.σ b)) at this
+  rw [this, RingEquiv.symm_apply_apply]
+
+set_option maxHeartbeats 1000000 in
+/-- **Every pair is a twisted translate of the base pair**: for every pair `q` of the fibre of
+`OrbGal.obj` there is an automorphism mapping the base pair `(t₀ ∘ ev₁, (1, e₀))` to `q`. -/
+theorem exists_iso_preMap
+    (hgal : ∀ t t' : X₁.Lv.L.B →ₐ[R] Ω, ∃ σ : X₁.Lv.L.B ≃ₐ[R] X₁.Lv.L.B,
+      t.comp (σ : X₁.Lv.L.B →ₐ[R] X₁.Lv.L.B) = t')
+    (hsym : ∀ a : A, ∃ γ : SemilinearAut R A X₁.Lv.L.B, γ.a = a)
+    (hact : ∀ γ : SemilinearAut R A X₁.Lv.L.B, ∃ ψ : X₁.Lv.c.scheme ⟶ X₁.Lv.c.scheme,
+      ψ ≫ X₁.Lv.c.toSpec = X₁.Lv.c.toSpec ∧
+      X₁.Lv.j ≫ ψ = Spec.map (CommRingCat.ofHom (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫ X₁.Lv.j)
+    (t₀ : X₁.Lv.L.B →ₐ[R] Ω) (e₀ : E) (he₀ : p e₀ = X₁.Lv.sp V hV t₀)
+    (q : PreFibre Ω V hV (obj D hX hp hc)) :
+    ∃ F : obj D hX hp hc ≅ obj D hX hp hc,
+      preMap V hV F.hom (basePre D hX hp hc V hV t₀ e₀ he₀) = q := by
+  obtain ⟨⟨t, x⟩, hq⟩ := q
+  obtain ⟨⟨g, e⟩, rfl⟩ := (Θo D hX hp hc).surjective x
+  obtain ⟨⟨s, k⟩, rfl⟩ := (D.equivT hX).surjective g
+  obtain rfl : k = 1 := Subsingleton.elim _ _
+  let tt : D.level.B →ₐ[R] Ω := t
+  obtain ⟨x', hx'⟩ := D.exists_idem (tt : D.level.B →+* Ω)
+  obtain ⟨γ₀, hγ₀⟩ := hsym (D.α x')
+  obtain ⟨γ, hγ, hγt⟩ := exists_semilinear_comp hgal t₀ (D.α x') γ₀ hγ₀ _
+    (onCopy_algebraMap D tt x' hx')
+  obtain ⟨eψ, heψ, hj, hj'⟩ := exists_modelIso hact γ
+  -- the level part
+  have htF : (t₀.comp D.ev₁).comp (twF D x' γ hγ) = t := by
+    refine AlgHom.ext fun y => ?_
+    change t₀ (D.ev 1 (twF D x' γ hγ y)) = t y
+    rw [ev_twF, one_mul]
+    exact (RingHom.congr_fun hγt _).trans (IndData.onCopy_ev _ _ _ _ _)
+  -- the specialization of `t`
+  have hsp : ((D.lv hX).sp V hV t).1 = D.inc x' (eψ.hom (p e₀).1) := by
+    have h := LevelHom.ψ_sp V hV (twℓ D x' γ hγ hX heψ hj) (t₀.comp D.ev₁)
+    rw [← htF]
+    refine h.symm.trans ?_
+    change twψ D x' eψ.hom ((D.lv hX).sp V hV (t₀.comp D.ev₁)).1 = _
+    rw [IndData.sp_comp_ev₁, ← he₀, ← Scheme.Hom.comp_apply, inc_twψ, one_mul]
+    rfl
+  have hq' : D.inc s (p e).1 = D.inc x' (eψ.hom (p e₀).1) := by
+    rw [← hsp, ← coe_indProj D hX s e]
+    exact hq
+  have hs : s = x' := D.inc_eq_inc hq'
+  subst hs
+  have hpe : p e = specialFibreHomeomorph eψ heψ (p e₀) :=
+    Subtype.ext ((D.inc s).isOpenEmbedding.injective hq')
+  obtain ⟨τ, hτ, hτe⟩ := exists_lift_homeo hp (specialFibreHomeomorph eψ heψ) hpe
+  refine ⟨twIso D hX hp hc s γ hγ eψ heψ hj hj' τ hτ, Subtype.ext (Prod.ext htF ?_)⟩
+  refine (twHom_h_one D hX hp hc s γ hγ heψ hj τ.continuous hτ e₀).trans ?_
+  rw [hτe]
+  rfl
+
+/-- **`OrbGal.obj` is Galois**: its automorphisms act transitively on its fibre. -/
+theorem exists_iso_fibreMap
+    (hgal : ∀ t t' : X₁.Lv.L.B →ₐ[R] Ω, ∃ σ : X₁.Lv.L.B ≃ₐ[R] X₁.Lv.L.B,
+      t.comp (σ : X₁.Lv.L.B →ₐ[R] X₁.Lv.L.B) = t')
+    (hsym : ∀ a : A, ∃ γ : SemilinearAut R A X₁.Lv.L.B, γ.a = a)
+    (hact : ∀ γ : SemilinearAut R A X₁.Lv.L.B, ∃ ψ : X₁.Lv.c.scheme ⟶ X₁.Lv.c.scheme,
+      ψ ≫ X₁.Lv.c.toSpec = X₁.Lv.c.toSpec ∧
+      X₁.Lv.j ≫ ψ = Spec.map (CommRingCat.ofHom (γ.σ : X₁.Lv.L.B →+* X₁.Lv.L.B)) ≫ X₁.Lv.j)
+    (t₀ : X₁.Lv.L.B →ₐ[R] Ω) (e₀ : E) (he₀ : p e₀ = X₁.Lv.sp V hV t₀)
+    (u v : Fibre Ω V hV (obj D hX hp hc)) :
+    ∃ σ : obj D hX hp hc ≅ obj D hX hp hc, fibreMap V hV σ.hom u = v := by
+  obtain ⟨q₁, rfl⟩ := Quotient.mk_surjective u
+  obtain ⟨q₂, rfl⟩ := Quotient.mk_surjective v
+  obtain ⟨F₁, hF₁⟩ := exists_iso_preMap D hX hp hc V hV hgal hsym hact t₀ e₀ he₀ q₁
+  obtain ⟨F₂, hF₂⟩ := exists_iso_preMap D hX hp hc V hV hgal hsym hact t₀ e₀ he₀ q₂
+  refine ⟨F₁.symm ≪≫ F₂, congrArg (Quotient.mk _) ?_⟩
+  rw [Iso.trans_hom, Iso.symm_hom, preMap_comp, ← hF₁, ← preMap_comp V hV F₁.hom F₁.inv,
+    F₁.hom_inv_id, preMap_id, hF₂]
+
+end Main
+
 end OrbGal
 
 end
