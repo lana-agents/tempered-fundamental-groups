@@ -311,6 +311,56 @@ theorem dom_coreQ {n : ℕ} (Pt : Fin n → Σ X : TempObj O R A, (tempFibre O R
 
 end CoreQ
 
+section Sym
+
+variable {R : Type u} [CommRing R] [IsDomain R] {A : Type u} [Group A] [MulSemiringAction A R]
+  [Finite A] {Ω : Type u} [Field Ω] [IsAlgClosed Ω] [Algebra R Ω]
+
+/-- The translation `φ ↦ (x ↦ φ (a⁻¹ x))` of `∏_{x ∈ A} C^{(x)}`, semilinear over `a`. -/
+def symAut (C : Type u) [CommRing C] [Algebra R C] (a : A) :
+    SemilinearAut R A (IndAlg C (MonoidHom.id A)) where
+  a := a
+  σ := indRingEquiv a 1 (RingEquiv.refl C)
+  map_algebraMap r := by
+    funext x
+    change algebraMap R C ((MonoidHom.id A (a⁻¹ * x * 1))⁻¹ • r) =
+      algebraMap R C ((MonoidHom.id A x)⁻¹ • a • r)
+    rw [smul_smul]
+    simp
+
+/-- **Galois closures over `[Spec R / A]` of a finite étale algebra with a point.** -/
+theorem exists_symClosure (C : Type u) [CommRing C] [Algebra R C] [Algebra.Etale R C]
+    [Module.Finite R C] (s : C →ₐ[R] Ω) :
+    ∃ (B : Type u) (_ : CommRing B) (_ : Algebra R B) (_ : Algebra.Etale R B)
+      (_ : Module.Finite R B) (t₀ : B →ₐ[R] Ω),
+      (∀ s' : C →ₐ[R] Ω, ∃ g : C →ₐ[R] B, t₀.comp g = s') ∧
+      (∀ e : B, IsIdempotentElem e → e = 0 ∨ e = 1) ∧
+      (∀ t t' : B →ₐ[R] Ω, ∃ σ : B ≃ₐ[R] B, t.comp (σ : B →ₐ[R] B) = t') ∧
+      ∀ a : A, ∃ γ : SemilinearAut R A B, γ.a = a := by
+  classical
+  haveI : Fintype A := Fintype.ofFinite A
+  let B₀ := IndAlg C (MonoidHom.id A)
+  haveI : Nonempty (B₀ →ₐ[R] Ω) := ⟨s.comp (indEval₁ R)⟩
+  obtain ⟨B, i1, i2, i3, i4, t₀, hpts, hBc, hBg, hsym⟩ :=
+    exists_galoisClosure_sym (R := R) (Ω := Ω) (B₀ := B₀) (symAut C) fun _ => rfl
+  refine ⟨B, i1, i2, i3, i4, t₀, fun s' => ?_, hBc, hBg, hsym⟩
+  let tw : TwAlg C ((MonoidHom.id A) 1) →ₐ[R] Ω :=
+    { (s' : C →+* Ω) with
+      commutes' := fun r => by
+        change s' (algebraMap R C ((1 : A)⁻¹ • r)) = _
+        rw [inv_one, one_smul, s'.commutes] }
+  obtain ⟨g, hg⟩ := hpts (tw.comp (Pi.evalAlgHom R (fun x => TwAlg C ((MonoidHom.id A) x)) 1))
+  obtain ⟨f₁, hf₁⟩ := exists_algHom_of_pi hBc g t₀ 1 tw hg
+  let e : C →ₐ[R] TwAlg C ((MonoidHom.id A) 1) :=
+    { (RingHom.id C : C →+* TwAlg C ((MonoidHom.id A) 1)) with
+      commutes' := fun r => by
+        change algebraMap R C r = algebraMap R C ((1 : A)⁻¹ • r)
+        rw [inv_one, one_smul] }
+  refine ⟨f₁.comp e, AlgHom.ext fun y => ?_⟩
+  exact DFunLike.congr_fun hf₁ (e y)
+
+end Sym
+
 section Mid
 
 variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
@@ -526,6 +576,43 @@ theorem dom_midO (hW : SemistableReduction.Statement.StrongComponentAS.{u})
       rw [← Category.assoc j₁, hj₁ι, Category.assoc, hdomj]
       simp only [j₀, ← Category.assoc, ← Spec.map_comp, ← CommRingCat.ofHom_comp]
       congr 3)
+
+/-- **(dom)** The orbifold Galois objects dominate. -/
+theorem isDominating_galClassO (hW : SemistableReduction.Statement.StrongComponentAS.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1) :
+    IsDominating (tempFibre O R A V hV) (galClassO O R A Ω A₁) := by
+  classical
+  refine isDominating_of_forall_exists (isGaloisClass_galClassO V hV A₁) fun n P => ?_
+  let q : ∀ k, PreFibre Ω V hV (P k).1 := fun k => Quotient.out (P k).2
+  rcases Nat.eq_zero_or_pos n with hn | hn
+  · subst hn
+    obtain ⟨B, _, _, _, _, t₀, -, hBc, hBg, hsym⟩ :=
+      exists_symClosure (A := A) (Ω := Ω) R (Algebra.ofId R Ω)
+    obtain ⟨G, hG, hne, -⟩ := dom_midO V hV A₁ hW p hp hpm hR P B hBc hBg hsym t₀
+      (fun k => k.elim0) (fun k => k.elim0)
+    exact ⟨G, hG, hne, fun k => k.elim0⟩
+  · haveI : ∀ k, Algebra.Etale R ((P k).1.Lv.L.B) := fun k => (P k).1.Lv.L.etale
+    haveI : ∀ k, Module.Finite R ((P k).1.Lv.L.B) := fun k => (P k).1.Lv.L.finite
+    let B₀ := Π k, (P k).1.Lv.L.B
+    obtain ⟨B, _, _, _, _, t₀, hpts, hBc, hBg, hsym⟩ := exists_symClosure (A := A) B₀
+      ((q ⟨0, hn⟩).1.1.comp (Pi.evalAlgHom R (fun k => (P k).1.Lv.L.B) ⟨0, hn⟩))
+    have hf : ∀ k, ∃ f : (P k).1.Lv.L.B →ₐ[R] B, t₀.comp f = (q k).1.1 := fun k => by
+      obtain ⟨g, hg⟩ := hpts ((q k).1.1.comp (Pi.evalAlgHom R (fun k => (P k).1.Lv.L.B) k))
+      exact exists_algHom_of_pi hBc g t₀ k _ hg
+    choose f hf using hf
+    obtain ⟨G, hG, hne, hdom⟩ := dom_midO V hV A₁ hW p hp hpm hR P B hBc hBg hsym t₀ f hf
+    exact ⟨G, hG, hne, fun k => let ⟨m, u, h⟩ := hdom k; ⟨m, u, h⟩⟩
+
+/-- **(gal), (dom), (rig) for the orbifold Galois objects**, from W10 with components. -/
+theorem galoisLimitDataO (hW : SemistableReduction.Statement.StrongComponentAS.{u})
+    [PerfectField (IsLocalRing.ResidueField O)] (p : ℕ) (hp : p.Prime)
+    (hpm : (p : O) ∈ IsLocalRing.maximalIdeal O) (hR : ringKrullDim R = 1) :
+    IsGaloisClass (tempFibre O R A V hV) (galClassO O R A Ω A₁) ∧
+      IsDominating (tempFibre O R A V hV) (galClassO O R A Ω A₁) ∧
+      IsRigid (tempFibre O R A V hV) (galClassO O R A Ω A₁) :=
+  ⟨isGaloisClass_galClassO V hV A₁, isDominating_galClassO V hV A₁ hW p hp hpm hR,
+    isRigid_galClassO V hV A₁⟩
 
 end Mid
 
