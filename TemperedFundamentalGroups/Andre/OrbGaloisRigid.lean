@@ -62,6 +62,12 @@ lemma ev_comp_eq (m : (D.lv hX).L ⟶ Y.Lv.L) (x : D.S) (y : Y.Lv.L.B) :
   rw [RingEquiv.apply_symm_apply] at this
   exact (RingEquiv.symm_apply_eq _).mpr this
 
+omit [SMulCommClass A K R] in
+lemma σ_symm_aux {L : FiniteLevel R A} (a b : L.H) (y : L.B) :
+    (b : SemilinearAut R A L.B).σ.symm (((a * b⁻¹ : L.H) : SemilinearAut R A L.B).σ.symm y) =
+      (a : SemilinearAut R A L.B).σ.symm y := by
+  simp [SemilinearAut.mul_σ, SemilinearAut.inv_σ]
+
 variable [IsSchemeTheoreticallyDominant X₁.Lv.j]
   {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra R Ω] [IsScalarTower K R Ω]
   (V : ValuationSubring Ω) (hV : V.comap (algebraMap K Ω) = O)
@@ -117,6 +123,65 @@ lemma h_eq_of_inc_ψ_eq (hψ : D.inc 1 ≫ f.ψ = D.inc 1 ≫ g.ψ)
     have := congrArg (fun φ => φ (p e).1) hψ
     simp only [Scheme.Hom.comp_apply] at this
     exact this
+
+lemma h_gS (m : obj D hX hp hc ⟶ Y) (s : D.S) (e : E) :
+    m.h (Θo D hX hp hc ⟨gS D hX s, e⟩) =
+      Y.P.act (m.φ.r (gS D hX s)) (m.h (Θo D hX hp hc ⟨1, e⟩)) := by
+  have h : Θo D hX hp hc ⟨gS D hX s, e⟩ =
+      (obj D hX hp hc).P.act (gS D hX s) (Θo D hX hp hc ⟨1, e⟩) := by
+    refine Eq.trans ?_ (act_Θ (gS D hX s) _).symm
+    rw [indAct_apply, mul_one]
+    rfl
+  exact (congrArg m.h h).trans (m.h_act _ _)
+
+lemma tw_apply (x : D.S) (γ : SemilinearAut R A X₁.Lv.L.B) (hγ : γ.a = D.α x)
+    (t₀ : X₁.Lv.L.B →ₐ[R] Ω) (z : D.level.B) :
+    ((t₀.comp D.ev₁).comp (twF D x γ hγ)) z = t₀ (γ.σ (D.ev x z)) := by
+  change t₀ (D.ev 1 (twF D x γ hγ z)) = _
+  rw [ev_twF, one_mul]
+
+lemma eval_tw (m : obj D hX hp hc ⟶ Y) (x : D.S) (γ : SemilinearAut R A X₁.Lv.L.B)
+    (hγ : γ.a = D.α x) (t₀ : X₁.Lv.L.B →ₐ[R] Ω) (y : Y.Lv.L.B) :
+    ((t₀.comp D.ev₁).comp (twF D x γ hγ)) (m.φ.f y) =
+      t₀ (γ.σ (D.ev 1 (m.φ.f ((m.φ.r (gS D hX x) : SemilinearAut R A Y.Lv.L.B).σ.symm y)))) := by
+  have h := ev_comp_eq D hX m.φ x y
+  change t₀ (D.ev 1 (twF D x γ hγ (m.φ.f y))) = _
+  rw [ev_twF, one_mul]
+  exact congrArg (fun z => t₀ (γ.σ z)) h
+
+/-- **Two morphisms with the same restriction to the sheet `(1, Z̃)` and the same `ev₁ ∘ f`
+induce the same map of fibres** at every pair `F (t₀ ∘ ev₁, (1, e₀))`, `F` twisted. -/
+lemma mk_preMap_eq (f g : obj D hX hp hc ⟶ Y) (hf : D.ev₁.comp f.φ.f = D.ev₁.comp g.φ.f)
+    (hsheet : ∀ e, f.h (Θo D hX hp hc ⟨1, e⟩) = g.h (Θo D hX hp hc ⟨1, e⟩))
+    (x : D.S) (γ : SemilinearAut R A X₁.Lv.L.B) (hγ : γ.a = D.α x)
+    (t₀ : X₁.Lv.L.B →ₐ[R] Ω) (e : E) (q : PreFibre Ω V hV (obj D hX hp hc))
+    (hq₁ : (q.1.1 : D.level.B →ₐ[R] Ω) = (t₀.comp D.ev₁).comp (twF D x γ hγ))
+    (hq₂ : q.1.2 = Θo D hX hp hc ⟨gS D hX x, e⟩) :
+    (Quotient.mk _ (preMap V hV f q) : Fibre Ω V hV Y) = Quotient.mk _ (preMap V hV g q) := by
+  have hk : f.φ.r (gS D hX x) * (g.φ.r (gS D hX x))⁻¹ ∈ Y.Lv.L.H0 := by
+    rw [FiniteLevel.mem_H0, Subgroup.coe_mul, Subgroup.coe_inv, SemilinearAut.mul_a,
+      SemilinearAut.inv_a, f.φ.r_a, g.φ.r_a, mul_inv_cancel]
+  refine Quotient.sound ⟨⟨_, hk⟩, Subtype.ext (Prod.ext ?_ ?_)⟩
+  · refine AlgHom.ext fun y => ?_
+    have h1 : ∀ v, D.ev 1 (g.φ.f v) = D.ev 1 (f.φ.f v) := fun v =>
+      (DFunLike.congr_fun hf v).symm
+    have hσ := σ_symm_aux (f.φ.r (gS D hX x)) (g.φ.r (gS D hX x)) y
+    have e1 := (DFunLike.congr_fun hq₁ (g.φ.f (((f.φ.r (gS D hX x) *
+      (g.φ.r (gS D hX x))⁻¹ : Y.Lv.L.H) : SemilinearAut R A Y.Lv.L.B).σ.symm y))).trans
+      (eval_tw D hX hp hc g x γ hγ t₀ _)
+    have e2 := (DFunLike.congr_fun hq₁ (f.φ.f y)).trans (eval_tw D hX hp hc f x γ hγ t₀ y)
+    exact e1.trans ((congrArg (fun z => t₀ (γ.σ z)) (h1 _)).trans
+      ((congrArg (fun w => t₀ (γ.σ (D.ev 1 (f.φ.f w)))) hσ).trans e2.symm))
+  · refine (congrArg Prod.snd (TempObj.smul_val V hV Y _ _)).trans ?_
+    have eg := (congrArg g.h hq₂).trans (h_gS D hX hp hc g x e)
+    have ef := (congrArg f.h hq₂).trans (h_gS D hX hp hc f x e)
+    have hmid : Y.P.act (f.φ.r (gS D hX x) * (g.φ.r (gS D hX x))⁻¹)
+        (Y.P.act (g.φ.r (gS D hX x)) (g.h (Θo D hX hp hc ⟨1, e⟩))) =
+        Y.P.act (f.φ.r (gS D hX x)) (f.h (Θo D hX hp hc ⟨1, e⟩)) :=
+      (Homeomorph.mul_apply _ _ _).symm.trans
+        ((congrArg (fun φ => φ (g.h (Θo D hX hp hc ⟨1, e⟩))) (map_mul Y.P.act _ _).symm).trans
+          (congr_arg₂ (fun a b => Y.P.act a b) (inv_mul_cancel_right _ _) (hsheet e).symm))
+    exact (congrArg _ eg).trans (hmid.trans ef.symm)
 
 end Nose
 
