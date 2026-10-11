@@ -369,6 +369,11 @@ def fcH : (X.fieldChange hO μ).P.carrier → (Y.fieldChange hO μ).P.carrier :=
   CoveringCode.pullbackLiftFun Y.P (ψ := Y.Lv.fcS hO μ) (fun q => fcψS hO μ m q.1.1)
     (fun q => m.h (CoveringCode.pullbackPt X.P (X.Lv.fcS hO μ) q)) (fcH_aux hO μ m)
 
+lemma pullbackPt_fcH (q : (X.fieldChange hO μ).P.carrier) :
+    CoveringCode.pullbackPt Y.P (Y.Lv.fcS hO μ) (fcH hO μ m q) =
+      m.h (CoveringCode.pullbackPt X.P (X.Lv.fcS hO μ) q) :=
+  CoveringCode.pullbackPt_liftFun _ _ _ _ _
+
 /-- **Change of the valued field of a morphism.** -/
 def fcHom : X.fieldChange hO μ ⟶ Y.fieldChange hO μ where
   φ := FiniteLevel.bcMap μ m.φ
@@ -393,6 +398,51 @@ def fcHom : X.fieldChange hO μ ⟶ Y.fieldChange hO μ where
         CoveringCode.pullbackPt_liftFun]
 
 end Hom2
+
+
+section Functor
+
+lemma fcψ0_id (X : TempObj O R A) : fcψ0 hO (𝟙 X) = 𝟙 _ :=
+  X.Lv.c.bc_hom_ext (valMap hO) (by rw [fcψ0_fst, Category.id_comp]; exact Category.comp_id _)
+    (by rw [fcψ0_toSpec, Category.id_comp])
+
+lemma fcψ_id (X : TempObj O R A) : fcψ hO μ (𝟙 X) = 𝟙 _ := by
+  rw [← cancel_mono ((X.Lv.fcC hO).imgι (X.Lv.fcJ hO μ)), fcψ_imgι, fcψ0_id, Category.comp_id,
+    Category.id_comp]
+
+lemma fcψ0_comp {X Y Z : TempObj O R A} (m : X ⟶ Y) (n : Y ⟶ Z) :
+    fcψ0 hO (m ≫ n) = fcψ0 hO m ≫ fcψ0 hO n :=
+  Z.Lv.c.bc_hom_ext (valMap hO)
+    (by rw [fcψ0_fst, Category.assoc, fcψ0_fst, fcψ0_fst_assoc, TempObj.comp_ψ])
+    (by rw [fcψ0_toSpec, Category.assoc, fcψ0_toSpec, fcψ0_toSpec])
+
+lemma fcψ_comp {X Y Z : TempObj O R A} (m : X ⟶ Y) (n : Y ⟶ Z) :
+    fcψ hO μ (m ≫ n) = fcψ hO μ m ≫ fcψ hO μ n := by
+  rw [← cancel_mono ((Z.Lv.fcC hO).imgι (Z.Lv.fcJ hO μ)), fcψ_imgι, Category.assoc, fcψ_imgι,
+    fcψ_imgι_assoc, fcψ0_comp]
+
+variable (O O') in
+/-- **Change of the valued field** as a functor `TempObj O R A ⥤ TempObj O' R' A'`. -/
+def fcFunctor : TempObj O R A ⥤ TempObj O' R' A' where
+  obj X := X.fieldChange hO μ
+  map m := fcHom hO μ m
+  map_id X := by
+    refine Hom.ext ((FiniteLevel.bcFunctor μ).map_id X.Lv.L) (fcψ_id hO μ X) (funext fun q => ?_)
+    refine CoveringCode.pullback_ext X.P (X.Lv.fcS hO μ) (Subtype.ext ?_) rfl
+    change fcψ hO μ (𝟙 X) q.1.1.1 = q.1.1.1
+    rw [fcψ_id]
+    rfl
+  map_comp m n := by
+    refine Hom.ext ((FiniteLevel.bcFunctor μ).map_comp m.φ n.φ) (fcψ_comp hO μ m n)
+      (funext fun q => ?_)
+    refine CoveringCode.pullback_ext _ _ (Subtype.ext ?_) ?_
+    · change fcψ hO μ (m ≫ n) q.1.1.1 = fcψ hO μ n (fcψ hO μ m q.1.1.1)
+      rw [fcψ_comp, Scheme.Hom.comp_apply]
+    · change (n.h (m.h (CoveringCode.pullbackPt _ _ q))).1.2 =
+        (n.h (CoveringCode.pullbackPt _ _ (fcH hO μ m q))).1.2
+      exact congrArg (fun p => (n.h p).1.2) (pullbackPt_fcH hO μ m q).symm
+
+end Functor
 
 end TempObj
 
