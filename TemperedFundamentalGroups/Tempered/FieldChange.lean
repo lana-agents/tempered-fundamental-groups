@@ -444,6 +444,72 @@ def fcFunctor : TempObj O R A ⥤ TempObj O' R' A' where
 
 end Functor
 
+
+section Fibre
+
+variable {Ω : Type u} [Field Ω] [Algebra K Ω] [Algebra K' Ω] [IsScalarTower K K' Ω]
+  [Algebra R Ω] [IsScalarTower K R Ω] [Algebra R' Ω] [IsScalarTower K' R' Ω]
+  [IsScalarTower R R' Ω] (V : ValuationSubring Ω) (hV' : V.comap (algebraMap K' Ω) = O')
+
+include hO hV' in
+lemma comap_eq : V.comap (algebraMap K Ω) = O := by
+  rw [IsScalarTower.algebraMap_eq K K' Ω, ← ValuationSubring.comap_comap, hV', hO]
+
+lemma valToVal_valMap :
+    (valToVal O' V hV').comp (valMap hO) = valToVal O V (comap_eq hO V hV') := by
+  ext o
+  change (algebraMap K' Ω (algebraMap K K' o)) = algebraMap K Ω o
+  rw [← IsScalarTower.algebraMap_apply]
+
+/-- **Specialization commutes with the change of the valued field.** -/
+lemma sp_bcFst (c : ModelCode O) (x : Spec (CommRingCat.of Ω) ⟶ (c.baseChange (valMap hO)).scheme)
+    (hx : x ≫ (c.baseChange (valMap hO)).toSpec = Spec.map (CommRingCat.ofHom (valToField O')))
+    (hx' : (x ≫ c.bcFst (valMap hO)) ≫ c.toSpec =
+      Spec.map (CommRingCat.ofHom (valToField O))) :
+    (sp c.toSpec V (comap_eq hO V hV') (x ≫ c.bcFst (valMap hO)) hx' : c.scheme) =
+      c.bcFst (valMap hO) (sp (c.baseChange (valMap hO)).toSpec V hV' x hx : _) := by
+  rw [sp_eq_of_lift (x ≫ c.bcFst (valMap hO)) hx'
+    ((spLift (hV := hV') x hx).l ≫ c.bcFst (valMap hO))
+    (by rw [← Category.assoc, spLift_fac_left])
+    (by
+      rw [Category.assoc, ModelCode.bcFst_toSpec, ← Category.assoc]
+      erw [spLift_fac_right]
+      rw [← Spec.map_comp, ← CommRingCat.ofHom_comp, valToVal_valMap])]
+  rfl
+
+
+lemma sp_congr' {X : Scheme.{u}} {f : X ⟶ Spec (CommRingCat.of O)} [UniversallyClosed f]
+    [IsSeparated f] {x y : Spec (CommRingCat.of Ω) ⟶ X} (h : x = y) (hx) (hy) :
+    sp f V (comap_eq hO V hV') x hx = sp f V (comap_eq hO V hV') y hy := by
+  subst h
+  rfl
+
+lemma point_fc (X : TempObj O R A) (t : (X.Lv.fieldChange hO μ).L.B →ₐ[R'] Ω) :
+    ((X.Lv.fieldChange hO μ).point t ≫ (X.Lv.fcC hO).imgι (X.Lv.fcJ hO μ)) ≫
+      X.Lv.c.bcFst (valMap hO) = X.Lv.point (X.Lv.L.bcRes μ t) := by
+  rw [Level.point, Level.point, Category.assoc, Category.assoc]
+  change Spec.map _ ≫ (X.Lv.fcC hO).toImg (X.Lv.fcJ hO μ) ≫ _ ≫ _ = _
+  rw [ModelCode.toImg_imgι_assoc, Level.fcJ_fst, ← Category.assoc, ← Spec.map_comp]
+  rfl
+
+/-- **The specializations agree.** -/
+lemma fcS_sp (X : TempObj O R A) (t : (X.Lv.fieldChange hO μ).L.B →ₐ[R'] Ω) :
+    X.Lv.fcS hO μ ((X.Lv.fieldChange hO μ).sp V hV' t) =
+      X.Lv.sp V (comap_eq hO V hV') (X.Lv.L.bcRes μ t) := by
+  apply Subtype.ext
+  rw [Level.fcS_coe]
+  have h1 := coe_sp_comp (hV := hV') ((X.Lv.fcC hO).imgι (X.Lv.fcJ hO μ))
+    ((X.Lv.fcC hO).imgι_toSpec (X.Lv.fcJ hO μ)) ((X.Lv.fieldChange hO μ).point t)
+    ((X.Lv.fieldChange hO μ).point_toSpec t)
+  have h2 := sp_bcFst hO V hV' X.Lv.c _ ((Category.assoc _ _ _).trans
+      ((congrArg (_ ≫ ·) ((X.Lv.fcC hO).imgι_toSpec (X.Lv.fcJ hO μ))).trans
+        ((X.Lv.fieldChange hO μ).point_toSpec t)))
+    ((congrArg (· ≫ X.Lv.c.toSpec) (point_fc hO μ X t)).trans (X.Lv.point_toSpec _))
+  refine (congrArg (X.Lv.c.bcFst (valMap hO)) h1.symm).trans (h2.symm.trans ?_)
+  exact congrArg Subtype.val (sp_congr' hO V hV' (point_fc hO μ X t) _ _)
+
+end Fibre
+
 end TempObj
 
 end
