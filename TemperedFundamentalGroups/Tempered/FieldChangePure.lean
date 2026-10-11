@@ -161,7 +161,7 @@ lemma rsZ_symm_sp (t : Lv.L.B →ₐ[R'] Ω) :
     (Lv.rsZ hO hfin).symm ((Lv.rs hO hfin).sp V (TempObj.comap_eq hO V hV') t) =
       Lv.sp V hV' t := by
   apply Subtype.ext
-  rw [coe_rsZ_symm, rs_sp]
+  rw [coe_rsZ_symm, rs_sp hO hfin Lv V hV']
   change ((Lv.c.rsIso hfin).hom ≫ (Lv.c.rsIso hfin).inv) _ = _
   rw [Iso.hom_inv_id]
   rfl
