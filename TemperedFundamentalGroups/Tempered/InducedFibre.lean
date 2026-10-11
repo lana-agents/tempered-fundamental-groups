@@ -272,6 +272,41 @@ lemma ι_injective (hα : Function.Injective μ.α) : Function.Injective (D.ι h
     rw [CoveringCode.pullbackPt_actFun, pullbackPt_incP, pullbackPt_incP, hgt, toH'_equivT] at h2
     exact h2
 
+section Natural
+
+variable {X₁ X₂ : TempObj O R A'} (D₁ : IndData μ X₁) (D₂ : IndData μ X₂)
+  (hX₁ : IndFaithful X₁) (hX₂ : IndFaithful X₂) (m : X₁ ⟶ X₂) (θ : D₁.S →* D₂.S)
+  (hθα : ∀ x, D₂.α (θ x) = D₁.α x) (hθβ : ∀ k, θ (D₁.β k) = D₂.β (m.φ.r k))
+
+lemma ιPre_natural (q : TempObj.PreFibre Ω V hV X₁) :
+    D₂.ιPre hX₂ V hV (TempObj.preMap V hV m q) =
+      TempObj.preMap V hV (hom D₁ D₂ hX₁ hX₂ m θ hθα hθβ) (D₁.ιPre hX₁ V hV q) := by
+  apply Subtype.ext
+  refine Prod.ext ?_ ?_
+  · ext y
+    change q.1.1 (m.φ.f (D₂.ev 1 y)) = q.1.1 (D₁.ev 1 (homF D₁ D₂ m θ hθα y))
+    rw [ev_homF, map_one]
+  · refine CoveringCode.pullback_ext X₂.P (D₂.foldS hX₂) (Subtype.ext ?_) ?_
+    swap
+    · change (m.h q.1.2).1.2 =
+        (m.h (CoveringCode.pullbackPt X₁.P (D₁.foldS hX₁) (D₁.incP hX₁ q.1.2))).1.2
+      rw [pullbackPt_incP]
+    change (D₂.inc₁S hX₂ (m.h q.1.2).1.1).1 =
+      (homψS D₁ D₂ hX₁ hX₂ m θ (D₁.inc₁S hX₁ q.1.2.1.1)).1
+    rw [inc₁S_coe, homψS_coe, inc₁S_coe, m.fst_h,
+      show homψ D₁ D₂ m θ (D₁.inc 1 q.1.2.1.1.1) = (D₁.inc 1 ≫ homψ D₁ D₂ m θ) q.1.2.1.1.1 from
+        rfl, inc_homψ, map_one]
+    rfl
+
+lemma ι_natural (x : TempObj.Fibre Ω V hV X₁) :
+    D₂.ι hX₂ V hV (TempObj.fibreMap V hV m x) =
+      TempObj.fibreMap V hV (hom D₁ D₂ hX₁ hX₂ m θ hθα hθβ) (D₁.ι hX₁ V hV x) := by
+  induction x using Quotient.inductionOn with
+  | h q =>
+    exact congrArg Quotient.mk'' (ιPre_natural (V := V) (hV := hV) D₁ D₂ hX₁ hX₂ m θ hθα hθβ q)
+
+end Natural
+
 end IndData
 
 end
