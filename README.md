@@ -56,6 +56,12 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   which uses a ramified quadratic base change. The proof builds a `ℤ`-covering of the special fibre of the Tate
   model (a polygon), and lifts crossings of its nodes to the models of other coverings
   (`SemistableReduction.crossingX1`).
+* **Functoriality** `TemperedFundamentalGroups.temperedPi1Map μ`
+  (`Tempered/BaseChange.lean`, Blueprint §11). A map of affine orbifolds
+  `μ : OrbMap R A R' A'` (`[Spec R' / A'] → [Spec R / A]`: an injective `K`-algebra map `R → R'`
+  and a compatible group homomorphism `A' →* A`; finite étale covers, removal of points, orbifold
+  covers) induces a continuous homomorphism `temperedPi1 O R' A' V hV →* temperedPi1 O R A V hV`,
+  by base change of tempered coverings (`TempObj.bcFunctor`, `R' ⊗_R B` with `H ×_A A'`).
 * **Zariski connectedness for model codes**
   `TemperedFundamentalGroups.SemistableReduction.Statement.zariskiConnected`
   (`SemistableReduction/ZariskiConnectedProof.lean`). A projective model over the valuation ring

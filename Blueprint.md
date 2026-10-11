@@ -2592,3 +2592,44 @@ axioms `propext`, `Classical.choice`, `Quot.sound`). About 2.8k lines in 21 file
 * *Node points lie over edges.* `W10Route.exists_routedEdge_of_isNodePt`: at a node point the
   germs are the local ring of a normalized edge chart (`RoutedEdge`) at a valuation `W`.
 * *Open:* `HasGeomIrreducibleComponents` (linear disjointness at the vertex Gauss points, ≈ 1.5k).
+
+## 11. Functoriality and dual graphs (IUT wall P1)
+
+The IUT consumers ([EtTh], [SemiAnbd], IUT I–III) need, beyond the definition and Theorems A/B,
+that **maps of curves induce maps of tempered groups** (finite étale covers, removal of points,
+orbifold covers `Y → [Y/A]`, base change to finite extensions) and that these maps are read off
+**on dual graphs of semistable models** (harmonic morphisms with thicknesses). This section is the
+lemma-level plan; status as in the legend.
+
+### 11.1 Functoriality of `temperedPi1` in the orbifold
+
+A **map of affine orbifolds** `μ : OrbMap R A R' A'` (`[Spec R' / A'] → [Spec R / A]`) is an
+injective ring map `R → R'` (`Algebra R R'`, over `K`) and `α : A' →* A` with
+`α(a') • r ↦ a' • r'`. Injectivity is used once: `B → R' ⊗_R B` is injective (flatness of `B`),
+so `H ×_A A'` embeds into the automorphisms of `R' ⊗_R B`.
+
+| # | Statement | File | Status |
+|---|---|---|---|
+| F1 | **Base change of levels**: `(B, H) ↦ (R' ⊗_R B, H ×_A A')`, `(h, a')` acting by `a' ⊗ σ_h` (`SemilinearTensor.tensorEquiv`, semilinear over `h.a` on `R`); coded by the chosen presentation; `bcEquiv : H ×_A A' ≃* H'`, `bcι : B → B'`, `bcPr : H' → H` (`H'⁰ ≅ H⁰`: `bcH0`, `bcPr_bcH0`, `bcH0_bcPr`); morphisms `bcMap`, functor `FiniteLevel.bcFunctor` | `Tempered/BaseChangeLevel.lean` | [L] |
+| F2 | **Base change of tempered coverings**: same model and covering space, `j' = Spec ι ≫ j`, `ρ' = ρ ∘ bcPr` (`Level.baseChange`, `TempObj.baseChange`, `TempObj.bcFunctor`); geometric points `R' ⊗_R B → Ω` over `R'` = points `B → Ω` over `R` (`bcRes`, `bcExt`), specialization unchanged (`bc_sp`); `bcFibreIso : bcFunctor μ ⋙ tempFibre(R', A') ≅ tempFibre(R, A)` | `Tempered/BaseChange.lean` | [L] |
+| F3 | `temperedPi1Map μ : temperedPi1 O R' A' V hV →* temperedPi1 O R A V hV`, continuous | same | [L] |
+| F4 | functoriality: `temperedPi1Map` of the identity map is the identity, and of a composite is the composite (base change along `R → R' → R''` is isomorphic to the iterated one, compatibly with the fibre isomorphisms; automorphisms of `Φ` are natural) | `Tempered/BaseChangeComp.lean` | [P], ≈ 0.4k |
+| F5 | compatibility with the étale comparison: base change `EquivEtale R A ⥤ EquivEtale R' A'`, `etalePi1Map μ`, and `temperedToEtale ∘ temperedPi1Map μ = etalePi1Map μ ∘ temperedToEtale` | `Tempered/BaseChangeEtale.lean` | [P], ≈ 0.4k |
+| F6 | T1 as a special case: `R' = R`, `A'` trivial (`Y → [Y/A]`) recovers `restrictHom` | — | [P], ≈ 0.1k |
+| F7 | finite étale `R → R'`: `temperedPi1Map` is injective with open image of finite index (the tempered analogue of `π₁(X') ≤ π₁(X)`); needs the Galois theory of `TempObj` (Galois objects `galClass₂`, K1) | — | [P], ≈ 1.5–2k |
+| F8 | base change of the valued field `(K, O) → (K', O')` (finite): `temperedPi1 O' (K' ⊗ R) → temperedPi1 O R` via restriction of scalars of `O'`-models to `O`; identification with the geometric part (Theorem A on both sides) | — | [P], ≈ 1k |
+
+### 11.2 Dual graphs and their functoriality
+
+For a split semistable model `c` without loops (`IsSplit`, `NoLoops`, outputs of W10), the dual
+graph is `components c` (vertices) and node points (edges) with thicknesses
+(`SemistableReduction/DualGraph.lean`). For a morphism `ψ : c ⟶ c'` over `O` finite on generic
+fibres (in particular every morphism of tempered coverings between semistable levels):
+
+| # | Statement | Status |
+|---|---|---|
+| G1 | components map onto components or are contracted to points (`curveConfig_contr_or`, `Topology/UniversalLength.lean`) | [L] (topological form) |
+| G2 | (X3, XL10) a node not over a node maps to a smooth point on exactly one component | [P], ≈ 0.3k |
+| G3 | (X1 without lengths) edge lifting: from every component over a branch of a node `y'` a crossing walk to the other branch (`crossingX1`) | [L] |
+| G4 | the bundled **harmonic map of dual graphs** `DualGraphMap ψ` (vertex map to vertices ⊕ points, edge map to edges ⊕ points, incidence-compatible, edge lifting), built from G1–G3 | [P], ≈ 0.4k |
+| G5 | thickness relations (X0, X2 and the length equality of X1): `Statement.HarmonicX` | parked (§9.7), ≈ 3k |
