@@ -46,6 +46,13 @@ lemma nonempty_uData_of_galClassW {P : Level O R A → Prop} {X : TempObj O R A}
   obtain ⟨Lv, _, _, _, _, _, hdim, z₀, -, _, -, hidem, -, -, _, ⟨e⟩⟩ := hX
   exact ⟨{ Lv := Lv, hdim := hdim, z₀ := z₀, hidem := hidem, e := e }⟩
 
+omit [Algebra K Ω] [IsScalarTower K R Ω] in
+/-- The members of `galClassW P` are universal Galois objects over levels satisfying `P`. -/
+lemma exists_uData_of_galClassW {P : Level O R A → Prop} {X : TempObj O R A}
+    (hX : galClassW O R A Ω P X) : ∃ D : UData Ω X, P D.Lv := by
+  obtain ⟨Lv, _, _, _, _, _, hdim, z₀, hP, _, -, hidem, -, -, _, ⟨e⟩⟩ := hX
+  exact ⟨{ Lv := Lv, hdim := hdim, z₀ := z₀, hidem := hidem, e := e }, hP⟩
+
 end Data
 
 variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscreteValuationRing O]
@@ -58,7 +65,14 @@ variable {K : Type u} [Field K] [CharZero K] {O : ValuationSubring K} [IsDiscret
 
 /-- The identification of the members of `galW` with universal Galois objects. -/
 def curveData (q : PtGal (tempFibre O R A V hV) (galW O R A Ω hR)) : UData Ω q.G :=
-  (nonempty_uData_of_galClassW q.mem).some
+  (exists_uData_of_galClassW q.mem).choose
+
+omit [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+  [PerfectField (IsLocalRing.ResidueField O)] [IsDomain R] [Subsingleton A] [IsAlgClosed Ω] in
+/-- The level of `curveData q` carries W-model data. -/
+lemma curveData_isW (q : PtGal (tempFibre O R A V hV) (galW O R A Ω hR)) :
+    Level.IsW (exists_finite_aeval (K := K) hR).choose (curveData V hV hR q).Lv :=
+  (exists_uData_of_galClassW q.mem).choose_spec
 
 /-- **The tree tower of the curve** on the inverse limit of the stage groups. -/
 def curveTower : TreeTower.{u, u, u} (stageLimit (R := R) (A := A) V hV hp hR)

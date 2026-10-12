@@ -8,6 +8,7 @@ import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.CurveTower
 import TemperedFundamentalGroups.Andre.CurveTowerFull
 import TemperedFundamentalGroups.Andre.CurveTowerFunctor
+import TemperedFundamentalGroups.Andre.CurveTowerNodes
 import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.DualGraphMap
 import TemperedFundamentalGroups.Andre.DualGraphPi1
@@ -320,6 +321,7 @@ import TemperedFundamentalGroups.SemistableReduction.NodeMaximum
 import TemperedFundamentalGroups.SemistableReduction.NodeNormal
 import TemperedFundamentalGroups.SemistableReduction.NodePoints
 import TemperedFundamentalGroups.SemistableReduction.NodeRecognition
+import TemperedFundamentalGroups.SemistableReduction.NodeReflection
 import TemperedFundamentalGroups.SemistableReduction.NodeScheme
 import TemperedFundamentalGroups.SemistableReduction.NodeSide
 import TemperedFundamentalGroups.SemistableReduction.NodeSmooth
