@@ -18,8 +18,9 @@ the special fibre maps to a node only if the generic point of `C` does* (`Reflec
 makes the maps preserve sheets, hence compose, along **all** morphisms, with no restriction to a
 subsystem of non-contracting levels (contracting components onto points, even onto nodes, is
 allowed). For morphisms of semistable models node reflection is a local statement of commutative
-algebra (Blueprint §12.5, C11: going-down at points isolated in their fibres over a normal node);
-it is the hypothesis `hN` below and is not proved here.
+algebra; it is the hypothesis `hN` below, proved for André's tower in `Andre/CurveTowerNodes.lean`
+(`reflectsNodes_curveData`, Blueprint §12.5, C13), where the results of this file are restated
+without it.
 
 * **`CurveConfig.preservesSheets_of_reflectsSpecial`**: a continuous map of tree coverings over a
   map `ψ` of the underlying spaces reflecting special points in this sense preserves sheets.

@@ -190,6 +190,46 @@ status:
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
       literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.SemistableReduction.ModelCode.map_eq_of_isNodePt"
+      file: "TemperedFundamentalGroups/SemistableReduction/NodeReflection.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.reflectsNodes_curveData"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerNodes.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.isFunctorial_andreTower_galW"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerNodes.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.exists_le_stab_andreTower_of_estranged"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerNodes.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "SemistableReduction.not_branch_swap"
+      file: "TemperedFundamentalGroups/SemistableReduction/BranchSwap.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.SemistableReduction.CrossingSource.exists_branches_not_swapped"
+      file: "TemperedFundamentalGroups/SemistableReduction/UnfoldedNoSwap.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.noBranchSwap_andreTower"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerBranches.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.isGraphic_iff_andreTower_andreTower"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerBranches.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
     - declaration: "TemperedFundamentalGroups.temperedToEtale"
       file: "TemperedFundamentalGroups/Tempered/Comparison.lean"
       sorry_count: 0

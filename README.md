@@ -168,21 +168,28 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   non-contracting subsystem of levels that is estranged, every nontrivial compact subgroup of
   André's group fixes a compatible system of vertices and (with no branch inversions and nontrivial
   edge-like subgroups) `PSCAdj` holds (`exists_le_stab_restrict_andreTower`,
-  `pscAdj_restrict_andreTower`). If every transition map *reflects nodes* (a point on a single
-  component goes to a node only if its component does), the maps preserve sheets and André's tower
-  is functorial on all levels (`preservesSheets_of_reflectsSpecial`, `isFunctorial_andreTower`,
-  `Andre/CurveTowerFull.lean`); then, if the tower is estranged, every nontrivial compact subgroup
-  of André's group (or of a subgroup such as the geometric one) fixes a compatible system of
-  vertices of all levels and maximal compact subgroups are stabilizers of systems
-  (`exists_le_stab_andreTower`, `exists_le_stab_andreTower_of_le`, `exists_eq_stab_of_maximal`),
-  and CG3' holds for André's group (`isGraphic_iff_andreTower`). Not covered: the profinite
-  statements (no profinite trees), the comparison of verticial subgroups with fundamental groups
-  of components (no analytic or log geometry), and the geometric inputs for curves, which are
-  stated as missing theorems M1–M4 (Blueprint §12.5 C11–C12, §12.7): node reflection (commutative
-  algebra at nodes), specialization of admissible coverings (for `HI` of hyperbolic components,
-  estrangement and nontrivial edge-like subgroups of the tame part), no branch inversions from the
-  x-line structure, and estrangement for wild coverings. No class of curves is covered
-  unconditionally.
+  `pscAdj_restrict_andreTower`). Every transition map of André's tower *reflects nodes* (a point
+  on a single component goes to a node only if its component does; **M1**, proved by local
+  commutative algebra at étale node charts: `ModelCode.map_eq_of_isNodePt`,
+  `SemistableReduction/NodeReflection.lean`, `reflectsNodes_curveData`,
+  `Andre/CurveTowerNodes.lean`), so the maps preserve sheets and **André's tower is functorial on
+  all levels** (`isFunctorial_andreTower_galW`); and the stage groups act **without branch
+  inversions** (**M3**: the two branches of a node of an unfolded W-model restrict to Gauss points
+  of the x-line of different radii, which automorphisms over the x-line preserve;
+  `exists_branches_not_swapped`, `noBranchSwap_andreTower`, `Andre/CurveTowerBranches.lean`).
+  Hence, if the tower is estranged, every nontrivial compact subgroup of André's group (or of a
+  subgroup such as the geometric one) fixes a compatible system of vertices of all levels and
+  maximal compact subgroups are stabilizers of systems
+  (`exists_le_stab_andreTower_of_estranged`, `exists_le_stab_andreTower_of_le_estranged`,
+  `exists_eq_stab_of_maximal_of_estranged`), and with nontrivial edge-like subgroups `PSCAdj` and
+  CG3' hold for André's group, also between the André groups of two curves
+  (`pscAdj_andreTower_of_estranged'`, `isGraphic_iff_andreTower_andreTower`). Not covered: the
+  profinite statements (no profinite trees), the comparison of verticial subgroups with
+  fundamental groups of components (no analytic or log geometry), and the remaining geometric
+  inputs for curves, stated as missing theorems M2 and M4 (Blueprint §12.5 C10, C12, §12.7):
+  specialization of admissible coverings (for `HI` of hyperbolic components, estrangement and
+  nontrivial edge-like subgroups of the tame part) and estrangement for wild coverings.
+  Estrangement and nontrivial edge-like subgroups are not proved for any curve.
 
 ### Not covered
 
