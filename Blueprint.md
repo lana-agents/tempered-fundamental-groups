@@ -2887,3 +2887,31 @@ The missing theorems behind them:
 
 Out of reach: A5 and CG4 (Galois-category structure of `B(𝒢)`, profinite trees); D4 (verticial
 subgroups as fundamental groups of components; analytic or log geometry).
+
+### 12.8 Plan for M2 (specialization of admissible coverings), step 3 of the IUT wall roadmap
+
+**Statement (SGA 1 XIII 2.10; Saïdi, Compositio 1997; [Mzk1] §3).** Let `O` be a complete DVR with
+residue characteristic `p`, `𝒳/O` a proper semistable curve with smooth generic fibre, and
+`Y_s → 𝒳_s` an *admissible* covering of degree prime to `p`: finite, étale over the smooth locus of
+`𝒳_s` (and the cusps, tamely), and at every node `uv = 0` locally of the form
+`s^e = u, t^e = v` with the same index `e` on both branches. Then after a finite extension `O'/O`
+(of ramification index divisible by the indices `e`) there is a finite étale covering
+`Y_{K'} → 𝒳_{K'}` whose normalised model has special fibre `Y_s` (as a covering of `𝒳_s`), and the
+lift is unique up to unique isomorphism.
+
+**Standard proof and what it needs in Lean.**
+
+| # | Step | Needs | Status |
+|---|---|---|---|
+| M2.1 | **Local model at a node** (`SemistableReduction/KummerNode.lean`): `B = O'[s,t]/(st − π)` over the node ring `A = O'[u,v]/(uv − π^e)` via `u ↦ s^e`, `v ↦ t^e`; `B` is finite over `A`, carries the `μ_e`-action `s ↦ ζs, t ↦ ζ⁻¹t` over `A`, is étale over `A[1/u]` (and `A[1/v]`), and its special fibre is the admissible covering `s^e = u`, `t^e = v` of the two branches | commutative algebra | in progress (session 2) |
+| M2.2 | **Lifting étale algebras** along a `ϖ`-adically complete ring `Â` (topological invariance of the étale site / Hensel): finite étale `Â/ϖ`-algebras lift to finite étale `Â`-algebras, uniquely up to unique isomorphism (uniqueness: `Algebra.FormallyEtale`) | existence of lifts is not in Mathlib | ✗ |
+| M2.3 | **Formal patching**: glue the lifts of the smooth affine pieces (M2.2) and of the node neighbourhoods (M2.1, after completion) into a compatible system of finite flat coverings of `𝒳_n = 𝒳 ⊗ O'/ϖ^{n+1}`; uses the uniqueness of lifts on overlaps and the tameness (the `μ_e`-torsor structure is rigid) | M2.1, M2.2, gluing of finite algebras along affine covers | ✗ |
+| M2.4 | **Grothendieck existence** for the proper curve `𝒳/O'`: the compatible system of coherent algebras algebraizes to a finite flat covering `𝒴 → 𝒳` | theorem on formal functions / coherent cohomology of projective schemes: not in Mathlib | ✗ (the main obstacle) |
+| M2.5 | `𝒴_{K'} → 𝒳_{K'}` is finite étale, `𝒴` is normal, so it is the normalised model and its special fibre is `Y_s` | M2.1, M2.4, normality criteria | ✗ |
+| M2.6 | **Consequences for P13** (C10, C12(b)): with the pro-`Σ` quotient of André's group (not in the repository) and the identification of admissible coverings with tame levels: `(HI)` for hyperbolic components (the decomposition group surjects onto the pro-`Σ` `π₁` of the component minus its nodes), estrangement and nontrivial edge-like subgroups of the tame tower ([SemiAnbd] Ex. 2.10) | M2.1–M2.5, pro-`Σ` quotients, admissible coverings as objects of the tempered category | ✗ |
+
+The repository's tempered category uses *topological* covering spaces of the special fibre (the
+graph part), which see no ramification at the nodes; admissible coverings with `e > 1` appear
+only through levels (finite étale `R`-algebras) and their normalised models, so M2.6 also needs a
+comparison between tame levels and admissible coverings of the special fibre (one direction is
+Abhyankar's lemma, §9.2, `SemistableReduction/Abhyankar*.lean`).
