@@ -2664,3 +2664,123 @@ Scheme case (`[Subsingleton A]`). The dominating Galois class is `galW = galClas
 
 G6 is complete (scheme and orbifold cases); nothing remains open in §11.
 
+
+## 12. Semi-graphs of anabelioids and the combinatorial Grothendieck conjecture (IUT wall P13)
+
+Sources: [SemiAnbd] S. Mochizuki, *Semi-graphs of anabelioids*, Publ. RIMS 42 (2006), §§1–3;
+[CombGC] S. Mochizuki, *A combinatorial version of the Grothendieck conjecture*, Tohoku Math. J.
+59 (2007). Neither paper is in `.sources/`; the statements below are paraphrased from the
+published versions, and theorem numbers should be checked against them before they are cited
+downstream. Status legend as at the top of this file.
+
+### 12.0 Scope decisions
+
+* **D1 (anabelioids in group form).** A connected anabelioid is a Galois category; with a fibre
+  functor `F` it is `B(Π)` for the profinite group `Π = Aut F`, and `Π` is determined up to inner
+  automorphism (Mathlib: `PreGaloisCategory.functorToContAction F : C ≌ ContAction FintypeCat
+  (Aut F)`, `Aut F` is profinite). A semi-graph of anabelioids is therefore presented by profinite
+  vertex and edge groups and continuous branch homomorphisms (one choice of base points). The
+  outer ambiguity (branch homomorphisms are only defined up to conjugation) is recorded, not
+  formalized.
+* **D2 (the fundamental groups).** The profinite group `Π_𝒢` is defined as the automorphism
+  group of the fibre functor on the category `B(𝒢)` of finite `𝒢`-coverings (vertex objects glued
+  along closed edges). That `B(𝒢)` is a Galois category, and the description of `Π_𝒢` as the
+  profinite fundamental group of a graph of profinite groups, are not formalized: Mathlib has
+  neither Bass–Serre theory nor profinite trees. The profinite form of [SemiAnbd] 3.7 needs the
+  fixed point theorem for finite groups acting on *profinite* trees (Zalesskii–Melnikov), which
+  is out of reach (**[✗]**).
+* **D3 (tempered groups through tree towers).** The tempered group `Π^tp_𝒢` is
+  `lim_i Π_i`, where `Π_i` is the Galois group of the universal combinatorial covering of a
+  finite Galois covering `𝒢_i → 𝒢`, a discrete group acting on the tree `T_i` (the universal
+  covering of the barycentric subdivision of the underlying semi-graph of `𝒢_i`). This is the
+  same shape as `andreGroupHomeoLim` (§11.3, G6): `andreGroup ≃ₜ* lim Π_Lv`, `Π_Lv` acting on
+  the tree covering `Z̃` of the incidence graph of components and nodes. All group-theoretic
+  statements of [SemiAnbd] §3 are therefore proved for an abstract **tree tower** (12.4), with
+  the hypotheses that encode "PSC type" made explicit, and then specialised to curves (12.5).
+* **D4 (comparison with curves).** The comparison `Π^tp(X) ≅ Π^tp_𝒢` with vertex groups the
+  fundamental groups of the tubes of the components (a van Kampen theorem for Berkovich spaces),
+  and its admissible version (vertex groups the admissible fundamental groups of the normalised
+  components minus the nodes, edge groups `ℤ̂(1)`-type inertia, via log geometry), are **[✗]**:
+  the repository has no analytic spaces and no log structures. What is formalized is the
+  graph-theoretic half: the stage groups and their trees (G6) and the tree tower of a curve.
+  Identifying its verticial subgroups with fundamental groups of components is not attempted.
+
+### 12.1 Semi-graphs (`SemiAnbd/SemiGraph.lean`)
+
+| # | Statement | Status |
+|---|---|---|
+| S1 | `SemiGraph`: vertices `V`, edges `E`, each edge with two branches `E × Bool`, each branch abutting to a vertex or to nothing (`ζ : E × Bool → Option V`); closed edges (both branches abut), open edges / cusps (exactly one abuts) | [P] |
+| S2 | the incidence (barycentric) graph `incGraph : SimpleGraph (V ⊕ E)` (`v ~ e` iff a branch of `e` abuts to `v`), bipartite by construction; `SemiGraph.Connected` | [P] |
+| S3 | morphisms of semi-graphs (vertices to vertices, edges to edges, branches to branches, compatible with `ζ`) induce maps of incidence graphs; composition | [P] |
+
+### 12.2 Anabelioids and semi-graphs of anabelioids (`SemiAnbd/Anabelioid.lean`)
+
+| # | Statement | Status |
+|---|---|---|
+| A1 | the anabelioid group of a Galois category with fibre functor: `anabelioidGroup F := ProfiniteGrp.of (Aut F)` and the equivalence with continuous finite `Aut F`-sets (Mathlib) | [P] |
+| A2 | `SemiGraphOfAnabelioids 𝔾`: profinite groups `Π_v`, `Π_e`, continuous branch homomorphisms `Π_e → Π_{ζ b}` for abutting branches | [P] |
+| A3 | `B(𝒢)`: finite `𝒢`-coverings (finite continuous `Π_v`-sets `S_v`, for each closed edge a `Π_e`-equivariant gluing `S_{v₁} ≃ S_{v₂}`), morphisms, the category, the fibre functor at a vertex `v₀`, **`Π_𝒢 := Aut (fibre functor)`** | [P] |
+| A4 | the verticial homomorphism `Π_{v₀} →* Π_𝒢` (action on `S_{v₀}`), and edge homomorphisms `Π_e → Π_𝒢` for edges at `v₀` through the branch maps | [P] |
+| A5 | `B(𝒢)` is a connected Galois category for connected `𝔾`; `Π_𝒢` is the profinite completion of the graph-of-groups fundamental group | [✗] (D2) |
+
+### 12.3 Trees: fixed points and geodesics (`SemiAnbd/TreeFixedPoint.lean`)
+
+For a tree `T` (Mathlib `SimpleGraph.IsTree`) and a group acting by graph automorphisms.
+
+| # | Statement | Status |
+|---|---|---|
+| T1 | **gate lemma**: for adjacent `x ~ z` with `z` closer to `y` and `x` closer to `s`, `d(y, s) = d(y, z) + 1 + d(x, s)` | [P] |
+| T2 | **centre of a finite set**: for a finite nonempty `S`, the set of vertices minimising `x ↦ max_{s ∈ S} d(x, s)` is nonempty and any two of its elements are equal or adjacent | [P] |
+| T3 | **fixed point theorem**: a group acting without inversions (e.g. preserving a 2-colouring, as on an incidence graph) with a finite nonempty invariant set fixes a vertex; in particular every finite group acting without inversions fixes a vertex, and the fixed point can be chosen within `max_{s} d(x, s)` of any point `x` of the invariant set | [P] |
+| T4 | **geodesics**: an automorphism fixing `x` and `y` fixes every vertex of the path from `x` to `y`; in particular for `x ≠ y` it fixes the neighbour of `x` towards `y` | [P] |
+| T5 | non-expanding maps (adjacent to adjacent or equal) do not increase distances; balls of locally finite graphs are finite | [P] |
+
+### 12.4 Tree towers: verticial subgroups and [SemiAnbd] §3 (`SemiAnbd/TreeTower.lean`)
+
+A **tree tower** over a group `Π`: a cofiltered small category `J`; for `j : J` a group `G j`, a
+homomorphism `ρ j : Π →* G j`, a tree `T j` with a 2-colouring (`kind`: vertex/edge type)
+preserved by an action of `G j` by graph automorphisms; for `f : j ⟶ k` a map `T j → T k` that is
+functorial, `ρ`-equivariant and non-expanding. A **system** is a compatible family `s j ∈ T j`;
+`Π` acts on systems, and `stab s := {g | ∀ j, ρ j g • s j = s j}`. **Verticial subgroups** are
+`stab s` for systems of vertex type, **edge-like subgroups** those of edge type. Hypothesis
+**(HI s)** (edge groups have infinite index in vertex groups, "sturdiness"): for every `n` and `j`
+there are `f : k ⟶ j` such that for every neighbour `e` of `s k` the subgroup
+`{g ∈ stab s | ρ k g • e = e}` has index `> n` (or infinite) in `stab s`.
+
+| # | Statement | Status |
+|---|---|---|
+| W1 | `stab (g • s) = g (stab s) g⁻¹`; systems differing at `j` differ at every `k ⟶ j` | [P] |
+| W2 | for systems `s ≠ s'`: `stab s ⊓ stab s'` fixes, at every deep enough level, the geodesic from `s k` to `s' k`, in particular a neighbour of `s k` (T4) | [P] |
+| W3 | **commensurable terminality** ([SemiAnbd] 3.7(i)-type): under (HI s), `commensurator (stab s) = stab s` | [P] |
+| W4 | **distinct systems give incomparable subgroups**: under (HI s), `stab s ≤ stab s' → s = s'`; hence `s ↦ stab s` is injective on systems satisfying (HI), and `stab s` is self-normalising | [P] |
+| W5 | **fixed systems for bounded subgroups**: with locally finite trees, if `H ≤ Π` moves a system `x` by at most `D` at every level, then `H ≤ stab s` for a system `s` with `d(x j, s j) ≤ D` (T3 levelwise, König's lemma `nonempty_sections_of_finite_cofiltered_system`) | [P] |
+| W6 | **maximal compact subgroups are verticial** ([SemiAnbd] 3.7(iv)-type): every compact subgroup of `Π` lies in a verticial subgroup. The levelwise images are finite and fix vertices (T3), but the displacement of a fixed base system can grow with the level (transition maps contract), so W5 does not apply directly; no proof in the abstract tower setting was found | [✗] (open; W5 is the conditional form) |
+| W7 | **graphicity skeleton** ([SemiAnbd] Cor. 3.11 / [CombGC] 1.6 shape): an isomorphism `α : Π ≃* Π'` of tower groups mapping verticial subgroups (of systems satisfying (HI)) onto verticial subgroups induces a unique `α`-equivariant bijection of these systems with `α (stab s) = stab (α_V s)`; it preserves group-theoretic adjacency (`stab s ⊓ stab s'` nontrivial) | [P] |
+| W8 | adjacency recovery: under (PSC adjacency) — non-adjacent vertex systems have trivial intersection, adjacent ones nontrivial — `α_V` preserves adjacency of the limit graph, i.e. `α` is graphic | [P] (conditional on the stated hypothesis) |
+
+### 12.5 The tree tower of a curve (`SemiAnbd/IncidenceTree.lean`, `Andre/StageTorsion.lean`)
+
+| # | Statement | Status |
+|---|---|---|
+| C1 | the tree covering `K.Tree r` of the incidence graph (§11.3, G6.3) with `Tree.Adj` is a tree in Mathlib's sense (`isTree`), 2-coloured by the type of its head (component / special point) | [P] |
+| C2 | the deck group (`Loop`, acting by `translate`) acts by coloured graph automorphisms, freely on vertices | [P] |
+| C3 | hence the combinatorial `π₁` of the dual graph is torsion-free (T3), and so is the deck group of `Z̃` (`deckLoopEquiv`) | [P] |
+| C4 | every finite subgroup of a stage group `Π_Lv` maps injectively to `Aut_R(B)ᵒᵖ` (`stageGroup_extension`, C3) | [P] |
+| C5 | the action of `Π_Lv` on the incidence tree (an automorphism of `U_Lv` acts on `Z̃` over its model automorphism, hence on sheets), extending C2; transition maps of trees from `treeMap` (non-expanding, contracting components mapped to points) | [P] (stretch) |
+| C6 | the tree tower on `andreGroup` (via `andreGroupHomeoLim`): verticial subgroups of `andreGroup` (decomposition groups of components) and edge-like subgroups (of nodes); W1–W5, W7 apply; (HI) for curves needs coverings with large decomposition groups at every component (geometry of the special fibre) | [P] (stretch); (HI) for curves [✗] |
+
+### 12.6 The combinatorial Grothendieck conjecture (`SemiAnbd/CombGC.lean`)
+
+[CombGC] Thm. 1.6 (paraphrase): let `𝒢`, `ℋ` be semi-graphs of anabelioids of (pro-`Σ`) PSC
+type and `α : Π_𝒢 ≅ Π_ℋ` an isomorphism of profinite groups. Then `α` is **graphic** (it maps
+verticial, edge-like and cuspidal subgroups to the same kind, so induces an isomorphism of
+semi-graphs) if and only if it is **group-theoretically verticial** (it maps verticial subgroups
+onto verticial subgroups). Corollaries give graphicity from group-theoretic cuspidality and a
+compatible outer Galois action of an inertia group.
+
+| # | Statement | Status |
+|---|---|---|
+| G1 | `IsGraphic α`, `IsGroupTheoreticallyVerticial α`, `IsGroupTheoreticallyCuspidal α` for families of verticial / edge-like subgroups of groups `Π`, `Π'` (abstract: families indexed by vertices and edges with incidence); `CombGCStatement` as a `Prop` | [P] |
+| G2 | graphic ⇒ group-theoretically verticial (the easy direction) | [P] |
+| G3 | verticial ⇒ graphic in the tempered tower setting, under (HI) and (PSC adjacency): W7 + W8 | [P] (conditional) |
+| G4 | the profinite statement (needs profinite trees, D2) and the PSC-type hypotheses for curves (D4) | [✗] |
