@@ -6,6 +6,7 @@ Authors: LANA Project
 
 import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.CurveTower
+import TemperedFundamentalGroups.Andre.CurveTowerBranches
 import TemperedFundamentalGroups.Andre.CurveTowerFull
 import TemperedFundamentalGroups.Andre.CurveTowerFunctor
 import TemperedFundamentalGroups.Andre.CurveTowerNodes
@@ -156,6 +157,7 @@ import TemperedFundamentalGroups.SemistableReduction.AnnulusThickness
 import TemperedFundamentalGroups.SemistableReduction.AnnulusUnit
 import TemperedFundamentalGroups.SemistableReduction.BallTree
 import TemperedFundamentalGroups.SemistableReduction.BranchRecognition
+import TemperedFundamentalGroups.SemistableReduction.BranchSwap
 import TemperedFundamentalGroups.SemistableReduction.CentreGerms
 import TemperedFundamentalGroups.SemistableReduction.CentreMap
 import TemperedFundamentalGroups.SemistableReduction.ChangeOfGenerator
@@ -469,6 +471,7 @@ import TemperedFundamentalGroups.SemistableReduction.TypeThreeLocal
 import TemperedFundamentalGroups.SemistableReduction.TypeTwo
 import TemperedFundamentalGroups.SemistableReduction.TypeTwoGerm
 import TemperedFundamentalGroups.SemistableReduction.UnfoldedCentre
+import TemperedFundamentalGroups.SemistableReduction.UnfoldedNoSwap
 import TemperedFundamentalGroups.SemistableReduction.UnfoldedNode
 import TemperedFundamentalGroups.SemistableReduction.UnfoldedNodeMain
 import TemperedFundamentalGroups.SemistableReduction.UnfoldedVertex
