@@ -152,9 +152,10 @@ theorem exists_adj_fixed_inf {s s' : T.Sys} {k : J} (h : s.1 k ≠ s'.1 k) :
 /-! ### The hypothesis (HI) -/
 
 variable (T) in
-/-- **(HI s)**: at arbitrarily deep levels, the stabilizers in `stab s` of the neighbours of
-`s k` have index `> n` (or infinite index) in `stab s`, for every `n`. ("Edge-like subgroups
-have infinite index in verticial subgroups".) -/
+/-- **(HI s)** (the tempered form of "`v` is elevated", [SemiAnbd] Def. 2.4(i); see
+`TreeTower.HI_of_elevated`): at arbitrarily deep levels, the stabilizers in `stab s` of the
+neighbours of `s k` have index `> n` (or infinite index) in `stab s`, for every `n`.
+("Edge-like subgroups have infinite index in verticial subgroups".) -/
 def HI (s : T.Sys) : Prop :=
   ∀ (n : ℕ) (j : J), ∃ (k : J) (_ : k ⟶ j), ∀ w, (T.graph k).Adj (s.1 k) w →
     (T.fixAt k w).relIndex (stab s) = 0 ∨ n < (T.fixAt k w).relIndex (stab s)
@@ -175,8 +176,8 @@ lemma not_le_fixAt {s : T.Sys} {H : Subgroup Γ} {k : J} {w : T.V k}
 
 /-! ### W3 and W4 -/
 
-/-- **W4**: under `(HI s)`, a verticial subgroup is contained in no other one:
-`stab s ≤ stab s'` implies `s = s'`. -/
+/-- **W4** ([SemiAnbd] Thm. 3.7(ii), Cor. 2.7(iii)-type): under `(HI s)`, a verticial subgroup
+is contained in no other one: `stab s ≤ stab s'` implies `s = s'`. -/
 theorem eq_of_stab_le {s s' : T.Sys} (hs : T.HI s) (hle : stab s ≤ stab s') : s = s' := by
   by_contra hne
   obtain ⟨j, hj⟩ : ∃ j, s.1 j ≠ s'.1 j := by
@@ -192,8 +193,8 @@ theorem eq_of_stab_le {s s' : T.Sys} (hs : T.HI s) (hle : stab s ≤ stab s') : 
 theorem eq_of_stab_eq {s s' : T.Sys} (hs : T.HI s) (h : stab s = stab s') : s = s' :=
   eq_of_stab_le hs h.le
 
-/-- **W3, commensurable terminality** ([SemiAnbd] 3.7(i)-type): under `(HI s)` the
-commensurator of `stab s` is `stab s`. -/
+/-- **W3, commensurable terminality** ([SemiAnbd] Cor. 2.7(i), Thm. 3.7(ii)-type; [CombGC]
+Prop. 1.2(ii)): under `(HI s)` the commensurator of `stab s` is `stab s`. -/
 theorem commensurator_stab {s : T.Sys} (hs : T.HI s) :
     Subgroup.Commensurable.commensurator (stab s) = stab s := by
   refine le_antisymm (fun g hg ↦ ?_) (fun g hg ↦ ?_)

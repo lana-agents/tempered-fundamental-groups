@@ -3,17 +3,21 @@ Copyright (c) 2026 LANA Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
-import TemperedFundamentalGroups.SemiAnbd.TreeTower
+import TemperedFundamentalGroups.SemiAnbd.TreeTowerCompact
 
 /-!
 # Combinatorial Grothendieck conjecture: graphicity in tree towers (Blueprint §12.6, CG1–CG3)
 
-[CombGC] Thm. 1.6 says that an isomorphism of fundamental groups of semi-graphs of anabelioids of
-PSC type is *graphic* (induced by an isomorphism of the semi-graphs) if and only if it is
-*group-theoretically verticial* (maps verticial subgroups onto verticial subgroups). We state and
-prove the tempered analogue in tree towers (Blueprint §12.4), under the PSC-type adjacency
-hypothesis `TreeTower.PSCAdj`. The profinite statement needs profinite trees and is not
-formalized (Blueprint §12.6, CG4).
+[CombGC] Prop. 1.5(ii) says that an isomorphism `α` of PSC-fundamental groups of semi-graphs of
+anabelioids of PSC type is *graphic* (induced by an isomorphism of the semi-graphs of anabelioids)
+if and only if it is *group-theoretically edge-like* and *group-theoretically verticial* (it maps
+the edge-like, resp. verticial, subgroups onto the edge-like, resp. verticial, subgroups,
+[CombGC] Def. 1.4(i), (iv)); [CombGC] Thm. 1.6 then characterises graphicity by numerical
+cuspidality and filtration preservation. We state and prove the tempered analogue of
+Prop. 1.5(ii) in tree towers (Blueprint §12.4), where the edge-like condition is replaced by the
+PSC-type adjacency hypothesis `TreeTower.PSCAdj` (which follows from estrangement, no branch
+inversions and nontrivial edge-like subgroups, `TreeTower.pscAdj_of_estranged`). The profinite
+statement needs profinite trees and is not formalized (Blueprint §12.6, CG4).
 
 * `TreeTower.IsGroupTheoreticallyVerticial α` (**CG1**): `α` maps the verticial subgroups of
   systems with `(HI)` onto those of the other tower.
@@ -22,6 +26,8 @@ formalized (Blueprint §12.6, CG4).
 * `TreeTower.IsGraphic.isGroupTheoreticallyVerticial` (**CG2**).
 * `TreeTower.isGraphic_of_isGroupTheoreticallyVerticial` (**CG3**), and
   `TreeTower.isGraphic_iff_isGroupTheoreticallyVerticial`.
+* `TreeTower.isGraphic_iff_of_estranged` (**CG3'**): the same for functorial estranged towers
+  without branch inversions whose edge-like subgroups are nontrivial.
 -/
 
 universe u v w x
@@ -66,6 +72,20 @@ theorem isGraphic_of_isGroupTheoreticallyVerticial {α : Γ ≃* Γ'} (hT : T.PS
 theorem isGraphic_iff_isGroupTheoreticallyVerticial {α : Γ ≃* Γ'} (hT : T.PSCAdj)
     (hT' : T'.PSCAdj) : IsGraphic T T' α ↔ IsGroupTheoreticallyVerticial T T' α :=
   ⟨IsGraphic.isGroupTheoreticallyVerticial, isGraphic_of_isGroupTheoreticallyVerticial hT hT'⟩
+
+/-- **CG3'**: graphicity for functorial estranged towers without branch inversions whose
+edge-like subgroups (stabilizers of systems that are eventually of edge kind) are nontrivial
+([SemiAnbd] "totally estranged", [CombGC] Rem. 1.1.3: edge-like subgroups are `≅ ℤ_Σ`). -/
+theorem isGraphic_iff_of_estranged [CategoryTheory.IsCofilteredOrEmpty J]
+    [CategoryTheory.IsCofilteredOrEmpty J'] {α : Γ ≃* Γ'} (hT : T.IsFunctorial)
+    (hT' : T'.IsFunctorial) (hE : T.Estranged) (hE' : T'.Estranged) (hB : T.NoBranchSwap)
+    (hB' : T'.NoBranchSwap)
+    (hedge : ∀ e : T.Sys, (∀ j, ∃ (k : J) (_ : k ⟶ j), T.kind k (e.1 k) = false) → stab e ≠ ⊥)
+    (hedge' : ∀ e : T'.Sys, (∀ j, ∃ (k : J') (_ : k ⟶ j), T'.kind k (e.1 k) = false) →
+      stab e ≠ ⊥) :
+    IsGraphic T T' α ↔ IsGroupTheoreticallyVerticial T T' α :=
+  isGraphic_iff_isGroupTheoreticallyVerticial (pscAdj_of_estranged hT hE hB hedge)
+    (pscAdj_of_estranged hT' hE' hB' hedge')
 
 end TreeTower
 

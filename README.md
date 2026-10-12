@@ -137,31 +137,41 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   `S ×_A SemilinearAut R A B` modulo `ker α × 1`; transition maps preserve deck groups and induce
   the maps of trees (`Andre/OrbStageFunctor.lean`).
 * **Semi-graphs of anabelioids and tree towers** (Blueprint §12, IUT wall P13; [SemiAnbd] §§1–3,
-  [CombGC] Thm. 1.6). Semi-graphs (`SemiAnbd/SemiGraph.lean`) and semi-graphs of anabelioids in
-  group form with their category of finite coverings `B(𝒢)`, the fundamental group
-  `SemiGraphOfAnabelioids.Pi` (automorphisms of the fibre functor) and the verticial
-  homomorphisms (`SemiAnbd/Anabelioid.lean`; anabelioids are Mathlib's Galois categories,
-  `anabelioidEquiv`). Groups acting on trees: the gate lemma, the centre of a finite set and the
-  **fixed point theorem** `TreeGeom.exists_fixed` (a group acting without inversions with a finite
-  invariant set fixes a vertex; `SemiAnbd/TreeFixedPoint.lean`). **Tree towers**
-  (`SemiAnbd/TreeTower.lean`): a group `Γ` with homomorphisms to groups acting on trees and
-  equivariant non-expanding maps of trees, the shape of `lim Π_Lv`; verticial subgroups
-  `TreeTower.stab s` of compatible systems of vertices are **commensurably terminal**
-  (`commensurator_stab`) and pairwise incomparable (`eq_of_stab_le`) when edge stabilizers have
-  infinite index (`HI`); subgroups with bounded displacement fix a system
-  (`exists_le_stab_of_bounded`); isomorphisms mapping verticial subgroups onto verticial subgroups
-  induce equivariant bijections of vertex systems (`nonempty_vertexCorrespondence`), and the
-  tree-tower form of the combinatorial Grothendieck conjecture,
+  Thm. 3.7; [CombGC] Prop. 1.5). Semi-graphs (`SemiAnbd/SemiGraph.lean`) and semi-graphs of
+  anabelioids in group form with their category of finite coverings `B(𝒢)`, the fundamental group
+  `SemiGraphOfAnabelioids.Pi` (automorphisms of the fibre functor) and the verticial homomorphisms
+  (`SemiAnbd/Anabelioid.lean`; anabelioids are Mathlib's Galois categories, `anabelioidEquiv`).
+  Groups acting on trees: the gate lemma, the centre of a finite set and the **fixed point theorem**
+  `TreeGeom.exists_fixed` (a group acting without inversions with a finite invariant set fixes a
+  vertex; `SemiAnbd/TreeFixedPoint.lean`). **Tree towers** (`SemiAnbd/TreeTower.lean`): a group `Γ`
+  with homomorphisms to groups acting on trees and equivariant non-expanding maps of trees, the
+  shape of `lim Π_Lv`; verticial subgroups `TreeTower.stab s` of compatible systems of vertices are
+  **commensurably terminal** (`commensurator_stab`) and pairwise incomparable (`eq_of_stab_le`) when
+  edge stabilizers have infinite index (`HI`, implied by elevatedness, `HI_of_elevated`); subgroups
+  with bounded displacement fix a system (`exists_le_stab_of_bounded`); in functorial **estranged**
+  towers every nontrivial subgroup with finite images (e.g. compact) lies in a verticial subgroup
+  (`exists_isVert_le_stab_of_estranged`, [SemiAnbd] Thm. 3.7(iii),
+  `SemiAnbd/TreeTowerCompact.lean`); isomorphisms mapping verticial subgroups onto verticial
+  subgroups induce equivariant bijections of vertex systems (`nonempty_vertexCorrespondence`), and
+  the tree-tower form of the combinatorial Grothendieck conjecture,
   `isGraphic_iff_isGroupTheoreticallyVerticial` (`SemiAnbd/CombGC.lean`), holds under a stated
-  PSC-type adjacency hypothesis. **For curves**: the tree covering of the dual graph is a tree
-  (`CurveConfig.isTree_treeGraph`), its combinatorial `π₁` and the deck groups have no torsion,
-  finite subgroups of stage groups embed into `Aut_R(B)ᵒᵖ` (`Andre/StageTorsion.lean`); stage
-  groups act on the trees (`UData.stageTree`, `Andre/StageTree.lean`), giving the tree tower
-  `andreTower` on André's group (`Andre/StageTower.lean`, `Andre/CurveTower.lean`), whose
-  verticial and edge-like subgroups are **compact** (`isCompact_stab_andreTower`). Not covered:
-  the profinite statements (no profinite trees), the comparison of verticial subgroups with
-  fundamental groups of components (no analytic or log geometry), the hypothesis `HI` for curves,
-  and "compact ⇒ verticial" (Blueprint §12.0, W6).
+  PSC-type adjacency hypothesis, which follows from estrangement, no branch inversions and
+  nontrivial edge-like subgroups (`pscAdj_of_estranged`, `isGraphic_iff_of_estranged`). **For
+  curves**: the tree covering of the dual graph is a tree (`CurveConfig.isTree_treeGraph`), its
+  combinatorial `π₁` and the deck groups have no torsion, finite subgroups of stage groups embed
+  into `Aut_R(B)ᵒᵖ` (`Andre/StageTorsion.lean`); stage groups act on the trees (`UData.stageTree`,
+  `Andre/StageTree.lean`), giving the tree tower `andreTower` on André's group
+  (`Andre/StageTower.lean`, `Andre/CurveTower.lean`), whose verticial and edge-like subgroups are
+  **compact** (`isCompact_stab_andreTower`); its trees are locally finite, its maps are functorial
+  up to one step and functorial along non-contracting morphisms (`stageTower_map_comp_eq_or_adj`,
+  `isFunctorial_restrict_stageTower`, `Andre/CurveTowerFunctor.lean`), so on any cofiltered
+  non-contracting subsystem of levels that is estranged, every nontrivial compact subgroup of
+  André's group fixes a compatible system of vertices and (with no branch inversions and nontrivial
+  edge-like subgroups) `PSCAdj` holds (`exists_le_stab_restrict_andreTower`,
+  `pscAdj_restrict_andreTower`). Not covered: the profinite statements (no profinite trees), the
+  comparison of verticial subgroups with fundamental groups of components (no analytic or log
+  geometry), and the geometric inputs for curves: `HI`/elevatedness, estrangement, and the existence
+  of a cofinal non-contracting subsystem of levels (Blueprint §12.5).
 
 ### Not covered
 

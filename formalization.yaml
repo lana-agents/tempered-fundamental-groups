@@ -155,6 +155,21 @@ status:
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
       literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.TreeTower.exists_isVert_le_stab_of_estranged"
+      file: "TemperedFundamentalGroups/SemiAnbd/TreeTowerCompact.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.TreeTower.pscAdj_of_estranged"
+      file: "TemperedFundamentalGroups/SemiAnbd/TreeTowerCompact.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.exists_le_stab_restrict_andreTower"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerFunctor.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
     - declaration: "TemperedFundamentalGroups.temperedToEtale"
       file: "TemperedFundamentalGroups/Tempered/Comparison.lean"
       sorry_count: 0
@@ -212,15 +227,20 @@ alignment:
       lean: "TemperedFundamentalGroups.temperedPi1"
       module: "TemperedFundamentalGroups/Tempered/Category.lean"
       status: "defined"
-    - source: "Mochizuki, Semi-graphs of anabelioids, Thm. 3.7 (commensurable terminality), tree-tower form"
+    - source: "Mochizuki, Semi-graphs of anabelioids, Cor. 2.7(i) and Thm. 3.7(ii) (commensurable terminality, infinite-index intersections), tree-tower form"
       lean: "TemperedFundamentalGroups.TreeTower.commensurator_stab"
       module: "TemperedFundamentalGroups/SemiAnbd/TreeTower.lean"
       status: "proved"
-      note: "For abstract tree towers under the hypothesis HI (edge groups of infinite index)."
-    - source: "Mochizuki, A combinatorial version of the Grothendieck conjecture, Thm. 1.6, tree-tower form"
+      note: "For abstract tree towers under the hypothesis HI (edge groups of infinite index; follows from elevatedness, Def. 2.4(i), TreeTower.HI_of_elevated)."
+    - source: "Mochizuki, Semi-graphs of anabelioids, Thm. 3.7(iii) (compact subgroups lie in verticial subgroups), tree-tower form"
+      lean: "TemperedFundamentalGroups.TreeTower.exists_isVert_le_stab_of_estranged"
+      module: "TemperedFundamentalGroups/SemiAnbd/TreeTowerCompact.lean"
+      status: "proved"
+      note: "For functorial, locally finite, estranged (Def. 2.4(iv)-type) tree towers with colour-preserving maps and no branch inversions; for André's group conditional on estrangement of a cofiltered non-contracting subsystem (exists_le_stab_restrict_andreTower)."
+    - source: "Mochizuki, A combinatorial version of the Grothendieck conjecture, Prop. 1.5(ii) (graphic iff group-theoretically verticial and edge-like), tree-tower form"
       lean: "TemperedFundamentalGroups.TreeTower.isGraphic_iff_isGroupTheoreticallyVerticial"
       module: "TemperedFundamentalGroups/SemiAnbd/CombGC.lean"
       status: "proved"
-      note: "Under the PSC-type adjacency hypothesis PSCAdj; the profinite statement is not formalized."
+      note: "The edge-like condition is replaced by the adjacency hypothesis PSCAdj, which follows from estrangement, no branch inversions and nontrivial edge-like subgroups (pscAdj_of_estranged, isGraphic_iff_of_estranged); the profinite statement and Thm. 1.6 (filtrations, numerical cuspidality) are not formalized."
 
 acknowledgements: "Built on Mathlib (Apache-2.0)."

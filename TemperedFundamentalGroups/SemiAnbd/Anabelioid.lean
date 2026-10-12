@@ -10,10 +10,10 @@ import TemperedFundamentalGroups.SemiAnbd.SemiGraph
 /-!
 # Anabelioids and semi-graphs of anabelioids (Blueprint §12.2, A1–A4)
 
-A connected anabelioid ([SemiAnbd] §1) is a Galois category. With a fibre functor `F` it is
-equivalent to the category of finite continuous `Aut F`-sets, `Aut F` profinite (Mathlib,
-`PreGaloisCategory.functorToContAction`). Following Blueprint §12.0 (D1) we therefore present
-semi-graphs of anabelioids by profinite groups (one choice of base points).
+A connected anabelioid ([SemiAnbd] §2, after [Mzk4] §1) is a Galois category. With a fibre
+functor `F` it is equivalent to the category of finite continuous `Aut F`-sets, `Aut F` profinite
+(Mathlib, `PreGaloisCategory.functorToContAction`). Following Blueprint §12.0 (D1) we therefore
+present semi-graphs of anabelioids by profinite groups (one choice of base points).
 
 * `anabelioidGroup F`: `Aut F` as a profinite group, `anabelioidEquiv F : C ≌ ContAction`.
 * `SemiGraphOfAnabelioids 𝔾` (**A2**): profinite vertex and edge groups with continuous branch

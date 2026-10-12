@@ -6,6 +6,7 @@ Authors: LANA Project
 
 import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.CurveTower
+import TemperedFundamentalGroups.Andre.CurveTowerFunctor
 import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.DualGraphMap
 import TemperedFundamentalGroups.Andre.DualGraphPi1
@@ -139,6 +140,7 @@ import TemperedFundamentalGroups.SemiAnbd.IncidenceTree
 import TemperedFundamentalGroups.SemiAnbd.SemiGraph
 import TemperedFundamentalGroups.SemiAnbd.TreeFixedPoint
 import TemperedFundamentalGroups.SemiAnbd.TreeTower
+import TemperedFundamentalGroups.SemiAnbd.TreeTowerCompact
 import TemperedFundamentalGroups.SemistableReduction.Abhyankar
 import TemperedFundamentalGroups.SemistableReduction.AbhyankarInequality
 import TemperedFundamentalGroups.SemistableReduction.AbhyankarLocal

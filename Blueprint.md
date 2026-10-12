@@ -2669,9 +2669,25 @@ G6 is complete (scheme and orbifold cases); nothing remains open in §11.
 
 Sources: [SemiAnbd] S. Mochizuki, *Semi-graphs of anabelioids*, Publ. RIMS 42 (2006), §§1–3;
 [CombGC] S. Mochizuki, *A combinatorial version of the Grothendieck conjecture*, Tohoku Math. J.
-59 (2007). Neither paper is in `.sources/`; the statements below are paraphrased from the
-published versions, and theorem numbers should be checked against them before they are cited
-downstream. Status legend as at the top of this file.
+59 (2007). Neither paper is in `.sources/`. The numbers cited below were **checked** (2026-10-12)
+against the author's preprints on his web page (`Semi-graphs of Anabelioids.pdf`, dated October
+2005, and `Combinatorial Grothendieck Conjecture.pdf`, dated April 2007; the published numbering
+is assumed to agree): [SemiAnbd] Lemma 1.8 (finite groups acting on trees: (ii)(a) fixed vertex
+or edge, (b) geodesics, (c) three fixed vertices), Def. 2.1 (semi-graph of anabelioids, `B(𝒢)`),
+Def. 2.4 ((i) elevated vertex, (iv) aloof/estranged edge), Prop. 2.6 (commensurability), Cor. 2.7
+((i) commensurators `C(Π_H) = Π_H`, (iii) incomparability), Prop. 3.6 (tempered group of a
+semi-graph of anabelioids), **Thm. 3.7** ((i) verticial subgroups, (ii) intersections of distinct
+verticial subgroups have infinite index, (iii) every compact subgroup lies in a verticial one,
+(iv) maximal compact = verticial), Cor. 3.9 (reconstruction of the semi-graph), Example 3.10 and
+Cor. 3.11 (curves); [CombGC] Def. 1.1 (PSC type, sturdy), Prop. 1.2 (commensurable terminality),
+Def. 1.4 (graphic, group-theoretically verticial/edge-like/cuspidal), **Prop. 1.5** ((i)
+incidence, (ii) graphic ⇔ group-theoretically edge-like and verticial), **Thm. 1.6** ((i)
+numerically cuspidal ⇔ group-theoretically cuspidal, (ii) graphic ⇔ graphically
+filtration-preserving, (iii) for sturdy `𝒢`: verticially filtration-preserving ⇔
+group-theoretically verticial). Earlier versions of this section cited [CombGC] Thm. 1.6 for
+"graphic ⇔ group-theoretically verticial" (that is Prop. 1.5(ii), with the edge-like condition)
+and [SemiAnbd] 3.7(i)/(iv) for W3/W6 (they are Cor. 2.7(i)/Thm. 3.7(ii) and Thm. 3.7(iii)); these
+are corrected below. Status legend as at the top of this file.
 
 ### 12.0 Scope decisions
 
@@ -2686,7 +2702,7 @@ downstream. Status legend as at the top of this file.
   group of the fibre functor on the category `B(𝒢)` of finite `𝒢`-coverings (vertex objects glued
   along closed edges). That `B(𝒢)` is a Galois category, and the description of `Π_𝒢` as the
   profinite fundamental group of a graph of profinite groups, are not formalized: Mathlib has
-  neither Bass–Serre theory nor profinite trees. The profinite form of [SemiAnbd] 3.7 needs the
+  neither Bass–Serre theory nor profinite trees. The profinite form of [SemiAnbd] Thm. 3.7 needs the
   fixed point theorem for finite groups acting on *profinite* trees (Zalesskii–Melnikov), which
   is out of reach (**[✗]**).
 * **D3 (tempered groups through tree towers).** The tempered group `Π^tp_𝒢` is
@@ -2735,7 +2751,7 @@ For a tree `T` (Mathlib `SimpleGraph.IsTree`) and a group acting by graph automo
 | T4 | **geodesics** `TreeGeom.smul_eq_of_mem_geodesic`: an automorphism fixing `x` and `y` fixes every `w` with `d(x, w) + d(w, y) = d(x, y)` (`eq_of_mem_geodesic`); `exists_adj_geodesic` (the neighbour of `x` towards `y`) | [L] |
 | T5 | `TreeGeom.dist_map_le`: non-expanding maps do not increase distances; `finite_ball`: balls of connected locally finite graphs are finite; `isAcyclic_of_rank`: graphs with a rank function and unique parents are acyclic | [L] |
 
-### 12.4 Tree towers: verticial subgroups and [SemiAnbd] §3 (`SemiAnbd/TreeTower.lean`)
+### 12.4 Tree towers: verticial subgroups and [SemiAnbd] §3 (`SemiAnbd/TreeTower.lean`, `SemiAnbd/TreeTowerCompact.lean`)
 
 A **tree tower** over a group `Π`: a cofiltered small category `J`; for `j : J` a group `G j`, a
 homomorphism `ρ j : Π →* G j`, a tree `T j` with a 2-colouring (`kind`: vertex/edge type)
@@ -2747,20 +2763,27 @@ W5 uses it). A **system** is a compatible family `s j ∈ T j`;
 `stab s` for systems of vertex type, **edge-like subgroups** those of edge type. Hypothesis
 **(HI s)** (edge groups have infinite index in vertex groups, "sturdiness"): for every `n` and `j`
 there are `f : k ⟶ j` such that for every neighbour `e` of `s k` the subgroup
-`{g ∈ stab s | ρ k g • e = e}` has index `> n` (or infinite) in `stab s`.
+`{g ∈ stab s | ρ k g • e = e}` has index `> n` (or infinite) in `stab s`. (HI) is the tempered
+form of [SemiAnbd] Def. 2.4(i) ("`v` is elevated"), and follows from it (W10); [CombGC]'s
+"sturdy" (components of genus `≥ 2`, Def. 1.1(ii), Rem. 1.1.5) plays the corresponding role for
+the unramified quotient.
 
 | # | Statement | Status |
 |---|---|---|
 | W1 | `TreeTower.stab_smul`: `stab (g • s) = g (stab s) g⁻¹`; `ne_of_ne`: systems differing at `j` differ at every `k ⟶ j` | [L] |
 | W2 | `TreeTower.exists_adj_fixed_inf`: for systems with `s k ≠ s' k`, `stab s ⊓ stab s'` fixes the neighbour of `s k` towards `s' k` (T4) | [L] |
-| W3 | **commensurable terminality** ([SemiAnbd] 3.7(i)-type) `TreeTower.commensurator_stab`: under (HI s), `commensurator (stab s) = stab s`; `normalizer_stab` | [L] |
-| W4 | **distinct systems give incomparable subgroups** `TreeTower.eq_of_stab_le`: under (HI s), `stab s ≤ stab s' → s = s'`; `eq_of_stab_eq` | [L] |
+| W3 | **commensurable terminality** ([SemiAnbd] Cor. 2.7(i), Thm. 3.7(ii)-type; [CombGC] Prop. 1.2(ii)) `TreeTower.commensurator_stab`: under (HI s), `commensurator (stab s) = stab s`; `normalizer_stab` | [L] |
+| W4 | **distinct systems give incomparable subgroups** ([SemiAnbd] Thm. 3.7(ii), Cor. 2.7(iii)-type) `TreeTower.eq_of_stab_le`: under (HI s), `stab s ≤ stab s' → s = s'`; `eq_of_stab_eq` | [L] |
 | W5 | **fixed systems for bounded subgroups** `TreeTower.exists_le_stab_of_bounded`: with `J` cofiltered, functorial tree maps (`TreeTower.IsFunctorial`) and locally finite trees, if `H ≤ Γ` moves a system `x` by at most `D` at every level, then `H ≤ stab s` for a system `s` with `d(x j, s j) ≤ D` (T3 levelwise, König's lemma `nonempty_sections_of_finite_cofiltered_system`) | [L] |
-| W6 | **maximal compact subgroups are verticial** ([SemiAnbd] 3.7(iv)-type): every compact subgroup of `Π` lies in a verticial subgroup. The levelwise images are finite and fix vertices (T3), but the displacement of a fixed base system can grow with the level (transition maps contract), so W5 does not apply directly; no proof in the abstract tower setting was found | [✗] (open; W5 is the conditional form) |
-| W7 | **graphicity skeleton** ([SemiAnbd] Cor. 3.11 / [CombGC] 1.6 shape): `TreeTower.VertexCorrespondence α` (a bijection `e` of verticial systems with `(HI)`, `TreeTower.VSys`, with `α (stab s) = stab (e s)`); `nonempty_vertexCorrespondence` for `α` mapping verticial subgroups onto verticial subgroups; uniqueness `ext'`, equivariance `e_smul`, group-theoretic adjacency `adjG_iff` (`AdjG s s'`: different, `stab s ⊓ stab s' ≠ ⊥`) | [L] |
+| W6 | **compact subgroups lie in verticial subgroups** ([SemiAnbd] Thm. 3.7(iii); (iv) "maximal compact = verticial" follows with W4). Mochizuki's proof: a compact `H` has finite images, so fixes a vertex at each level (Lemma 1.8(ii)(a)); total estrangement bounds the fixed sets of nontrivial `H` (≤ 2 vertices joined by an edge) at cofinally many levels; a compatible system is chosen from these finite sets. Formalized as `TreeTower.exists_sys_of_finite_fixSet` (`SemiAnbd/TreeTowerCompact.lean`): in a *functorial* tower, a subgroup fixing a vertex of a map-stable set `P j` at every level, with finitely many fixed vertices in `P` at cofinally many levels, fixes a system with values in `P` (fixed sets intersected with all images of finite deeper fixed sets form an inverse system of finite nonempty sets; König), and `exists_le_stab_of_finite_fixSet`. Unconditional for the abstract tower is impossible: without estrangement-type hypotheses, fixed sets can be infinite and systems need not exist (and without functoriality "systems" are not stable under the inverse-limit argument) | [L] (conditional: functorial; W9 gives the estranged form) |
+| W7 | **graphicity skeleton** ([SemiAnbd] Cor. 3.9 / [CombGC] Prop. 1.5(ii) shape): `TreeTower.VertexCorrespondence α` (a bijection `e` of verticial systems with `(HI)`, `TreeTower.VSys`, with `α (stab s) = stab (e s)`); `nonempty_vertexCorrespondence` for `α` mapping verticial subgroups onto verticial subgroups; uniqueness `ext'`, equivariance `e_smul`, group-theoretic adjacency `adjG_iff` (`AdjG s s'`: different, `stab s ⊓ stab s' ≠ ⊥`) | [L] |
 | W8 | `VertexCorrespondence.limAdj_iff`: under `PSCAdj` (group-theoretic adjacency of verticial systems ⇔ `LimAdj`, distance `≤ 2` at every level) for both towers, `e` preserves adjacency of the limit trees. This is a direct consequence of the hypothesis; the content is W7 | [L] (conditional on `PSCAdj`) |
+| W9 | **estrangement** `TreeTower.Estranged` ([SemiAnbd] Def. 2.4(iv), in the form used in the proof of Thm. 3.7(iii): at cofinally many levels a nontrivial element fixes a set of diameter `≤ 2`); `finite_fixSet_of_estranged` (locally finite trees); **`exists_le_stab_of_estranged`**: in functorial, locally finite, estranged towers every nontrivial subgroup with finite images at all levels lies in `stab s` for a system `s`; **`exists_isVert_le_stab_of_estranged`**: if moreover the maps preserve colours (`PreservesKind`) and elements fixing an edge vertex fix its neighbours (`NoBranchSwap`, "the action is over `𝒢`"), `s` is verticial — the tree-tower form of [SemiAnbd] Thm. 3.7(iii) | [L] |
+| W10 | **elevated systems** `TreeTower.Elevated` ([SemiAnbd] Def. 2.4(i): arbitrarily large subgroups of `stab s` meeting the stabilizers of all neighbours of `s k` trivially) and **`HI_of_elevated`** (the index estimate of [SemiAnbd] Prop. 2.6: `|N| = [N : N ∩ fix w] ≤ [stab s : stab s ∩ fix w]`) | [L] |
+| W11 | **the adjacency hypothesis** `PSCAdj` from Mochizuki-type hypotheses: `limAdj_of_adjG` (estrangement: group-theoretically adjacent ⇒ distance `≤ 2` at all levels, no functoriality needed); `adjG_of_limAdj` (functorial, `NoBranchSwap`, nontrivial stabilizers of eventually-edge-kind systems: the midpoints of two verticial systems adjacent in the limit form an edge-like system `e` with `stab e ≤ stab s ⊓ stab s'`); **`pscAdj_of_estranged`** | [L] |
+| W12 | **subsystems of levels** `TreeTower.restrict F` along a functor `F : J' ⥤ J`, `isFunctorial_restrict` (functorial if the maps compose along the image of `F`), `restrictSys`, `stab_le_stab_restrict` | [L] |
 
-### 12.5 The tree tower of a curve (`SemiAnbd/IncidenceTree.lean`, `SemiAnbd/CoverVertex.lean`, `Andre/StageTorsion.lean`, `Andre/StageTree.lean`, `Andre/StageTower.lean`, `Andre/CurveTower.lean`)
+### 12.5 The tree tower of a curve (`SemiAnbd/IncidenceTree.lean`, `SemiAnbd/CoverVertex.lean`, `Andre/StageTorsion.lean`, `Andre/StageTree.lean`, `Andre/StageTower.lean`, `Andre/CurveTower.lean`, `Andre/CurveTowerFunctor.lean`)
 
 | # | Statement | Status |
 |---|---|---|
@@ -2769,22 +2792,33 @@ there are `f : k ⟶ j` such that for every neighbour `e` of `s k` the subgroup
 | C3 | `CurveConfig.eq_one_of_isOfFinOrder`: the combinatorial `π₁` of the dual graph has no torsion (T3); `deck_eq_one_of_isOfFinOrder` for the deck group of `Z̃` (`deckLoopEquiv`), `universalCovering.deck_eq_one_of_isOfFinOrder` (`Andre/StageTorsion.lean`) | [L] |
 | C4 | `eq_one_of_isOfFinOrder_of_stageLevel`, `injective_stageLevel_comp_subtype`, `universalObj_injective_stageLevel`: every finite subgroup of a stage group `Π_Lv` embeds into the permutations of `F_L`, i.e. into `Aut_R(B)ᵒᵖ` (`ker_stageLevel` + C3) | [L] |
 | C5 | **the stage groups act on the trees of the dual graphs** (`SemiAnbd/CoverVertex.lean`, `Andre/StageTree.lean`): canonical points `canon` (`(η_i, t)` over components, `(s, t)` over special points) and the induced map of vertices `vmap hη f t` (tree coordinate of `f (canon t)`) of a continuous map of tree coverings, **non-expanding** (`vmap_adj`: canonical points specialise to the canonical points of their neighbours, and specialisation in the tree covering moves the tree coordinate by at most one step in the Alexandrov topology of the tree); maps over `ψ : Z → Z'` sending generic points to generic points and preserving/reflecting special points preserve canonical points and sheets and colours (`preservesCanon_of_over`, `preservesSheets_of_over`, `kind_vmap_of_over`), with the composition rules `vmap_comp_of_preservesCanon`/`…Sheets`; homeomorphisms of a curve permute components, generic points and special points (`curveConfig_η_homeo`, `curveConfig_mem_S_homeo`); `treeMap_comp`, `treeMap_id`, **`treeMap_eq_of_fibreMap_eq`** (same map of fibres ⇒ same map of trees: rigidity of connected étale algebras, dominance of `j`, unique lifting); **`autTree : Aut U →* Perm (K.Tree r)`** for `U = universalObj` by coloured graph automorphisms (`adj_autTree_iff`, `kind_autTree`); `UData` (identification of a Galois object with `universalObj`), **`UData.stageTree`**: the stage group acts on the tree | [L] |
-| C6 | **the tree tower of a curve** (`Andre/StageTower.lean`, `Andre/CurveTower.lean`): the maps of vertices along morphisms `UData.vmapHom` (non-expanding, equivariant along transitions `vmapHom_treeAut`), **`stageTower hgal hrig D : TreeTower (limGroup Φ 𝒢) (PtGal Φ 𝒢)`**, `curveTower` on `stageLimit` (members of `galW` are universal Galois objects, `nonempty_uData_of_galClassW`), **`andreTower`** on André's group (pull-back `TreeTower.comap` along `andreGroupHomeoLim`). Stage stabilizers of vertices are finite (`UData.finite_stab`: an automorphism fixing a vertex and the level is trivial on fibres, `stageOf_eq_one_of_fixed`; `End_R(B)` is finite), hence **verticial and edge-like subgroups of `lim Π_Lv` and of André's group are compact** (`isCompact_stab`, `isCompact_stab_curveTower`, `isCompact_stab_andreTower`). W1, W2 apply unconditionally, W3, W4, W7 under `(HI)`. Not proved: `(HI)` for curves (needs coverings with large decomposition groups at every component, i.e. geometry of the special fibre), functoriality of the vertex maps (`IsFunctorial`, false in general because transition maps contract components; so W5 does not apply), and the identification of the verticial subgroups with fundamental groups of components (D4) | [L]; (HI), D4 [✗] |
+| C6 | **the tree tower of a curve** (`Andre/StageTower.lean`, `Andre/CurveTower.lean`): the maps of vertices along morphisms `UData.vmapHom` (non-expanding, equivariant along transitions `vmapHom_treeAut`), **`stageTower hgal hrig D : TreeTower (limGroup Φ 𝒢) (PtGal Φ 𝒢)`**, `curveTower` on `stageLimit` (members of `galW` are universal Galois objects, `nonempty_uData_of_galClassW`), **`andreTower`** on André's group (pull-back `TreeTower.comap` along `andreGroupHomeoLim`). Stage stabilizers of vertices are finite (`UData.finite_stab`: an automorphism fixing a vertex and the level is trivial on fibres, `stageOf_eq_one_of_fixed`; `End_R(B)` is finite), hence **verticial and edge-like subgroups of `lim Π_Lv` and of André's group are compact** (`isCompact_stab`, `isCompact_stab_curveTower`, `isCompact_stab_andreTower`). W1, W2 apply unconditionally, W3, W4, W7 under `(HI)`. Not proved: `(HI)` for curves (C10), functoriality of the vertex maps on all levels (`IsFunctorial`, false in general because transition maps contract components; see C8), and the identification of the verticial subgroups with fundamental groups of components (D4) | [L]; (HI), D4 [✗] |
+| C7 | **local finiteness** (`Andre/CurveTowerFunctor.lean`): `CurveConfig.finite_neighborSet` (finitely many components: a vertex has one parent and its children are determined by their last vertex, a component or one of the finitely many special points), `finite_neighborSet_stageTower` | [L] |
+| C8 | **functoriality of the curve tower**: `stageTower_map_id`; **`stageTower_map_comp_eq_or_adj`**: `map (f ≫ g) x` and `map g (map f x)` are equal or adjacent (`CurveConfig.vmap_comp_eq_or_adj`: the image of a point of a sheet over a component is a specialisation of the image of the generic point, and specialisation moves the tree coordinate by at most one step), so the tower is functorial up to one step; `UData.NonContracting`, `NonContracting` (the map of tree coverings sends canonical points to canonical points: no component goes to a closed non-special point), **`stageTower_map_comp`** (functorial along non-contracting morphisms) and **`isFunctorial_restrict_stageTower`**: the curve tower restricted to any subsystem `F : J' ⥤ PtGal` of levels with non-contracting transition maps is functorial. Not proved: the existence of a *cofiltered, cofinal* such subsystem (for curves this is simultaneous semistable reduction: semistable models of the coverings refining each other so that the maps of special fibres are finite on components; the repository's levels are not chosen compatibly). W5/W6 cannot be run with the "functorial up to one step" maps directly: compatible systems are defined by exact compatibility, and an inverse system along non-functorial maps has no König sections in general | [L]; cofinal subsystem [✗] |
+| C9 | **W6 and `PSCAdj` for André's group, conditional**: `finite_map_of_isCompact`, `finite_map_of_isCompact_andre` (compact subgroups have finite images in the discrete stage groups); **`exists_le_stab_restrict_andreTower`**: for a cofiltered non-contracting subsystem `F` on which `andreTower.restrict F` is estranged, every nontrivial compact subgroup of André's group fixes a compatible system of vertices; **`pscAdj_restrict_andreTower`**: with moreover `NoBranchSwap` and nontrivial edge-like subgroups, `PSCAdj` holds (so CG3' applies). The hypotheses (estrangement: nontrivial elements of decomposition groups of components fix only small subtrees; no branch inversions; nontrivial node inertia) are the PSC-type properties of the pro-`Σ` admissible tower ([SemiAnbd] Example 2.10: totally elevated, totally estranged); they need the geometry of coverings of the special fibre and are not proved | [L] (conditional) |
+| C10 | **(HI) for curves.** By W10 it suffices that vertex systems are elevated. The precise hypothesis is not combinatorial: (HI) concerns the decomposition groups `stab s` of components, not the deck group, so "the dual graph has a cycle" or "the deck group is infinite" (e.g. Tate curves) is irrelevant. It should hold for systems of *hyperbolic* components (the decomposition group surjects onto `π₁` of the component minus its nodes, in which inertia groups of points have infinite index), and it can fail for systems of semistable bridges (components `ℙ¹` with exactly two nodes at every level, e.g. along the skeleton of a Tate curve) as long as only tame coverings are seen: then the decomposition group is the common inertia group of both nodes and the neighbours are fixed. Whether wild (Artin–Schreier) coverings restore (HI) for such systems in André's tower is not decided here | [✗] |
 
 ### 12.6 The combinatorial Grothendieck conjecture (`SemiAnbd/CombGC.lean`, items CG1–CG4)
 
-[CombGC] Thm. 1.6 (paraphrase): let `𝒢`, `ℋ` be semi-graphs of anabelioids of (pro-`Σ`) PSC
-type and `α : Π_𝒢 ≅ Π_ℋ` an isomorphism of profinite groups. Then `α` is **graphic** (it maps
-verticial, edge-like and cuspidal subgroups to the same kind, so induces an isomorphism of
-semi-graphs) if and only if it is **group-theoretically verticial** (it maps verticial subgroups
-onto verticial subgroups). Corollaries give graphicity from group-theoretic cuspidality and a
-compatible outer Galois action of an inertia group.
+[CombGC] Prop. 1.5(ii) (checked): let `𝒢`, `ℋ` be semi-graphs of anabelioids of (pro-`Σ`) PSC
+type and `α : Π_𝒢 ≅ Π_ℋ` an isomorphism of profinite groups. Then `α` is **graphic** (it arises
+from an isomorphism of semi-graphs of anabelioids, Def. 1.4(i)) if and only if it is
+**group-theoretically edge-like and group-theoretically verticial** (it maps the edge-like, resp.
+verticial, subgroups onto the edge-like, resp. verticial, subgroups, Def. 1.4(iv)). [CombGC]
+Thm. 1.6 (checked) is the "criterion for graphicity": (i) numerically cuspidal ⇔
+group-theoretically cuspidal; (ii) graphic ⇔ graphically filtration-preserving (on the
+abelianizations of all finite étale coverings); (iii) for sturdy `𝒢`, `ℋ`, an isomorphism of the
+unramified quotients is verticially filtration-preserving ⇔ group-theoretically verticial. The
+tree-tower statement CG3 below is the tempered analogue of Prop. 1.5(ii) in which the edge-like
+condition is replaced by the adjacency hypothesis `PSCAdj` (edges are recovered as group-theoretic
+adjacency); Thm. 1.6 (filtrations, weights) is not formalized.
 
 | # | Statement | Status |
 |---|---|---|
 | CG1 | `TreeTower.IsGroupTheoreticallyVerticial α`, `TreeTower.IsGraphic α` (a vertex correspondence preserving `LimAdj`) | [L] |
 | CG2 | `IsGraphic.isGroupTheoreticallyVerticial` (the easy direction) | [L] |
-| CG3 | `isGraphic_of_isGroupTheoreticallyVerticial`, `isGraphic_iff_isGroupTheoreticallyVerticial`: verticial ⇔ graphic for tree towers under `PSCAdj` (W7 + W8) | [L] (conditional on `PSCAdj`) |
+| CG3 | `isGraphic_of_isGroupTheoreticallyVerticial`, `isGraphic_iff_isGroupTheoreticallyVerticial`: verticial ⇔ graphic for tree towers under `PSCAdj` (W7 + W8); [CombGC] Prop. 1.5(ii)-type | [L] (conditional on `PSCAdj`) |
+| CG3' | **`isGraphic_iff_of_estranged`**: the same for functorial, estranged towers without branch inversions whose edge-like subgroups are nontrivial (W11: these imply `PSCAdj`) | [L] (conditional on these hypotheses) |
 | CG4 | the profinite statement (needs profinite trees, D2) and the PSC-type hypotheses for curves (D4) | [✗] |
 
 ### 12.7 Status of P13
@@ -2792,11 +2826,20 @@ compatible outer Galois action of an inertia group.
 Formalized: semi-graphs and semi-graphs of anabelioids in group form with `B(𝒢)` and `Π_𝒢`
 (S1–S3, A1–A4); the fixed point theory of groups acting on trees (T1–T5); tree towers with
 verticial subgroups, commensurable terminality, incomparability, fixed systems of bounded
-subgroups and vertex correspondences (W1–W5, W7, W8); the tree-tower form of the combinatorial
-Grothendieck conjecture (CG1–CG3); for curves, the tree of the dual graph, torsion-freeness of its
-`π₁`, finite subgroups of stage groups, the action of the stage groups on the trees and the tree
-tower `andreTower` on André's group, whose verticial and edge-like subgroups are compact
-(C1–C6). Conditional: W3, W4, W7 need `(HI)`, W8 and CG3 need `PSCAdj`; neither is proved for
-curves. Open or out of reach: W6 (compact ⇒ verticial), A5 and CG4 (Galois-category structure of
-`B(𝒢)`, profinite trees), D4 (verticial subgroups as fundamental groups of components; analytic
-or log geometry), `(HI)` for curves.
+subgroups and vertex correspondences (W1–W5, W7, W8); the tree-tower form of [SemiAnbd]
+Thm. 3.7(iii) ("compact ⇒ verticial") for functorial estranged towers (W6, W9), (HI) from
+elevatedness (W10), `PSCAdj` from estrangement, no branch inversions and nontrivial edge-like
+subgroups (W11), subsystems of levels (W12); the tree-tower form of the combinatorial
+Grothendieck conjecture (CG1–CG3, CG3'); for curves, the tree of the dual graph, torsion-freeness
+of its `π₁`, finite subgroups of stage groups, the action of the stage groups on the trees and the
+tree tower `andreTower` on André's group, whose verticial and edge-like subgroups are compact
+(C1–C6); local finiteness, functoriality up to one step and along non-contracting morphisms, and
+the conditional forms of W6 and `PSCAdj` for André's group on non-contracting estranged
+subsystems (C7–C9). Theorem numbers of [SemiAnbd], [CombGC] checked against the author's
+preprints (§12, Sources). Conditional: W3, W4, W7 need `(HI)`; W8, CG3 need `PSCAdj`; W5, W6,
+W9, W11 need functoriality. Open or out of reach: for curves, (HI)/elevatedness (C10),
+estrangement, no branch inversions and nontrivial node stabilizers, and a cofinal cofiltered
+non-contracting subsystem of levels (C8, C9; these are geometric statements about coverings of
+the special fibre, simultaneous semistable reduction); A5 and CG4 (Galois-category structure of
+`B(𝒢)`, profinite trees); D4 (verticial subgroups as fundamental groups of components; analytic
+or log geometry).
