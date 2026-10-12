@@ -384,6 +384,23 @@ theorem nonempty_vertexCorrespondence (α : Γ ≃* Γ')
   · exact VSys.ext_stab (VertexCorrespondence.map_stab_inj (by rw [he', he]))
   · exact VSys.ext_stab (by rw [← he, he'])
 
+/-! ### Pulling back towers along group homomorphisms -/
+
+/-- The tower pulled back along a homomorphism `φ : Γ' →* Γ`. -/
+def comap {Γ' : Type*} [Group Γ'] (φ : Γ' →* Γ) : TreeTower Γ' J :=
+  { T with
+    ρ := fun j ↦ (T.ρ j).comp φ
+    map_smul := fun f g x ↦ T.map_smul f (φ g) x }
+
+/-- Systems of the pulled back tower are the systems of `T`. -/
+def comapSys {Γ' : Type*} [Group Γ'] (φ : Γ' →* Γ) : T.Sys ≃ (T.comap φ).Sys := Equiv.refl _
+
+lemma stab_comap {Γ' : Type*} [Group Γ'] (φ : Γ' →* Γ) (s : T.Sys) :
+    stab (T.comapSys φ s) = (stab s).comap φ := by
+  ext g
+  rw [mem_stab, Subgroup.mem_comap, mem_stab]
+  rfl
+
 end TreeTower
 
 end TemperedFundamentalGroups

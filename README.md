@@ -136,6 +136,32 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   (SemilinearAut R A B)ᵐᵒᵖ → 1`, the image on level classes being the action of
   `S ×_A SemilinearAut R A B` modulo `ker α × 1`; transition maps preserve deck groups and induce
   the maps of trees (`Andre/OrbStageFunctor.lean`).
+* **Semi-graphs of anabelioids and tree towers** (Blueprint §12, IUT wall P13; [SemiAnbd] §§1–3,
+  [CombGC] Thm. 1.6). Semi-graphs (`SemiAnbd/SemiGraph.lean`) and semi-graphs of anabelioids in
+  group form with their category of finite coverings `B(𝒢)`, the fundamental group
+  `SemiGraphOfAnabelioids.Pi` (automorphisms of the fibre functor) and the verticial
+  homomorphisms (`SemiAnbd/Anabelioid.lean`; anabelioids are Mathlib's Galois categories,
+  `anabelioidEquiv`). Groups acting on trees: the gate lemma, the centre of a finite set and the
+  **fixed point theorem** `TreeGeom.exists_fixed` (a group acting without inversions with a finite
+  invariant set fixes a vertex; `SemiAnbd/TreeFixedPoint.lean`). **Tree towers**
+  (`SemiAnbd/TreeTower.lean`): a group `Γ` with homomorphisms to groups acting on trees and
+  equivariant non-expanding maps of trees, the shape of `lim Π_Lv`; verticial subgroups
+  `TreeTower.stab s` of compatible systems of vertices are **commensurably terminal**
+  (`commensurator_stab`) and pairwise incomparable (`eq_of_stab_le`) when edge stabilizers have
+  infinite index (`HI`); subgroups with bounded displacement fix a system
+  (`exists_le_stab_of_bounded`); isomorphisms mapping verticial subgroups onto verticial subgroups
+  induce equivariant bijections of vertex systems (`nonempty_vertexCorrespondence`), and the
+  tree-tower form of the combinatorial Grothendieck conjecture,
+  `isGraphic_iff_isGroupTheoreticallyVerticial` (`SemiAnbd/CombGC.lean`), holds under a stated
+  PSC-type adjacency hypothesis. **For curves**: the tree covering of the dual graph is a tree
+  (`CurveConfig.isTree_treeGraph`), its combinatorial `π₁` and the deck groups have no torsion,
+  finite subgroups of stage groups embed into `Aut_R(B)ᵒᵖ` (`Andre/StageTorsion.lean`); stage
+  groups act on the trees (`UData.stageTree`, `Andre/StageTree.lean`), giving the tree tower
+  `andreTower` on André's group (`Andre/StageTower.lean`, `Andre/CurveTower.lean`), whose
+  verticial and edge-like subgroups are **compact** (`isCompact_stab_andreTower`). Not covered:
+  the profinite statements (no profinite trees), the comparison of verticial subgroups with
+  fundamental groups of components (no analytic or log geometry), the hypothesis `HI` for curves,
+  and "compact ⇒ verticial" (Blueprint §12.0, W6).
 
 ### Not covered
 
@@ -178,6 +204,8 @@ Library sources live under `TemperedFundamentalGroups/`:
 * `Topology/`: covering spaces of special fibres, universal coverings and lengths;
 * `SemistableReduction/`: semistable reduction (W4–W10) and Zariski connectedness;
 * `Andre/`: André's group, Theorem A, and Theorem B with the Tate objects;
+* `SemiAnbd/`: semi-graphs of anabelioids, groups acting on trees, tree towers and the
+  combinatorial Grothendieck conjecture;
 * `Orbicurve/`: IUT's model orbicurves `E ∖ (E[ℓ] + M)`.
 
 Every file must be imported from the root module `TemperedFundamentalGroups.lean`.
