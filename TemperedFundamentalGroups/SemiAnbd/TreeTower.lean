@@ -15,9 +15,10 @@ inverse limit `lim_j Γ_j` of discrete groups `Γ_j`, each acting on a tree `T_j
 combinatorial covering of the dual semi-graph of a finite Galois covering, barycentrically
 subdivided). A **tree tower** over a group `Γ` records this structure: a category `J` of levels,
 homomorphisms `ρ j : Γ →* G j`, trees `T j` with a 2-colouring (`kind`: vertices and edges of the
-dual graph) preserved by the actions, and functorial, equivariant, non-expanding maps of trees
-along the morphisms of `J` (non-expanding rather than graph morphisms, since for curves
-components of a covering may be contracted to points).
+dual graph) preserved by the actions, and equivariant, non-expanding maps of trees along the
+morphisms of `J` (non-expanding rather than graph morphisms, and not required to be functorial,
+since for curves components of a covering may be contracted to points; functoriality,
+`TreeTower.IsFunctorial`, is only used for W5).
 
 A **system** is a compatible family of vertices `s j ∈ T j`; `Γ` acts on systems and
 `stab s` is the stabilizer. Verticial subgroups are the `stab s` for systems of vertex kind.
@@ -64,8 +65,6 @@ structure TreeTower (Γ : Type x) [Group Γ] (J : Type u) [Category.{v} J] where
   kind_adj : ∀ j (x y : V j), (graph j).Adj x y → kind j x ≠ kind j y
   /-- The map of trees along a morphism of levels. -/
   map : ∀ {j k : J}, (j ⟶ k) → V j → V k
-  map_id : ∀ j (x : V j), map (𝟙 j) x = x
-  map_comp : ∀ {j k l : J} (f : j ⟶ k) (g : k ⟶ l) (x : V j), map (f ≫ g) x = map g (map f x)
   map_smul : ∀ {j k : J} (f : j ⟶ k) (g : Γ) (x : V j), map f (ρ j g • x) = ρ k g • map f x
   map_adj : ∀ {j k : J} (f : j ⟶ k) (x y : V j), (graph j).Adj x y →
     (graph k).Adj (map f x) (map f y) ∨ map f x = map f y
@@ -228,10 +227,20 @@ section Bounded
 
 variable [IsCofilteredOrEmpty J]
 
-/-- **W5**: in a tower of locally finite trees, a subgroup `H` moving a system `x` by at most
-`D` at every level fixes a system `s` with `d(x j, s j) ≤ D` at every level (T3 at each level;
-the fixed vertices in the `D`-balls form an inverse system of finite nonempty sets, König). -/
-theorem exists_le_stab_of_bounded (hlf : ∀ j (v : T.V j), ((T.graph j).neighborSet v).Finite)
+variable (T) in
+/-- The maps of trees are functorial. (Not part of the definition: for curves, components can be
+contracted by transition maps, and the induced maps of vertices need not compose.) -/
+structure IsFunctorial : Prop where
+  map_id : ∀ j (x : T.V j), T.map (𝟙 j) x = x
+  map_comp : ∀ {j k l : J} (f : j ⟶ k) (g : k ⟶ l) (x : T.V j),
+    T.map (f ≫ g) x = T.map g (T.map f x)
+
+/-- **W5**: in a functorial tower of locally finite trees, a subgroup `H` moving a system `x` by
+at most `D` at every level fixes a system `s` with `d(x j, s j) ≤ D` at every level (T3 at each
+level; the fixed vertices in the `D`-balls form an inverse system of finite nonempty sets,
+König). -/
+theorem exists_le_stab_of_bounded (hT : T.IsFunctorial)
+    (hlf : ∀ j (v : T.V j), ((T.graph j).neighborSet v).Finite)
     (H : Subgroup Γ) (x : T.Sys) (D : ℕ)
     (hD : ∀ j, ∀ g ∈ H, (T.graph j).dist (x.1 j) (T.ρ j g • x.1 j) ≤ D) :
     ∃ s : T.Sys, H ≤ stab s ∧ ∀ j, (T.graph j).dist (x.1 j) (s.1 j) ≤ D := by
@@ -245,8 +254,8 @@ theorem exists_le_stab_of_bounded (hlf : ∀ j (v : T.V j), ((T.graph j).neighbo
   let F : J ⥤ Type w :=
     { obj j := S j
       map f := TypeCat.ofHom fun v ↦ ⟨T.map f v.1, hS f v.1 v.2⟩
-      map_id j := by ext v; exact T.map_id j v.1
-      map_comp f g := by ext v; exact T.map_comp f g v.1 }
+      map_id j := by ext v; exact hT.map_id j v.1
+      map_comp f g := by ext v; exact hT.map_comp f g v.1 }
   have hfin : ∀ j, Finite (F.obj j) := fun j ↦
     ((finite_ball (T.isTree j).connected (hlf j) (x.1 j) D).subset fun v hv ↦ hv.1).to_subtype
   have hne : ∀ j, Nonempty (F.obj j) := by

@@ -26,6 +26,9 @@ Let `G` be a tree (`SimpleGraph.IsTree`).
   towards `y`.
 * `TreeGeom.dist_map_le` (**T5**): non-expanding maps do not increase distances;
   `TreeGeom.finite_ball`: balls in locally finite connected graphs are finite.
+* `TreeGeom.isAcyclic_of_rank`: graphs in which every vertex has at most one neighbour of smaller
+  rank, adjacent ranks differing by one, are acyclic (used for the tree covering of an incidence
+  graph, `SemiAnbd/IncidenceTree.lean`).
 -/
 
 namespace TemperedFundamentalGroups.TreeGeom
@@ -360,5 +363,36 @@ lemma exists_adj_geodesic (hG : G.Connected) {x y : V} (hxy : x ≠ y) :
   omega
 
 end Geodesic
+
+section Rank
+
+/-- A graph with a rank function such that adjacent vertices have ranks differing by one and
+every vertex has at most one neighbour of smaller rank (a "parent") is acyclic. -/
+theorem isAcyclic_of_rank (rk : V → ℕ) (hadj : ∀ x y, G.Adj x y → rk x = rk y + 1 ∨ rk y = rk x + 1)
+    (huniq : ∀ x y z, G.Adj x y → G.Adj x z → rk y < rk x → rk z < rk x → y = z) :
+    G.IsAcyclic := by
+  classical
+  intro v c hc
+  obtain ⟨m, hm, hmax⟩ := c.support.toFinset.exists_max_image rk ⟨v, by simp⟩
+  have hm' : m ∈ c.support := by simpa using hm
+  have hc' : (c.rotate m hm').IsCycle := hc.rotate hm'
+  have hsub : ∀ x ∈ (c.rotate m hm').support, rk x ≤ rk m := by
+    intro x hx
+    refine hmax x (List.mem_toFinset.2 ?_)
+    rw [Walk.rotate, Walk.mem_support_append_iff] at hx
+    rcases hx with hx | hx
+    · exact Walk.support_dropUntil_subset_support _ _ hx
+    · exact Walk.support_takeUntil_subset_support _ _ hx
+  have hnil := hc'.not_nil
+  have h1 := (c.rotate m hm').adj_snd hnil
+  have h2 := (c.rotate m hm').adj_penultimate hnil
+  have r1 : rk (c.rotate m hm').snd ≤ rk m := hsub _ ((c.rotate m hm').getVert_mem_support 1)
+  have r2 : rk (c.rotate m hm').penultimate ≤ rk m :=
+    hsub _ ((c.rotate m hm').getVert_mem_support ((c.rotate m hm').length - 1))
+  have e1 := hadj _ _ h1
+  have e2 := hadj _ _ h2
+  exact hc'.snd_ne_penultimate (huniq m _ _ h1 h2.symm (by omega) (by omega))
+
+end Rank
 
 end TemperedFundamentalGroups.TreeGeom

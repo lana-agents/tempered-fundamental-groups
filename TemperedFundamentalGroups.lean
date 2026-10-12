@@ -48,6 +48,7 @@ import TemperedFundamentalGroups.Andre.Refinement
 import TemperedFundamentalGroups.Andre.StageFunctor
 import TemperedFundamentalGroups.Andre.StageGroup
 import TemperedFundamentalGroups.Andre.StageLimit
+import TemperedFundamentalGroups.Andre.StageTorsion
 import TemperedFundamentalGroups.Andre.TateChartMap
 import TemperedFundamentalGroups.Andre.TateCovering
 import TemperedFundamentalGroups.Andre.TateCoveringEq
@@ -130,6 +131,7 @@ import TemperedFundamentalGroups.Orbicurve.Stable
 import TemperedFundamentalGroups.Orbicurve.ZeroSet
 import TemperedFundamentalGroups.SemiAnbd.Anabelioid
 import TemperedFundamentalGroups.SemiAnbd.CombGC
+import TemperedFundamentalGroups.SemiAnbd.IncidenceTree
 import TemperedFundamentalGroups.SemiAnbd.SemiGraph
 import TemperedFundamentalGroups.SemiAnbd.TreeFixedPoint
 import TemperedFundamentalGroups.SemiAnbd.TreeTower

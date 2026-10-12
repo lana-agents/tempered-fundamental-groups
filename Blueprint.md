@@ -2709,18 +2709,18 @@ downstream. Status legend as at the top of this file.
 
 | # | Statement | Status |
 |---|---|---|
-| S1 | `SemiGraph`: vertices `V`, edges `E`, each edge with two branches `E × Bool`, each branch abutting to a vertex or to nothing (`ζ : E × Bool → Option V`); closed edges (both branches abut), open edges / cusps (exactly one abuts) | [P] |
-| S2 | the incidence (barycentric) graph `incGraph : SimpleGraph (V ⊕ E)` (`v ~ e` iff a branch of `e` abuts to `v`), bipartite by construction; `SemiGraph.Connected` | [P] |
-| S3 | morphisms of semi-graphs (vertices to vertices, edges to edges, branches to branches, compatible with `ζ`) induce maps of incidence graphs; composition | [P] |
+| S1 | `SemiGraph`: vertices `V`, edges `E`, each edge with two branches `E × Bool`, each branch abutting to a vertex or to nothing (`ζ : E × Bool → Option V`); `IsClosedEdge` (both branches abut), `IsOpenEdge` (cusps: exactly one abuts), `Abuts` | [L] |
+| S2 | the incidence (barycentric) graph `incGraph : SimpleGraph (V ⊕ E)` (`v ~ e` iff a branch of `e` abuts to `v`), 2-coloured (`kind`, `kind_ne_of_adj`); `SemiGraph.Connected` | [L] |
+| S3 | `SemiGraph.Hom` (vertices to vertices, edges to edges, branches to branches, compatible with `ζ`), `Hom.id`, `Hom.comp`; `Hom.incHom` (map of incidence graphs, `incHom_comp`, colour-preserving `kind_incHom`) | [L] |
 
 ### 12.2 Anabelioids and semi-graphs of anabelioids (`SemiAnbd/Anabelioid.lean`)
 
 | # | Statement | Status |
 |---|---|---|
-| A1 | the anabelioid group of a Galois category with fibre functor: `anabelioidGroup F := ProfiniteGrp.of (Aut F)` and the equivalence with continuous finite `Aut F`-sets (Mathlib) | [P] |
-| A2 | `SemiGraphOfAnabelioids 𝔾`: profinite groups `Π_v`, `Π_e`, continuous branch homomorphisms `Π_e → Π_{ζ b}` for abutting branches | [P] |
-| A3 | `B(𝒢)`: finite `𝒢`-coverings (finite continuous `Π_v`-sets `S_v`, for each closed edge a `Π_e`-equivariant gluing `S_{v₁} ≃ S_{v₂}`), morphisms, the category, the fibre functor at a vertex `v₀`, **`Π_𝒢 := Aut (fibre functor)`** | [P] |
-| A4 | the verticial homomorphism `Π_{v₀} →* Π_𝒢` (action on `S_{v₀}`), and edge homomorphisms `Π_e → Π_𝒢` for edges at `v₀` through the branch maps | [P] |
+| A1 | the anabelioid group of a Galois category with fibre functor: `anabelioidGroup F := ProfiniteGrp.of (Aut F)` and `anabelioidEquiv F : C ≌ ContAction FintypeCat (Aut F)` (Mathlib's `functorToContAction`) | [L] |
+| A2 | `SemiGraphOfAnabelioids 𝔾`: profinite groups `vGrp v`, `eGrp e`, continuous branch homomorphisms `br e b v : eGrp e ⟶ vGrp v` for abutting branches (`brHom`) | [L] |
+| A3 | `B(𝒢)` = `SemiGraphOfAnabelioids.Cov`: finite `𝒢`-coverings (finite `Π_v`-sets `S_v` with open stabilizers, for each closed edge a `Π_e`-equivariant gluing `S_{v₁} ≃ S_{v₂}`), morphisms, the category, the fibre functor `fibre v₀`, **`Pi v₀ := Aut (fibre v₀)`** | [L] |
+| A4 | the verticial homomorphism `vertHom v₀ : Π_{v₀} →* Π_𝒢` (action on `S_{v₀}`, `vertAut`), and `edgeHom` for branches abutting to `v₀` | [L] |
 | A5 | `B(𝒢)` is a connected Galois category for connected `𝔾`; `Π_𝒢` is the profinite completion of the graph-of-groups fundamental group | [✗] (D2) |
 
 ### 12.3 Trees: fixed points and geodesics (`SemiAnbd/TreeFixedPoint.lean`)
@@ -2729,18 +2729,20 @@ For a tree `T` (Mathlib `SimpleGraph.IsTree`) and a group acting by graph automo
 
 | # | Statement | Status |
 |---|---|---|
-| T1 | **gate lemma**: for adjacent `x ~ z` with `z` closer to `y` and `x` closer to `s`, `d(y, s) = d(y, z) + 1 + d(x, s)` | [P] |
-| T2 | **centre of a finite set**: for a finite nonempty `S`, the set of vertices minimising `x ↦ max_{s ∈ S} d(x, s)` is nonempty and any two of its elements are equal or adjacent | [P] |
-| T3 | **fixed point theorem**: a group acting without inversions (e.g. preserving a 2-colouring, as on an incidence graph) with a finite nonempty invariant set fixes a vertex; in particular every finite group acting without inversions fixes a vertex, and the fixed point can be chosen within `max_{s} d(x, s)` of any point `x` of the invariant set | [P] |
-| T4 | **geodesics**: an automorphism fixing `x` and `y` fixes every vertex of the path from `x` to `y`; in particular for `x ≠ y` it fixes the neighbour of `x` towards `y` | [P] |
-| T5 | non-expanding maps (adjacent to adjacent or equal) do not increase distances; balls of locally finite graphs are finite | [P] |
+| T1 | **gate lemma** `TreeGeom.dist_eq_gate'`: for adjacent `x ~ z` with `z` closer to `y` and `x` closer to `s`, `d(y, s) = d(z, y) + 1 + d(x, s)` (via `eq_of_adj_of_dist_lt`: at most one neighbour is closer to a given vertex) | [L] |
+| T2 | **centre of a finite set** `TreeGeom.adj_of_mem_centre`: two different minimisers of the eccentricity `ecc G S x = max_{s ∈ S} d(x, s)` are adjacent; `exists_centre` | [L] |
+| T3 | **fixed point theorem** `TreeGeom.exists_fixed`: a group acting by graph automorphisms without inversions (no vertex moved to a neighbour, e.g. colour-preserving on an incidence graph) with a finite nonempty invariant set `S` fixes a vertex within `ecc S x` of every `x ∈ S`; `exists_fixed_of_finite` (finite groups), `exists_fixed_of_bounded` (bounded orbits in locally finite trees) | [L] |
+| T4 | **geodesics** `TreeGeom.smul_eq_of_mem_geodesic`: an automorphism fixing `x` and `y` fixes every `w` with `d(x, w) + d(w, y) = d(x, y)` (`eq_of_mem_geodesic`); `exists_adj_geodesic` (the neighbour of `x` towards `y`) | [L] |
+| T5 | `TreeGeom.dist_map_le`: non-expanding maps do not increase distances; `finite_ball`: balls of connected locally finite graphs are finite; `isAcyclic_of_rank`: graphs with a rank function and unique parents are acyclic | [L] |
 
 ### 12.4 Tree towers: verticial subgroups and [SemiAnbd] §3 (`SemiAnbd/TreeTower.lean`)
 
 A **tree tower** over a group `Π`: a cofiltered small category `J`; for `j : J` a group `G j`, a
 homomorphism `ρ j : Π →* G j`, a tree `T j` with a 2-colouring (`kind`: vertex/edge type)
 preserved by an action of `G j` by graph automorphisms; for `f : j ⟶ k` a map `T j → T k` that is
-functorial, `ρ`-equivariant and non-expanding. A **system** is a compatible family `s j ∈ T j`;
+`ρ`-equivariant and non-expanding (functoriality, `TreeTower.IsFunctorial`, is not required: for
+curves, transition maps contract components and the induced vertex maps need not compose; only
+W5 uses it). A **system** is a compatible family `s j ∈ T j`;
 `Π` acts on systems, and `stab s := {g | ∀ j, ρ j g • s j = s j}`. **Verticial subgroups** are
 `stab s` for systems of vertex type, **edge-like subgroups** those of edge type. Hypothesis
 **(HI s)** (edge groups have infinite index in vertex groups, "sturdiness"): for every `n` and `j`
@@ -2749,27 +2751,27 @@ there are `f : k ⟶ j` such that for every neighbour `e` of `s k` the subgroup
 
 | # | Statement | Status |
 |---|---|---|
-| W1 | `stab (g • s) = g (stab s) g⁻¹`; systems differing at `j` differ at every `k ⟶ j` | [P] |
-| W2 | for systems `s ≠ s'`: `stab s ⊓ stab s'` fixes, at every deep enough level, the geodesic from `s k` to `s' k`, in particular a neighbour of `s k` (T4) | [P] |
-| W3 | **commensurable terminality** ([SemiAnbd] 3.7(i)-type): under (HI s), `commensurator (stab s) = stab s` | [P] |
-| W4 | **distinct systems give incomparable subgroups**: under (HI s), `stab s ≤ stab s' → s = s'`; hence `s ↦ stab s` is injective on systems satisfying (HI), and `stab s` is self-normalising | [P] |
-| W5 | **fixed systems for bounded subgroups**: with locally finite trees, if `H ≤ Π` moves a system `x` by at most `D` at every level, then `H ≤ stab s` for a system `s` with `d(x j, s j) ≤ D` (T3 levelwise, König's lemma `nonempty_sections_of_finite_cofiltered_system`) | [P] |
+| W1 | `TreeTower.stab_smul`: `stab (g • s) = g (stab s) g⁻¹`; `ne_of_ne`: systems differing at `j` differ at every `k ⟶ j` | [L] |
+| W2 | `TreeTower.exists_adj_fixed_inf`: for systems with `s k ≠ s' k`, `stab s ⊓ stab s'` fixes the neighbour of `s k` towards `s' k` (T4) | [L] |
+| W3 | **commensurable terminality** ([SemiAnbd] 3.7(i)-type) `TreeTower.commensurator_stab`: under (HI s), `commensurator (stab s) = stab s`; `normalizer_stab` | [L] |
+| W4 | **distinct systems give incomparable subgroups** `TreeTower.eq_of_stab_le`: under (HI s), `stab s ≤ stab s' → s = s'`; `eq_of_stab_eq` | [L] |
+| W5 | **fixed systems for bounded subgroups** `TreeTower.exists_le_stab_of_bounded`: with `J` cofiltered, functorial tree maps (`TreeTower.IsFunctorial`) and locally finite trees, if `H ≤ Γ` moves a system `x` by at most `D` at every level, then `H ≤ stab s` for a system `s` with `d(x j, s j) ≤ D` (T3 levelwise, König's lemma `nonempty_sections_of_finite_cofiltered_system`) | [L] |
 | W6 | **maximal compact subgroups are verticial** ([SemiAnbd] 3.7(iv)-type): every compact subgroup of `Π` lies in a verticial subgroup. The levelwise images are finite and fix vertices (T3), but the displacement of a fixed base system can grow with the level (transition maps contract), so W5 does not apply directly; no proof in the abstract tower setting was found | [✗] (open; W5 is the conditional form) |
-| W7 | **graphicity skeleton** ([SemiAnbd] Cor. 3.11 / [CombGC] 1.6 shape): an isomorphism `α : Π ≃* Π'` of tower groups mapping verticial subgroups (of systems satisfying (HI)) onto verticial subgroups induces a unique `α`-equivariant bijection of these systems with `α (stab s) = stab (α_V s)`; it preserves group-theoretic adjacency (`stab s ⊓ stab s'` nontrivial) | [P] |
-| W8 | adjacency recovery: under (PSC adjacency) — non-adjacent vertex systems have trivial intersection, adjacent ones nontrivial — `α_V` preserves adjacency of the limit graph, i.e. `α` is graphic | [P] (conditional on the stated hypothesis) |
+| W7 | **graphicity skeleton** ([SemiAnbd] Cor. 3.11 / [CombGC] 1.6 shape): `TreeTower.VertexCorrespondence α` (a bijection `e` of verticial systems with `(HI)`, `TreeTower.VSys`, with `α (stab s) = stab (e s)`); `nonempty_vertexCorrespondence` for `α` mapping verticial subgroups onto verticial subgroups; uniqueness `ext'`, equivariance `e_smul`, group-theoretic adjacency `adjG_iff` (`AdjG s s'`: different, `stab s ⊓ stab s' ≠ ⊥`) | [L] |
+| W8 | `VertexCorrespondence.limAdj_iff`: under `PSCAdj` (group-theoretic adjacency of verticial systems ⇔ `LimAdj`, distance `≤ 2` at every level) for both towers, `e` preserves adjacency of the limit trees. This is a direct consequence of the hypothesis; the content is W7 | [L] (conditional on `PSCAdj`) |
 
 ### 12.5 The tree tower of a curve (`SemiAnbd/IncidenceTree.lean`, `Andre/StageTorsion.lean`)
 
 | # | Statement | Status |
 |---|---|---|
-| C1 | the tree covering `K.Tree r` of the incidence graph (§11.3, G6.3) with `Tree.Adj` is a tree in Mathlib's sense (`isTree`), 2-coloured by the type of its head (component / special point) | [P] |
-| C2 | the deck group (`Loop`, acting by `translate`) acts by coloured graph automorphisms, freely on vertices | [P] |
-| C3 | hence the combinatorial `π₁` of the dual graph is torsion-free (T3), and so is the deck group of `Z̃` (`deckLoopEquiv`) | [P] |
-| C4 | every finite subgroup of a stage group `Π_Lv` maps injectively to `Aut_R(B)ᵒᵖ` (`stageGroup_extension`, C3) | [P] |
+| C1 | `CurveConfig.treeGraph K r`, **`CurveConfig.isTree_treeGraph`**: the tree covering `K.Tree r` of the incidence graph (§11.3, G6.3) with `Tree.Adj` is a tree in Mathlib's sense (acyclic by `isAcyclic_of_rank` with the walk length), 2-coloured by the type of its head (`Tree.kind`, `Tree.kind_ne_of_adj`) | [L] |
+| C2 | `instMulActionLoopTree`: the deck group (`Loop`, acting by `translate`) acts by coloured graph automorphisms (`adj_smul_iff`, `kind_smul`, `not_adj_smul`), freely (`eq_one_of_smul_eq`) | [L] |
+| C3 | `CurveConfig.eq_one_of_isOfFinOrder`: the combinatorial `π₁` of the dual graph has no torsion (T3); `deck_eq_one_of_isOfFinOrder` for the deck group of `Z̃` (`deckLoopEquiv`), `universalCovering.deck_eq_one_of_isOfFinOrder` (`Andre/StageTorsion.lean`) | [L] |
+| C4 | `eq_one_of_isOfFinOrder_of_stageLevel`, `injective_stageLevel_comp_subtype`, `universalObj_injective_stageLevel`: every finite subgroup of a stage group `Π_Lv` embeds into the permutations of `F_L`, i.e. into `Aut_R(B)ᵒᵖ` (`ker_stageLevel` + C3) | [L] |
 | C5 | the action of `Π_Lv` on the incidence tree (an automorphism of `U_Lv` acts on `Z̃` over its model automorphism, hence on sheets), extending C2; transition maps of trees from `treeMap` (non-expanding, contracting components mapped to points) | [P] (stretch) |
 | C6 | the tree tower on `andreGroup` (via `andreGroupHomeoLim`): verticial subgroups of `andreGroup` (decomposition groups of components) and edge-like subgroups (of nodes); W1–W5, W7 apply; (HI) for curves needs coverings with large decomposition groups at every component (geometry of the special fibre) | [P] (stretch); (HI) for curves [✗] |
 
-### 12.6 The combinatorial Grothendieck conjecture (`SemiAnbd/CombGC.lean`)
+### 12.6 The combinatorial Grothendieck conjecture (`SemiAnbd/CombGC.lean`, items CG1–CG4)
 
 [CombGC] Thm. 1.6 (paraphrase): let `𝒢`, `ℋ` be semi-graphs of anabelioids of (pro-`Σ`) PSC
 type and `α : Π_𝒢 ≅ Π_ℋ` an isomorphism of profinite groups. Then `α` is **graphic** (it maps
@@ -2780,7 +2782,7 @@ compatible outer Galois action of an inertia group.
 
 | # | Statement | Status |
 |---|---|---|
-| G1 | `IsGraphic α`, `IsGroupTheoreticallyVerticial α`, `IsGroupTheoreticallyCuspidal α` for families of verticial / edge-like subgroups of groups `Π`, `Π'` (abstract: families indexed by vertices and edges with incidence); `CombGCStatement` as a `Prop` | [P] |
-| G2 | graphic ⇒ group-theoretically verticial (the easy direction) | [P] |
-| G3 | verticial ⇒ graphic in the tempered tower setting, under (HI) and (PSC adjacency): W7 + W8 | [P] (conditional) |
-| G4 | the profinite statement (needs profinite trees, D2) and the PSC-type hypotheses for curves (D4) | [✗] |
+| CG1 | `TreeTower.IsGroupTheoreticallyVerticial α`, `TreeTower.IsGraphic α` (a vertex correspondence preserving `LimAdj`) | [L] |
+| CG2 | `IsGraphic.isGroupTheoreticallyVerticial` (the easy direction) | [L] |
+| CG3 | `isGraphic_of_isGroupTheoreticallyVerticial`, `isGraphic_iff_isGroupTheoreticallyVerticial`: verticial ⇔ graphic for tree towers under `PSCAdj` (W7 + W8) | [L] (conditional on `PSCAdj`) |
+| CG4 | the profinite statement (needs profinite trees, D2) and the PSC-type hypotheses for curves (D4) | [✗] |
