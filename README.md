@@ -190,6 +190,15 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   specialization of admissible coverings (for `HI` of hyperbolic components, estrangement and
   nontrivial edge-like subgroups of the tame part) and estrangement for wild coverings.
   Estrangement and nontrivial edge-like subgroups are not proved for any curve.
+* **The double covering `Ÿ → Y` of [EtTh] §1** (`Andre/TateObjectDouble.lean`, Blueprint B6′):
+  for Tate data with `2` and `x − e` units in `R` (`e` the `x`-coordinate of the `2`-torsion point
+  `√q`; the `2`-isogeny covering `E_{√q} → E_q` is `R[t]/(t² − (x − e))`), the object `Yddot` with
+  deck group `ℤ × ℤ/2` acting simply transitively on its fibre (`isDeckTorsor₂`), the continuous
+  character `character₂` and `piYddot` (`Π^tp_Ÿ`, open normal, `≤ Π^tp_Y`, of index `≤ 2` in it:
+  `relIndex_le_two`; index `2` given an element of `Π^tp_Y` swapping the sheets of `X'`,
+  `relIndex_eq_two`, e.g. a decomposition-group element moving `√(x − e)`:
+  `relIndex_eq_two_of_galois`). Not covered: the case `X = E ∖ {0}` itself, where the Kummer
+  presentation is not étale at the `2`-torsion point.
 
 ### Not covered
 
