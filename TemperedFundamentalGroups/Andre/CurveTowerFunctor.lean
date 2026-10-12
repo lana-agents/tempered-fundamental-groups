@@ -34,7 +34,10 @@ image of the generic point is not the canonical point of its vertex. We show:
   edge-like subgroups, the restricted tower satisfies `PSCAdj` (so CG3 applies).
 
 Neither the existence of a cofinal subsystem of non-contracting levels (semistable models
-refining each other: simultaneous semistable reduction) nor estrangement is proved here.
+refining each other: simultaneous semistable reduction) nor estrangement is proved here. Such a
+subsystem is not expected to exist once wild coverings are present (Blueprint §12.5, C8);
+`Andre/CurveTowerFull.lean` replaces it by node reflection, which gives functoriality on all
+levels.
 -/
 
 universe u v u' v'

@@ -168,10 +168,21 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   non-contracting subsystem of levels that is estranged, every nontrivial compact subgroup of
   André's group fixes a compatible system of vertices and (with no branch inversions and nontrivial
   edge-like subgroups) `PSCAdj` holds (`exists_le_stab_restrict_andreTower`,
-  `pscAdj_restrict_andreTower`). Not covered: the profinite statements (no profinite trees), the
-  comparison of verticial subgroups with fundamental groups of components (no analytic or log
-  geometry), and the geometric inputs for curves: `HI`/elevatedness, estrangement, and the existence
-  of a cofinal non-contracting subsystem of levels (Blueprint §12.5).
+  `pscAdj_restrict_andreTower`). If every transition map *reflects nodes* (a point on a single
+  component goes to a node only if its component does), the maps preserve sheets and André's tower
+  is functorial on all levels (`preservesSheets_of_reflectsSpecial`, `isFunctorial_andreTower`,
+  `Andre/CurveTowerFull.lean`); then, if the tower is estranged, every nontrivial compact subgroup
+  of André's group (or of a subgroup such as the geometric one) fixes a compatible system of
+  vertices of all levels and maximal compact subgroups are stabilizers of systems
+  (`exists_le_stab_andreTower`, `exists_le_stab_andreTower_of_le`, `exists_eq_stab_of_maximal`),
+  and CG3' holds for André's group (`isGraphic_iff_andreTower`). Not covered: the profinite
+  statements (no profinite trees), the comparison of verticial subgroups with fundamental groups
+  of components (no analytic or log geometry), and the geometric inputs for curves, which are
+  stated as missing theorems M1–M4 (Blueprint §12.5 C11–C12, §12.7): node reflection (commutative
+  algebra at nodes), specialization of admissible coverings (for `HI` of hyperbolic components,
+  estrangement and nontrivial edge-like subgroups of the tame part), no branch inversions from the
+  x-line structure, and estrangement for wild coverings. No class of curves is covered
+  unconditionally.
 
 ### Not covered
 

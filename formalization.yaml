@@ -170,6 +170,26 @@ status:
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
       literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.isFunctorial_andreTower"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerFull.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.exists_le_stab_andreTower"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerFull.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.exists_le_stab_andreTower_of_le"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerFull.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+    - declaration: "TemperedFundamentalGroups.isGraphic_iff_andreTower"
+      file: "TemperedFundamentalGroups/Andre/CurveTowerFull.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
     - declaration: "TemperedFundamentalGroups.temperedToEtale"
       file: "TemperedFundamentalGroups/Tempered/Comparison.lean"
       sorry_count: 0

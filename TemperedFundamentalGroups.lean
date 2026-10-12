@@ -6,6 +6,7 @@ Authors: LANA Project
 
 import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.CurveTower
+import TemperedFundamentalGroups.Andre.CurveTowerFull
 import TemperedFundamentalGroups.Andre.CurveTowerFunctor
 import TemperedFundamentalGroups.Andre.Defs
 import TemperedFundamentalGroups.Andre.DualGraphMap
