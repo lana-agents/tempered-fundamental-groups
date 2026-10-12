@@ -2786,3 +2786,17 @@ compatible outer Galois action of an inertia group.
 | CG2 | `IsGraphic.isGroupTheoreticallyVerticial` (the easy direction) | [L] |
 | CG3 | `isGraphic_of_isGroupTheoreticallyVerticial`, `isGraphic_iff_isGroupTheoreticallyVerticial`: verticial ⇔ graphic for tree towers under `PSCAdj` (W7 + W8) | [L] (conditional on `PSCAdj`) |
 | CG4 | the profinite statement (needs profinite trees, D2) and the PSC-type hypotheses for curves (D4) | [✗] |
+
+### 12.7 Status of P13
+
+Formalized: semi-graphs and semi-graphs of anabelioids in group form with `B(𝒢)` and `Π_𝒢`
+(S1–S3, A1–A4); the fixed point theory of groups acting on trees (T1–T5); tree towers with
+verticial subgroups, commensurable terminality, incomparability, fixed systems of bounded
+subgroups and vertex correspondences (W1–W5, W7, W8); the tree-tower form of the combinatorial
+Grothendieck conjecture (CG1–CG3); for curves, the tree of the dual graph, torsion-freeness of its
+`π₁`, finite subgroups of stage groups, the action of the stage groups on the trees and the tree
+tower `andreTower` on André's group, whose verticial and edge-like subgroups are compact
+(C1–C6). Conditional: W3, W4, W7 need `(HI)`, W8 and CG3 need `PSCAdj`; neither is proved for
+curves. Open or out of reach: W6 (compact ⇒ verticial), A5 and CG4 (Galois-category structure of
+`B(𝒢)`, profinite trees), D4 (verticial subgroups as fundamental groups of components; analytic
+or log geometry), `(HI)` for curves.
