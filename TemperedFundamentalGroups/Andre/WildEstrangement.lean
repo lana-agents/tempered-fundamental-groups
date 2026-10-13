@@ -26,8 +26,10 @@ repository has no such predicate, so `P` is a parameter):
 `estranged_comap_andreTower_iff` shows that the two together are exactly the estrangement of the
 tower pulled back to `Δ`; the consumers follow (`exists_le_stab_andreTower_of_tame_wild`,
 `exists_eq_stab_of_maximal_of_tame_wild`, `pscAdj_andreTower_of_tame_wild`,
-`isGraphic_iff_andreTower_of_tame_wild`). Neither `TameEstrangement` nor `WildEstrangement` is
-proved for any curve. Necessary conditions and the line case are in
+`isGraphic_iff_andreTower_of_tame_wild`). `WildEstrangement` is not proved for any curve;
+`TameEstrangement Δ RigidLevel` (levels whose ring has no nontrivial `R`-endomorphism) is proved
+in `Andre/TameEstrangement.lean` (`tameEstrangement_rigid`), together with the reduction of M4
+relative to these levels to elliptic estrangement. Necessary conditions and the line case are in
 `SemiAnbd/Estrangement.lean` (`TreeTower.WildEstranged.exists_not_mem`,
 `TreeTower.estranged_iff_of_lineAt`).
 -/

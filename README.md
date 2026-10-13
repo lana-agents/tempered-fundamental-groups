@@ -200,7 +200,21 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   (`WildEstranged.exists_not_mem`), and for towers of line trees (dual graph a cycle, as for the
   Tate curve's `2`-gon) estrangement is equivalent to faithfulness at cofinal finite levels
   (`estranged_iff_of_lineAt`). M4 itself is open (research-level, of the nature of resolution of
-  non-singularities).
+  non-singularities). **Tame half and elliptic reduction** (`SemiAnbd/EllipticEstrangement.lean`,
+  `Andre/TameEstrangement.lean`): an element fixing no vertex at one level is estranged
+  (`estrangedElt_of_hyperbolicAt`), so estrangement only concerns elliptic elements
+  (`estranged_iff_estrangedOn_elliptic`); at a *rigid* level of André's tower (level ring without
+  nontrivial `R`-endomorphisms, e.g. `B = R`) the stage group acts by deck transformations, freely,
+  so `TameEstrangement Δ RigidLevel` holds unconditionally (`tameEstrangement_rigid`), and relative
+  to the rigid levels M4 is exactly `EllipticEstrangement Δ` (`wildEstrangement_rigid_iff`), which
+  alone gives [SemiAnbd] Thm. 3.7(iii)/(iv) (`exists_le_stab_andreTower_of_elliptic`,
+  `exists_eq_stab_of_maximal_of_elliptic`). This removes the tame hypothesis but not the open
+  input: hyperbolic elements lie in no compact subgroup, and `EllipticEstrangement` is open. That
+  rigid levels exist in `galW` is not shown. The explicit Tate model (`SemiAnbd/DihedralLine.lean`:
+  `D_∞` acting on the `ℤ`-chain of components of `Y`) is estranged and satisfies Thm. 3.7(iii)/(iv)
+  (its maximal finite subgroups are exactly the vertex stabilizers); its comparison with André's
+  tower at a level is the named statement `TateLineLevel` (not available, since `curveData` picks
+  arbitrary W-models), whose consequences are proved (`tameEstrangement_of_tateLineLevel`).
 * **The double covering `Ÿ → Y` of [EtTh] §1** (`Andre/TateObjectDouble.lean`, Blueprint B6′):
   for Tate data with `2` and `x − e` units in `R` (`e` the `x`-coordinate of the `2`-torsion point
   `√q`; the `2`-isogeny covering `E_{√q} → E_q` is `R[t]/(t² − (x − e))`), the object `Yddot` with
