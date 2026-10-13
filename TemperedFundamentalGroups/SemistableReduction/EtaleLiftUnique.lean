@@ -24,7 +24,8 @@ Jacobson radical, which is the root itself (`eq_of_isRoot_of_sub_mem`, from the 
 
 * `isUnit_add_of_mem_jacobson`, `eq_of_isRoot_of_sub_mem`;
 * `aeval_sub_mem_of_map_eq`: polynomials with the same reduction take values congruent mod `IB`;
-* **`equivOfLift`**.
+* **`equivOfLift`**, and `hom_eq`: the isomorphism is unique among maps lifting the identity
+  on the roots modulo `IB`.
 -/
 
 open Polynomial
@@ -137,6 +138,45 @@ theorem comp_eq_id {f g : A[X]} (hf : f.Monic)
       (AdjoinRoot.root f)) := by
     rwa [derivative_map, eval_map, ← aeval_def]
   exact eq_of_isRoot_of_sub_mem _ hroot' hroot hd (map_le_jacobson_adjoinRoot I hf hmem)
+
+/-- **Uniqueness of the isomorphism**: two `A`-algebra maps `A[X]/(f) → A[X]/(g)` sending the root
+of `f` to lifts of the root of `g` modulo `IB` are equal. -/
+theorem hom_eq {f g : A[X]} (hg : g.Monic)
+    (h : f.map (Ideal.Quotient.mk I) = g.map (Ideal.Quotient.mk I))
+    (hdg : IsUnit (aeval (AdjoinRoot.root g) (derivative g)))
+    (φ₁ φ₂ : AdjoinRoot f →ₐ[A] AdjoinRoot g)
+    (h₁ : φ₁ (AdjoinRoot.root f) - AdjoinRoot.root g ∈ I.map (algebraMap A (AdjoinRoot g)))
+    (h₂ : φ₂ (AdjoinRoot.root f) - AdjoinRoot.root g ∈ I.map (algebraMap A (AdjoinRoot g))) :
+    φ₁ = φ₂ := by
+  apply AdjoinRoot.algHom_ext
+  set J := I.map (algebraMap A (AdjoinRoot g))
+  have hJ := map_le_jacobson_adjoinRoot I hg
+  have hroot : ∀ φ : AdjoinRoot f →ₐ[A] AdjoinRoot g,
+      (f.map (algebraMap A (AdjoinRoot g))).IsRoot (φ (AdjoinRoot.root f)) := fun φ => by
+    rw [IsRoot.def, eval_map, ← aeval_def, aeval_algHom_apply, AdjoinRoot.aeval_eq,
+      AdjoinRoot.mk_self, map_zero]
+  have hD : (derivative f).map (Ideal.Quotient.mk I) =
+      (derivative g).map (Ideal.Quotient.mk I) := by
+    rw [← derivative_map, h, derivative_map]
+  -- `f'(φ₁ x) ≡ f'(x_g) ≡ g'(x_g)` modulo `IB`, so it is a unit
+  have hd : IsUnit ((f.map (algebraMap A (AdjoinRoot g))).derivative.eval
+      (φ₁ (AdjoinRoot.root f))) := by
+    have hu := isUnit_add_of_mem_jacobson hdg
+      (hJ (aeval_sub_mem_of_map_eq hD (AdjoinRoot.root g)))
+    rw [add_sub_cancel, aeval_def, ← eval_map, ← derivative_map] at hu
+    set p := (f.map (algebraMap A (AdjoinRoot g))).derivative
+    obtain ⟨c, hc⟩ := Polynomial.sub_dvd_eval_sub (φ₁ (AdjoinRoot.root f)) (AdjoinRoot.root g) p
+    have hm : p.eval (φ₁ (AdjoinRoot.root f)) - p.eval (AdjoinRoot.root g) ∈
+        (⊥ : Ideal (AdjoinRoot g)).jacobson := by
+      rw [hc]
+      exact hJ (J.mul_mem_right c h₁)
+    have := isUnit_add_of_mem_jacobson hu hm
+    rwa [add_sub_cancel] at this
+  have h₁₂ : φ₂ (AdjoinRoot.root f) - φ₁ (AdjoinRoot.root f) ∈ (⊥ : Ideal _).jacobson := by
+    have := J.sub_mem h₂ h₁
+    rw [sub_sub_sub_cancel_right] at this
+    exact hJ this
+  exact (eq_of_isRoot_of_sub_mem _ (hroot φ₁) (hroot φ₂) hd h₁₂).symm
 
 /-- **Uniqueness of monogenic étale lifts**: two monic étale lifts of the same polynomial over
 `A/I` give isomorphic `A`-algebras. -/
