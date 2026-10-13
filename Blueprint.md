@@ -2974,6 +2974,7 @@ Compactness of verticial subgroups (C6, `isCompact_stab_andreTower`) and commens
 terminality under `HI` (W3) are the proved inputs of TS5; the open input is TS6.
 
 
+### 12.10 M4: wild estrangement (`SemiAnbd/Estrangement.lean`, `Andre/WildEstrangement.lean`)
 
 **Statement.** Estrangement (W9, `TreeTower.Estranged`) is a condition on single elements:
 `EstrangedElt g` := at cofinally many levels `k` the fixed set of `g` in the tree `T k` has
