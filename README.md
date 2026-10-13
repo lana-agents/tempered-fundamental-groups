@@ -199,6 +199,16 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   `relIndex_eq_two`, e.g. a decomposition-group element moving `√(x − e)`:
   `relIndex_eq_two_of_galois`). Not covered: the case `X = E ∖ {0}` itself, where the Kummer
   presentation is not étale at the `2`-torsion point.
+* **Temp-slimness** (Blueprint §12.9; [SemiAnbd] Ex. 3.10, the hypothesis of [EtTh]
+  Prop. 2.11(ii) and Cor. 2.19(i)). `TempSlim P` (every open subgroup has trivial centralizer),
+  invariant under `≃ₜ*` and inherited by open subgroups (`SemiAnbd/TempSlim.lean`); extensions
+  (`TempSlim.of_extension`); Mochizuki's argument `TempSlim.of_commensurator_eq`: one compact,
+  commensurably terminal, temp-slim subgroup suffices, so for tree towers
+  `TreeTower.tempSlim_of_HI`. For curves (`Andre/TempSlim.lean`): `tempSlim_temperedPi1`,
+  `tempSlim_ker_character` (`Π^tp_Y`), `tempSlim_piYddot` (`Π^tp_Ÿ`), **conditional** on
+  `VerticialTempSlim` (some system of André's tower with `HI` and a temp-slim verticial
+  subgroup), which needs M2 and the slimness of the decomposition groups of components; not
+  proved for any curve.
 
 ### Not covered
 

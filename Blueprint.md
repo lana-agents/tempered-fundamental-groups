@@ -2944,3 +2944,23 @@ tower, admissible coverings as objects of the tempered category (levels with Kum
 at nodes, compare `Andre/QuadraticLevel.lean` for `e = 2` at a single level), the identification
 of the decomposition groups of components with `π₁^{adm}` of the components (D4), and M2 itself
 (M2.2 general, M2.3–M2.5).
+
+### 12.9 Temp-slimness (`SemiAnbd/TempSlim.lean`, `Andre/TempSlim.lean`; for [EtTh] Cor. 2.19(i))
+
+A topological group is **temp-slim** (`TempSlim P`) if every open subgroup has trivial
+centralizer ([Mzk14] = [SemiAnbd], Example 3.10). It is the hypothesis of [EtTh], Prop. 2.11(ii)
+(recovering `μ_N = ker(Π[μ_N] ↠ Π)` as the union of the centralizers of open subgroups), the
+first step of cyclotomic rigidity [EtTh] Cor. 2.19(i), consumed by `iut`
+(`Iut/EtaleTheta/CyclotomicEnvelope.lean`, whose `Iut.EtaleTheta.TempSlim` has the same body).
+
+| # | Statement | Lean | Status |
+|---|---|---|---|
+| TS1 | invariance under `≃ₜ*`; open subgroups and kernels of continuous characters to discrete groups inherit temp-slimness | `TempSlim.of_continuousMulEquiv`, `TempSlim.congr`, `TempSlim.of_isOpen`, `TempSlim.ker` | [L] |
+| TS2 | extensions: `f : P →* Q` open, `ker f` and `Q` temp-slim ⇒ `P` temp-slim (`Δ ⊆ Π ↠ G_K`) | `TempSlim.of_extension` | [L] |
+| TS3 | **[SemiAnbd] Ex. 3.10, the argument**: a compact, commensurably terminal, temp-slim subgroup makes the ambient topological group temp-slim | `TempSlim.of_commensurator_eq` | [L] |
+| TS4 | tree towers: `HI s` + `stab s` compact and temp-slim ⇒ the tower group is temp-slim (W3 + TS3) | `TreeTower.tempSlim_of_HI` | [L] |
+| TS5 | André's tower: `VerticialTempSlim` (∃ system `s` with `HI s` and `TempSlim (stab s)`) ⇒ `andreGroup`, `temperedPi1` (Theorem A), every open subgroup, `Π^tp_Y = ker(TateObject.character)`, `Π^tp_Ÿ = piYddot` are temp-slim | `tempSlim_andreGroup`, `tempSlim_temperedPi1`, `tempSlim_of_isOpen`, `tempSlim_ker_character`, `tempSlim_piYddot` | [L], conditional on `VerticialTempSlim` |
+| TS6 | `VerticialTempSlim` for a hyperbolic curve: `HI s` for a hyperbolic component (M2, §12.8) and slimness of the decomposition group of a component (D4: decomposition group = arithmetic profinite `π₁` of the component; slimness of `G_K` for `p`-adic `K` and of profinite surface groups, then TS2) | — | ✗ (not in the repository) |
+
+Compactness of verticial subgroups (C6, `isCompact_stab_andreTower`) and commensurable
+terminality under `HI` (W3) are the proved inputs of TS5; the open input is TS6.

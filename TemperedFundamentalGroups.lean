@@ -90,6 +90,7 @@ import TemperedFundamentalGroups.Andre.TateRestrictUnique
 import TemperedFundamentalGroups.Andre.TateSurjective
 import TemperedFundamentalGroups.Andre.TateThreeGon
 import TemperedFundamentalGroups.Andre.TateWinding
+import TemperedFundamentalGroups.Andre.TempSlim
 import TemperedFundamentalGroups.Andre.TheoremA
 import TemperedFundamentalGroups.Andre.TheoremAFinal
 import TemperedFundamentalGroups.Andre.TheoremB
@@ -142,6 +143,7 @@ import TemperedFundamentalGroups.SemiAnbd.CombGC
 import TemperedFundamentalGroups.SemiAnbd.CoverVertex
 import TemperedFundamentalGroups.SemiAnbd.IncidenceTree
 import TemperedFundamentalGroups.SemiAnbd.SemiGraph
+import TemperedFundamentalGroups.SemiAnbd.TempSlim
 import TemperedFundamentalGroups.SemiAnbd.TreeFixedPoint
 import TemperedFundamentalGroups.SemiAnbd.TreeTower
 import TemperedFundamentalGroups.SemiAnbd.TreeTowerCompact
