@@ -247,6 +247,17 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   Tate coverings, e.g. of decomposition groups of components) remains open: it needs the dual
   graphs of the stable models of finite étale coverings ramified over the cusps / wild coverings,
   which the repository does not construct.
+* **Finite-level reduction of `TateWildPart`** (`SemiAnbd/FixedArc.lean`, `Andre/TateWildFin.lean`,
+  Blueprint §12.10 E17): exact tree criterion `smallFixAt_iff_not_fixedArcAt` (fixed set of
+  diameter `≤ 2` ⇔ no fixed arc `x₀ – x₁ – x₂ – x₃`), `tateWildPart_iff_fixedArcAt`; a fixed tree
+  arc projects to a fixed reduced walk of length `3` in the finite incidence graph of the special
+  fibre of the level's W-model (`CurveConfig.fixedArc_of_tree`, `UData.fixedArc_of_stageTree`);
+  **`tateWildPart_of_fin`**: the finite-level statement `TateWildFin Δ` implies `TateWildPart Δ`.
+  `TateWildFin` is open. The W-models chosen by `curveData` are arbitrary (refined Gauss trees
+  allowed); at levels whose model subdivides an annulus, tame coverings keep edge-like elements
+  fixing arcs (`FixedArcBelow`, refuting `TateWildPart` by `not_tateWildPart_of_fixedArcBelow`),
+  so `TateWildPart` may depend on the model choice (sketch in the Blueprint; no counterexample is
+  claimed).
 * **The double covering `Ÿ → Y` of [EtTh] §1** (`Andre/TateObjectDouble.lean`, Blueprint B6′):
   for Tate data with `2` and `x − e` units in `R` (`e` the `x`-coordinate of the `2`-torsion point
   `√q`; the `2`-isogeny covering `E_{√q} → E_q` is `R[t]/(t² − (x − e))`), the object `Yddot` with
