@@ -65,6 +65,7 @@ import TemperedFundamentalGroups.Andre.TateCrossingField
 import TemperedFundamentalGroups.Andre.TateCrossingWalk
 import TemperedFundamentalGroups.Andre.TateEstrangement
 import TemperedFundamentalGroups.Andre.TateG1
+import TemperedFundamentalGroups.Andre.TateInvolution
 import TemperedFundamentalGroups.Andre.TateLoop
 import TemperedFundamentalGroups.Andre.TateModel
 import TemperedFundamentalGroups.Andre.TateModelCharts
@@ -581,6 +582,7 @@ import TemperedFundamentalGroups.SemistableReduction.ZariskiNormalization
 import TemperedFundamentalGroups.Setup.CompleteDVRExtension
 import TemperedFundamentalGroups.Setup.DVRNorm
 import TemperedFundamentalGroups.Setup.InvariantLine
+import TemperedFundamentalGroups.Setup.NegOneSumSq
 import TemperedFundamentalGroups.Setup.NoetherLine
 import TemperedFundamentalGroups.Setup.Orbifold
 import TemperedFundamentalGroups.Setup.Schmidt
@@ -593,6 +595,7 @@ import TemperedFundamentalGroups.Tempered.BaseChangeLevel
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.CoverImage
+import TemperedFundamentalGroups.Tempered.EtaleInvolution
 import TemperedFundamentalGroups.Tempered.EtaleOrbCover
 import TemperedFundamentalGroups.Tempered.FieldChange
 import TemperedFundamentalGroups.Tempered.FieldChangeComp

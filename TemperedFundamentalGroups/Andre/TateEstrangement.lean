@@ -37,7 +37,8 @@ level `q` of André's tower (`charY_eq_one_of_ρ`), where vertex stabilizers are
 * `TateWildPart Δ`: the nontrivial elliptic elements of `Δ ∩ Π^tp_Ÿ` (acting trivially on the
   fibres of all explicit Tate coverings) are estranged — **the genuinely wild remaining part**;
 * `TateInvolutionPart Δ`: the elliptic elements `g ≠ 1` of `Δ` with `g ^ 2 = 1` are estranged
-  (expected vacuous: `Π^tp` should be torsion-free; not proved here),
+  (implied by `TateWildPart Δ`, since involutions do not move `√c`:
+  `tateInvolutionPart_of_tateWildPart`, `Andre/TateInvolution.lean`),
 
 and **`estranged_comap_andreTower_iff_tate`**, **`ellipticEstrangement_iff_tate`**: the
 estrangement of André's tower over `Δ` (equivalently `EllipticEstrangement Δ`, the M4 input
@@ -234,9 +235,10 @@ def TateWildPart (Δ : Subgroup (andreGroup O R A V hV)) : Prop :=
     {g | g ∈ Δ ∧ (andreTower (R := R) (A := A) V hV hp hR).Elliptic g ∧
       charYY (A := A) V hV hp hR D s hs g = 1}
 
-/-- **The involution part**: elliptic elements `g ≠ 1` of `Δ` with `g ^ 2 = 1` are estranged
-(expected vacuous, `Π^tp` being torsion-free for a hyperbolic curve over a `p`-adic field; not
-proved here). -/
+/-- **The involution part**: elliptic elements `g ≠ 1` of `Δ` with `g ^ 2 = 1` are estranged.
+It follows from `TateWildPart Δ` (`tateInvolutionPart_of_tateWildPart`,
+`Andre/TateInvolution.lean`: an involution of `Π^tp` fixes `±√c`, so elliptic involutions lie in
+`Π^tp_Ÿ`). -/
 def TateInvolutionPart (Δ : Subgroup (andreGroup O R A V hV)) : Prop :=
   (andreTower (R := R) (A := A) V hV hp hR).EstrangedOn
     {g | g ∈ Δ ∧ (andreTower (R := R) (A := A) V hV hp hR).Elliptic g ∧ g ^ 2 = 1}

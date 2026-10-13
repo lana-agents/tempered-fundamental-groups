@@ -227,9 +227,26 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   the explicit levels cannot see the Kummer part. Squares of elliptic elements lie in `Π^tp_Ÿ`, so
   the estrangement of André's tower over `Δ` (= `EllipticEstrangement Δ`) is equivalent to
   `TateWildPart Δ` (nontrivial elliptic elements of `Δ ∩ Π^tp_Ÿ`; open) plus `TateInvolutionPart Δ`
-  (elliptic involutions; expected vacuous, not proved) (`estranged_comap_andreTower_iff_tate`);
-  with the comparison `TateLevel q` (not provided), M4 for `P = {q}` is equivalent to the same two
-  parts (`wildEstrangement_tateLevel_iff`, `wildEstrangement_of_tate`).
+  (elliptic involutions) (`estranged_comap_andreTower_iff_tate`); with the comparison
+  `TateLevel q` (not provided), M4 for `P = {q}` is equivalent to the same two parts
+  (`wildEstrangement_tateLevel_iff`, `wildEstrangement_of_tate`). **No Kummer involutions**
+  (`Tempered/EtaleInvolution.lean`, `Setup/NegOneSumSq.lean`, `Andre/TateInvolution.lean`,
+  Blueprint §12.10 E16): if `−1` is a sum of squares in `K` (true for `K` complete of residue
+  characteristic `p > 0`, `isSumSq_neg_one`), every involution of `π₁ᵉᵗ(Spec R)` fixes the square
+  roots of every unit of `R` (`EtaleInvolution.fixQ_of_mul_self_eq_one`; elementary,
+  Artin–Schreier style, through explicit Kummer towers `R[√x, √y, i, …]` and `R[i, c^{1/4}]`). Via
+  the map `Ÿ → Spec R[√(x − e)]` to a finite étale cover (`TateObject.toKummer`), an involution of
+  `Π^tp` acts trivially on the `ℤ/2`-part of `χ_Ÿ` (`character₂_snd_eq_one_of_mul_self`), so
+  elliptic involutions lie in `Π^tp_Ÿ` and **`TateWildPart Δ` alone is equivalent to the
+  estrangement of André's tower over `Δ`** (`tateInvolutionPart_of_tateWildPart`,
+  `estranged_comap_andreTower_iff_tateWild`, `ellipticEstrangement_iff_tateWild`); it alone gives
+  [SemiAnbd] Thm. 3.7(iii)/(iv) (`exists_le_stab_andreTower_of_tateWild`,
+  `exists_eq_stab_of_maximal_of_tateWild`), and with nontrivial edge-like subgroups (M2) `PSCAdj`
+  and CG3' (`pscAdj_andreTower_of_tateWild`, `isGraphic_iff_andreTower_of_tateWild`).
+  `TateWildPart` itself (the estrangement of elliptic elements acting trivially on all explicit
+  Tate coverings, e.g. of decomposition groups of components) remains open: it needs the dual
+  graphs of the stable models of finite étale coverings ramified over the cusps / wild coverings,
+  which the repository does not construct.
 * **The double covering `Ÿ → Y` of [EtTh] §1** (`Andre/TateObjectDouble.lean`, Blueprint B6′):
   for Tate data with `2` and `x − e` units in `R` (`e` the `x`-coordinate of the `2`-torsion point
   `√q`; the `2`-isogeny covering `E_{√q} → E_q` is `R[t]/(t² − (x − e))`), the object `Yddot` with
