@@ -189,7 +189,18 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   inputs for curves, stated as missing theorems M2 and M4 (Blueprint §12.5 C10, C12, §12.7):
   specialization of admissible coverings (for `HI` of hyperbolic components, estrangement and
   nontrivial edge-like subgroups of the tame part) and estrangement for wild coverings.
-  Estrangement and nontrivial edge-like subgroups are not proved for any curve.
+  Estrangement and nontrivial edge-like subgroups are not proved for any curve. **M4 (wild
+  estrangement)** is stated precisely (Blueprint §12.10, `SemiAnbd/Estrangement.lean`,
+  `Andre/WildEstrangement.lean`): for a set `P` of (tame) levels, `WildEstrangement Δ P` asks
+  that the nontrivial elements of `Δ` acting trivially on all trees of `P`-levels have fixed sets
+  of diameter `≤ 2` at cofinally many levels; with `TameEstrangement Δ P` it is equivalent to the
+  estrangement hypothesis of the consumers (`estranged_comap_andreTower_iff`,
+  `exists_le_stab_andreTower_of_tame_wild`, `isGraphic_iff_andreTower_of_tame_wild`). Proved
+  around it: M4 forces the wild kernel to act nontrivially on non-tame levels below every level
+  (`WildEstranged.exists_not_mem`), and for towers of line trees (dual graph a cycle, as for the
+  Tate curve's `2`-gon) estrangement is equivalent to faithfulness at cofinal finite levels
+  (`estranged_iff_of_lineAt`). M4 itself is open (research-level, of the nature of resolution of
+  non-singularities).
 * **The double covering `Ÿ → Y` of [EtTh] §1** (`Andre/TateObjectDouble.lean`, Blueprint B6′):
   for Tate data with `2` and `x − e` units in `R` (`e` the `x`-coordinate of the `2`-torsion point
   `√q`; the `2`-isogeny covering `E_{√q} → E_q` is `R[t]/(t² − (x − e))`), the object `Yddot` with

@@ -2883,7 +2883,9 @@ The missing theorems behind them:
 * **M4** (wild estrangement, C12): small fixed sets, at suitable wild levels, of the elements of
   the geometric group acting trivially on all tame levels; together with resolution of
   non-singularities (which reduces (HI) for semistable bridges to the hyperbolic case, C10) this
-  is the input specific to André's full tower. Not known to us in this form.
+  is the input specific to André's full tower. Not known to us in this form. Precise statement
+  (`WildEstrangement`), reduction of the consumers to it, necessary conditions and the line case:
+  §12.10.
 
 Out of reach: A5 and CG4 (Galois-category structure of `B(𝒢)`, profinite trees); D4 (verticial
 subgroups as fundamental groups of components; analytic or log geometry).
@@ -2964,3 +2966,95 @@ first step of cyclotomic rigidity [EtTh] Cor. 2.19(i), consumed by `iut`
 
 Compactness of verticial subgroups (C6, `isCompact_stab_andreTower`) and commensurable
 terminality under `HI` (W3) are the proved inputs of TS5; the open input is TS6.
+
+### 12.10 M4: wild estrangement (`SemiAnbd/Estrangement.lean`, `Andre/WildEstrangement.lean`)
+
+**Statement.** Estrangement (W9, `TreeTower.Estranged`) is a condition on single elements:
+`EstrangedElt g` := at cofinally many levels `k` the fixed set of `g` in the tree `T k` has
+diameter `≤ 2` (`SmallFixAt k g`); `EstrangedOn S` := every nontrivial element of `S` is
+estranged. For a set `P` of levels (intended: the **tame** levels, coverings whose geometric
+Galois group has order prime to `p`; the repository has no such predicate, so `P` is a
+parameter) let `actKer P` be the subgroup of elements acting trivially on the trees of all
+`P`-levels (`TreeTower.actKer`). For a subgroup `Δ` of André's group (e.g. the geometric one):
+
+```
+def WildEstrangement (Δ : Subgroup (andreGroup O R A V hV))
+    (P : PtGal (tempFibre O R A V hV) (galW O R A Ω hR) → Prop) : Prop :=
+  (andreTower V hV hp hR).WildEstranged Δ P
+-- WildEstranged Δ P := EstrangedOn (Δ ⊓ actKer P)
+-- i.e. ∀ g ∈ Δ, (∀ j, P j → ∀ v, ρ j g • v = v) → g ≠ 1 →
+--   ∀ j, ∃ k (_ : k ⟶ j), ∀ x y, ρ k g • x = x → ρ k g • y = y → dist x y ≤ 2
+def TameEstrangement Δ P : Prop := (andreTower V hV hp hR).TameEstranged Δ P
+-- TameEstranged Δ P := EstrangedOn {g | g ∈ Δ ∧ g ∉ actKer P}
+```
+
+This is C12(c) made precise: **M4** = `WildEstrangement Δ P` for `P` the tame levels;
+`TameEstrangement` is the part which, for the pro-`Σ` quotient, is [SemiAnbd] Ex. 2.10 given M2
+(§12.8).
+
+| # | Statement | Lean | Status |
+|---|---|---|---|
+| E1 | element-wise estrangement; `Estranged ↔ EstrangedOn univ`; pulling back along an injective homomorphism / `Δ.subtype` | `estranged_iff_estrangedOn_univ`, `estranged_comap_iff`, `estranged_comap_subtype_iff`, `estrangedOn_union` | [L] |
+| E2 | **estrangement over `Δ` = tame part + wild part (M4)**; M4 weakens as `P` grows; with `P = ∅` M4 is the whole estrangement of `Δ` | `estrangedOn_iff_tame_wild`, `estranged_comap_of_tame_wild`, `WildEstranged.mono`, `wildEstranged_bot_iff` | [L] |
+| E3 | **necessary condition**: if every tree has two vertices at distance `> 2`, an estranged element moves a vertex at cofinally many levels; so under M4 every nontrivial element of the wild kernel `Δ ⊓ actKer P` acts nontrivially on the tree of a **non-`P`** level below every level (M4 cannot be verified on tame levels) | `SmallFixAt.exists_moved`, `exists_moved_of_estrangedElt`, `WildEstranged.exists_not_mem`, `WildEstrangement.exists_not_mem` | [L] |
+| E4 | **line levels** (dual graph a cycle — the Tate `2`-gon and its topological coverings — whose tree is a line, every vertex of degree `≤ 2`): an automorphism fixing two distinct vertices is trivial, so a nontrivially acting element fixes at most one vertex; an element acting nontrivially at cofinally many line levels is estranged; **for a tower of line trees, estrangement ⇔ every nontrivial element acts nontrivially at cofinally many finite levels** | `smul_eq_of_lineAt`, `smallFixAt_of_lineAt`, `estrangedElt_of_lineAt`, `estranged_iff_of_lineAt` | [L] |
+| E5 | reduction to sub-towers: estrangement along a subsystem `F : J' ⥤ J` mapping to every level implies estrangement of `T` | `estrangedElt_of_restrict` | [L] |
+| E6 | **consumers for André's group**: tame estrangement + M4 ⇒ [SemiAnbd] Thm. 3.7(iii) for `Δ` and (iv) for André's group (system form); with nontrivial edge-like subgroups, `PSCAdj` and CG3' | `estranged_comap_andreTower_iff`, `estranged_andreTower_iff`, `exists_le_stab_andreTower_of_tame_wild`, `exists_eq_stab_of_maximal_of_tame_wild`, `pscAdj_andreTower_of_tame_wild`, `isGraphic_iff_andreTower_of_tame_wild` | [L] (conditional) |
+| E7 | `TameEstrangement` and `WildEstrangement` for some curve | — | ✗ |
+
+**What would become unconditional.** With `TameEstrangement ⊤ P` and M4 (`WildEstrangement ⊤ P`):
+`exists_le_stab_andreTower_of_estranged`, `exists_eq_stab_of_maximal_of_estranged` (Thm.
+3.7(iii)/(iv), system form; functoriality M1 is proved). Adding nontrivial edge-like subgroups
+(M2, §12.8 step 1): `pscAdj_andreTower_of_estranged'`, `isGraphic_iff_andreTower_of_estranged'`,
+and for two curves `isGraphic_iff_andreTower_andreTower`. For `Δ` the geometric subgroup:
+`exists_le_stab_andreTower_of_le_estranged`. M4 does **not** feed temp-slimness (§12.9):
+`VerticialTempSlim` needs `HI` and slimness of a verticial subgroup, not estrangement. W3, W4, W7
+still need `(HI)` (M2).
+
+**Why the Tate curve is not instantiated.** E4 covers exactly the explicit case (dual graph a
+single cycle): there, estrangement reduces to faithfulness at finite levels. To apply it to
+`andreTower` one would need (i) a level of `galW` whose W-model is the Tate model, with its tree
+identified with the line covering the `2`-gon (`TateObject.X₀` is the `ℤ`-covering of the special
+fibre of the Tate model, but `curveData` chooses an *arbitrary* W-model of each level, so this
+identification is not available), and (ii) the result is only about the levels whose dual graph
+stays a cycle, e.g. the topological (graph) coverings of the `2`-gon. Deeper levels — coverings
+ramified over the punctures of `Spec R`, and wild coverings — acquire components of positive
+genus and vertices of degree `> 2`, where E4 says nothing. In particular E4 does not touch the
+elements that M4 is about as soon as `P` contains the graph coverings (they are étale over the
+special fibre, hence admissible): an element of the wild kernel acts trivially on their trees.
+
+**Two caveats on the split.** (1) *Tame estrangement is more than Ex. 2.10.* `Estranged` asks for
+small fixed sets at levels *below every level*, and below a wild level all levels are wild. An
+element acting nontrivially on the tree of a tame level `t` has small fixed sets at tame levels
+by Ex. 2.10, but the fixed set at a deeper wild level `k → t` only maps into the small fixed set
+at `t`; the map of trees is non-expanding and contracts components, so the fixed set at `k` may
+be large (e.g. a whole subtree over a contracted vertex). Diameter bounds do not propagate to
+deeper levels. So `TameEstrangement` for André's full tower also needs control of wild levels.
+(2) *A weaker hypothesis suffices for Thm. 3.7(iii).* W6 (`exists_sys_of_finite_fixSet`) only
+needs **finite** fixed sets of the compact subgroup at cofinally many levels; distance `≤ 2` is
+used only for `PSCAdj` (`limAdj_of_adjG`). A variant M4' ("finite fixed sets") would suffice for
+the system form of Thm. 3.7(iii)/(iv) and is the natural first target.
+
+**Assessment.** M4 is a statement about the stable reduction of *wild* finite étale coverings of
+`X_{ℂ_p}`: for `γ ≠ 1` in `ker(Δ → Δ^Σ)` one needs coverings `Y → X` on whose stable model `γ`
+fixes only a vertex, an edge, or two vertices joined by an edge of the tree of the dual graph. In
+[SemiAnbd] (Ex. 2.10, Cor. 3.11; not re-checked for this section) estrangement is established for
+semi-graphs of anabelioids of PSC type, i.e. for the pro-`Σ` theory with vertex groups the
+profinite surface groups of the components, where it reduces to "distinct cusp inertia groups of
+a surface group meet trivially"; the wild part of `Π^tp` does not fit that framework, because
+wild coverings are not admissible over a fixed model (new components appear: resolution of
+non-singularities, Lepage, *Publ. RIMS* 49 (2013), for Mumford curves over `ℚ̄_p`; not checked).
+André ("On a geometric description of `Gal(ℚ̄_p/ℚ_p)` and a `p`-adic avatar of `GT`", Duke 2003)
+treats the tempered group through Berkovich geometry and its compact subgroups through
+decomposition groups of points of the Berkovich space (not checked against the source here); a
+proof of M4 along those lines would identify the fixed set of `γ` in the limit tree with the
+locus of a Berkovich skeleton fixed by `γ` and show it is small after passing to deeper
+coverings. We know of no reference proving M4 in the form above; it is of the same nature and
+difficulty as resolution of non-singularities (open in general for curves over `p`-adic fields;
+known for Mumford curves over `ℚ̄_p` by Lepage). Formalization prerequisites beyond the
+repository: stable models of wild coverings (semistable reduction is formalized only in the
+`SemistableReduction` part for the W-model levels used here), pro-`Σ` quotients, and the
+comparison of decomposition groups of components with `π₁` of components (D4). **Status: open,
+research-level; not targeted.** The formal content proved here is the precise statement, its
+equivalence with the estrangement hypothesis of the consumers, necessary conditions, and the
+line (single-cycle) case.

@@ -113,6 +113,7 @@ import TemperedFundamentalGroups.Andre.WData
 import TemperedFundamentalGroups.Andre.WDualGraphMap
 import TemperedFundamentalGroups.Andre.WEdgeLifting
 import TemperedFundamentalGroups.Andre.WHarmonicWeight
+import TemperedFundamentalGroups.Andre.WildEstrangement
 import TemperedFundamentalGroups.FibreFunctor.Character
 import TemperedFundamentalGroups.FibreFunctor.GaloisGroupLimit
 import TemperedFundamentalGroups.FibreFunctor.GaloisLimit
@@ -141,6 +142,7 @@ import TemperedFundamentalGroups.Orbicurve.ZeroSet
 import TemperedFundamentalGroups.SemiAnbd.Anabelioid
 import TemperedFundamentalGroups.SemiAnbd.CombGC
 import TemperedFundamentalGroups.SemiAnbd.CoverVertex
+import TemperedFundamentalGroups.SemiAnbd.Estrangement
 import TemperedFundamentalGroups.SemiAnbd.IncidenceTree
 import TemperedFundamentalGroups.SemiAnbd.SemiGraph
 import TemperedFundamentalGroups.SemiAnbd.TempSlim
