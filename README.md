@@ -215,6 +215,21 @@ All results below are proved on `main` without `sorry`. `#print axioms` lists on
   (its maximal finite subgroups are exactly the vertex stabilizers); its comparison with André's
   tower at a level is the named statement `TateLineLevel` (not available, since `curveData` picks
   arbitrary W-models), whose consequences are proved (`tameEstrangement_of_tateLineLevel`).
+  **Tate curves via the explicit coverings `Y`, `Ÿ`** (`SemiAnbd/CharacterEstrangement.lean`,
+  `Andre/TateEstrangement.lean`, Blueprint §12.10 E12–E15): the character `χ_Y` of the
+  `ℤ`-covering is detected at one level of André's tower (domination by a Galois object), where
+  vertex stabilizers are finite, so **every elliptic element lies in `Π^tp_Y`**
+  (`charY_eq_one_of_elliptic`; compact subgroups too, `le_ker_charY_of_isCompact`) and **every
+  element with `χ_Y ≠ 1` is estranged, unconditionally** (`estrangedElt_of_charY_ne_one`; such
+  elements exist by Theorem B, `exists_estranged_of_goodTate`) — no comparison of W-models needed.
+  The involution of `Ÿ → Y` acts trivially on the special-fibre covering (`deckHom₂_h_involution`),
+  and in the model tower of the `Ÿ`-levels it is not estranged (`DihedralLine.not_estranged_yddot`):
+  the explicit levels cannot see the Kummer part. Squares of elliptic elements lie in `Π^tp_Ÿ`, so
+  the estrangement of André's tower over `Δ` (= `EllipticEstrangement Δ`) is equivalent to
+  `TateWildPart Δ` (nontrivial elliptic elements of `Δ ∩ Π^tp_Ÿ`; open) plus `TateInvolutionPart Δ`
+  (elliptic involutions; expected vacuous, not proved) (`estranged_comap_andreTower_iff_tate`);
+  with the comparison `TateLevel q` (not provided), M4 for `P = {q}` is equivalent to the same two
+  parts (`wildEstrangement_tateLevel_iff`, `wildEstrangement_of_tate`).
 * **The double covering `Ÿ → Y` of [EtTh] §1** (`Andre/TateObjectDouble.lean`, Blueprint B6′):
   for Tate data with `2` and `x − e` units in `R` (`e` the `x`-coordinate of the `2`-torsion point
   `√q`; the `2`-isogeny covering `E_{√q} → E_q` is `R[t]/(t² − (x − e))`), the object `Yddot` with

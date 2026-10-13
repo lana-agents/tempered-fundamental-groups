@@ -63,6 +63,7 @@ import TemperedFundamentalGroups.Andre.TateCoveringEq
 import TemperedFundamentalGroups.Andre.TateCrossing
 import TemperedFundamentalGroups.Andre.TateCrossingField
 import TemperedFundamentalGroups.Andre.TateCrossingWalk
+import TemperedFundamentalGroups.Andre.TateEstrangement
 import TemperedFundamentalGroups.Andre.TateG1
 import TemperedFundamentalGroups.Andre.TateLoop
 import TemperedFundamentalGroups.Andre.TateModel
@@ -141,6 +142,7 @@ import TemperedFundamentalGroups.Orbicurve.Smooth
 import TemperedFundamentalGroups.Orbicurve.Stable
 import TemperedFundamentalGroups.Orbicurve.ZeroSet
 import TemperedFundamentalGroups.SemiAnbd.Anabelioid
+import TemperedFundamentalGroups.SemiAnbd.CharacterEstrangement
 import TemperedFundamentalGroups.SemiAnbd.CombGC
 import TemperedFundamentalGroups.SemiAnbd.CoverVertex
 import TemperedFundamentalGroups.SemiAnbd.DihedralLine

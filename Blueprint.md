@@ -2888,7 +2888,10 @@ The missing theorems behind them:
   §12.10. There also: the tame half at the rigid levels is proved (`tameEstrangement_rigid`), and
   relative to them M4 is exactly the estrangement of the elliptic elements
   (`EllipticEstrangement`, `wildEstrangement_rigid_iff`), the whole remaining input for Thm.
-  3.7(iii)/(iv) (`exists_le_stab_andreTower_of_elliptic`).
+  3.7(iii)/(iv) (`exists_le_stab_andreTower_of_elliptic`). For Tate curves (E12–E15): elliptic
+  elements lie in `Π^tp_Y`, elements with `χ_Y ≠ 0` are estranged unconditionally, and the
+  remaining input is `TateWildPart` (elliptic elements of `Π^tp_Ÿ`) plus `TateInvolutionPart`
+  (`estranged_comap_andreTower_iff_tate`).
 
 Out of reach: A5 and CG4 (Galois-category structure of `B(𝒢)`, profinite trees); D4 (verticial
 subgroups as fundamental groups of components; analytic or log geometry).
@@ -3003,11 +3006,15 @@ This is C12(c) made precise: **M4** = `WildEstrangement Δ P` for `P` the tame l
 | E4 | **line levels** (dual graph a cycle — the Tate `2`-gon and its topological coverings — whose tree is a line, every vertex of degree `≤ 2`): an automorphism fixing two distinct vertices is trivial, so a nontrivially acting element fixes at most one vertex; an element acting nontrivially at cofinally many line levels is estranged; **for a tower of line trees, estrangement ⇔ every nontrivial element acts nontrivially at cofinally many finite levels** | `smul_eq_of_lineAt`, `smallFixAt_of_lineAt`, `estrangedElt_of_lineAt`, `estranged_iff_of_lineAt` | [L] |
 | E5 | reduction to sub-towers: estrangement along a subsystem `F : J' ⥤ J` mapping to every level implies estrangement of `T` | `estrangedElt_of_restrict` | [L] |
 | E6 | **consumers for André's group**: tame estrangement + M4 ⇒ [SemiAnbd] Thm. 3.7(iii) for `Δ` and (iv) for André's group (system form); with nontrivial edge-like subgroups, `PSCAdj` and CG3' | `estranged_comap_andreTower_iff`, `estranged_andreTower_iff`, `exists_le_stab_andreTower_of_tame_wild`, `exists_eq_stab_of_maximal_of_tame_wild`, `pscAdj_andreTower_of_tame_wild`, `isGraphic_iff_andreTower_of_tame_wild` | [L] (conditional) |
-| E7 | `TameEstrangement` and `WildEstrangement` for some curve and some non-empty set of levels containing a nontrivially acting element | — | ✗ (but see E9: tame half at rigid levels) |
+| E7 | `TameEstrangement` and `WildEstrangement` for some curve and some non-empty set of levels containing a nontrivially acting element | — | ✗ (but see E9: tame half at rigid levels; E13: the elements outside `Π^tp_Y` of a Tate curve are estranged unconditionally) |
 | E8 | **hyperbolic elements are estranged; only elliptic elements matter** (`SemiAnbd/EllipticEstrangement.lean`): an element fixing no vertex at one level fixes none at any level mapping to it (cofiltered), so it is estranged at all deeper levels, wild ones included; `Estranged ↔ EstrangedOn elliptic`; the same for the tame and wild halves; tame half from hyperbolicity on the `P`-levels; elements of subgroups with finite images are elliptic, so hyperbolic elements lie in no compact subgroup; Thm. 3.7(iii) needs only the estrangement of the elements of `H`; towers of lines with non-constant maps satisfy the tame half for every `Δ`, `P` | `estrangedElt_of_hyperbolicAt`, `estrangedOn_iff_elliptic`, `estranged_iff_estrangedOn_elliptic`, `tameEstranged_iff_elliptic`, `wildEstranged_iff_elliptic`, `tameEstranged_of_hyperbolicAt`, `elliptic_of_mem`, `not_hyperbolicAt_of_mem`, `exists_le_stab_of_estrangedOn`, `estrangedElt_of_lineAt_of_moved`, `tameEstranged_of_lineAt` | [L] |
 | E9 | **tame half for André's tower at rigid levels** (`Andre/TameEstrangement.lean`): a nontrivial stage element acting trivially on the level fixes no tree vertex (deck transformations act freely, `UData.stageOf_eq_one_of_fixed`); `RigidLevel q`: the level ring has no `R`-endomorphism but the identity (e.g. `B = R`); **`TameEstrangement Δ RigidLevel` holds unconditionally**; relative to the rigid levels M4 is exactly **`EllipticEstrangement Δ`**, equivalent to the estrangement of the tower over `Δ`; Thm. 3.7(iii)/(iv) from `EllipticEstrangement` (or from `WildEstrangement Δ RigidLevel`) with no tame hypothesis | `hyperbolicAt_curveTower_of_lev`, `hyperbolicAt_andreTower_of_rigid`, `not_elliptic_of_rigid`, `tameEstrangement_rigid`, `EllipticEstrangement`, `estranged_comap_andreTower_iff_elliptic`, `wildEstrangement_rigid_iff`, `estranged_comap_andreTower_iff_wild_rigid`, `exists_le_stab_andreTower_of_elliptic`, `exists_le_stab_andreTower_of_wild_rigid`, `exists_eq_stab_of_maximal_of_elliptic` | [L] |
 | E10 | **explicit Tate line tower** (`SemiAnbd/DihedralLine.lean`): `D_∞ = DihedralGroup 0` acting on the line `ℤ` (nodes even, components odd; `r i` translation by `2i` = deck group of `Y → X`, `sr i` the reflection `x ↦ -2i - x` = the involution `x ↦ q^i/x`), constant over any category of levels (the cyclic graph coverings have the same universal covering line); it is a tree, every level a line; translations are hyperbolic, `sr i` fixes exactly `-i`; the tower is estranged, its elliptic elements are `1` and the reflections; systems are constant, `stab (vsys x) = {1, sr (-x)}`; Thm. 3.7(iii): every nontrivial finite subgroup fixes a system; Thm. 3.7(iv): the maximal finite subgroups are exactly the system stabilizers | `isTree_lineGraph`, `lineAt`, `hyperbolicAt_r`, `sr_smul_eq_iff`, `estranged`, `tame_wild`, `elliptic_iff`, `eq_vsys`, `mem_stab_vsys`, `exists_le_stab_vsys`, `exists_eq_stab_of_maximal`, `maximal_stab_vsys` | [L] |
 | E11 | **comparison with André's tower** `TateLineLevel q χ`: an equivariant (along `χ : andreGroup →* D_∞`) graph isomorphism of the tree at `q` with the line; consequences: the tree at `q` is a line, `χ`-translations are hyperbolic, `χ`-reflections fix one vertex at `q`, and for `χ` valued in translations the tame half holds for `P = {q}` | `TateLineLevel`, `lineAt_of_tateLineLevel`, `hyperbolicAt_of_tateLineLevel`, `smallFixAt_of_tateLineLevel`, `tameEstrangement_of_tateLineLevel` | [L] (conditional on `TateLineLevel`, not proved) |
+| E12 | **characters detected at a level** (`SemiAnbd/CharacterEstrangement.lean`): if `χ : Γ →* M` is trivial on the kernel of the action at a level `j₀` with finite vertex stabilizers, elliptic elements have `χ g` of finite order, so for torsion-free `M` they lie in `ker χ`, and elements with `χ g ≠ 1` fix no vertex at `j₀` and are estranged; estrangement need only be checked on `ker χ`; `g ^ n` estranged ⇒ `g` estranged | `isOfFinOrder_of_elliptic`, `eq_one_of_elliptic`, `hyperbolicAt_of_ne_one`, `estrangedElt_of_ne_one`, `estrangedOn_iff_ker`, `EstrangedElt.of_pow`, `Elliptic.pow`, `isOfFinOrder_multiplicative_int` | [L] |
+| E13 | **Tate curve, the `ℤ`-part, unconditionally** (`Andre/TateEstrangement.lean`): every pointed object is detected at one level (domination by a pointed Galois object); hence `χ_Y` (`charY`, transported along Theorem A) is detected at a level of André's tower, where stabilizers are finite (`UData.finite_stab`): **elliptic elements lie in `Π^tp_Y`**, compact subgroups too, squares of elliptic elements lie in `Π^tp_Ÿ`; **every element with `χ_Y ≠ 1` is estranged**; for good Tate data such elements exist (Theorem B) | `exists_level_fix`, `exists_level_charY`, `charY_eq_one_of_elliptic`, `le_ker_charY_of_isCompact`, `charYY_sq_eq_one_of_elliptic`, `exists_hyperbolicAt_of_charY_ne_one`, `estrangedElt_of_charY_ne_one`, `exists_estranged_of_goodTate` | [L] |
+| E14 | **the `Ÿ`-levels in the model**: the involution of `Ÿ → Y` acts trivially on the covering space of the special fibre (it fixes the skeleton of `G_m`); model tower `yddotTower` (`ℤ × ℤ/2` on the line through the `ℤ`-component): in a line tower pulled back along `χ : Γ →* D_∞`, `g` is estranged iff `χ g ≠ 1`; the involution `(0, 1)` is not estranged, the model tower is not estranged, all system stabilizers equal `{0} × ℤ/2` | `deckHom₂_h_involution`, `DihedralLine.dist_ge`, `estrangedElt_comap_iff`, `yddot_estrangedElt_iff`, `not_estrangedElt_involution`, `not_estranged_yddot`, `mem_stab_yddot` | [L] |
+| E15 | **reduction for the Tate curve**: estrangement of André's tower over `Δ` ⇔ `EllipticEstrangement Δ` ⇔ `TateWildPart Δ` (nontrivial elliptic elements of `Δ ∩ Π^tp_Ÿ` estranged) ∧ `TateInvolutionPart Δ` (elliptic `g ≠ 1`, `g² = 1` estranged); Thm. 3.7(iii)/(iv) from the two parts; comparison `TateLevel q` (`actKer {q} = Π^tp_Y`, implied by `TateLineLevel q (tateLineHom ∘ χ_Y)`): tame half for `P = {q}`, and **M4 for `P = {q}` ⇔ wild part ∧ involution part** | `TateWildPart`, `TateInvolutionPart`, `estranged_comap_andreTower_iff_tate`, `ellipticEstrangement_iff_tate`, `exists_le_stab_andreTower_of_tate`, `exists_eq_stab_of_maximal_of_tate`, `TateLevel`, `tateLevel_of_tateLineLevel`, `tameEstrangement_of_tateLevel`, `wildEstrangement_tateLevel_iff`, `wildEstrangement_of_tate` | [L] (reduction); `TateWildPart`, `TateInvolutionPart`, `TateLevel` ✗ |
 
 **What would become unconditional.** With `TameEstrangement ⊤ P` and M4 (`WildEstrangement ⊤ P`):
 `exists_le_stab_andreTower_of_estranged`, `exists_eq_stab_of_maximal_of_estranged` (Thm.
@@ -3044,6 +3051,38 @@ of the model; `DihedralLine.tower` proves estrangement and Thm. 3.7(iii)/(iv) fo
 line. The comparison with André's tower is isolated as `TateLineLevel q χ` (one level); it is not
 proved (`curveData` picks arbitrary W-models), and even granted it only controls level `q`: the
 reflections' fixed sets at deeper, non-line levels are not controlled (caveat (1)).
+
+**Tate curves via the explicit coverings (E12–E15).** The explicit Tate coverings do not need
+to be levels of André's tower to be useful: a continuous character to a discrete group is
+detected at one level (every pointed object is dominated by a pointed Galois object over a W-model
+level), and the stage groups have finite vertex stabilizers. For the torsion-free `ℤ` of `Y → X`
+this shows that **the elements relevant for M4 on the Tate side all lie in `Π^tp_Y`** (elliptic
+elements, in particular elements of compact subgroups, have `χ_Y = 0`), and that every element
+with `χ_Y ≠ 0` is estranged at all deeper levels, wild ones included — the statement of E11 at a
+single level `q` now holds without `TateLineLevel`. On `Π^tp_Y` the next explicit covering is
+`Ÿ → Y` with group `ℤ/2`. Its involution `ü ↦ −ü` fixes the skeleton of `G_m` pointwise (the
+covering of skeleta is the homeomorphism `x ↦ 2x`, ramified along the edges), so it acts
+trivially on the dual graph; in the repository's `Yddot` it acts trivially on the covering space
+of the special fibre (`deckHom₂_h_involution`). Consequently the dual graph of the `Ÿ`-level is the
+same line, not a line with doubled vertices, and no explicit Tate level detects the Kummer
+elements (`χ_Ÿ = (0, 1)`): in the model tower `yddotTower` the involution fixes the whole line at
+every level and is not estranged (`not_estranged_yddot`), and all system stabilizers coincide, so
+neither full estrangement nor the injectivity part of Thm. 3.7(iv) holds in a model built from
+these levels alone. (Geometrically the Kummer elements become estranged only at deeper levels,
+e.g. coverings ramified at cusps, where their action on the dual graph becomes nontrivial; these
+are not explicit in the repository.) What remains is reduced as far as group theory allows: an
+elliptic Kummer element `g` has `g² ∈ Π^tp_Ÿ` and its fixed set is contained in that of `g²`, so
+the estrangement of André's tower over `Δ` is equivalent to **`TateWildPart Δ`** (nontrivial
+elliptic elements of `Δ ∩ Π^tp_Ÿ`, i.e. acting trivially on the fibres of all explicit Tate
+coverings: the genuinely wild part, open) together with **`TateInvolutionPart Δ`** (elliptic
+involutions; `Π^tp` of a hyperbolic curve over a `p`-adic field should be torsion-free, which
+would make it vacuous, but this is not proved). The comparison with André's tower is the named
+statement `TateLevel q` (`actKer {q} = Π^tp_Y`, implied by `TateLineLevel q`); under it the tame
+half for `P = {q}` holds and M4 for `P = {q}` is equivalent to the two parts
+(`wildEstrangement_tateLevel_iff`). `TateLevel` is not proved for the same reason as
+`TateLineLevel` (`curveData` picks arbitrary W-models); note that it is only needed to phrase the
+result as `WildEstrangement Δ P` for a concrete `P`: the estrangement statements E13, E15 do not
+use it.
 
 **Why the Tate curve is not instantiated.** E4 covers exactly the explicit case (dual graph a
 single cycle): there, estrangement reduces to faithfulness at finite levels. To apply it to
