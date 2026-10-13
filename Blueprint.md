@@ -2915,3 +2915,32 @@ graph part), which see no ramification at the nodes; admissible coverings with `
 only through levels (finite étale `R`-algebras) and their normalised models, so M2.6 also needs a
 comparison between tame levels and admissible coverings of the special fibre (one direction is
 Abhyankar's lemma, §9.2, `SemistableReduction/Abhyankar*.lean`).
+
+**From M2 to the P13 hypotheses (M2.6, not formalised; the reduction made precise).** Let
+`Σ` be a set of primes with `p ∉ Σ`, `Δ^Σ` the maximal pro-`Σ` quotient of the geometric
+subgroup `Δ` of André's group, and assume M2 for all semistable models `𝒳_j` of the levels `j`
+of `galW` with `[K_j : K]` prime to `p` (the tame tower). Then, for the tree tower of `Δ^Σ`
+(the stabilizers of vertices of the tame tower):
+
+1. *Edge-like subgroups are nontrivial.* For a node `x` of `𝒳_{j,s}` and `e ∈ Σ`, M2.1 + M2 give
+   an admissible covering of `𝒳_{j,s}` with ramification index `e` at `x` (the Kummer covering at
+   `x`, extended by an étale covering of the rest of the special fibre, which exists for `e` in
+   the image of the inertia of the dual-graph `π₁`); its lift is a level `j' → j` with a node over
+   `x` whose inertia group is `μ_e`. A compatible system of these inertia groups gives a nontrivial
+   compact subgroup fixing a compatible system of edges, hence `stab e ≠ ⊥`.
+2. *Estrangement (tame part).* For a component `C` of `𝒳_{j,s}` and a nontrivial `γ` in the
+   decomposition group of `C`, M2 identifies the image of the decomposition group in `Δ^Σ` with
+   `π₁^{adm,Σ}(C ∖ nodes)` (surjectivity: every admissible `Σ`-covering of `C ∖ nodes` extends to
+   an admissible covering of `𝒳_{j,s}`; injectivity: normalisation, Abhyankar §9.2). In this
+   profinite surface group distinct cusp inertia groups meet trivially and are self-normalising
+   ([SemiAnbd] Ex. 2.10, totally elevated/estranged), so `γ` fixes at most the edges at one node:
+   the fixed subtree of `γ` has diameter `≤ 2`.
+3. *(HI) for hyperbolic components.* By the same identification the decomposition group of a
+   hyperbolic component surjects onto `π₁^{adm,Σ}(C ∖ nodes)`, in which node inertia groups have
+   infinite index; W10 then gives (HI).
+
+Missing in the repository for each step: the pro-`Σ` quotient of André's group and its tree
+tower, admissible coverings as objects of the tempered category (levels with Kummer ramification
+at nodes, compare `Andre/QuadraticLevel.lean` for `e = 2` at a single level), the identification
+of the decomposition groups of components with `π₁^{adm}` of the components (D4), and M2 itself
+(M2.2 general, M2.3–M2.5).
