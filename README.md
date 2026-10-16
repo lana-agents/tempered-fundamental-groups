@@ -290,11 +290,31 @@ These are recorded in Blueprint §9.12 and §10.4. None of them is targeted.
   curve would need a change of variables, transported through `geomOrbicurveRing` and
   `temperedPi1`.
 
+## Kummer classes on the tempered fundamental group
+
+`Tempered/Kummer.lean` (roadmap item MR5 of `iut`, algebraic part of "Kummer theory on tempered
+coverings"). For an affine curve `U = [Spec D.R / D.A]` in `pi1`'s Galois model
+(`Pi1.Orbifold.GaloisData D`):
+
+* `Kummer.kummerMapTempered D O V hV n : Γ(U, 𝒪^×) →* H¹(Π^tp, μ_n)` and
+  `kummerMapTemperedZHat` (values in `Ẑ(1)`): the Kummer maps of `continuous-kummer-theory`
+  pulled back along `temperedToEtale` and `π₁ᵉᵗ ≅ Π_U` (`Kummer.tempToPi`).
+* `Kummer.kummerMapTempered_galoisToTempered`: on Galois elements `galoisToTempered σ`, every
+  representative of `κ^tp(u)` is the Kummer cocycle `σ ↦ σ(u^{1/n})/u^{1/n}` up to a coboundary
+  (the comparison with Kummer classes of values, as in [EtTh] Prop. 1.4(iii)); via
+  `Kummer.galoisToEtale_eq` (`galoisToEtale σ = D.toEtalePi1 σ` for `σ ∈ Aut_R(Ω)`, which fixes
+  the function field).
+* `Kummer.map_temperedPi1Map_kummerMapTempered`: naturality along `temperedPi1Map μ` (through
+  `etalePi1Map μ`).
+
+Not covered: injectivity (dense image of `Π^tp → π₁ᵉᵗ`) and Kummer classes of functions on
+infinite tempered coverings (e.g. the theta function on `Ÿ`).
+
 ## Dependencies
 
 Lean 4 `leanprover/lean4:v4.32.0`, Mathlib `v4.32.0`, and (`lakefile.toml`):
 
-* [`pi1`](https://github.com/lana-agents/pi1) at `7647d28`: the étale fundamental group of an affine
+* [`pi1`](https://github.com/lana-agents/pi1) at `8e0239a`: the étale fundamental group of an affine
   orbifold `Pi1.Orbifold.etalePi1` (profinite as `etalePi1Profinite`; for trivial `A` it is `≃ₜ*`
   Mathlib's `Aut (CommAlgCat.FiniteEtale.fiber R Ω)` by `etalePi1EquivAutFiber`; for a Galois
   presentation it is `GaloisData.equivPi1`), the fibre-functor topology `Pi1.Orbifold.FibreAut`,
@@ -304,6 +324,9 @@ Lean 4 `leanprover/lean4:v4.32.0`, Mathlib `v4.32.0`, and (`lakefile.toml`):
   orbicurves is finite.
 * [`oka`](https://github.com/lana-agents/oka) at `405aadd`: Serre's finiteness theorem on projective
   space and Zariski's connectedness theorem (`ProjectiveSpace.isPreconnected_closedFibre`).
+* [`continuous-kummer-theory`](https://github.com/lana-agents/continuous-kummer-theory) at
+  `e3fc64c`: continuous `H¹` and the Kummer maps of affine curves on the étale fundamental group
+  (`KummerTheory.Curve.kummerMap`, `kummerMapEtale`), used in `Tempered/Kummer.lean`.
 
 The downstream consumer is [`iut`](https://github.com/lana-agents/iut), which uses Theorem A
 (`andreEquiv'`) in `Iut/Anabelian/TemperedAndre.lean`.

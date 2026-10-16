@@ -613,6 +613,7 @@ import TemperedFundamentalGroups.Tempered.InducedHom
 import TemperedFundamentalGroups.Tempered.InducedLevel
 import TemperedFundamentalGroups.Tempered.InducedRange
 import TemperedFundamentalGroups.Tempered.InducedUnit
+import TemperedFundamentalGroups.Tempered.Kummer
 import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Tempered.MixedCover
 import TemperedFundamentalGroups.Tempered.OrbifoldCover

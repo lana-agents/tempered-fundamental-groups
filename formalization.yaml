@@ -89,6 +89,9 @@ related_formalizations:
   - id: "https://github.com/lana-agents/elliptic-curves"
     relationship: "builds-on"
     note: "Finiteness of torsion of elliptic curves in characteristic 0."
+  - id: "https://github.com/lana-agents/continuous-kummer-theory"
+    relationship: "builds-on"
+    note: "Continuous H¹ and Kummer maps of affine curves on the étale fundamental group (Tempered/Kummer.lean)."
   - id: "https://github.com/lana-agents/oka"
     relationship: "builds-on"
     note: >-
@@ -120,6 +123,11 @@ status:
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
   main_results:
+    - declaration: "TemperedFundamentalGroups.Kummer.kummerMapTempered_galoisToTempered"
+      file: "TemperedFundamentalGroups/Tempered/Kummer.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
     - declaration: "TemperedFundamentalGroups.SemistableReduction.Statement.strongA"
       file: "TemperedFundamentalGroups/SemistableReduction/StrongAProof.lean"
       sorry_count: 0
