@@ -34,6 +34,8 @@ change `S ⊗_R P` (via `α : P → Q`, `IsBaseChange S α`). The glued algebra 
 * **`FormalGlueing.finite_glued`**: if moreover `R/fᵏ → S/fᵏS` is injective, `P` is finite over
   `R_f` and `N` is finite over `S`, the glued algebra is a finite `R`-module (`S ⊗ (M/M') = 0` and
   flatness of `S` kill the `f`-power torsion of `M/M'`, cf. Stacks, Lemma 15.91.2, Tag 05E9);
+* **`FormalGlueing.bijective_liftGlued`**: uniqueness — an `R`-algebra which localizes to `P` and
+  base-changes to `N` compatibly is the glued algebra;
 * `FormalGlueing.isBaseChange_snd_completion`, `FormalGlueing.finite_glued_completion`: the case of
   the `f`-adic completion of a Noetherian ring.
 
@@ -334,35 +336,24 @@ variable [Module.Flat R S]
 omit [IsLocalization.Away (algebraMap R N f) Q] [Algebra S N] [IsScalarTower R S N] [Algebra S Q]
   [IsScalarTower R S Q] [IsScalarTower S N Q] in
 include hS hS' in
-/-- If the base change to `S` of a submodule `M'` of the glued algebra is everything, then
-`M/M'` has no `f`-power torsion (flatness of `S` and `R/fᵏ ≅ S/fᵏ`). -/
-lemma mem_of_pow_smul_mem (M' : Submodule R (glued N α))
-    (hM' : ∀ z : S ⊗[R] glued N α,
-      z ∈ LinearMap.range (AlgebraTensorModule.lTensor S S M'.subtype))
-    (m : glued N α) (k : ℕ) (hm : f ^ k • m ∈ M') : m ∈ M' := by
-  -- `S ⊗ (M ⧸ M') = 0`
-  have hzero : ∀ y : S ⊗[R] (glued N α ⧸ M'), y = 0 := by
-    intro y
-    obtain ⟨x, rfl⟩ := LinearMap.lTensor_surjective S M'.mkQ_surjective y
-    obtain ⟨x', hx'⟩ := hM' x
-    rw [← hx']
-    change (LinearMap.lTensor S M'.mkQ ∘ₗ LinearMap.lTensor S M'.subtype) x' = 0
-    rw [← LinearMap.lTensor_comp, show M'.mkQ ∘ₗ M'.subtype = 0 from LinearMap.ext fun x ↦ by simp,
-      LinearMap.lTensor_zero, LinearMap.zero_apply]
-  set c := M'.mkQ m
-  set J := Ideal.torsionOf R (glued N α ⧸ M') c
-  have hfk : f ^ k ∈ J := by
-    rw [Ideal.mem_torsionOf_iff, ← map_smul, Submodule.mkQ_apply,
-      Submodule.Quotient.mk_eq_zero]
-    exact hm
-  -- `S ⊗ R/J ↪ S ⊗ (M ⧸ M') = 0`
-  let ι : (R ⧸ J) →ₗ[R] glued N α ⧸ M' :=
+/-- An `fᵏ`-torsion element `c` of an `R`-module with `1 ⊗ c = 0` in `S ⊗_R C` is zero (`S` flat,
+`R/fᵏ ≅ S/fᵏS`; cf. Stacks, Lemma 15.91.2, Tag 05E9). -/
+lemma eq_zero_of_tmul_eq_zero {C : Type*} [AddCommGroup C] [Module R C] (c : C) (k : ℕ)
+    (hc : f ^ k • c = 0) (h0 : (1 : S) ⊗ₜ[R] c = 0) : c = 0 := by
+  set J := Ideal.torsionOf R C c
+  have hfk : f ^ k ∈ J := (Ideal.mem_torsionOf_iff c _).mpr hc
+  -- `S ⊗ R/J ↪ S ⊗ C`
+  let ι : (R ⧸ J) →ₗ[R] C :=
     (R ∙ c).subtype ∘ₗ (Ideal.quotTorsionOfEquivSpanSingleton R _ c).toLinearMap
   have hι : Function.Injective ι :=
     (Submodule.injective_subtype _).comp (LinearEquiv.injective _)
-  have h1 : (1 : S) ⊗ₜ[R] (Ideal.Quotient.mk J 1) = 0 :=
-    Module.Flat.lTensor_preserves_injective_linearMap (M := S) ι hι
-      (by rw [map_zero]; exact hzero _)
+  have h1 : (1 : S) ⊗ₜ[R] (Ideal.Quotient.mk J 1) = 0 := by
+    refine Module.Flat.lTensor_preserves_injective_linearMap (M := S) ι hι ?_
+    rw [map_zero, LinearMap.lTensor_tmul]
+    have : ι (Ideal.Quotient.mk J 1) = c := by
+      change ((Ideal.quotTorsionOfEquivSpanSingleton R C c) (Submodule.Quotient.mk 1) : C) = c
+      rw [Ideal.quotTorsionOfEquivSpanSingleton_apply_mk, one_smul]
+    rw [this, h0]
   have h2 : (1 : S) ∈ J • (⊤ : Submodule R S) := by
     have := congrArg (tensorQuotEquivQuotSMul S J) h1
     rw [tensorQuotEquivQuotSMul_tmul_mk, map_zero, one_smul,
@@ -387,7 +378,31 @@ lemma mem_of_pow_smul_mem (M' : Submodule R (glued N α))
     rw [this]
     exact J.add_mem ha (J.mul_mem_right _ hfk)
   rw [Ideal.mem_torsionOf_iff, one_smul] at hJ
-  exact (Submodule.Quotient.mk_eq_zero M').mp hJ
+  exact hJ
+
+omit [IsLocalization.Away (algebraMap R N f) Q] [Algebra S N] [IsScalarTower R S N] [Algebra S Q]
+  [IsScalarTower R S Q] [IsScalarTower S N Q] in
+include hS hS' in
+/-- If the base change to `S` of a submodule `M'` of the glued algebra is everything, then
+`M/M'` has no `f`-power torsion (flatness of `S` and `R/fᵏ ≅ S/fᵏ`). -/
+lemma mem_of_pow_smul_mem (M' : Submodule R (glued N α))
+    (hM' : ∀ z : S ⊗[R] glued N α,
+      z ∈ LinearMap.range (AlgebraTensorModule.lTensor S S M'.subtype))
+    (m : glued N α) (k : ℕ) (hm : f ^ k • m ∈ M') : m ∈ M' := by
+  -- `S ⊗ (M ⧸ M') = 0`
+  have hzero : ∀ y : S ⊗[R] (glued N α ⧸ M'), y = 0 := by
+    intro y
+    obtain ⟨x, rfl⟩ := LinearMap.lTensor_surjective S M'.mkQ_surjective y
+    obtain ⟨x', hx'⟩ := hM' x
+    rw [← hx']
+    change (LinearMap.lTensor S M'.mkQ ∘ₗ LinearMap.lTensor S M'.subtype) x' = 0
+    rw [← LinearMap.lTensor_comp, show M'.mkQ ∘ₗ M'.subtype = 0 from LinearMap.ext fun x ↦ by simp,
+      LinearMap.lTensor_zero, LinearMap.zero_apply]
+  have hc : f ^ k • M'.mkQ m = 0 := by
+    rw [← map_smul, Submodule.mkQ_apply, Submodule.Quotient.mk_eq_zero]
+    exact hm
+  exact (Submodule.Quotient.mk_eq_zero M').mp
+    (eq_zero_of_tmul_eq_zero S hS hS' (M'.mkQ m) k hc (hzero _))
 
 include hfP hS hN hα hS' in
 /-- **Finiteness of the glued algebra**: if `P` is finite over `R_f` (in the form: finitely many
@@ -473,6 +488,86 @@ theorem finite_glued (hP : ∃ s : Finset P, ∀ p : P, ∃ k : ℕ,
     rw [← sub_eq_zero]
     exact Subtype.ext (Prod.ext hd1 hd2)
   exact mem_of_pow_smul_mem N α S hS hS' M' hM' m K (hmK ▸ hy')
+
+omit [Algebra S N] [IsScalarTower R S N] [Algebra S Q] [IsScalarTower R S Q] [IsScalarTower S N Q]
+  [Module.Flat R S] in
+include hN in
+/-- Elements of the glued algebra are determined by their first component (`N` has no
+`f`-torsion). -/
+lemma eq_of_fst_eq {a b : glued N α} (h : a.1.1 = b.1.1) : a = b := by
+  have hd1 : (a - b).1.1 = 0 := by
+    change a.1.1 - b.1.1 = 0
+    rw [h, sub_self]
+  have hdQ : algebraMap N Q (a - b).1.2 = 0 := by
+    rw [← (mem_glued N α).mp (a - b).2, hd1, map_zero]
+  obtain ⟨⟨_, j, rfl⟩, hj⟩ := (IsLocalization.map_eq_zero_iff
+    (Submonoid.powers (algebraMap R N f)) Q _).mp hdQ
+  have hd2 : (a - b).1.2 = 0 := by
+    simp only at hj
+    clear hd1 hdQ
+    induction j with
+    | zero => simpa using hj
+    | succ j ih => exact ih (hN _ (by rw [← mul_assoc, ← pow_succ']; exact hj))
+  rw [← sub_eq_zero]
+  exact Subtype.ext (Prod.ext hd1 hd2)
+
+omit [Algebra S N] [IsScalarTower R S N] [Algebra S Q] [IsScalarTower R S Q] [IsScalarTower S N Q]
+  [Module.Flat R S] [IsLocalization.Away (algebraMap R N f) Q] in
+/-- The map to the glued algebra from an algebra with compatible maps to `P` and `N`. -/
+def liftGlued {M : Type*} [CommRing M] [Algebra R M] (φ₁ : M →ₐ[R] P) (φ₂ : M →ₐ[R] N)
+    (hφ : ∀ x, α (φ₁ x) = algebraMap N Q (φ₂ x)) : M →ₐ[R] glued N α :=
+  (φ₁.prod φ₂).codRestrict (glued N α) fun x ↦ hφ x
+
+include hfP hS hN hα hS' in
+/-- **Uniqueness of formal glueing** (the full faithfulness half of Stacks, Theorem 15.91.18,
+Tag 05ES, for algebras): an `R`-algebra `M` with compatible maps `φ₁ : M → P`, a localization away
+from `f`, and `φ₂ : M → N`, a base change along `R → S`, is the glued algebra. -/
+theorem bijective_liftGlued {M : Type*} [CommRing M] [Algebra R M] (φ₁ : M →ₐ[R] P)
+    (φ₂ : M →ₐ[R] N) (hφ : ∀ x, α (φ₁ x) = algebraMap N Q (φ₂ x))
+    (h₁ : ∀ p : P, ∃ (x : M) (k : ℕ), φ₁ x = f ^ k • p)
+    (h₁' : ∀ x : M, φ₁ x = 0 → ∃ k : ℕ, f ^ k • x = 0)
+    (h₂ : IsBaseChange S φ₂.toLinearMap) :
+    Function.Bijective (liftGlued N α φ₁ φ₂ hφ) := by
+  have hψ := psi_bijective N α S hfP hS hN hα
+  set L := liftGlued N α φ₁ φ₂ hφ
+  have hL1 : ∀ x, (L x).1.1 = φ₁ x := fun _ ↦ rfl
+  have hL2 : ∀ x, (L x).1.2 = φ₂ x := fun _ ↦ rfl
+  -- `ψ ∘ (S ⊗ L)` is the base change isomorphism of `φ₂`
+  have hcomp : ∀ w : S ⊗[R] M,
+      psi N α S (AlgebraTensorModule.lTensor S S L.toLinearMap w) = h₂.equiv w := by
+    intro w
+    induction w using TensorProduct.induction_on with
+    | zero => simp
+    | tmul s x => simp [IsBaseChange.equiv_tmul, hL2]
+    | add a b ha hb => simp only [map_add, ha, hb]
+  constructor
+  · rw [injective_iff_map_eq_zero]
+    intro x hx
+    obtain ⟨k, hk⟩ := h₁' x (by rw [← hL1, hx]; rfl)
+    refine eq_zero_of_tmul_eq_zero S hS hS' x k hk ?_
+    apply h₂.equiv.injective
+    rw [map_zero, IsBaseChange.equiv_tmul, one_smul]
+    change (L x).1.2 = 0
+    rw [hx]; rfl
+  · intro y
+    set M'' : Submodule R (glued N α) := LinearMap.range L.toLinearMap
+    obtain ⟨x, k, hx⟩ := h₁ y.1.1
+    have hk : f ^ k • y ∈ M'' := ⟨x, eq_of_fst_eq N α hN (by
+      change (L x).1.1 = _
+      rw [hL1 x, hx]; rfl)⟩
+    have hM'' : ∀ z : S ⊗[R] glued N α,
+        z ∈ LinearMap.range (AlgebraTensorModule.lTensor S S M''.subtype) := by
+      intro z
+      obtain ⟨w, hw⟩ := h₂.equiv.surjective (psi N α S z)
+      have hlt : AlgebraTensorModule.lTensor S S M''.subtype
+          (AlgebraTensorModule.lTensor S S L.toLinearMap.rangeRestrict w) =
+          AlgebraTensorModule.lTensor S S L.toLinearMap w := by
+        rw [← LinearMap.comp_apply, ← AlgebraTensorModule.lTensor_comp]
+        rfl
+      exact ⟨AlgebraTensorModule.lTensor S S L.toLinearMap.rangeRestrict w,
+        hψ.1 (by rw [hlt, hcomp, hw])⟩
+    obtain ⟨x', hx'⟩ := mem_of_pow_smul_mem N α S hS hS' M'' hM'' y k hk
+    exact ⟨x', hx'⟩
 
 end Finite
 
