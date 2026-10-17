@@ -71,6 +71,7 @@ import TemperedFundamentalGroups.Andre.TateModel
 import TemperedFundamentalGroups.Andre.TateModelCharts
 import TemperedFundamentalGroups.Andre.TateModelNormal
 import TemperedFundamentalGroups.Andre.TateNatural
+import TemperedFundamentalGroups.Andre.TateNodeConj
 import TemperedFundamentalGroups.Andre.TateNodeGerm
 import TemperedFundamentalGroups.Andre.TateNodePoints
 import TemperedFundamentalGroups.Andre.TateNormalAlgebra
