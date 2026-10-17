@@ -20,7 +20,12 @@ This file provides the injectivity ingredient: the conjugation `b ↦ −a − b
 (`TateNormal.conjL`, an `O[X]`-algebra map) fixes `w` and `v` (`conjL_wL`, `conjL_vL`) and sends
 `s ↦ −1 − s` (`conjL_sL`), and `2s + 1 ≠ 0` (`two_sL_add_one_ne_zero`: `(2b + a)² = d(a) ≠ 0`).
 Hence **`TateNormal.eq_zero_of_add_mul_sL_eq_zero`**: if `x + y s = 0` with `x`, `y` fixed by the
-conjugation (e.g. in the image of the node ring), then `x = y = 0`.
+conjugation (e.g. in the image of the node ring), then `x = y = 0`. With the node ring mapped to
+`L` by `TateNormal.nodeToL` (`u ↦ w`, `v ↦ v`, `uv = ϖⁿ` by `wL_mul_vL`):
+`eq_zero_of_nodeToL_add_mul_sL_eq_zero` (`1, s` are independent over the node ring) and
+**`TateNormal.sL_sq_add_sL`** (`s² + s = c := ε (1 + b₄ u²) v + b₆ u²` over the node ring), so
+`A[S]/(S² + S − c) → L`, `S ↦ s`, is injective; with `QuadraticEtale.etale` its localization at
+`2S + 1` is étale over `A`. Not yet done: its image is the chart localized at `1 + b₄ w²`.
 -/
 
 universe u
@@ -174,6 +179,30 @@ theorem eq_zero_of_nodeToL_add_mul_sL_eq_zero {ϖ : O} {ε : Oˣ} {n : ℕ} (hπ
     (h : nodeToL b₄ b₆ hπε x + nodeToL b₄ b₆ hπε y * sL π b₄ b₆ = 0) :
     nodeToL b₄ b₆ hπε x = 0 ∧ nodeToL b₄ b₆ hπε y = 0 :=
   eq_zero_of_add_mul_sL_eq_zero π b₄ b₆ (conjL_nodeToL b₄ b₆ hπε x) (conjL_nodeToL b₄ b₆ hπε y) h
+
+variable {π} in
+/-- **`s` is a root of `S² + S − c` over the node ring**, `c = ε (1 + b₄ u²) v + b₆ u²`
+(`QuadraticEtale.poly`). -/
+theorem sL_sq_add_sL {ϖ : O} {ε : Oˣ} {n : ℕ} (hπε : π = ε * ϖ ^ n) :
+    sL π b₄ b₆ ^ 2 + sL π b₄ b₆ = nodeToL b₄ b₆ hπε
+      (algebraMap O _ (ε : O) * (1 + algebraMap O _ b₄ * SemistableReduction.Node.u (ϖ ^ n) ^ 2) *
+          SemistableReduction.Node.v (ϖ ^ n) +
+        algebraMap O _ b₆ * SemistableReduction.Node.u (ϖ ^ n) ^ 2) := by
+  have hD := one_add_b₄_wL_sq_ne_zero π b₄ b₆
+  have hε : algebraMap O L (ε : O) ≠ 0 := by
+    rw [← algebraMap_K_coe]
+    refine (map_ne_zero (algebraMap K L)).mpr fun h ↦ ε.ne_zero (Subtype.ext h)
+  have hu : nodeToL b₄ b₆ hπε (SemistableReduction.Node.u (ϖ ^ n)) = wL π b₄ b₆ :=
+    SemistableReduction.Node.lift_u ..
+  have hv : nodeToL b₄ b₆ hπε (SemistableReduction.Node.v (ϖ ^ n)) =
+      vL (π := π) (b₄ := b₄) (b₆ := b₆) (ε : O) :=
+    SemistableReduction.Node.lift_v ..
+  have key : vL (π := π) (b₄ := b₄) (b₆ := b₆) (ε : O) *
+      ((1 + algebraMap O L b₄ * wL π b₄ b₆ ^ 2) * algebraMap O L (ε : O)) =
+      sL π b₄ b₆ * (sL π b₄ b₆ + 1) - algebraMap O L b₆ * wL π b₄ b₆ ^ 2 :=
+    div_mul_cancel₀ _ (mul_ne_zero hD hε)
+  simp only [map_add, map_mul, map_one, map_pow, AlgHom.commutes, hu, hv]
+  linear_combination -key
 
 end
 
