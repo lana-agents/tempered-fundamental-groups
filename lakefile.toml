@@ -54,4 +54,4 @@ rev = "405aadd70a16b05bd1a179a489b2c1c1299df695"
 [[require]]
 name = "formal-schemes"
 git = "https://github.com/lana-agents/formal-schemes"
-rev = "51c399322f603147f7776ab0c9d9c0916c33fc4d"
+rev = "e58ecf04554f14c8d1cc2753136f9d785525df5a"
