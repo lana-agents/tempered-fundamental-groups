@@ -23,10 +23,11 @@ Mathlib's `IsHausdorff.of_le_jacobson`), and precomplete as a quotient of a fini
 `A^n` (which is complete by `CompleteFree.isAdicComplete_of_basis`): the adic completion is
 exact on surjections (`AdicCompletion.map_surjective`), so `M → M^` is surjective.
 
-Consequence (**`finiteEtaleEquivOfQuot`**): two finite étale `A`-algebras with isomorphic
-reductions modulo `I` are isomorphic by a unique isomorphism lifting the given one — the
-completeness hypotheses of `EtaleLift.algEquivOfQuot` are automatic over a complete Noetherian
-base. This is the uniqueness half of M2.2 in the form needed for the formal patching (M2.3).
+Consequences: reduction modulo `I` is fully faithful on finite étale `A`-algebras
+(**`finiteEtaleHomEquiv`**), and (**`finiteEtaleEquivOfQuot`**): two finite étale `A`-algebras with
+isomorphic reductions modulo `I` are isomorphic by a unique isomorphism lifting the given one — the
+completeness hypotheses of `EtaleLift.algEquivOfQuot` are automatic over a complete Noetherian base.
+This is the uniqueness half of M2.2 in the form needed for the formal patching (M2.3).
 -/
 
 namespace SemistableReduction
@@ -111,6 +112,44 @@ lemma mkₐ_comp_finiteEtaleEquivOfQuot
   haveI := isAdicComplete_map_of_finite I B
   haveI := isAdicComplete_map_of_finite I B'
   EtaleLift.mkₐ_comp_algEquivOfQuot I e
+
+omit [IsNoetherianRing A] [IsAdicComplete I A] [Module.Finite A B] [Algebra.FormallyEtale A B] in
+lemma algebraMap_quot_eq_zero {a : A} (ha : a ∈ I) :
+    algebraMap A (B ⧸ I.map (algebraMap A B)) a = 0 :=
+  (Ideal.Quotient.eq_zero_iff_mem).2 (Ideal.mem_map_of_mem _ ha)
+
+omit [Module.Finite A B] [Algebra.FormallyEtale A B] in
+/-- Maps out of `B/IB` into an `A`-algebra killed by `I` are the maps out of `B`. -/
+noncomputable def quotHomEquiv {C : Type*} [CommRing C] [Algebra A C]
+    (hC : ∀ a ∈ I, algebraMap A C a = 0) :
+    (B ⧸ I.map (algebraMap A B) →ₐ[A] C) ≃ (B →ₐ[A] C) where
+  toFun φ := φ.comp (Ideal.Quotient.mkₐ A _)
+  invFun g := Ideal.Quotient.liftₐ _ g fun x hx ↦ by
+    have : I.map (algebraMap A B) ≤ RingHom.ker g :=
+      Ideal.map_le_iff_le_comap.2 fun a ha ↦ by
+        rw [Ideal.mem_comap, RingHom.mem_ker]
+        exact (g.commutes a).trans (hC a ha)
+    exact this hx
+  left_inv φ := by
+    ext x
+    obtain ⟨x, rfl⟩ := Ideal.Quotient.mk_surjective x
+    rfl
+  right_inv g := by
+    ext x
+    rfl
+
+/-- **Full faithfulness of reduction on finite étale algebras** over a complete Noetherian base
+(with `exists_finite_etale_lift`, the equivalence of Stacks, Tag 09ZL, for complete Noetherian
+`(A, I)`): `A`-algebra maps `B → B'` are the `A`-algebra maps `B/IB → B'/IB'`. -/
+noncomputable def finiteEtaleHomEquiv :
+    (B →ₐ[A] B') ≃ (B ⧸ I.map (algebraMap A B) →ₐ[A] B' ⧸ I.map (algebraMap A B')) :=
+  haveI := isAdicComplete_map_of_finite I B'
+  (EtaleLift.homEquiv (I.map (algebraMap A B'))).trans
+    (quotHomEquiv I fun _ ha ↦ algebraMap_quot_eq_zero I ha).symm
+
+omit [Module.Finite A B] [Algebra.FormallyEtale A B'] in
+lemma finiteEtaleHomEquiv_apply_mk (g : B →ₐ[A] B') (x : B) :
+    finiteEtaleHomEquiv I g (Ideal.Quotient.mk _ x) = Ideal.Quotient.mk _ (g x) := rfl
 
 end Equiv
 
