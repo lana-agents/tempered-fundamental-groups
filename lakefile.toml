@@ -47,3 +47,11 @@ rev = "8e0239afa0206c22a210d0fa9a982c574826f879"
 name = "oka"
 git = "https://github.com/lana-agents/oka"
 rev = "405aadd70a16b05bd1a179a489b2c1c1299df695"
+
+# Formal schemes and Grothendieck existence on `ℙ¹` (chart modules/algebras over `ℙ¹_A`,
+# `AdicChartAlgSystem.exists_algebraization`, `ChartModule.flat_of_system`, `AlgStr.toP1`), for the
+# algebraization step of the specialization of admissible coverings (M2, Blueprint §12.8).
+[[require]]
+name = "formal-schemes"
+git = "https://github.com/lana-agents/formal-schemes"
+rev = "51c399322f603147f7776ab0c9d9c0916c33fc4d"
