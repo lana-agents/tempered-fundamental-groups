@@ -344,6 +344,19 @@ theorem exists_finite_etale_lift {A : Type u} [CommRing A] (I : Ideal A) [IsNoet
       (EtaleLift.map_le_jacobson (IsAdicComplete.le_jacobson_bot I))
   exact Algebra.Etale.of_formallyUnramified_of_flat
 
+/-- **Lifting finite étale algebras along a nilpotent thickening** (the level-`n` step of the
+formal patching M2.3, Blueprint §12.8): over a Noetherian ring `A` with `Iⁿ = 0`, every finite
+étale `A/I`-algebra is the reduction of a finite étale `A`-algebra. (With
+`CompleteFinite.finiteEtaleHomEquiv`, reduction is an equivalence `FEt(A) ≃ FEt(A/I)`.) -/
+theorem exists_finite_etale_lift_of_pow_eq_bot {A : Type u} [CommRing A] (I : Ideal A)
+    [IsNoetherianRing A] {n : ℕ} (hn : I ^ n = ⊥) (S₀ : Type*) [CommRing S₀]
+    [Algebra (A ⧸ I) S₀] [Algebra A S₀] [IsScalarTower A (A ⧸ I) S₀] [Algebra.Etale (A ⧸ I) S₀]
+    [Module.Finite (A ⧸ I) S₀] :
+    ∃ (B : Type u) (_ : CommRing B) (_ : Algebra A B), Module.Finite A B ∧ Algebra.Etale A B ∧
+      Nonempty ((B ⧸ I.map (algebraMap A B)) ≃ₐ[A] S₀) :=
+  haveI := CompleteFinite.isAdicComplete_of_pow_eq_bot I hn
+  exists_finite_etale_lift I S₀
+
 end EtaleLiftExists
 
 end SemistableReduction

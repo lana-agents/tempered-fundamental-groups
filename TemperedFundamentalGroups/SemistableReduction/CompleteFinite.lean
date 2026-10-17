@@ -153,6 +153,24 @@ lemma finiteEtaleHomEquiv_apply_mk (g : B →ₐ[A] B') (x : B) :
 
 end Equiv
 
+omit [IsNoetherianRing A] [IsAdicComplete I A] in
+/-- A ring is adically complete with respect to a **nilpotent** ideal (e.g. `ϖ` in `O/ϖⁿ⁺¹`, the
+level-`n` thickening of the formal patching M2.3). -/
+theorem isAdicComplete_of_pow_eq_bot {n : ℕ} (hn : I ^ n = ⊥) :
+    IsAdicComplete I A := by
+  have hle : ∀ k, n ≤ k → ∀ x ∈ (I ^ k • ⊤ : Submodule A A), x = 0 := by
+    intro k hk x hx
+    have h1 : x ∈ I ^ k := Submodule.smul_le.mpr (fun r hr y _ ↦ Ideal.mul_mem_right y _ hr) hx
+    have h2 : x ∈ I ^ n := Ideal.pow_le_pow_right hk h1
+    rwa [hn, Ideal.mem_bot] at h2
+  refine { haus' := fun x hx ↦ hle n le_rfl x (SModEq.zero.mp (hx n)),
+           prec' := fun f hf ↦ ⟨f n, fun k ↦ ?_⟩ }
+  rcases le_total k n with hk | hk
+  · exact hf hk
+  · have := hle n le_rfl _ (SModEq.sub_mem.mp (hf hk))
+    rw [sub_eq_zero] at this
+    rw [this]
+
 end CompleteFinite
 
 end SemistableReduction
