@@ -9,6 +9,8 @@ import Mathlib.RingTheory.AdicCompletion.Completeness
 import Mathlib.RingTheory.Flat.Basic
 import Mathlib.RingTheory.IsTensorProduct
 import Mathlib.Tactic.LinearCombination
+import Mathlib.LinearAlgebra.TensorProduct.Quotient
+import Mathlib.Algebra.Module.Torsion.Basic
 
 /-!
 # Formal glueing of algebras along `f` (generic commutative algebra)
@@ -28,7 +30,12 @@ change `S ⊗_R P` (via `α : P → Q`, `IsBaseChange S α`). The glued algebra 
 
 * **`FormalGlueing.isLocalization_fst`**: `P` is the localization of the glued algebra away from
   `f` (no hypothesis on `S` needed);
-* **`FormalGlueing.isBaseChange_snd`**: `N` is the base change of the glued algebra along `R → S`.
+* **`FormalGlueing.isBaseChange_snd`**: `N` is the base change of the glued algebra along `R → S`;
+* **`FormalGlueing.finite_glued`**: if moreover `R/fᵏ → S/fᵏS` is injective, `P` is finite over
+  `R_f` and `N` is finite over `S`, the glued algebra is a finite `R`-module (`S ⊗ (M/M') = 0` and
+  flatness of `S` kill the `f`-power torsion of `M/M'`, cf. Stacks, Lemma 15.91.2, Tag 05E9);
+* `FormalGlueing.isBaseChange_snd_completion`, `FormalGlueing.finite_glued_completion`: the case of
+  the `f`-adic completion of a Noetherian ring.
 
 This is the essential surjectivity half of Stacks, Theorem 15.91.18 (Tag 05ES:
 `Mod_R ≃ Mod_S ×_{Mod_{S_f}} Mod_{R_f}` for `R → S` flat with `R/fR ≅ S/fS`), in the case of
@@ -318,6 +325,157 @@ theorem isBaseChange_snd [Module.Flat R S] : IsBaseChange S (snd N α).toLinearM
     fun x ↦ by simp
 
 
+section Finite
+
+variable [Module.Flat R S]
+  (hS' : ∀ (k : ℕ) (r : R) (t : S), algebraMap R S r = algebraMap R S f ^ k * t →
+    ∃ r' : R, r = f ^ k * r')
+
+omit [IsLocalization.Away (algebraMap R N f) Q] [Algebra S N] [IsScalarTower R S N] [Algebra S Q]
+  [IsScalarTower R S Q] [IsScalarTower S N Q] in
+include hS hS' in
+/-- If the base change to `S` of a submodule `M'` of the glued algebra is everything, then
+`M/M'` has no `f`-power torsion (flatness of `S` and `R/fᵏ ≅ S/fᵏ`). -/
+lemma mem_of_pow_smul_mem (M' : Submodule R (glued N α))
+    (hM' : ∀ z : S ⊗[R] glued N α,
+      z ∈ LinearMap.range (AlgebraTensorModule.lTensor S S M'.subtype))
+    (m : glued N α) (k : ℕ) (hm : f ^ k • m ∈ M') : m ∈ M' := by
+  -- `S ⊗ (M ⧸ M') = 0`
+  have hzero : ∀ y : S ⊗[R] (glued N α ⧸ M'), y = 0 := by
+    intro y
+    obtain ⟨x, rfl⟩ := LinearMap.lTensor_surjective S M'.mkQ_surjective y
+    obtain ⟨x', hx'⟩ := hM' x
+    rw [← hx']
+    change (LinearMap.lTensor S M'.mkQ ∘ₗ LinearMap.lTensor S M'.subtype) x' = 0
+    rw [← LinearMap.lTensor_comp, show M'.mkQ ∘ₗ M'.subtype = 0 from LinearMap.ext fun x ↦ by simp,
+      LinearMap.lTensor_zero, LinearMap.zero_apply]
+  set c := M'.mkQ m
+  set J := Ideal.torsionOf R (glued N α ⧸ M') c
+  have hfk : f ^ k ∈ J := by
+    rw [Ideal.mem_torsionOf_iff, ← map_smul, Submodule.mkQ_apply,
+      Submodule.Quotient.mk_eq_zero]
+    exact hm
+  -- `S ⊗ R/J ↪ S ⊗ (M ⧸ M') = 0`
+  let ι : (R ⧸ J) →ₗ[R] glued N α ⧸ M' :=
+    (R ∙ c).subtype ∘ₗ (Ideal.quotTorsionOfEquivSpanSingleton R _ c).toLinearMap
+  have hι : Function.Injective ι :=
+    (Submodule.injective_subtype _).comp (LinearEquiv.injective _)
+  have h1 : (1 : S) ⊗ₜ[R] (Ideal.Quotient.mk J 1) = 0 :=
+    Module.Flat.lTensor_preserves_injective_linearMap (M := S) ι hι
+      (by rw [map_zero]; exact hzero _)
+  have h2 : (1 : S) ∈ J • (⊤ : Submodule R S) := by
+    have := congrArg (tensorQuotEquivQuotSMul S J) h1
+    rw [tensorQuotEquivQuotSMul_tmul_mk, map_zero, one_smul,
+      Submodule.Quotient.mk_eq_zero] at this
+    exact this
+  -- `J S ⊆ J + fᵏ S`
+  have h3 : ∀ x ∈ J • (⊤ : Submodule R S), ∃ a ∈ J, ∃ t : S,
+      x = algebraMap R S a + algebraMap R S f ^ k * t := by
+    intro x hx
+    refine Submodule.smul_induction_on (p := fun x ↦ ∃ a ∈ J, ∃ t : S,
+      x = algebraMap R S a + algebraMap R S f ^ k * t) hx ?_ ?_
+    · intro a ha s _
+      obtain ⟨r, t, rfl⟩ := hS k s
+      exact ⟨a * r, J.mul_mem_right r ha, a • t, by
+        simp only [Algebra.smul_def, map_mul]; ring⟩
+    · rintro x y ⟨a, ha, t, rfl⟩ ⟨b, hb, t', rfl⟩
+      exact ⟨a + b, J.add_mem ha hb, t + t', by simp only [map_add]; ring⟩
+  obtain ⟨a, ha, t, hat⟩ := h3 1 h2
+  obtain ⟨r', hr'⟩ := hS' k (1 - a) t (by rw [map_sub, map_one, hat]; ring)
+  have hJ : (1 : R) ∈ J := by
+    have : (1 : R) = a + f ^ k * r' := by rw [← hr']; ring
+    rw [this]
+    exact J.add_mem ha (J.mul_mem_right _ hfk)
+  rw [Ideal.mem_torsionOf_iff, one_smul] at hJ
+  exact (Submodule.Quotient.mk_eq_zero M').mp hJ
+
+include hfP hS hN hα hS' in
+/-- **Finiteness of the glued algebra**: if `P` is finite over `R_f` (in the form: finitely many
+elements generate `P` up to powers of `f`) and `N` is finite over `S`, then `P ×_Q N` is a finite
+`R`-module. -/
+theorem finite_glued (hP : ∃ s : Finset P, ∀ p : P, ∃ k : ℕ,
+      f ^ k • p ∈ Submodule.span R (s : Set P)) [Module.Finite S N] :
+    Module.Finite R (glued N α) := by
+  letI := algebraFst N α
+  have hloc := isLocalization_fst f N α hfP
+  have hψ := psi_bijective N α S hfP hS hN hα
+  obtain ⟨s, hs⟩ := hP
+  -- lifts of the generators of `P`
+  have hlift : ∀ p : P, ∃ (x : glued N α) (j : ℕ), x.1.1 = f ^ j • p := by
+    intro p
+    obtain ⟨⟨x, ⟨_, j, rfl⟩⟩, hx⟩ := IsLocalization.surj
+      (Submonoid.powers (algebraMap R (glued N α) f)) p
+    refine ⟨x, j, ?_⟩
+    change p * algebraMap R P f ^ j = x.1.1 at hx
+    rw [← hx, Algebra.smul_def, map_pow, mul_comm]
+  choose xP jP hxP using hlift
+  -- the generators of `N`, as images of elementary tensors
+  obtain ⟨n, gN, hgN⟩ := Module.Finite.exists_fin (R := S) (M := N)
+  choose z hz using fun l : Fin n ↦ hψ.2 (gN l)
+  choose kz sz mz hsz using fun l : Fin n ↦ TensorProduct.exists_sum_tmul_eq (z l)
+  set G : Set (glued N α) := Set.range (fun p : s ↦ xP p) ∪
+    Set.range (fun lj : Σ l, Fin (kz l) ↦ mz lj.1 lj.2) with hG
+  have hGfin : G.Finite := (Set.finite_range _).union (Set.finite_range _)
+  set M' := Submodule.span R G
+  -- `S ⊗ M' → S ⊗ M` is onto
+  have hM' : ∀ w : S ⊗[R] glued N α,
+      w ∈ LinearMap.range (AlgebraTensorModule.lTensor S S M'.subtype) := by
+    let V : Submodule S N :=
+      (LinearMap.range (AlgebraTensorModule.lTensor S S M'.subtype)).map (psi N α S)
+    have hV : V = ⊤ := by
+      rw [eq_top_iff, ← hgN, Submodule.span_le]
+      rintro _ ⟨l, rfl⟩
+      refine ⟨z l, ⟨∑ j, sz l j ⊗ₜ ⟨mz l j, Submodule.subset_span (Or.inr ⟨⟨l, j⟩, rfl⟩)⟩, ?_⟩,
+        hz l⟩
+      simp [hsz l]
+    intro w
+    obtain ⟨w', hw', hw'w⟩ : psi N α S w ∈ V := hV ▸ Submodule.mem_top
+    rwa [← hψ.1 hw'w]
+  rw [Module.finite_def, Submodule.fg_def]
+  refine ⟨G, hGfin, eq_top_iff.mpr fun m _ ↦ ?_⟩
+  -- some `fᵏ m` lies in `M'`
+  obtain ⟨k, hk⟩ := hs m.1.1
+  have hspan : ∀ y ∈ Submodule.span R (s : Set P), ∃ y' ∈ M',
+      y'.1.1 = f ^ (∑ p : s, jP p) • y := by
+    intro y hy
+    induction hy using Submodule.span_induction with
+    | mem p hp =>
+      refine ⟨f ^ (∑ q : s, jP q - jP p) • xP p,
+        M'.smul_mem _ (Submodule.subset_span (Or.inl ⟨⟨p, hp⟩, rfl⟩)), ?_⟩
+      have hle : jP p ≤ ∑ q : s, jP q :=
+        Finset.single_le_sum (f := fun q : s ↦ jP q) (by simp) (Finset.mem_univ ⟨p, hp⟩)
+      change f ^ (∑ q : s, jP q - jP p) • (xP p).1.1 = _
+      rw [hxP, smul_smul, ← pow_add, Nat.sub_add_cancel hle]
+    | zero => exact ⟨0, M'.zero_mem, by simp⟩
+    | add a b _ _ ha hb =>
+      obtain ⟨a', ha', ha'e⟩ := ha
+      obtain ⟨b', hb', hb'e⟩ := hb
+      exact ⟨a' + b', M'.add_mem ha' hb', by simp [ha'e, hb'e]⟩
+    | smul r a _ ha =>
+      obtain ⟨a', ha', ha'e⟩ := ha
+      exact ⟨r • a', M'.smul_mem r ha', by simp [ha'e, smul_comm r]⟩
+  obtain ⟨y', hy', hy'e⟩ := hspan _ hk
+  set K := (∑ p : s, jP p) + k
+  have hmK : f ^ K • m = y' := by
+    have hd1 : (f ^ K • m - y').1.1 = 0 := by
+      change f ^ K • m.1.1 - y'.1.1 = 0
+      rw [hy'e, smul_smul, ← pow_add, sub_self]
+    have hdQ : algebraMap N Q (f ^ K • m - y').1.2 = 0 := by
+      rw [← (mem_glued N α).mp (f ^ K • m - y').2, hd1, map_zero]
+    obtain ⟨⟨_, j, rfl⟩, hj⟩ := (IsLocalization.map_eq_zero_iff
+      (Submonoid.powers (algebraMap R N f)) Q _).mp hdQ
+    have hd2 : (f ^ K • m - y').1.2 = 0 := by
+      simp only at hj
+      clear hd1 hdQ
+      induction j with
+      | zero => simpa using hj
+      | succ j ih => exact ih (hN _ (by rw [← mul_assoc, ← pow_succ']; exact hj))
+    rw [← sub_eq_zero]
+    exact Subtype.ext (Prod.ext hd1 hd2)
+  exact mem_of_pow_smul_mem N α S hS hS' M' hM' m K (hmK ▸ hy')
+
+end Finite
+
 end BaseChange
 
 section Completion
@@ -339,6 +497,24 @@ lemma completion_eq_add (k : ℕ) (s : AdicCompletion (Ideal.span {f}) R) :
   refine ⟨r, t, ?_⟩
   rw [← map_pow, ← Algebra.smul_def, ht, add_sub_cancel]
 
+omit [IsLocalization.Away (algebraMap R N f) Q] in
+/-- `R/fᵏ → R̂/fᵏR̂` is injective. -/
+lemma completion_dvd (k : ℕ) (r : R) (t : AdicCompletion (Ideal.span {f}) R)
+    (h : algebraMap R _ r = algebraMap R _ f ^ k * t) : ∃ r' : R, r = f ^ k * r' := by
+  have h1 := congrArg (AdicCompletion.eval (Ideal.span {f}) R k) h
+  rw [AdicCompletion.algebraMap_apply, Algebra.algebraMap_self, RingHom.id_apply,
+    AdicCompletion.eval_of, ← map_pow, ← Algebra.smul_def, map_smul] at h1
+  have h2 : f ^ k • AdicCompletion.eval (Ideal.span {f}) R k t = 0 := by
+    obtain ⟨y, hy⟩ :=
+      Submodule.Quotient.mk_surjective _ (AdicCompletion.eval (Ideal.span {f}) R k t)
+    rw [← hy, ← Submodule.Quotient.mk_smul, Submodule.Quotient.mk_eq_zero]
+    exact Submodule.smul_mem_smul
+      (by rw [Ideal.span_singleton_pow]; exact Ideal.mem_span_singleton_self _) Submodule.mem_top
+  rw [h2, Submodule.mkQ_apply, Submodule.Quotient.mk_eq_zero, Ideal.span_singleton_pow,
+    Submodule.ideal_span_singleton_smul, Submodule.mem_smul_pointwise_iff_exists] at h1
+  obtain ⟨r', -, hr'⟩ := h1
+  exact ⟨r', by rw [← hr', smul_eq_mul]⟩
+
 variable [IsNoetherianRing R] [Algebra (AdicCompletion (Ideal.span {f}) R) N]
   [IsScalarTower R (AdicCompletion (Ideal.span {f}) R) N]
   [Algebra (AdicCompletion (Ideal.span {f}) R) Q]
@@ -354,6 +530,15 @@ theorem isBaseChange_snd_completion (hfP : IsUnit (algebraMap R P f))
     (hα : IsBaseChange (AdicCompletion (Ideal.span {f}) R) α.toLinearMap) :
     IsBaseChange (AdicCompletion (Ideal.span {f}) R) (snd N α).toLinearMap :=
   isBaseChange_snd N α _ hfP (completion_eq_add f) hN hα
+
+/-- **Finiteness, Noetherian completion case**: the glued algebra of a finite `R_f`-algebra and a
+finite `R̂`-algebra is a finite `R`-module. -/
+theorem finite_glued_completion (hfP : IsUnit (algebraMap R P f))
+    (hN : ∀ n : N, algebraMap R N f * n = 0 → n = 0)
+    (hα : IsBaseChange (AdicCompletion (Ideal.span {f}) R) α.toLinearMap)
+    (hP : ∃ s : Finset P, ∀ p : P, ∃ k : ℕ, f ^ k • p ∈ Submodule.span R (s : Set P))
+    [Module.Finite (AdicCompletion (Ideal.span {f}) R) N] : Module.Finite R (glued N α) :=
+  finite_glued N α _ hfP (completion_eq_add f) hN hα (completion_dvd f) hP
 
 end Completion
 
