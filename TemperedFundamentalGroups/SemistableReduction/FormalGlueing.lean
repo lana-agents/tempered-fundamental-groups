@@ -34,6 +34,8 @@ change `S ⊗_R P` (via `α : P → Q`, `IsBaseChange S α`). The glued algebra 
 * **`FormalGlueing.finite_glued`**: if moreover `R/fᵏ → S/fᵏS` is injective, `P` is finite over
   `R_f` and `N` is finite over `S`, the glued algebra is a finite `R`-module (`S ⊗ (M/M') = 0` and
   flatness of `S` kill the `f`-power torsion of `M/M'`, cf. Stacks, Lemma 15.91.2, Tag 05E9);
+* **`FormalGlueing.flat_glued_of`**: flatness over a base `A → R` (e.g. a chart of `ℙ¹`) if `P`
+  and `N` are `A`-flat;
 * **`FormalGlueing.bijective_liftGlued`**: uniqueness — an `R`-algebra which localizes to `P` and
   base-changes to `N` compatibly is the glued algebra;
 * `FormalGlueing.isBaseChange_snd_completion`, `FormalGlueing.finite_glued_completion`: the case of
@@ -568,6 +570,92 @@ theorem bijective_liftGlued {M : Type*} [CommRing M] [Algebra R M] (φ₁ : M �
         hψ.1 (by rw [hlt, hcomp, hw])⟩
     obtain ⟨x', hx'⟩ := mem_of_pow_smul_mem N α S hS hS' M'' hM'' y k hk
     exact ⟨x', hx'⟩
+
+omit [Algebra S N] [IsScalarTower R S N] [Algebra S Q] [IsScalarTower R S Q] [IsScalarTower S N Q]
+  [Module.Flat R S] in
+include hfP in
+/-- `fst` is a localization away from `f`, as a linear map. -/
+lemma isLocalizedModule_fst :
+    IsLocalizedModule (Submonoid.powers f) (fst N α).toLinearMap := by
+  letI := algebraFst N α
+  haveI : IsScalarTower R (glued N α) P := IsScalarTower.of_algebraMap_eq fun r ↦ rfl
+  haveI : IsLocalization (Algebra.algebraMapSubmonoid (glued N α) (Submonoid.powers f)) P := by
+    rw [Algebra.algebraMapSubmonoid, Submonoid.map_powers]
+    exact isLocalization_fst f N α hfP
+  exact isLocalizedModule_iff_isLocalization.mpr this
+
+section Flat
+
+variable (A : Type*) [CommRing A] [Algebra A R] [Algebra A P] [IsScalarTower A R P]
+  [Algebra A N] [IsScalarTower A R N] [Algebra A S] [IsScalarTower A R S] [IsScalarTower A S N]
+
+omit [Module.Flat R S] [IsLocalization.Away (algebraMap R N f) Q] [Algebra S Q]
+  [IsScalarTower R S Q] [IsScalarTower S N Q] in
+/-- `S ⊗_R (M ⊗_A Z) ≅ (S ⊗_R M) ⊗_A Z ≅ N ⊗_A Z` (given that `ψ` is bijective). -/
+noncomputable def phi (hψ : Function.Bijective (psi N α S)) (Z : Type*) [AddCommMonoid Z]
+    [Module A Z] : S ⊗[R] (glued N α ⊗[A] Z) ≃ₗ[A] N ⊗[A] Z :=
+  ((AlgebraTensorModule.assoc A R R S (glued N α) Z).symm.restrictScalars A).trans
+    (LinearEquiv.rTensor Z ((LinearEquiv.ofBijective (psi N α S) hψ).restrictScalars A))
+
+omit [Module.Flat R S] [IsLocalization.Away (algebraMap R N f) Q] [Algebra S Q]
+  [IsScalarTower R S Q] [IsScalarTower S N Q] in
+lemma phi_tmul (hψ : Function.Bijective (psi N α S)) {Z : Type*} [AddCommMonoid Z] [Module A Z]
+    (s : S) (m : glued N α) (z : Z) :
+    phi N α S A hψ Z (s ⊗ₜ (m ⊗ₜ z)) = (s • m.1.2) ⊗ₜ z := rfl
+
+omit [Module.Flat R S] [IsLocalization.Away (algebraMap R N f) Q] [Algebra S Q]
+  [IsScalarTower R S Q] [IsScalarTower S N Q] in
+lemma phi_natural (hψ : Function.Bijective (psi N α S)) {Z Z' : Type*} [AddCommMonoid Z]
+    [Module A Z] [AddCommMonoid Z'] [Module A Z'] (ι : Z →ₗ[A] Z')
+    (w : S ⊗[R] (glued N α ⊗[A] Z)) :
+    phi N α S A hψ Z' (LinearMap.lTensor S (AlgebraTensorModule.lTensor R (glued N α) ι) w) =
+      LinearMap.lTensor N ι (phi N α S A hψ Z w) := by
+  induction w using TensorProduct.induction_on with
+  | zero => simp
+  | tmul s y =>
+    induction y using TensorProduct.induction_on with
+    | zero => simp
+    | tmul m z => simp [phi_tmul]
+    | add a b ha hb => simp only [tmul_add, map_add, ha, hb]
+  | add a b ha hb => simp only [map_add, ha, hb]
+
+include hfP hS hN hα hS' in
+/-- **Flatness of the glued algebra over a base** `A → R`: if `P` and `N` are flat over `A`, so is
+`P ×_Q N` (in effect, `R_f × S` is faithfully flat over `R`; here via `eq_zero_of_tmul_eq_zero`).
+In the application `A` is a chart of `ℙ¹`. -/
+theorem flat_glued_of (hPA : Module.Flat A P) (hNA : Module.Flat A N) :
+    Module.Flat A (glued N α) := by
+  have hψ := psi_bijective N α S hfP hS hN hα
+  haveI := isLocalizedModule_fst N α hfP
+  rw [Module.Flat.iff_lTensor_injectiveₛ]
+  intro Y _ _ X
+  rw [injective_iff_map_eq_zero]
+  intro κ hκ
+  -- (i) `κ` is killed by a power of `f`
+  have hnat : ∀ z : glued N α ⊗[A] X, LinearMap.lTensor P X.subtype
+      (AlgebraTensorModule.rTensor A X (fst N α).toLinearMap z) =
+      AlgebraTensorModule.rTensor A Y (fst N α).toLinearMap (LinearMap.lTensor _ X.subtype z) := by
+    intro z
+    induction z using TensorProduct.induction_on with
+    | zero => simp
+    | tmul m x => simp
+    | add a b ha hb => simp only [map_add, ha, hb]
+  have h1 : AlgebraTensorModule.rTensor A X (fst N α).toLinearMap κ = 0 := by
+    apply Module.Flat.lTensor_preserves_injective_linearMap (M := P) X.subtype
+      Subtype.val_injective
+    rw [hnat, hκ, map_zero, map_zero]
+  obtain ⟨⟨_, k, rfl⟩, hk⟩ := (IsLocalizedModule.eq_zero_iff (Submonoid.powers f)
+    (AlgebraTensorModule.rTensor A X (fst N α).toLinearMap)).mp h1
+  -- (ii) `1 ⊗ κ = 0` in `S ⊗_R (M ⊗_A X) ≅ N ⊗_A X`
+  have h2 : (1 : S) ⊗ₜ[R] κ = 0 := by
+    apply (phi N α S A hψ X).injective
+    apply Module.Flat.lTensor_preserves_injective_linearMap (M := N) X.subtype
+      Subtype.val_injective
+    have hκ' : AlgebraTensorModule.lTensor R (glued N α) X.subtype κ = 0 := hκ
+    rw [← phi_natural, LinearMap.lTensor_tmul, hκ', tmul_zero, map_zero, map_zero, map_zero]
+  exact eq_zero_of_tmul_eq_zero S hS hS' κ k hk h2
+
+end Flat
 
 end Finite
 
