@@ -163,7 +163,8 @@ def kappaF [IsNoetherianRing R] :
 
 /-- The localization `NF_f` is flat over `R̂`. -/
 theorem flat_NFall (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
-    (hflat : ∀ j, (L.χ j).toRingHom.Flat) (hidem : ∀ j, IsIdempotentElem (L.ε j))
+    {I : Ideal O} (hflat : ∀ j, KummerFactorQuot.KFlat I (L.χ j).toRingHom)
+    (hidem : ∀ j, IsIdempotentElem (L.ε j))
     (hf : ∀ j, L.χ j (fA (πL j)) = algebraMap R (FormalPatchLevel.Hat f) f)
     (hcidem : ∀ i, IsIdempotentElem (M.δ i)) :
     Module.Flat (FormalPatchLevel.Hat f) (FormalPatchLevel.Nf f (NFall L M)) :=
@@ -178,7 +179,8 @@ instance finite_NF (s : cov.ι ⊕ cov.κ) : Module.Finite (FormalPatchLevel.Hat
 
 /-- `f` is a nonzerodivisor on `NF`. -/
 theorem noTorsion_NFall
-    (hflat : ∀ j, (L.χ j).toRingHom.Flat) (hidem : ∀ j, IsIdempotentElem (L.ε j))
+    {I : Ideal O} (hflat : ∀ j, KummerFactorQuot.KFlat I (L.χ j).toRingHom)
+    (hidem : ∀ j, IsIdempotentElem (L.ε j))
     (hf : ∀ j, L.χ j (fA (πL j)) = algebraMap R (FormalPatchLevel.Hat f) f)
     (hcidem : ∀ i, IsIdempotentElem (M.δ i))
     (hreg : ∀ y : FormalPatchLevel.Hat f, algebraMap R _ f * y = 0 → y = 0) :
@@ -192,7 +194,8 @@ finite over the chart, equal to the étale lift `P` on `D(f)`, and to the lifted
 (Kummer factors at the nodes, cusp factors at the marked points) along `V(f)`. -/
 theorem patch_specF [IsNoetherianRing R] (hO : ∀ x : O, θ x ≠ 0 → IsUnit x) {n : ℕ}
     (hJ : J θ (R := R) ^ n = ⊥)
-    (hflat : ∀ j, (L.χ j).toRingHom.Flat) (hidem : ∀ j, IsIdempotentElem (L.ε j))
+    {I : Ideal O} (hflat : ∀ j, KummerFactorQuot.KFlat I (L.χ j).toRingHom)
+    (hidem : ∀ j, IsIdempotentElem (L.ε j))
     (hf : ∀ j, L.χ j (fA (πL j)) = algebraMap R (FormalPatchLevel.Hat f) f)
     (hcidem : ∀ i, IsIdempotentElem (M.δ i))
     (hreg : ∀ y : FormalPatchLevel.Hat f, algebraMap R _ f * y = 0 → y = 0)

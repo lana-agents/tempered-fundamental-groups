@@ -230,8 +230,8 @@ theorem patch_spec [IsNoetherianRing R]
   obtain ⟨P, _, _, _, hfP, hP, ⟨σP⟩⟩ :=
     AwayLift.exists_lift (J θ) (fR (π := π) (e := e) R) hJ (C := cov.C) cov.etale
   refine ⟨L, P, inferInstance, inferInstance, inferInstance, σP, hfP, ?_⟩
-  exact AdmissibleLift.patch_spec L hθ hO hJ (fun j ↦ flat_χ (hπ' j)) hεi
-    (fun j ↦ χ_fA (hπ' j)) σP hfP hP
+  exact AdmissibleLift.patch_spec L hθ hO hJ
+    (fun j ↦ KummerFactorQuot.KFlat.of_flat (flat_χ (hπ' j))) hεi (fun j ↦ χ_fA (hπ' j)) σP hfP hP
 
 end NodeChart
 

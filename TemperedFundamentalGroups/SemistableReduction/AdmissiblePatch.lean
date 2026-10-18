@@ -7,6 +7,7 @@ import TemperedFundamentalGroups.SemistableReduction.AdmissibleLift
 import TemperedFundamentalGroups.SemistableReduction.FormalPatchReduction
 import TemperedFundamentalGroups.SemistableReduction.FormalPatchProd
 import TemperedFundamentalGroups.SemistableReduction.KummerFactor
+import TemperedFundamentalGroups.SemistableReduction.KummerFactorQuot
 import Mathlib.RingTheory.Idempotents
 
 /-!
@@ -65,6 +66,38 @@ theorem LPiece.flat (hχ : χ.toRingHom.Flat) (hε : IsIdempotentElem ε) :
   exact Module.Flat.trans (A π e) (FormalPatchLevel.Hat f) (LPiece f χ ε)
 
 variable (ε) in
+/-- The reduced node ring `A_I` acting on `R̂/(1 − ε̃)` through `g` (`χ = g ∘ (A → A_I)`). -/
+abbrev LPiece.algI (I : Ideal O) (g : A (KummerFactorQuot.πI I π) e →+* FormalPatchLevel.Hat f) :
+    Algebra (A (KummerFactorQuot.πI I π) e) (LPiece f χ ε) :=
+  ((Ideal.Quotient.mk (Ideal.span {1 - ε})).comp g).toAlgebra
+
+variable (ε) in
+lemma LPiece.hgI (I : Ideal O) (g : A (KummerFactorQuot.πI I π) e →+* FormalPatchLevel.Hat f)
+    (hg : g.comp (KummerFactorQuot.redA I π) = χ.toRingHom) :
+    letI := LPiece.algI χ ε I g
+    (algebraMap (A (KummerFactorQuot.πI I π) e) (LPiece f χ ε)).comp
+      (KummerFactorQuot.redA I π) = algebraMap (A π e) (LPiece f χ ε) := by
+  refine RingHom.ext fun a ↦ ?_
+  change Ideal.Quotient.mk _ (g (KummerFactorQuot.redA I π a)) = Ideal.Quotient.mk _ (χ a)
+  rw [← RingHom.comp_apply g, hg]
+  rfl
+
+/-- `R̂/(1 − ε̃)` is flat over the reduced node ring if `R̂` is (through `g`). -/
+theorem LPiece.flatI (I : Ideal O) (g : A (KummerFactorQuot.πI I π) e →+* FormalPatchLevel.Hat f)
+    (hgf : g.Flat) (hε : IsIdempotentElem ε) :
+    letI := LPiece.algI χ ε I g
+    Module.Flat (A (KummerFactorQuot.πI I π) e) (LPiece f χ ε) := by
+  letI := LPiece.algI χ ε I g
+  letI : Algebra (A (KummerFactorQuot.πI I π) e) (FormalPatchLevel.Hat f) := g.toAlgebra
+  haveI : Module.Flat (A (KummerFactorQuot.πI I π) e) (FormalPatchLevel.Hat f) := hgf
+  haveI : IsScalarTower (A (KummerFactorQuot.πI I π) e) (FormalPatchLevel.Hat f)
+      (LPiece f χ ε) := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  haveI : Module.Flat (FormalPatchLevel.Hat f) (LPiece f χ ε) :=
+    FormalPatchProd.flat_quotient_one_sub hε
+  exact Module.Flat.trans (A (KummerFactorQuot.πI I π) e) (FormalPatchLevel.Hat f)
+    (LPiece f χ ε)
+
+variable (ε) in
 /-- `f ↦ 1 ⊗ (s^e + t^e)` on the lifted factor, if `χ(u + v) = f`. -/
 lemma algebraMap_f (hf : χ (fA π) = algebraMap R (FormalPatchLevel.Hat f) f) :
     algebraMap R (N f χ ε) f = algebraMap (A π e) (N f χ ε) (fA π) := by
@@ -73,13 +106,17 @@ lemma algebraMap_f (hf : χ (fA π) = algebraMap R (FormalPatchLevel.Hat f) f) :
     LPiece.algebraMap_A, hf]
   rfl
 
-/-- **`f` is a nonzerodivisor on the lifted factor.** -/
-theorem noTorsion (he : 0 < e) (hχ : χ.toRingHom.Flat) (hε : IsIdempotentElem ε)
+/-- **`f` is a nonzerodivisor on the lifted factor** (node coordinates flat modulo `I`). -/
+theorem noTorsion {I : Ideal O} (he : 0 < e) (hχ : KummerFactorQuot.KFlat I χ.toRingHom)
+    (hε : IsIdempotentElem ε)
     (hf : χ (fA π) = algebraMap R (FormalPatchLevel.Hat f) f) (x : N f χ ε)
     (hx : algebraMap R (N f χ ε) f * x = 0) : x = 0 := by
-  haveI := LPiece.flat χ hχ hε
+  obtain ⟨g, hgf, hg⟩ := hχ
+  letI := LPiece.algI χ ε I g
+  haveI := LPiece.flatI χ I g hgf hε
   rw [algebraMap_f χ ε hf] at hx
-  exact KummerFactor.eq_zero_of_mul_eq_zero π (LPiece f χ ε) he x hx
+  exact KummerFactorQuot.eq_zero_of_mul_eq_zero I π (LPiece f χ ε) (LPiece.hgI χ ε I g hg) he
+    x hx
 
 instance : Module.Finite (FormalPatchLevel.Hat f) (LPiece f χ ε) :=
   Module.Finite.of_surjective (Algebra.linearMap (FormalPatchLevel.Hat f) (LPiece f χ ε))
@@ -90,14 +127,17 @@ theorem finite_N (he : 0 < e) : Module.Finite (FormalPatchLevel.Hat f) (N f χ �
   haveI := KummerFactor.finite π (S := LPiece f χ ε) he
   exact Module.Finite.trans (LPiece f χ ε) (N f χ ε)
 
-/-- **`N_f` is flat over `R̂`** (`e` invertible in `O`). -/
-theorem flat_loc (he : 0 < e) (heu : IsUnit (e : O)) (hχ : χ.toRingHom.Flat)
+/-- **`N_f` is flat over `R̂`** (`e` invertible in `O`; node coordinates flat modulo `I`). -/
+theorem flat_loc {I : Ideal O} (he : 0 < e) (heu : IsUnit (e : O))
+    (hχ : KummerFactorQuot.KFlat I χ.toRingHom)
     (hε : IsIdempotentElem ε) (hf : χ (fA π) = algebraMap R (FormalPatchLevel.Hat f) f) :
     Module.Flat (FormalPatchLevel.Hat f) (Localization.Away (algebraMap R (N f χ ε) f)) := by
-  haveI := LPiece.flat χ hχ hε
+  obtain ⟨g, hgf, hg⟩ := hχ
+  letI := LPiece.algI χ ε I g
+  haveI := LPiece.flatI χ I g hgf hε
   haveI : Module.Flat (FormalPatchLevel.Hat f) (LPiece f χ ε) :=
     FormalPatchProd.flat_quotient_one_sub hε
-  haveI := KummerFactor.flat_localization π he heu (S := LPiece f χ ε)
+  haveI := KummerFactorQuot.flat_localization I π (LPiece f χ ε) (LPiece.hgI χ ε I g hg) he heu
   rw [algebraMap_f χ ε hf]
   exact Module.Flat.trans (FormalPatchLevel.Hat f) (LPiece f χ ε) _
 
@@ -141,7 +181,8 @@ finite over the chart, equal to the étale lift `P` on `D(f)`, and to the lifted
 the formal neighbourhood of the nodes. -/
 theorem patch_spec [IsNoetherianRing R] [IsEmpty cov.κ] (hθ : Function.Surjective θ)
     (hO : ∀ x : O, θ x ≠ 0 → IsUnit x) {n : ℕ} (hJ : J θ (R := R) ^ n = ⊥)
-    (hflat : ∀ j, (L.χ j).toRingHom.Flat) (hidem : ∀ j, IsIdempotentElem (L.ε j))
+    {I : Ideal O} (hflat : ∀ j, KummerFactorQuot.KFlat I (L.χ j).toRingHom)
+    (hidem : ∀ j, IsIdempotentElem (L.ε j))
     (hf : ∀ j, L.χ j (fA (πL j)) = algebraMap R (FormalPatchLevel.Hat f) f)
     {P : Type u} [CommRing P] [Algebra R P] [Algebra.FormallyEtale R P]
     (σP : (P ⧸ (J θ).map (algebraMap R P)) ≃ₐ[R] Localization.Away (algebraMap R cov.C f))
