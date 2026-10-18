@@ -57,6 +57,22 @@ lemma hatEquiv_algebraMap (r : R₁) :
     hatEquiv e h (algebraMap R₁ (Hat f) r) = algebraMap R₂ (Hat f₂) (e r) :=
   CompletionMap.equiv_algebraMap e.toRingEquiv (map_span_e e h) r
 
+lemma hatEquiv_apply (x : Hat f) :
+    hatEquiv e h x = CompletionMap.map (e.toRingEquiv : R₁ →+* R₂) (map_span_e e h).le x := rfl
+
+include h in
+lemma symm_apply_f : e.symm f₂ = f := by rw [← h, AlgEquiv.symm_apply_apply]
+
+lemma hatEquiv_symm (x : Hat f₂) :
+    (hatEquiv e h).symm x = hatEquiv e.symm (symm_apply_f e h) x := rfl
+
+lemma hatEquiv_trans {R₃ : Type u} [CommRing R₃] [Algebra k R₃] (e' : R₂ ≃ₐ[k] R₃) {f₃ : R₃}
+    (h' : e' f₂ = f₃) (x : Hat f) :
+    hatEquiv (e.trans e') (by rw [AlgEquiv.trans_apply, h, h']) x =
+      hatEquiv e' h' (hatEquiv e h x) := by
+  rw [hatEquiv_apply, hatEquiv_apply, hatEquiv_apply, CompletionMap.map_comp]
+  congr 1
+
 /-! ### The factors -/
 
 variable {e h}
