@@ -7,6 +7,7 @@ import TemperedFundamentalGroups.SemistableReduction.AdmissibleLift
 import TemperedFundamentalGroups.SemistableReduction.FormalPatchReduction
 import TemperedFundamentalGroups.SemistableReduction.FormalPatchProd
 import TemperedFundamentalGroups.SemistableReduction.KummerFactor
+import Mathlib.RingTheory.Idempotents
 
 /-!
 # Level-`n` patching of an admissible covering (Blueprint §12.8, M2.3 at one level)
@@ -27,7 +28,8 @@ equal to `P` on `D(f)` and to `N` on the formal neighbourhood of the nodes.
 Ingredients: `LPiece.flat` (`R̂/(1 − ε̃)` is flat over the node ring), `noTorsion` (`f` is a
 nonzerodivisor on `N`, `KummerFactor.eq_zero_of_mul_eq_zero`), `flat_loc` (`N_f` is flat over
 `R̂`, `KummerFactor.flat_localization`, `e_j` invertible in `O` since `(e_j : k) ≠ 0` and `O` is
-local), `finite_N` (`N` is finite over `R̂`).
+local), `finite_N` (`N` is finite over `R̂`); `exists_idem_lift` (the idempotents `ε_j` of the
+covering lift to `R̂`, since `ker ψ = J R̂` is nilpotent).
 -/
 
 universe u
@@ -106,6 +108,27 @@ end Piece
 variable (θ) [Algebra k (R ⧸ J θ)] {φ : Node k (0 : k) →ₐ[k] Admissible.Hat (fbar θ f)}
   {ψc : Polynomial k →ₐ[k] Admissible.Hat (fbar θ f)} {cov : Admissible.Covering φ ψc}
   (L : KummerLift cov)
+
+/-! ### Lifting the idempotents -/
+
+omit [Algebra k (R ⧸ J θ)] in
+/-- The kernel `J R̂` of `ψ` is nilpotent if `J` is. -/
+lemma isNilpotent_of_mem_ker_ψ [IsNoetherianRing R] {n : ℕ} (hJ : J θ (R := R) ^ n = ⊥)
+    {x : FormalPatchLevel.Hat f} (hx : x ∈ RingHom.ker (ψ θ f)) : IsNilpotent x := by
+  rw [ker_ψ] at hx
+  refine ⟨n, ?_⟩
+  have : x ^ n ∈ ((J θ).map (algebraMap R (FormalPatchLevel.Hat f))) ^ n :=
+    Ideal.pow_mem_pow hx n
+  rwa [← Ideal.map_pow, hJ, Ideal.map_bot, Ideal.mem_bot] at this
+
+omit [Algebra k (R ⧸ J θ)] in
+/-- **The idempotents of an admissible covering lift** to the completion `R̂` of the level-`n`
+chart (`J` nilpotent; Mathlib `exists_isIdempotentElem_eq_of_ker_isNilpotent`). -/
+theorem exists_idem_lift [IsNoetherianRing R] {n : ℕ} (hJ : J θ (R := R) ^ n = ⊥)
+    {ε : Admissible.Hat (fbar θ f)} (hε : IsIdempotentElem ε) :
+    ∃ ε' : FormalPatchLevel.Hat f, IsIdempotentElem ε' ∧ ψ θ f ε' = ε :=
+  exists_isIdempotentElem_eq_of_ker_isNilpotent (ψ θ f).toRingHom
+    (fun _ hx ↦ isNilpotent_of_mem_ker_ψ θ hJ hx) ε (surjective_ψ θ f ε) hε
 
 /-- The ramification indices are units of the (local) level ring. -/
 lemma isUnit_e (hO : ∀ x : O, θ x ≠ 0 → IsUnit x) (j : cov.ι) : IsUnit ((cov.e j : ℕ) : O) :=
