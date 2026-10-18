@@ -16,9 +16,10 @@ For a Noetherian ring `R`, ideals `I, J ⊆ R` and `I' = I·(R/J)`, the completi
 * **surjective** (`CompletionQuot.surjective_ψ`), and
 * has kernel `J R̂` (**`CompletionQuot.ker_ψ`**),
 
-so `R̂/JR̂ ≅ (R/J)^∧` (Stacks, Tag 00MA (3): for `R` Noetherian, `I`-adic completion is exact on
-finite modules and `M^∧ = R^∧ ⊗_R M`). Proof: `ψ` is, up to the levelwise identification of
-`I^n·(R/J)` (as an `R`-submodule) with `I'^n·(R/J)` (as an `R/J`-submodule) (`CompletionQuot.e`),
+so `R̂/JR̂ ≅ (R/J)^∧` (Stacks, Tag 00MA = Lemma 10.97.1 (2), (3): for `R` Noetherian, `I`-adic
+completion is exact on finite modules and `M^∧ = M ⊗_R R^∧`). Proof: `ψ` is, up to the
+levelwise identification of `I^n·(R/J)` (as an `R`-submodule) with `I'^n·(R/J)` (as an
+`R/J`-submodule) (`CompletionQuot.e`),
 the map `AdicCompletion.map I (R → R/J)`; Mathlib's `AdicCompletion.map_surjective`,
 `AdicCompletion.map_exact` (applied to `J → R → R/J`) and `AdicCompletion.ofTensorProduct` (the
 image of `J^∧ = R̂ ⊗_R J` in `R̂` is `JR̂`) give the claims.
