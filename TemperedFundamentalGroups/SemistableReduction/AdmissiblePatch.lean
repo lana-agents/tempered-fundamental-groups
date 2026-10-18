@@ -107,7 +107,7 @@ end Piece
 
 variable (θ) [Algebra k (R ⧸ J θ)] {φ : Node k (0 : k) →ₐ[k] Admissible.Hat (fbar θ f)}
   {ψc : Polynomial k →ₐ[k] Admissible.Hat (fbar θ f)} {cov : Admissible.Covering φ ψc}
-  (L : KummerLift cov)
+  {πL : cov.ι → O} (L : KummerLift cov πL)
 
 /-! ### Lifting the idempotents -/
 
@@ -142,7 +142,7 @@ the formal neighbourhood of the nodes. -/
 theorem patch_spec [IsNoetherianRing R] [IsEmpty cov.κ] (hθ : Function.Surjective θ)
     (hO : ∀ x : O, θ x ≠ 0 → IsUnit x) {n : ℕ} (hJ : J θ (R := R) ^ n = ⊥)
     (hflat : ∀ j, (L.χ j).toRingHom.Flat) (hidem : ∀ j, IsIdempotentElem (L.ε j))
-    (hf : ∀ j, L.χ j (fA (L.π j)) = algebraMap R (FormalPatchLevel.Hat f) f)
+    (hf : ∀ j, L.χ j (fA (πL j)) = algebraMap R (FormalPatchLevel.Hat f) f)
     {P : Type u} [CommRing P] [Algebra R P] [Algebra.FormallyEtale R P]
     (σP : (P ⧸ (J θ).map (algebraMap R P)) ≃ₐ[R] Localization.Away (algebraMap R cov.C f))
     (hfP : IsUnit (algebraMap R P f))

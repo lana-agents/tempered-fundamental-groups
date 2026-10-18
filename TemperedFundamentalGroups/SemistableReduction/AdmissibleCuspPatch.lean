@@ -51,27 +51,39 @@ structure CuspLift where
   δ : cov.κ → FormalPatchLevel.Hat f
   hδ : ∀ i, ψ θ f (δ i) = cov.cidem i
 
-variable {cov} (L : KummerLift cov) (M : CuspLift cov)
+variable {cov} {πL : cov.ι → O} (L : KummerLift cov πL) (M : CuspLift cov)
 
-/-- The factors of the lifted formal model, indexed by `ι ⊕ κ`. -/
-def NF : cov.ι ⊕ cov.κ → Type u
-  | .inl j => N f (L.χ j) (L.ε j)
-  | .inr i => CPiece f (M.δ i) M.t (cov.ce i)
+section NFr
 
-instance NF.commRing : ∀ s, CommRing (NF L M s)
-  | .inl j => inferInstanceAs (CommRing (N f (L.χ j) (L.ε j)))
-  | .inr i => inferInstanceAs (CommRing (CPiece f (M.δ i) M.t (cov.ce i)))
+variable {ι κ : Type} {π : ι → O} {e : ι → ℕ} (χ : ∀ j, A (π j) (e j) →ₐ[O] FormalPatchLevel.Hat f)
+  (ε : ι → FormalPatchLevel.Hat f) (δ : κ → FormalPatchLevel.Hat f) (t : FormalPatchLevel.Hat f)
+  (ce : κ → ℕ)
 
-instance NF.algebraHat : ∀ s, Algebra (FormalPatchLevel.Hat f) (NF L M s)
-  | .inl j => inferInstanceAs (Algebra (FormalPatchLevel.Hat f) (N f (L.χ j) (L.ε j)))
-  | .inr i => inferInstanceAs (Algebra (FormalPatchLevel.Hat f) (CPiece f (M.δ i) M.t (cov.ce i)))
+/-- The factors of a lifted formal model from raw lift data, indexed by `ι ⊕ κ`: Kummer factors
+`N f (χ j) (ε j)` and cusp factors `CPiece f (δ i) t (ce i)`. -/
+def NFr : ι ⊕ κ → Type u
+  | .inl j => N f (χ j) (ε j)
+  | .inr i => CPiece f (δ i) t (ce i)
 
-instance NF.algebraR (s : cov.ι ⊕ cov.κ) : Algebra R (NF L M s) :=
+instance NFr.commRing : ∀ s, CommRing (NFr χ ε δ t ce s)
+  | .inl j => inferInstanceAs (CommRing (N f (χ j) (ε j)))
+  | .inr i => inferInstanceAs (CommRing (CPiece f (δ i) t (ce i)))
+
+instance NFr.algebraHat : ∀ s, Algebra (FormalPatchLevel.Hat f) (NFr χ ε δ t ce s)
+  | .inl j => inferInstanceAs (Algebra (FormalPatchLevel.Hat f) (N f (χ j) (ε j)))
+  | .inr i => inferInstanceAs (Algebra (FormalPatchLevel.Hat f) (CPiece f (δ i) t (ce i)))
+
+instance NFr.algebraR (s : ι ⊕ κ) : Algebra R (NFr χ ε δ t ce s) :=
   Algebra.compHom _ (algebraMap R (FormalPatchLevel.Hat f))
 
-instance NF.isScalarTower (s : cov.ι ⊕ cov.κ) :
-    @IsScalarTower R (FormalPatchLevel.Hat f) (NF L M s) _ Algebra.toSMul Algebra.toSMul :=
+instance NFr.isScalarTower (s : ι ⊕ κ) :
+    @IsScalarTower R (FormalPatchLevel.Hat f) (NFr χ ε δ t ce s) _ Algebra.toSMul Algebra.toSMul :=
   IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+
+end NFr
+
+/-- The factors of the lifted formal model, indexed by `ι ⊕ κ`. -/
+abbrev NF : cov.ι ⊕ cov.κ → Type u := NFr L.χ L.ε M.δ M.t cov.ce
 
 /-- The lifted formal model `NF = ∏_{ι ⊕ κ} NF_s`. -/
 abbrev NFall : Type u := ∀ s, NF L M s
@@ -149,13 +161,39 @@ def kappaF [IsNoetherianRing R] :
       AlgEquiv.coe_ringEquiv, kummer_algebraMap']
     exact (kappa3F_algebraMap L M hθ x).symm
 
+/-- The localization `NF_f` is flat over `R̂`. -/
+theorem flat_NFall (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
+    (hflat : ∀ j, (L.χ j).toRingHom.Flat) (hidem : ∀ j, IsIdempotentElem (L.ε j))
+    (hf : ∀ j, L.χ j (fA (πL j)) = algebraMap R (FormalPatchLevel.Hat f) f)
+    (hcidem : ∀ i, IsIdempotentElem (M.δ i)) :
+    Module.Flat (FormalPatchLevel.Hat f) (FormalPatchLevel.Nf f (NFall L M)) :=
+  FormalPatchProd.flat_localization f _ fun s ↦ match s with
+    | .inl j => flat_loc (L.χ j) (cov.e_pos j) (isUnit_e θ hO j) (hflat j) (hidem j) (hf j)
+    | .inr i => flat_loc_CPiece M.t (cov.ce_pos i) (hcidem i)
+
+instance finite_NF (s : cov.ι ⊕ cov.κ) : Module.Finite (FormalPatchLevel.Hat f) (NF L M s) :=
+  match s with
+  | .inl j => finite_N (L.χ j) (cov.e_pos j)
+  | .inr i => finite_CPiece M.t (cov.ce_pos i)
+
+/-- `f` is a nonzerodivisor on `NF`. -/
+theorem noTorsion_NFall
+    (hflat : ∀ j, (L.χ j).toRingHom.Flat) (hidem : ∀ j, IsIdempotentElem (L.ε j))
+    (hf : ∀ j, L.χ j (fA (πL j)) = algebraMap R (FormalPatchLevel.Hat f) f)
+    (hcidem : ∀ i, IsIdempotentElem (M.δ i))
+    (hreg : ∀ y : FormalPatchLevel.Hat f, algebraMap R _ f * y = 0 → y = 0) :
+    ∀ x : NFall L M, algebraMap R (NFall L M) f * x = 0 → x = 0 :=
+  FormalPatchProd.eq_zero_of_mul_eq_zero f fun s ↦ match s with
+    | .inl j => noTorsion (L.χ j) (cov.e_pos j) (hflat j) (hidem j) (hf j)
+    | .inr i => noTorsion_CPiece M.t (cov.ce_pos i) (hcidem i) hreg
+
 /-- **Level-`n` patching of an admissible covering with marked points**: the patched algebra is
 finite over the chart, equal to the étale lift `P` on `D(f)`, and to the lifted formal model `NF`
 (Kummer factors at the nodes, cusp factors at the marked points) along `V(f)`. -/
 theorem patch_specF [IsNoetherianRing R] (hO : ∀ x : O, θ x ≠ 0 → IsUnit x) {n : ℕ}
     (hJ : J θ (R := R) ^ n = ⊥)
     (hflat : ∀ j, (L.χ j).toRingHom.Flat) (hidem : ∀ j, IsIdempotentElem (L.ε j))
-    (hf : ∀ j, L.χ j (fA (L.π j)) = algebraMap R (FormalPatchLevel.Hat f) f)
+    (hf : ∀ j, L.χ j (fA (πL j)) = algebraMap R (FormalPatchLevel.Hat f) f)
     (hcidem : ∀ i, IsIdempotentElem (M.δ i))
     (hreg : ∀ y : FormalPatchLevel.Hat f, algebraMap R _ f * y = 0 → y = 0)
     {P : Type u} [CommRing P] [Algebra R P] [Algebra.FormallyEtale R P]
@@ -170,17 +208,8 @@ theorem patch_specF [IsNoetherianRing R] (hO : ∀ x : O, θ x ≠ 0 → IsUnit 
       IsBaseChange (FormalPatchLevel.Hat f)
         (FormalGlueing.snd (NFall L M) (FormalPatchLevel.lift f (J θ) hJ α₀)).toLinearMap := by
   intro α₀
-  haveI : Module.Flat (FormalPatchLevel.Hat f) (FormalPatchLevel.Nf f (NFall L M)) :=
-    FormalPatchProd.flat_localization f _ fun s ↦ match s with
-      | .inl j => flat_loc (L.χ j) (cov.e_pos j) (isUnit_e θ hO j) (hflat j) (hidem j) (hf j)
-      | .inr i => flat_loc_CPiece M.t (cov.ce_pos i) (hcidem i)
-  haveI : ∀ s, Module.Finite (FormalPatchLevel.Hat f) (NF L M s) := fun s ↦ match s with
-    | .inl j => finite_N (L.χ j) (cov.e_pos j)
-    | .inr i => finite_CPiece M.t (cov.ce_pos i)
-  have hN : ∀ x : NFall L M, algebraMap R (NFall L M) f * x = 0 → x = 0 :=
-    FormalPatchProd.eq_zero_of_mul_eq_zero f fun s ↦ match s with
-      | .inl j => noTorsion (L.χ j) (cov.e_pos j) (hflat j) (hidem j) (hf j)
-      | .inr i => noTorsion_CPiece M.t (cov.ce_pos i) (hcidem i) hreg
+  haveI := flat_NFall L M hO hflat hidem hf hcidem
+  have hN := noTorsion_NFall L M hflat hidem hf hcidem hreg
   have hsurj := FormalPatchLevel.surjective_betaMod_alphaOfEquiv
     (FormalPatchLevel.specialFibreEquiv f (J θ) σP (kappaF L M hθ))
   have hinj := FormalPatchLevel.mem_of_betaMod_alphaOfEquiv_eq_zero

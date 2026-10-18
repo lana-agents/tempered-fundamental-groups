@@ -345,12 +345,12 @@ instance : Algebra R cov.C := Algebra.compHom cov.C (algebraMap R (R ⧸ J θ))
 
 instance : IsScalarTower R (R ⧸ J θ) cov.C := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
 
-/-- **Lift data** of the Kummer factors of an admissible covering to the level `O`: deformation
-parameters `π_j` (`θ π_j = 0`), formal node coordinates `χ_j` over `O` reducing to `φ`, and
-idempotents `ε̃_j` of `R̂` lifting those of the covering. -/
-structure KummerLift where
-  /-- The deformation parameter of the factor `j` (`uv = π_j^{e_j}` upstairs). -/
-  π : cov.ι → O
+/-- **Lift data** of the Kummer factors of an admissible covering to the level `O`, for given
+deformation parameters `π_j` (`θ π_j = 0`; `uv = π_j^{e_j}` upstairs): formal node coordinates
+`χ_j` over `O` reducing to `φ`, and idempotents `ε̃_j` of `R̂` lifting those of the covering.
+(The parameters are not a field, so that lift data at different levels of a model can share them
+definitionally.) -/
+structure KummerLift (π : cov.ι → O) where
   hπ : ∀ j, θ (π j) = 0
   /-- Formal node coordinates of the factor `j` at the level `O`. -/
   χ : ∀ j, A (π j) (cov.e j) →ₐ[O] FormalPatchLevel.Hat f
@@ -360,7 +360,7 @@ structure KummerLift where
   hχ : ∀ j a, ψ θ f (χ j a) =
     φ (Admissible.nodeCongr (cov.e_pos j) (Node.baseMap θ (hA (hπ j)) a))
 
-variable {cov} (L : KummerLift cov)
+variable {cov} {πL : cov.ι → O} (L : KummerLift cov πL)
 
 /-- The lifted formal model `N = ∏_j (R̂/(1 − ε̃_j)) ⊗ O[s,t]/(st − π_j)`. -/
 abbrev NL : Type u := ∀ j, N f (L.χ j) (L.ε j)

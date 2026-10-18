@@ -131,6 +131,48 @@ def specialFibreEquiv
     ((Hat f ⊗[R] P) ⧸ JT f J P) ≃ₐ[Hat f] (Nf f N ⧸ JNf f J N) :=
   ((reductionEquiv f J σ).trans (locEquiv f J κ)).trans (quotLocEquiv f J).symm
 
+/-! ### Computing the patching datum -/
+
+lemma reductionEquiv_mk_one_tmul
+    (σ : (P ⧸ J.map (algebraMap R P)) ≃ₐ[R] Localization.Away (algebraMap R C f)) (p : P) :
+    reductionEquiv f J σ (Ideal.Quotient.mk _ ((1 : Hat f) ⊗ₜ p)) =
+      IsLocalization.Away.tensorProductEquivTMulRight R (Hat f) (algebraMap R C f)
+        (Localization.Away (algebraMap R C f)) ((1 : Hat f) ⊗ₜ σ (Ideal.Quotient.mk _ p)) :=
+  rfl
+
+lemma locEquiv_algebraMap (κ : (Hat f ⊗[R] C) ≃ₐ[Hat f] (N ⧸ JN J N)) (y : Hat f ⊗[R] C) :
+    locEquiv f J κ (algebraMap _ _ y) =
+      algebraMap (N ⧸ JN J N) (Localization.Away (algebraMap R (N ⧸ JN J N) f)) (κ y) := by
+  rw [locEquiv, AlgEquiv.ofRingEquiv_apply, IsLocalization.ringEquivOfRingEquiv_eq]
+  rfl
+
+omit [IsScalarTower R (Hat f) N] in
+lemma quotLocEquiv_mk (n : N) :
+    quotLocEquiv f J (Ideal.Quotient.mk _ (algebraMap N (Nf f N) n)) =
+      algebraMap (N ⧸ JN J N) (Localization.Away (algebraMap R (N ⧸ JN J N) f))
+        (Ideal.Quotient.mk _ n) := by
+  rw [quotLocEquiv, AlgEquiv.trans_apply, Ideal.quotientEquivAlgOfEq_mk]
+  rw [← Ideal.Quotient.algebraMap_quotient_map_quotient, AlgEquiv.ofRingEquiv_apply]
+  exact AlgEquiv.commutes (R := N ⧸ JN J N) _ _
+
+/-- **The patching datum on an element**: if `σ(p mod J) = c` (`c ∈ C`) and `κ(1 ⊗ c) = n mod J`,
+then `α₀ p = n mod J` in `N_f/J`. -/
+theorem alphaOfEquiv_spec
+    (σ : (P ⧸ J.map (algebraMap R P)) ≃ₐ[R] Localization.Away (algebraMap R C f))
+    (κ : (Hat f ⊗[R] C) ≃ₐ[Hat f] (N ⧸ JN J N)) (p : P) (c : C) (n : N)
+    (hc : σ (Ideal.Quotient.mk _ p) = algebraMap C _ c)
+    (hn : κ ((1 : Hat f) ⊗ₜ c) = Ideal.Quotient.mk _ n) :
+    alphaOfEquiv f J (specialFibreEquiv f J σ κ) p =
+      Ideal.Quotient.mk _ (algebraMap N (Nf f N) n) := by
+  have h1 : alphaOfEquiv f J (specialFibreEquiv f J σ κ) p =
+      specialFibreEquiv f J σ κ (Ideal.Quotient.mk _ ((1 : Hat f) ⊗ₜ p)) := by
+    simp only [alphaOfEquiv, AlgHom.comp_apply, Algebra.TensorProduct.includeRight_apply,
+      Ideal.Quotient.mkₐ_eq_mk, AlgHom.restrictScalars_apply]
+    rfl
+  rw [h1, specialFibreEquiv, AlgEquiv.trans_apply, AlgEquiv.trans_apply,
+    reductionEquiv_mk_one_tmul, hc, IsLocalization.Away.tensorProductEquivTMulRight_tmul,
+    locEquiv_algebraMap, hn, AlgEquiv.symm_apply_eq, quotLocEquiv_mk]
+
 end
 
 end FormalPatchLevel

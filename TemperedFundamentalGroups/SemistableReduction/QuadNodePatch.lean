@@ -192,8 +192,7 @@ def kummerLift (hk : ∀ o : O, algebraMap k (R ⧸ J θ) (θ o) =
     (π' : cov.ι → O) (hπ' : ∀ j, π' j ^ cov.e j = π ^ e)
     (ε : cov.ι → FormalPatchLevel.Hat (fR (π := π) (e := e) R))
     (hε : ∀ j, AdmissibleLift.ψ θ (fR (π := π) (e := e) R) (ε j) = cov.idem j) :
-    KummerLift cov where
-  π := π'
+    KummerLift cov π' where
   hπ j := θ_π' hπe (cov.e_pos j) (hπ' j)
   χ j := χ R (hπ' j)
   ε := ε
@@ -208,7 +207,7 @@ theorem patch_spec [IsNoetherianRing R]
     (hO : ∀ x : O, θ x ≠ 0 → IsUnit x) {n : ℕ} (hJ : J θ (R := R) ^ n = ⊥)
     (hk : ∀ o : O, algebraMap k (R ⧸ J θ) (θ o) = Ideal.Quotient.mk _ (algebraMap O R o))
     (π' : cov.ι → O) (hπ' : ∀ j, π' j ^ cov.e j = π ^ e) :
-    ∃ (L : KummerLift cov) (P : Type u) (_ : CommRing P) (_ : Algebra R P)
+    ∃ (L : KummerLift cov π') (P : Type u) (_ : CommRing P) (_ : Algebra R P)
       (_ : Algebra.FormallyEtale R P)
       (σP : (P ⧸ (J θ).map (algebraMap R P)) ≃ₐ[R]
         Localization.Away (algebraMap R cov.C (fR (π := π) (e := e) R))),
