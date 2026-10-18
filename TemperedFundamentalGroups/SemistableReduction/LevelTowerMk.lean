@@ -22,7 +22,11 @@ hypotheses of `patch_specF`:
 * **`LevelTower.trMk`**: the transition maps `G (n+1) → G n` of the tower of patched algebras,
   surjective with kernel `(ker q_n) G (n+1)` (`surjective_trMk`, `ker_trMk`), and
   **`LevelTower.spec_mk`**: each `G n` is finite over `R n`, equal to `P n` on `D(f n)` and to the
-  lifted formal model along `V(f n)`.
+  lifted formal model along `V(f n)`;
+* **`LevelTower.Data`**: all this data bundled in one structure, with `Data.G`, `Data.tr`,
+  `Data.surjective_tr`, `Data.ker_tr` (`ker_tr_of`: `= I G (n+1)` if `ker q_n = I R (n+1)`),
+  `Data.tr_algebraMap`, `Data.spec`. Concrete towers (e.g. `QuadNodeTower.tower`) are single
+  definitions of type `Data`, to which these apply without re-elaborating the patched algebras.
 -/
 
 universe u
@@ -177,6 +181,94 @@ theorem trMk_algebraMap (n : ℕ) (r : R (n + 1)) :
     trMk hfe hπ χ hχ t ht hJ hflat hfχ hreg hθ hO hq hf he hcχ hct n (algebraMap (R (n + 1)) _ r) =
       algebraMap (R n) _ (algebraMap (R (n + 1)) (R n) r) :=
   tr_algebraMap ..
+
+
+/-! ### The bundled tower
+
+All data of a tower in one structure, so that instances (e.g. the Tate tower) are a single
+definition and the generic statements apply to them without re-elaborating the patched algebras. -/
+
+variable (R) in
+/-- **The data of a tower of patched algebras**: compatible coordinates on the level charts
+`R n` together with the hypotheses of `trMk`. -/
+structure Data (cov₀ : Admissible.Covering φ₀ ψ₀) (πL : cov₀.ι → O) where
+  f : ∀ n, R n
+  e : ∀ n, R₀ ≃ₐ[k] (R n ⧸ J θ (R := R n))
+  hfe : ∀ n, e n f₀ = fbar θ (f n)
+  hπ : ∀ j, θ (πL j) = 0
+  χ : ∀ n j, A (πL j) (cov₀.e j) →ₐ[O] FormalPatchLevel.Hat (f n)
+  hχ : ∀ n j a, ψ θ (f n) (χ n j a) = Admissible.φT (h := hfe n) φ₀
+    (Admissible.nodeCongr (cov₀.e_pos j) (Node.baseMap θ (hA (hπ j)) a))
+  t : ∀ n, FormalPatchLevel.Hat (f n)
+  ht : ∀ n, ψ θ (f n) (t n) = Admissible.ψT (h := hfe n) ψ₀ Polynomial.X
+  m : ℕ → ℕ
+  hJ : ∀ n, J θ (R := R n) ^ m n = ⊥
+  I : ℕ → Ideal O
+  hflat : ∀ n j, KummerFactorQuot.KFlat (I n) (χ n j).toRingHom
+  hfχ : ∀ n j, χ n j (fA (πL j)) = algebraMap (R n) (FormalPatchLevel.Hat (f n)) (f n)
+  hreg : ∀ n (y : FormalPatchLevel.Hat (f n)), algebraMap (R n) _ (f n) * y = 0 → y = 0
+  hq : ∀ n, Function.Surjective (algebraMap (R (n + 1)) (R n))
+  hf : ∀ n, LevelStep.f' (R' := R n) (f (n + 1)) = f n
+  he : ∀ n (r : R (n + 1)), e n ((e (n + 1)).symm (Ideal.Quotient.mk _ r)) =
+    Ideal.Quotient.mk _ (algebraMap (R (n + 1)) (R n) r)
+  hcχ : ∀ n j a, LevelStep.ψ₂ (f (n + 1)) (f n) (hf n) (χ (n + 1) j a) = χ n j a
+  hct : ∀ n, LevelStep.ψ₂ (f (n + 1)) (f n) (hf n) (t (n + 1)) = t n
+
+namespace Data
+
+variable (T : Data (θ := θ) R cov₀ πL)
+
+/-- The patching data at level `n`. -/
+abbrev level (n : ℕ) : Level R cov₀ πL T.hfe n :=
+  mkLevel T.hfe T.hπ T.χ T.hχ T.t T.ht T.hJ T.hflat T.hfχ T.hreg n
+
+/-- The patched algebra at level `n`. -/
+abbrev G (n : ℕ) : Type u := (T.level n).G hθ
+
+/-- **The transition map** `G (n+1) → G n`. -/
+def tr (n : ℕ) : T.G hθ (n + 1) →+* T.G hθ n :=
+  trMk T.hfe T.hπ T.χ T.hχ T.t T.ht T.hJ T.hflat T.hfχ T.hreg hθ hO T.hq T.hf T.he T.hcχ T.hct n
+
+/-- The transition maps are surjective. -/
+theorem surjective_tr (n : ℕ) : Function.Surjective (T.tr hθ hO n) :=
+  surjective_trMk T.hfe T.hπ T.χ T.hχ T.t T.ht T.hJ T.hflat T.hfχ T.hreg hθ hO T.hq T.hf T.he
+    T.hcχ T.hct n
+
+/-- **The kernel of the transition map** `G (n+1) → G n` is `(ker q_n) G (n+1)`. -/
+theorem ker_tr (n : ℕ) : RingHom.ker (T.tr hθ hO n) =
+    (RingHom.ker (algebraMap (R (n + 1)) (R n))).map (algebraMap (R (n + 1)) (T.G hθ (n + 1))) :=
+  ker_trMk T.hfe T.hπ T.χ T.hχ T.t T.ht T.hJ T.hflat T.hfχ T.hreg hθ hO T.hq T.hf T.he T.hcχ T.hct n
+
+/-- If `ker q_n = I R (n+1)` for an ideal `I` of `O`, then the kernel of the transition map is
+`I G (n+1)`. -/
+theorem ker_tr_of {I : Ideal O} {n : ℕ}
+    (hI : RingHom.ker (algebraMap (R (n + 1)) (R n)) = I.map (algebraMap O (R (n + 1)))) :
+    RingHom.ker (T.tr hθ hO n) =
+      I.map ((algebraMap (R (n + 1)) (T.G hθ (n + 1))).comp (algebraMap O (R (n + 1)))) := by
+  rw [T.ker_tr hθ hO n, hI, Ideal.map_map]
+
+/-- The transition maps are semilinear over `q_n`. -/
+theorem tr_algebraMap (n : ℕ) (r : R (n + 1)) :
+    T.tr hθ hO n (algebraMap (R (n + 1)) _ r) =
+      algebraMap (R n) _ (algebraMap (R (n + 1)) (R n) r) :=
+  trMk_algebraMap T.hfe T.hπ T.χ T.hχ T.t T.ht T.hJ T.hflat T.hfχ T.hreg hθ hO T.hq T.hf T.he
+    T.hcχ T.hct n r
+
+omit [∀ n, IsScalarTower O (R (n + 1)) (R n)] in
+include hO in
+/-- **Level-`n` patching**: `G n` is finite over `R n` and equal to the lifted formal model along
+`V(f n)` (for `G n` on `D(f n)` see `Level.spec`). -/
+theorem spec (n : ℕ) :
+    Module.Finite (R n) ((T.level n).G hθ) ∧
+      IsBaseChange (FormalPatchLevel.Hat (T.f n))
+        (FormalGlueing.snd (NFall (T.level n).L (T.level n).M)
+          (FormalPatchLevel.lift (T.f n) (J θ) (T.hJ n)
+          (FormalPatchLevel.alphaOfEquiv (T.f n) (J θ)
+            (FormalPatchLevel.specialFibreEquiv (T.f n) (J θ) (T.level n).σP
+              (kappaF (T.level n).L (T.level n).M hθ))))).toLinearMap :=
+  ⟨(Level.spec hθ hO (T.level n)).1, (Level.spec hθ hO (T.level n)).2.2⟩
+
+end Data
 
 end LevelTower
 

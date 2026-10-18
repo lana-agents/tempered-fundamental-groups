@@ -204,6 +204,24 @@ theorem KFlat.of_flat {T : Type u} [CommRing T] {χ : A π e →+* T} (hχ : χ.
   change χ (E.symm (E a)) = χ a
   rw [RingEquiv.symm_apply_apply]
 
+variable {π} in
+/-- **`u + v` is a nonzerodivisor on a target of node coordinates flat modulo `I`.** -/
+theorem KFlat.eq_zero_of_mul_eq_zero {T : Type u} [CommRing T] {χ : A π e →+* T}
+    (hχ : KFlat I χ) {y : T} (hy : χ (fA π) * y = 0) : y = 0 := by
+  obtain ⟨g, hgf, rfl⟩ := hχ
+  letI := g.toAlgebra
+  haveI : Module.Flat (A (πI I π) e) T := hgf
+  have hnz : fA (πI I π) (e := e) ∈ nonZeroDivisors (A (πI I π) e) :=
+    mem_nonZeroDivisors_iff_right.mpr fun x hx ↦
+      Node.eq_zero_of_pow_add_pow_mul_eq_zero _ one_pos
+        (by rw [pow_one, pow_one, mul_comm]; exact hx)
+  have hreg := Module.Flat.isSMulRegular_of_nonZeroDivisors (M := T) hnz
+  rw [RingHom.comp_apply, redA_fA] at hy
+  refine hreg ?_
+  change fA (πI I π) • y = fA (πI I π) • (0 : T)
+  rw [Algebra.smul_def, smul_zero]
+  exact hy
+
 end
 
 end KummerFactorQuot
