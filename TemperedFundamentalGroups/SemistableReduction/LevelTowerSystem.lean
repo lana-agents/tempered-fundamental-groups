@@ -70,7 +70,7 @@ theorem ker_trLe {I : Ideal O}
       (I ^ (n + 1)).map (algebraMap O (R (n + 1))))
     (hkill : ∀ n, (I ^ (n + 1)).map (algebraMap O (R n)) = ⊥) {m n : ℕ} (h : m ≤ n) :
     RingHom.ker (T.trLe hθ hO h) = (I ^ (m + 1)).map (T.aG hθ n) := by
-  refine TowerSystem.ker_trLe (T.aG hθ) (T.tr_comp_aG hθ hO) (T.surjective_tr hθ hO)
+  refine TowerSystem.ker_trLe_pow (T.aG hθ) (T.tr_comp_aG hθ hO) (T.surjective_tr hθ hO)
     (fun n ↦ T.ker_tr_of hθ hO (hker n)) (fun n ↦ ?_) h
   rw [← Ideal.map_map, hkill n, Ideal.map_bot]
 

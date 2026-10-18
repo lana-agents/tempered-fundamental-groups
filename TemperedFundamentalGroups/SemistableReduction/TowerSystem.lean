@@ -11,12 +11,14 @@ import Mathlib.RingTheory.Ideal.Operations
 
 Given commutative rings `G n` (`n : ℕ`) with ring maps `a n : O → G n` from a base ring `O` and
 transition maps `t n : G (n+1) → G n` compatible with the `a n`, surjective with kernel
-`I^{n+1} G (n+1)` for an ideal `I` of `O`:
+`J n · G (n+1)` for ideals `J n` of `O` (e.g. `J n = I^{n+1}` or `I^n`):
 
 * `TowerSystem.trLe h : G n →+* G m` for `m ≤ n` (composite of the `t k`), `trLe_refl`,
   `trLe_succ`, **`trLe_comp`** (`trLe h₁ ∘ trLe h₂ = trLe (h₁.trans h₂)`), `trLe_comp_a`;
-* **`surjective_trLe`**, **`ker_trLe`**: `ker (trLe h) = I^{m+1} G n` if `I^{m+1} G m = 0`
-  (induction with `Ideal.comap_map_of_surjective`).
+* **`surjective_trLe`**, **`ker_trLe`**: `ker (trLe h) = J m · G n` for a decreasing sequence of
+  ideals `J n` of `O` with `ker (t n) = J n · G (n+1)` and `J n · G n = 0` (induction with
+  `Ideal.comap_map_of_surjective`); `ker_trLe_pow` for `J n = I^{n+1}`;
+* `trLe_apply_of` (compatible elements), `trLe_comm` (naturality for maps of towers).
 
 This is the shape of the transition maps of an adic system (`AdicChartSystem`, up to the index
 shift `n ↦ n + 1`).
@@ -81,12 +83,12 @@ lemma trLe_comp_a {m n : ℕ} (h : m ≤ n) : (trLe t h).comp (a n) = a m := by
   | succ n hmn ih => rw [trLe_succ' t _ hmn, RingHom.comp_assoc, ha, ih]
 
 include ha in
-/-- **The kernel of the transition map** `G n → G m` is `I^{m+1} G n` if the kernels of the
-successor maps are `I^{k+1} G (k+1)` and `I^{m+1}` kills `G m`. -/
-theorem ker_trLe (ht : ∀ n, Function.Surjective (t n)) {I : Ideal O}
-    (hker : ∀ n, RingHom.ker (t n) = (I ^ (n + 1)).map (a (n + 1)))
-    (hkill : ∀ n, (I ^ (n + 1)).map (a n) = ⊥) {m n : ℕ} (h : m ≤ n) :
-    RingHom.ker (trLe t h) = (I ^ (m + 1)).map (a n) := by
+/-- **The kernel of the transition map** `G n → G m` is `J m · G n` for a decreasing sequence of
+ideals `J` of `O` if the kernels of the successor maps are `J k · G (k+1)` and `J k` kills `G k`. -/
+theorem ker_trLe (ht : ∀ n, Function.Surjective (t n)) {J : ℕ → Ideal O} (hJ : Antitone J)
+    (hker : ∀ n, RingHom.ker (t n) = (J n).map (a (n + 1)))
+    (hkill : ∀ n, (J n).map (a n) = ⊥) {m n : ℕ} (h : m ≤ n) :
+    RingHom.ker (trLe t h) = (J m).map (a n) := by
   induction n, h using Nat.le_induction with
   | base =>
     rw [trLe_refl, hkill]
@@ -94,7 +96,32 @@ theorem ker_trLe (ht : ∀ n, Function.Surjective (t n)) {I : Ideal O}
   | succ n hmn ih =>
     rw [trLe_succ' t _ hmn, ← RingHom.comap_ker, ih, ← ha n, ← Ideal.map_map,
       Ideal.comap_map_of_surjective' _ (ht n), hker n]
-    refine sup_eq_left.mpr (Ideal.map_mono (Ideal.pow_le_pow_right (by omega)))
+    exact sup_eq_left.mpr (Ideal.map_mono (hJ hmn))
+
+include ha in
+/-- `ker_trLe` for the powers `J n = I^{n+1}`. -/
+theorem ker_trLe_pow (ht : ∀ n, Function.Surjective (t n)) {I : Ideal O}
+    (hker : ∀ n, RingHom.ker (t n) = (I ^ (n + 1)).map (a (n + 1)))
+    (hkill : ∀ n, (I ^ (n + 1)).map (a n) = ⊥) {m n : ℕ} (h : m ≤ n) :
+    RingHom.ker (trLe t h) = (I ^ (m + 1)).map (a n) :=
+  ker_trLe a ha ht (J := fun n ↦ I ^ (n + 1))
+    (fun _ _ hmn ↦ Ideal.pow_le_pow_right (Nat.succ_le_succ hmn)) hker hkill h
+
+/-- Compatible elements are mapped to each other. -/
+lemma trLe_apply_of {x : ∀ n, G n} (hx : ∀ n, t n (x (n + 1)) = x n) {m n : ℕ} (h : m ≤ n) :
+    trLe t h (x n) = x m := by
+  induction n, h using Nat.le_induction with
+  | base => rw [trLe_refl, RingHom.id_apply]
+  | succ n hmn ih => rw [trLe_succ' t _ hmn, RingHom.comp_apply, hx, ih]
+
+/-- **Naturality**: the transition maps commute with compatible maps of towers. -/
+lemma trLe_comm {H : ℕ → Type*} [∀ n, CommRing (H n)] {t' : ∀ n, H (n + 1) →+* H n}
+    (ρ : ∀ n, G n →+* H n) (hρ : ∀ n x, t' n (ρ (n + 1) x) = ρ n (t n x)) {m n : ℕ}
+    (h : m ≤ n) (x : G n) : trLe t' h (ρ n x) = ρ m (trLe t h x) := by
+  induction n, h using Nat.le_induction with
+  | base => rw [trLe_refl, trLe_refl, RingHom.id_apply, RingHom.id_apply]
+  | succ n hmn ih =>
+    rw [trLe_succ' t' _ hmn, trLe_succ' t _ hmn, RingHom.comp_apply, RingHom.comp_apply, hρ, ih]
 
 end TowerSystem
 
