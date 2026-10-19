@@ -131,6 +131,45 @@ structure Overlap (I : Input θ cov₀ πL) where
   σE0 : ∀ n, letI := ((algebraMap Bs' C0).comp (qB' n)).toAlgebra
     (E0 n ⧸ EtaleNil.JB (J θ (R := B' n)) (E0 n)) ≃ₐ[B' n] Localization.Away (algebraMap Bs' C0 c0s)
   hcE0 : ∀ n, IsUnit (algebraMap (B' n) (E0 n) (algebraMap B0' (B' n) c0))
+  /-- `V₀ = D(x₀) ∪ D(c₀)` -/
+  hxc : Ideal.span {x0, c0} = ⊤
+  /-- finiteness: the charts are finite over `O[X]` (via `x₁`, `x₀`), the levels are quotients,
+  the étale pieces are finite over `D(b₀)`, `D(c₀)`, `W0 = B0'[1/x₀]` -/
+  hW0' : IsLocalization.Away x0 W0
+  finB0 : letI := (Polynomial.aeval x1 : Polynomial O →ₐ[O] I.B0).toRingHom.toAlgebra
+    Module.Finite (Polynomial O) I.B0
+  finB0' : letI := (Polynomial.aeval x0 : Polynomial O →ₐ[O] B0').toRingHom.toAlgebra
+    Module.Finite (Polynomial O) B0'
+  surjB : ∀ n, Function.Surjective (algebraMap I.B0 (I.B n))
+  surjB' : ∀ n, Function.Surjective (algebraMap B0' (B' n))
+  hfinE : ∀ n, ∃ s : Finset (I.E n), ∀ p : I.E n, ∃ k : ℕ,
+    algebraMap I.B0 (I.B n) I.b0 ^ k • p ∈ Submodule.span (I.B n) (s : Set (I.E n))
+  hfinE0 : ∀ n, ∃ s : Finset (E0 n), ∀ p : E0 n, ∃ k : ℕ,
+    algebraMap B0' (B' n) c0 ^ k • p ∈ Submodule.span (B' n) (s : Set (E0 n))
+  /-- the successor maps over `V₀` -/
+  [algSuccB' : ∀ n, Algebra (B' (n + 1)) (B' n)]
+  [towerOSuccB' : ∀ n, IsScalarTower O (B' (n + 1)) (B' n)]
+  [towerB0'SuccB' : ∀ n, IsScalarTower B0' (B' (n + 1)) (B' n)]
+  sE0 : ∀ n, E0 (n + 1) →+* E0 n
+  hsE0 : ∀ n (x : B' (n + 1)), sE0 n (algebraMap (B' (n + 1)) (E0 (n + 1)) x) =
+    algebraMap (B' n) (E0 n) (algebraMap (B' (n + 1)) (B' n) x)
+  hσE0 : ∀ n (x : E0 (n + 1)), σE0 n (Ideal.Quotient.mk _ (sE0 n x)) =
+    σE0 (n + 1) (Ideal.Quotient.mk _ x)
+  hsE0s : ∀ n, Function.Surjective (sE0 n)
+  [algSuccW : ∀ n, Algebra (W (n + 1)) (W n)]
+  hWs1 : ∀ n (x : I.B (n + 1)),
+    algebraMap (W (n + 1)) (W n) (algebraMap (I.B (n + 1)) (W (n + 1)) x) =
+    algebraMap (I.B n) (W n) (algebraMap (I.B (n + 1)) (I.B n) x)
+  hWs0 : ∀ n (x : B' (n + 1)),
+    algebraMap (W (n + 1)) (W n) (algebraMap (B' (n + 1)) (W (n + 1)) x) =
+    algebraMap (B' n) (W n) (algebraMap (B' (n + 1)) (B' n) x)
+  /-- the levels: killed by `ϖⁿ⁺¹`, the kernels of the successor maps are `ϖⁿ⁺¹` -/
+  ϖ : O
+  hOB0B : ∀ n (o : O), algebraMap I.B0 (I.B n) (algebraMap O I.B0 o) = algebraMap O (I.B n) o
+  hK : ∀ n, I.K n = (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O I.B0)
+  hkE0 : ∀ n, RingHom.ker (sE0 n) = (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O (E0 (n + 1)))
+  killB : ∀ n, (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O (I.B n)) = ⊥
+  killB' : ∀ n, (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O (B' n)) = ⊥
 
 namespace Overlap
 
@@ -138,7 +177,7 @@ attribute [instance] commRingB0' algOB0' commRingB' algOB' algB0'B' towerOB' com
   algB0'W0 algOW0 towerOB0W0 towerOB0'W0 commRingW algOW algBW algB'W towerOBW towerOB'W algW0W
   commRingBs' commRingWs algBsWs
   algBs'Ws commRingC0 algC0 algWs1 towerWs1 algWs0 towerWs0 commRingE0 algB'E0 algOE0 towerOE0
-  etaleE0
+  etaleE0 algSuccB' towerOSuccB' towerB0'SuccB' algSuccW
 
 variable {I : Input θ cov₀ πL} (V : Overlap I) (hθ : Function.Surjective θ)
   (hO : ∀ x : O, θ x ≠ 0 → IsUnit x) (n : ℕ)

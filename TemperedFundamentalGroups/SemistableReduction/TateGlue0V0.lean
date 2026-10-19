@@ -144,6 +144,75 @@ lemma hq0T (n : ℕ) (r : T0n ϖ π b₄ t κ n) :
   obtain ⟨y, rfl⟩ := Ideal.Quotient.mk_surjective r
   rw [quotMap_mk, EtaleTower.q_mk, EtaleTower.q_mk, EtaleNil.red_mk]
 
+omit [IsNoetherianRing O] in
+lemma hWs1T (n : ℕ) (x : T1n ϖ π b₄ t κ (n + 1)) :
+    algebraMap (EtaleTower.Tn ϖ (T01 π b₄ t κ) (n + 1)) (EtaleTower.Tn ϖ (T01 π b₄ t κ) n)
+      (rho1n ϖ π b₄ t κ (n + 1) x) =
+    rho1n ϖ π b₄ t κ n (algebraMap (EtaleTower.Tn ϖ (T1 π b₄ t κ) (n + 1))
+      (EtaleTower.Tn ϖ (T1 π b₄ t κ) n) x) := by
+  obtain ⟨y, rfl⟩ := Ideal.Quotient.mk_surjective x
+  rfl
+
+omit [IsNoetherianRing O] in
+lemma hWs0T (n : ℕ) (x : T0n ϖ π b₄ t κ (n + 1)) :
+    algebraMap (EtaleTower.Tn ϖ (T01 π b₄ t κ) (n + 1)) (EtaleTower.Tn ϖ (T01 π b₄ t κ) n)
+      (rho0n ϖ π b₄ t κ (n + 1) x) =
+    rho0n ϖ π b₄ t κ n (algebraMap (EtaleTower.Tn ϖ (T0 π b₄ t κ) (n + 1))
+      (EtaleTower.Tn ϖ (T0 π b₄ t κ) n) x) := by
+  obtain ⟨y, rfl⟩ := Ideal.Quotient.mk_surjective x
+  rfl
+
+omit [IsNoetherianRing O] in
+/-- A finite algebra is finite for any equal algebra structure. -/
+lemma finite_of_eq {R S : Type u} [CommRing R] [CommRing S] [Algebra R S] [Module.Finite R S]
+    (f : R →+* S) (hf : f = algebraMap R S) : letI := f.toAlgebra; Module.Finite R S := by
+  subst hf
+  rw [show (algebraMap R S).toAlgebra = ‹Algebra R S› from Algebra.algebra_ext _ _ fun _ ↦ rfl]
+  infer_instance
+
+omit [IsNoetherianRing O] in
+/-- `T1` is finite over `O[X]` via `X ↦ h'`. -/
+lemma finite_aeval_h1 : letI := (Polynomial.aeval (h1 π b₄ t κ) :
+      Polynomial O →ₐ[O] T1 π b₄ t κ).toRingHom.toAlgebra
+    Module.Finite (Polynomial O) (T1 π b₄ t κ) :=
+  finite_of_eq _ (Polynomial.ringHom_ext (fun o ↦ by
+    change Polynomial.aeval (h1 π b₄ t κ) (Polynomial.C o) =
+      AdjoinRoot.of (G1 π b₄ t κ) (Polynomial.C o)
+    rw [Polynomial.aeval_C, of_C]) (by
+    change Polynomial.aeval (h1 π b₄ t κ) Polynomial.X =
+      AdjoinRoot.of (G1 π b₄ t κ) Polynomial.X
+    rw [Polynomial.aeval_X]))
+
+omit [IsNoetherianRing O] in
+/-- `T0` is finite over `O[X]` via `X ↦ h`. -/
+lemma finite_aeval_h0 : letI := (Polynomial.aeval (h0 π b₄ t κ) :
+      Polynomial O →ₐ[O] T0 π b₄ t κ).toRingHom.toAlgebra
+    Module.Finite (Polynomial O) (T0 π b₄ t κ) :=
+  finite_of_eq _ (Polynomial.ringHom_ext (fun o ↦ by
+    change Polynomial.aeval (h0 π b₄ t κ) (Polynomial.C o) =
+      AdjoinRoot.of (G0 π b₄ t κ) (Polynomial.C o)
+    rw [Polynomial.aeval_C, of_C]) (by
+    change Polynomial.aeval (h0 π b₄ t κ) Polynomial.X =
+      AdjoinRoot.of (G0 π b₄ t κ) Polynomial.X
+    rw [Polynomial.aeval_X]))
+
+omit [IsNoetherianRing O] in
+/-- `V₀ = D(h) ∪ D(1 + h)`. -/
+lemma span_h0_c0 : Ideal.span {h0 π b₄ t κ, c0 π b₄ t κ} = ⊤ := by
+  rw [Ideal.eq_top_iff_one]
+  have h : (1 : T0 π b₄ t κ) = c0 π b₄ t κ - h0 π b₄ t κ := by rw [c0]; ring
+  rw [h]
+  exact Ideal.sub_mem _ (Ideal.subset_span (Set.mem_insert_of_mem _ rfl))
+    (Ideal.subset_span (Set.mem_insert _ _))
+
+omit hθ in
+/-- The kernels of the successor maps of the étale lifts over `D(1 + h)`. -/
+lemma hkE0 (n : ℕ) : letI := algOE0 hϖ hker Sp0 (n + 1)
+    RingHom.ker (sE0 Sp0 hϖ hker n) =
+      (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O (E0 Sp0 hϖ hker (n + 1)).E) := by
+  rw [ker_sE0, Ideal.map_map]
+  rfl
+
 /-- **The Tate covering over the chart `V₀` and the overlap datum** (`NodeEtaleGlue.Overlap`). -/
 def overlap (ω : Omega hκ hπ Sp Sp0) :
     NodeEtaleGlue.Overlap (TateGlue1.input hκ hπ hε hϖ π' hπ' hker Sp hm) where
@@ -212,6 +281,31 @@ def overlap (ω : Omega hκ hπ Sp Sp0) :
   towerOE0 := towerOE0 hϖ hker Sp0
   σE0 := fun n ↦ (E0 Sp0 hϖ hker n).σ
   hcE0 := fun n ↦ (E0 Sp0 hϖ hker n).hb
+  hxc := span_h0_c0
+  hW0' := isLocalization_rho0 π b₄ t κ
+  finB0 := finite_aeval_h1
+  finB0' := finite_aeval_h0
+  surjB := fun _ ↦ Ideal.Quotient.mk_surjective
+  surjB' := fun _ ↦ Ideal.Quotient.mk_surjective
+  hfinE := fun n ↦ (TateGlue1.E1 hκ hπ hϖ hker Sp n).hfin
+  hfinE0 := fun n ↦ (E0 Sp0 hϖ hker n).hfin
+  algSuccB' := fun _ ↦ inferInstance
+  towerOSuccB' := fun _ ↦ inferInstance
+  towerB0'SuccB' := fun _ ↦ IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  sE0 := sE0 Sp0 hϖ hker
+  hsE0 := Sp0.succ_algebraMap hϖ hker
+  hσE0 := Sp0.σ_succ' hϖ hker
+  hsE0s := surjective_sE0 Sp0 hϖ hker
+  algSuccW := fun n ↦ (inferInstance :
+    Algebra (EtaleTower.Tn ϖ (T01 π b₄ t κ) (n + 1)) (EtaleTower.Tn ϖ (T01 π b₄ t κ) n))
+  hWs1 := hWs1T
+  hWs0 := hWs0T
+  ϖ := ϖ
+  hOB0B := fun _ _ ↦ rfl
+  hK := fun _ ↦ rfl
+  hkE0 := hkE0 hϖ hker Sp0
+  killB := EtaleTower.kill (T1 π b₄ t κ)
+  killB' := EtaleTower.kill (T0 π b₄ t κ)
 
 end
 
