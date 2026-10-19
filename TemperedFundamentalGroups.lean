@@ -155,6 +155,7 @@ import TemperedFundamentalGroups.SemiAnbd.EllipticEstrangement
 import TemperedFundamentalGroups.SemiAnbd.Estrangement
 import TemperedFundamentalGroups.SemiAnbd.FixedArc
 import TemperedFundamentalGroups.SemiAnbd.IncidenceTree
+import TemperedFundamentalGroups.SemiAnbd.MidpointAdj
 import TemperedFundamentalGroups.SemiAnbd.SemiGraph
 import TemperedFundamentalGroups.SemiAnbd.TempSlim
 import TemperedFundamentalGroups.SemiAnbd.TreeFixedPoint
