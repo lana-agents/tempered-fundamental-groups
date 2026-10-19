@@ -16,8 +16,8 @@ unit, `Bab = E[1/a]`), let
 * `C1` be an `R`-algebra (the special-fibre covering over the chart), `Cc` an `A`-algebra (the
   covering on the node chart) and `ι : C1 → Cc` a localization
   away from `a`;
-* `σP : P/JP ≃ Cc[1/f]` (the étale part of the node patch) and `σE : E/JE ≃ C1[1/b]` (the étale
-  piece), and `f ∣ bᵏ` in `A`.
+* `σP : P/JP ≃ Cc[1/f]` (the étale part of the node patch) and `σE : E/JE ≃ Lb` (the étale
+  piece) for a localization `Lb = C1[1/b]`, and `f ∣ bᵏ` in `A`.
 
 Then **`OverlapFibre.χ`** `= μ ∘ σP`, where `μ : Cc[1/f] → Bab/J` is induced by
 `C1 → C1[1/b] ≃ E/JE → Bab/J`, and **`OverlapFibre.isLocalization_χ`**: `χ` is a localization
@@ -92,7 +92,8 @@ variable {R : Type u} [CommRing R] (J : Ideal R) (a b : R)
   {Cc : Type u} [CommRing Cc] [Algebra A Cc] [Algebra R Cc] [IsScalarTower R A Cc]
   (ι : C1 →ₐ[R] Cc) (f : A)
   (σP : (P ⧸ EtaleNil.JB J P) ≃ₐ[R] Localization.Away (algebraMap A Cc f))
-  (σE : (E ⧸ EtaleNil.JB J E) ≃ₐ[R] Localization.Away (algebraMap R C1 b))
+  {Lb : Type u} [CommRing Lb] [Algebra C1 Lb] [Algebra R Lb] [IsScalarTower R C1 Lb]
+  (σE : (E ⧸ EtaleNil.JB J E) ≃ₐ[R] Lb)
 
 /-- The special fibre `Bab/J` of the overlap. -/
 abbrev Z (E : Type u) [CommRing E] [Algebra R E] : Type u :=
@@ -102,6 +103,7 @@ abbrev Z (E : Type u) [CommRing E] [Algebra R E] : Type u :=
 abbrev redE : (E ⧸ EtaleNil.JB J E) →ₐ[R] Z J a E :=
   EtaleNil.red J (IsScalarTower.toAlgHom R E (EtaleOverlap.Bab a E))
 
+variable (C1) in
 /-- `C1 → C1[1/b] ≃ E/JE → Bab/J`. -/
 def γ1 : C1 →ₐ[R] Z J a E :=
   (redE J a).comp (σE.symm.toAlgHom.comp (IsScalarTower.toAlgHom R C1 _))
@@ -117,26 +119,26 @@ variable (hι : letI := (ι : C1 →+* Cc).toAlgebra; IsLocalization.Away (algeb
 def γc : Cc →+* Z J a E :=
   letI := (ι : C1 →+* Cc).toAlgebra
   haveI := hι
-  IsLocalization.Away.lift (algebraMap R C1 a) (g := (γ1 J a b σE : C1 →+* Z J a E))
+  IsLocalization.Away.lift (algebraMap R C1 a) (g := (γ1 J a C1 σE : C1 →+* Z J a E))
     (by rw [RingHom.coe_coe, AlgHom.commutes]; exact isUnit_a J a)
 
-lemma γc_ι (c : C1) : γc J a b ι σE hι (ι c) = γ1 J a b σE c :=
+lemma γc_ι (c : C1) : γc J a ι σE hι (ι c) = γ1 J a C1 σE c :=
   letI := (ι : C1 →+* Cc).toAlgebra
   haveI := hι
   IsLocalization.Away.lift_eq (algebraMap R C1 a) _ c
 
-lemma γc_algebraMap (r : R) : γc J a b ι σE hι (algebraMap R Cc r) = algebraMap R (Z J a E) r := by
+lemma γc_algebraMap (r : R) : γc J a ι σE hι (algebraMap R Cc r) = algebraMap R (Z J a E) r := by
   rw [← ι.commutes, γc_ι, AlgHom.commutes]
 
 variable (hb : IsUnit (algebraMap R E b)) {k : ℕ} (hdiv : f ∣ algebraMap R A b ^ k)
 include hb hdiv
 
-lemma isUnit_f : IsUnit (γc J a b ι σE hι (algebraMap A Cc f)) := by
+lemma isUnit_f : IsUnit (γc J a ι σE hι (algebraMap A Cc f)) := by
   have hbZ : IsUnit (algebraMap R (Z J a E) b) := by
     rw [IsScalarTower.algebraMap_apply R E (Z J a E)]
     exact hb.map _
   obtain ⟨c, hc⟩ := hdiv
-  have h := congrArg (fun x ↦ γc J a b ι σE hι (algebraMap A Cc x)) hc
+  have h := congrArg (fun x ↦ γc J a ι σE hι (algebraMap A Cc x)) hc
   simp only [map_mul, map_pow] at h
   rw [← IsScalarTower.algebraMap_apply, γc_algebraMap] at h
   exact isUnit_of_mul_isUnit_left (h ▸ hbZ.pow k)
@@ -146,7 +148,7 @@ def μ : Localization.Away (algebraMap A Cc f) →+* Z J a E :=
   IsLocalization.Away.lift (algebraMap A Cc f) (isUnit_f J a b ι f σE hι hb hdiv)
 
 lemma μ_algebraMap (c : Cc) :
-    μ J a b ι f σE hι hb hdiv (algebraMap Cc _ c) = γc J a b ι σE hι c :=
+    μ J a b ι f σE hι hb hdiv (algebraMap Cc _ c) = γc J a ι σE hι c :=
   IsLocalization.Away.lift_eq _ _ c
 
 /-- **The special-fibre map** `χ̄ = μ ∘ σP : P/JP → Bab/J`. -/
@@ -158,16 +160,17 @@ def χ : (P ⧸ EtaleNil.JB J P) →ₐ[R] Z J a E where
       IsScalarTower.algebraMap_apply R Cc (Localization.Away (algebraMap A Cc f)) r,
       μ_algebraMap, γc_algebraMap]
 
+variable [IsLocalization.Away (algebraMap R C1 b) Lb]
+
 /-- **The special-fibre map is a localization away from `b`.** -/
 theorem isLocalization_χ :
     letI := (χ J a b ι f σP σE hι hb hdiv).toRingHom.toAlgebra
     IsLocalization.Away (algebraMap R (P ⧸ EtaleNil.JB J P) b) (Z J a E) := by
-  set Lb := Localization.Away (algebraMap R C1 b)
   set Lf := Localization.Away (algebraMap A Cc f)
   -- (i) `C1 → Bab/J` is a localization away from `b a`
   letI aLZ : Algebra Lb (Z J a E) :=
     ((redE J a).toRingHom.comp σE.symm.toAlgHom.toRingHom).toAlgebra
-  letI aC1Z : Algebra C1 (Z J a E) := (γ1 J a b σE : C1 →+* Z J a E).toAlgebra
+  letI aC1Z : Algebra C1 (Z J a E) := (γ1 J a C1 σE : C1 →+* Z J a E).toAlgebra
   haveI : IsScalarTower C1 Lb (Z J a E) := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
   haveI hEZ : letI := (redE J a (E := E)).toRingHom.toAlgebra
       IsLocalization.Away (Ideal.Quotient.mk (EtaleNil.JB J E) (algebraMap R E a)) (Z J a E) :=
@@ -189,9 +192,9 @@ theorem isLocalization_χ :
   -- (ii) `Cc → Bab/J` is a localization away from `b`
   letI aC1Cc : Algebra C1 Cc := (ι : C1 →+* Cc).toAlgebra
   haveI : IsLocalization.Away (algebraMap R C1 a) Cc := hι
-  letI aCcZ : Algebra Cc (Z J a E) := (γc J a b ι σE hι).toAlgebra
+  letI aCcZ : Algebra Cc (Z J a E) := (γc J a ι σE hι).toAlgebra
   haveI : IsScalarTower C1 Cc (Z J a E) := IsScalarTower.of_algebraMap_eq fun c ↦
-    (γc_ι J a b ι σE hι c).symm
+    (γc_ι J a ι σE hι c).symm
   have h2 : IsLocalization.Away (algebraMap C1 Cc (algebraMap R C1 b)) (Z J a E) :=
     away_of_mul (S := Cc) (algebraMap R C1 a) (algebraMap R C1 b)
   have hbC : algebraMap C1 Cc (algebraMap R C1 b) = algebraMap R Cc b := ι.commutes b

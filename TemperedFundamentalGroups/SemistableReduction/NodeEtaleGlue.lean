@@ -13,10 +13,10 @@ import TemperedFundamentalGroups.SemistableReduction.ZariskiTwoMap
 Setting (generic, at every level `n`): a tower of patched algebras `G n` on node charts `R n`
 (`T : LevelTower.Data R cov₀ πL`), base charts `B n` (Tate case: the levels `T1n n` of the
 `ℙ¹`-chart over `U₁`) with `R n = B n[1/a n]`, and étale pieces `E n` over `D(b n) ⊆ Spec B n`:
-formally étale `B n`-algebras with `σE n : E n/J ≃ C1[1/b̄]` for one special-fibre covering
-`C1` over `Bs` (the special fibre of the base chart). The special fibres are compared by
-`ι₀ : C1 → cov₀.C`, a localization away from `ā` over `φs : Bs → R₀` (the covering on the node
-chart is the covering on the base chart restricted to `D(ā)`).
+formally étale `B n`-algebras with `σE n : E n/J ≃ C1[1/b̄]` (`b̄ = qB n (b n)`) for
+one special-fibre covering `C1` over `Bs` (the special fibre of the base chart). The special
+fibres are compared by `ι₀ : C1 → cov₀.C`, a localization away from `ā` over `φs : Bs → R₀`
+(the covering on the node chart is the covering on the base chart restricted to `D(ā)`).
 
 At level `n`:
 
@@ -24,8 +24,7 @@ At level `n`:
   `χn` (`OverlapFibre.χ`);
 * **`NodeEtaleGlue.ρa n : G n → E n[1/a n]`** (`EtaleOverlap.ρa`), and **`isLocalization_ρa`**:
   it is a localization away from `b n`, given `f n ∣ (b n)ᵏ` in `R n`;
-* **`NodeEtaleGlue.Y n`**: the glued algebra `G n ×_{E n[1/a]} E n` (`ZariskiTwo.glued`), the
-  covering over `Spec B n` (étale outside the nodes, Kummer at the nodes).
+* the glued coverings `G n ×_{E n[1/a]} E n` and their tower: `NodeEtaleGlueTower`.
 -/
 
 universe u
@@ -188,9 +187,8 @@ lemma isLocalization_ιn (n : ℕ) :
 
 variable (E : ℕ → Type u) [∀ n, CommRing (E n)] [∀ n, Algebra (B n) (E n)]
   [∀ n, Algebra.FormallyEtale (B n) (E n)]
-  (σE : ∀ n, letI := algC1 B qB C1 n
-    (E n ⧸ EtaleNil.JB (J θ (R := B n)) (E n)) ≃ₐ[B n]
-      Localization.Away (algebraMap (B n) C1 (b n)))
+  {bbar : Bs} (σE : ∀ n, letI := algC1 B qB C1 n
+    (E n ⧸ EtaleNil.JB (J θ (R := B n)) (E n)) ≃ₐ[B n] Localization.Away (algebraMap Bs C1 bbar))
   (hbE : ∀ n, IsUnit (algebraMap (B n) (E n) (b n)))
   {kdiv : ℕ → ℕ} (hdiv : ∀ n, T.f n ∣ algebraMap (B n) (R n) (b n) ^ kdiv n)
 
@@ -205,8 +203,19 @@ def χn (n : ℕ) : letI := algBP T B n
   OverlapFibre.χ (J θ (R := B n)) (a n) (b n) (ιn T B qB φs hφs ι₀ hι₀ n) (T.f n) (σPn T B n)
     (σE n) (isLocalization_ιn T B qB φs hφs ι₀ hι₀ a ha hι n) (hbE n) (hdiv n)
 
+variable (hbb : ∀ n, qB n (b n) = bbar)
+
+variable (C1) in
+include hbb in
+lemma isLocalization_C1 (n : ℕ) : letI := algC1 B qB C1 n
+    IsLocalization.Away (algebraMap (B n) C1 (b n))
+      (Localization.Away (algebraMap Bs C1 bbar)) := by
+  change IsLocalization.Away (algebraMap Bs C1 (qB n (b n))) _
+  rw [hbb n]
+  infer_instance
+
 omit [∀ n, Algebra.FormallyEtale (B n) (E n)] [∀ n, IsLocalization.Away (a n) (R n)] in
-include ha hι hbE hdiv in
+include ha hι hbE hdiv hbb in
 lemma isLocalization_χn (n : ℕ) :
     letI := algBP T B n
     letI := (χn T B qB φs hφs ι₀ hι₀ a b ha hι E σE hbE hdiv n).toRingHom.toAlgebra
@@ -216,6 +225,7 @@ lemma isLocalization_χn (n : ℕ) :
   letI := algBC T B n
   haveI := towerBC T B n
   letI := algC1 B qB C1 n
+  haveI := isLocalization_C1 B qB C1 b hbb n
   OverlapFibre.isLocalization_χ (J θ (R := B n)) (a n) (b n) (ιn T B qB φs hφs ι₀ hι₀ n) (T.f n)
     (σPn T B n) (σE n) (isLocalization_ιn T B qB φs hφs ι₀ hι₀ a ha hι n) (hbE n) (hdiv n)
 
@@ -231,7 +241,7 @@ def ρa (n : ℕ) : letI := algBG T hθ B n
   EtaleOverlap.ρa (J θ (R := B n)) (hJB n) (a n) (A := R n)
     (χn T B qB φs hφs ι₀ hι₀ a b ha hι E σE hbE hdiv n) (fstP T hθ n)
 
-include hO hJB in
+include hO hJB hbb in
 /-- **The overlap map is a localization away from `b n`.** -/
 theorem isLocalization_ρa (n : ℕ) :
     letI := algBG T hθ B n
@@ -243,14 +253,8 @@ theorem isLocalization_ρa (n : ℕ) :
   haveI := towerBG T hθ B n
   EtaleOverlap.isLocalization_ρa (J θ (R := B n)) (hJB n) (a n) (b n) (A := R n)
     (χn T B qB φs hφs ι₀ hι₀ a b ha hι E σE hbE hdiv n) (hbE n)
-    (isLocalization_χn T B qB φs hφs ι₀ hι₀ a b ha hι E σE hbE hdiv n) (fstP T hθ n) (T.f n)
+    (isLocalization_χn T B qB φs hφs ι₀ hι₀ a b ha hι E σE hbE hdiv hbb n) (fstP T hθ n) (T.f n)
     (isLocalization_fstP T hθ hO n) (hdiv n)
-
-/-- **The covering over the base chart at level `n`**: `Y n = G n ×_{E n[1/a]} E n`. -/
-abbrev Y (n : ℕ) : Type u :=
-  letI := algBG T hθ B n
-  ZariskiTwo.glued (ρa T hθ B qB φs hφs ι₀ hι₀ a b ha hι E σE hbE hdiv hJB n)
-    (IsScalarTower.toAlgHom (B n) (E n) (EtaleOverlap.Bab (a n) (E n)))
 
 end NodeEtaleGlue
 

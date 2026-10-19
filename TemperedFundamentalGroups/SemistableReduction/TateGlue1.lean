@@ -20,9 +20,8 @@ covering of the special fibre given over `V₁`:
   (**scope: coverings étale outside the nodes** on `V₁`, i.e. the marked points, if any, lie in
   `V₀ ∖ V₁`; the cusp at the origin `[0:1:0]` is handled by the piece over `V₀`);
 * `TateGlue1.E1 n`: the étale lifts of `C1` over `D(w)` (`EtaleTower.lift`);
-* **`TateGlue1.ρa n : G n → E1 n[1/D]`** (the node patch on the overlap `D(D w)`), a
-  localization away from `w` (**`isLocalization_ρa`**, `NodeEtaleGlue`), and **`TateGlue1.Y1 n`**:
-  the covering of the level `n` over `V₁`, `G n ×_{E1 n[1/D]} E1 n`.
+* the data of `NodeEtaleGlue` for the Tate charts (`instBR`, `towerOBR`, `isLocalization_BR`,
+  `hφs`); the covering over `V₁` and its tower are in `TateGlue1Tower`.
 -/
 
 universe u
@@ -135,21 +134,6 @@ instance isNoetherianRing_T1 : IsNoetherianRing (T1 π b₄ t κ) :=
 def E1 (n : ℕ) : EtaleTower.Lift (T1 π b₄ t κ) hϖ Sp.C1 (w1 π b₄ t κ) n :=
   haveI := Sp.finite
   EtaleTower.lift (T1 π b₄ t κ) hϖ Sp.C1 (w1 π b₄ t κ) hker Sp.etale n
-
-variable (hm : m ≠ 0)
-
-/-- **The covering over `V₁` at level `n`**: `G n ×_{E1 n[1/D]} E1 n` (`NodeEtaleGlue.Y`). -/
-def Y1 (n : ℕ) : Type u :=
-  letI := instBR ϖ b₄ hκ hπ
-  haveI := towerOBR (ϖ := ϖ) (b₄ := b₄) hκ hπ
-  haveI := isLocalization_BR (ϖ := ϖ) (b₄ := b₄) hκ hπ hε
-  NodeEtaleGlue.Y (tower hπe τ cov₀ hϖ π' hπ' hker) hθ.out (B ϖ π b₄ t κ) (qB hϖ)
-    (toNodeJ hκ hπ)
-    (hφs hκ hπ hπe τ cov₀ hϖ π' hπ' hker) Sp.ι₀ Sp.hι₀ (fun _ ↦ Ideal.Quotient.mk _ (DT π b₄ t κ))
-    (fun _ ↦ Ideal.Quotient.mk _ (w1 π b₄ t κ)) (fun _ ↦ rfl) Sp.hι
-    (fun n ↦ (E1 hκ hπ hϖ hker Sp n).E) (fun n ↦ (E1 hκ hπ hϖ hker Sp n).σ)
-    (fun n ↦ (E1 hκ hπ hϖ hker Sp n).hb)
-    (fun n ↦ TateOverlap.fn_dvd_w hκ hπ hm n) (fun n ↦ EtaleTower.hJ hker n) n
 
 end
 
