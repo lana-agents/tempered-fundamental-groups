@@ -105,19 +105,24 @@ lemma towerOB : letI := algBM x0 hW0 E0 (Bn := Bn); IsScalarTower O Bn (M x0 E0)
   change _ = algebraMap Wn (M x0 E0) (algebraMap Bn Wn (algebraMap O Bn o))
   rw [← IsScalarTower.algebraMap_apply O Bn Wn, ← IsScalarTower.algebraMap_apply O Wn (M x0 E0)]
 
-variable {x1 : Bn} (hW1 : IsLocalization.Away x1 Wn) [Algebra.FormallyEtale B'n E0]
+/-- `E0[1/x₀]` is formally étale over `B'n` if `E0` is. -/
+theorem formallyEtale_loc [Algebra.FormallyEtale B'n E0] :
+    Algebra.FormallyEtale B'n (M x0 E0) := by
+  haveI : Algebra.FormallyEtale E0 (M x0 E0) :=
+    Algebra.FormallyEtale.of_isLocalization (Submonoid.powers (algebraMap B'n E0 x0))
+  exact Algebra.FormallyEtale.comp B'n E0 (M x0 E0)
+
+variable {x1 : Bn} (hW1 : IsLocalization.Away x1 Wn)
 
 include hW1 in
-/-- **`M` is formally étale over `Bn`.** -/
-theorem formallyEtale_M : letI := algBM x0 hW0 E0 (Bn := Bn)
+/-- **`M` is formally étale over `Bn`** if it is formally étale over `B'n`. -/
+theorem formallyEtale_M [Algebra.FormallyEtale B'n (M x0 E0)] :
+    letI := algBM x0 hW0 E0 (Bn := Bn)
     Algebra.FormallyEtale Bn (M x0 E0) := by
   letI := algWM x0 hW0 E0
   letI := algBM x0 hW0 E0 (Bn := Bn)
   haveI := towerW x0 hW0 E0
   haveI := towerBW x0 hW0 E0 (Bn := Bn)
-  haveI : Algebra.FormallyEtale E0 (M x0 E0) :=
-    Algebra.FormallyEtale.of_isLocalization (Submonoid.powers (algebraMap B'n E0 x0))
-  haveI : Algebra.FormallyEtale B'n (M x0 E0) := Algebra.FormallyEtale.comp B'n E0 (M x0 E0)
   haveI := hW0
   haveI : Algebra.FormallyUnramified B'n Wn :=
     Algebra.FormallyUnramified.of_isLocalization (Submonoid.powers x0)
@@ -127,7 +132,7 @@ theorem formallyEtale_M : letI := algBM x0 hW0 E0 (Bn := Bn)
     (Submonoid.powers x1)
   exact Algebra.FormallyEtale.comp Bn Wn (M x0 E0)
 
-/-! ### The special fibre of `M` as a localization of `C1` -/
+/-! ### The special fibre of an étale piece restricted to the overlap -/
 
 variable {Bs Bs' Ws : Type u} [CommRing Bs] [CommRing Bs'] [CommRing Ws] [Algebra Bs Ws]
   [Algebra Bs' Ws] (qB : Bn →+* Bs) (qB' : B'n →+* Bs') (qW : Wn →+* Ws)
@@ -147,7 +152,7 @@ def ℓ0 : C0 →+* M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0) :=
   (red (K.map (algebraMap O B'n)) (IsScalarTower.toAlgHom B'n E0 (M x0 E0))).toRingHom.comp
     (σE0.symm.toRingEquiv.toRingHom.comp (algebraMap C0 _))
 
-omit [Algebra O E0] [IsScalarTower O B'n E0] [Algebra.FormallyEtale B'n E0] in
+omit [Algebra O E0] [IsScalarTower O B'n E0] in
 lemma ℓ0_algebraMap (y : B'n) : ℓ0 K x0 E0 qB' c0s σE0 (algebraMap Bs' C0 (qB' y)) =
     Ideal.Quotient.mk _ (algebraMap B'n (M x0 E0) y) := by
   letI := ((algebraMap Bs' C0).comp qB').toAlgebra
@@ -157,7 +162,7 @@ lemma ℓ0_algebraMap (y : B'n) : ℓ0 K x0 E0 qB' c0s σE0 (algebraMap Bs' C0 (
   change Ideal.Quotient.mk _ (algebraMap E0 (M x0 E0) (algebraMap B'n E0 y)) = _
   rw [← IsScalarTower.algebraMap_apply]
 
-omit [Algebra O E0] [IsScalarTower O B'n E0] [Algebra.FormallyEtale B'n E0] in
+omit [Algebra O E0] [IsScalarTower O B'n E0] in
 /-- `M/J = C0[1/(c̄₀ x̄₀)]`. -/
 lemma isLocalization_ℓ0 (hx0 : qB' x0 = x0s) :
     letI := (ℓ0 K x0 E0 qB' c0s σE0).toAlgebra
@@ -180,13 +185,21 @@ lemma isLocalization_ℓ0 (hx0 : qB' x0 = x0s) :
   rw [← e] at h2
   exact RingHomAway.comp _ _ _ _ h1 h2
 
-variable (hx0 : qB' x0 = x0s)
+/-! ### The special fibre of `M` from any special-fibre map `C0 → M/J`
 
-omit [Algebra O E0] [IsScalarTower O B'n E0] [Algebra.FormallyEtale B'n E0] in
-include hx0 in
-lemma isUnit_ℓ0 : IsUnit (ℓ0 K x0 E0 qB' c0s σE0 (algebraMap Bs' C0 x0s)) := by
-  letI := (ℓ0 K x0 E0 qB' c0s σE0).toAlgebra
-  haveI := isLocalization_ℓ0 K x0 E0 qB' x0s c0s σE0 hx0
+Everything below only uses a ring map `l0 : C0 → M/J` compatible with the reduction of
+`B'n → M` (`hl0`) exhibiting `M/J` as `C0[1/(c̄₀ x̄₀)]` (`hl0loc`); for an étale piece this is
+`ℓ0` (from `σE0`), for a formal patch with cusp factors it comes from the étale lift on `D(f)`. -/
+
+variable (l0 : C0 →+* M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0))
+  (hl0loc : letI := l0.toAlgebra
+    IsLocalization.Away (algebraMap Bs' C0 c0s * algebraMap Bs' C0 x0s)
+      (M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0)))
+
+omit [Algebra O E0] [IsScalarTower O B'n E0] in
+include hl0loc in
+lemma isUnit_l0 : IsUnit (l0 (algebraMap Bs' C0 x0s)) := by
+  letI := l0.toAlgebra
   have h := IsLocalization.Away.algebraMap_isUnit
     (S := M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0))
     (algebraMap Bs' C0 c0s * algebraMap Bs' C0 x0s)
@@ -196,22 +209,21 @@ lemma isUnit_ℓ0 : IsUnit (ℓ0 K x0 E0 qB' c0s σE0 (algebraMap Bs' C0 x0s)) :
 /-- `C0[1/x̄₀] → M/J`. -/
 def ℓx : Localization.Away (algebraMap Bs' C0 x0s) →+*
     M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0) :=
-  IsLocalization.Away.lift (algebraMap Bs' C0 x0s) (isUnit_ℓ0 K x0 E0 qB' x0s c0s σE0 hx0)
+  IsLocalization.Away.lift (algebraMap Bs' C0 x0s) (isUnit_l0 K x0 E0 x0s c0s l0 hl0loc)
 
-omit [Algebra O E0] [IsScalarTower O B'n E0] [Algebra.FormallyEtale B'n E0] in
-lemma ℓx_algebraMap (c : C0) : ℓx K x0 E0 qB' x0s c0s σE0 hx0 (algebraMap C0 _ c) =
-    ℓ0 K x0 E0 qB' c0s σE0 c :=
+omit [Algebra O E0] [IsScalarTower O B'n E0] in
+lemma ℓx_algebraMap (c : C0) : ℓx K x0 E0 x0s c0s l0 hl0loc (algebraMap C0 _ c) = l0 c :=
   IsLocalization.Away.lift_eq _ _ c
 
-omit [Algebra O E0] [IsScalarTower O B'n E0] [Algebra.FormallyEtale B'n E0] in
+omit [Algebra O E0] [IsScalarTower O B'n E0] in
 /-- `M/J = C0[1/x̄₀][1/c̄₀]`. -/
 lemma isLocalization_ℓx :
-    letI := (ℓx K x0 E0 qB' x0s c0s σE0 hx0).toAlgebra
+    letI := (ℓx K x0 E0 x0s c0s l0 hl0loc).toAlgebra
     IsLocalization.Away (algebraMap C0 (Localization.Away (algebraMap Bs' C0 x0s))
       (algebraMap Bs' C0 c0s)) (M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0)) := by
-  have h := isLocalization_ℓ0 K x0 E0 qB' x0s c0s σE0 hx0
+  have h := hl0loc
   rw [mul_comm] at h
-  have hc : (ℓx K x0 E0 qB' x0s c0s σE0 hx0).comp (algebraMap C0 _) = ℓ0 K x0 E0 qB' c0s σE0 :=
+  have hc : (ℓx K x0 E0 x0s c0s l0 hl0loc).comp (algebraMap C0 _) = l0 :=
     IsLocalization.Away.lift_comp _ _
   rw [← hc] at h
   exact RingHomAway.of_comp _ _ _ _ (RingHomAway.of_algebra _) h
@@ -219,7 +231,7 @@ lemma isLocalization_ℓx :
 /-- `C1[1/x̄₁] ≃ C0[1/x̄₀] → M/J` (through the chart description `ω`). -/
 def ℓ1 : Localization.Away (algebraMap Bs C1 x1s) →+*
     M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0) :=
-  (ℓx K x0 E0 qB' x0s c0s σE0 hx0).comp ω.toRingEquiv.symm.toRingHom
+  (ℓx K x0 E0 x0s c0s l0 hl0loc).comp ω.toRingEquiv.symm.toRingHom
 
 omit [Algebra Bs Ws] [IsScalarTower Bs Ws (Localization.Away ((algebraMap Bs C1) x1s))] in
 lemma ω_c0 : ω (algebraMap C0 _ (algebraMap Bs' C0 c0s)) =
@@ -229,44 +241,44 @@ lemma ω_c0 : ω (algebraMap C0 _ (algebraMap Bs' C0 c0s)) =
     AlgEquiv.commutes]
 
 omit [Algebra Bs Ws] [IsScalarTower Bs Ws (Localization.Away ((algebraMap Bs C1) x1s))]
-  [Algebra O E0] [IsScalarTower O B'n E0] [Algebra.FormallyEtale B'n E0] in
+  [Algebra O E0] [IsScalarTower O B'n E0] in
 /-- `M/J = C1[1/x̄₁][1/c̄₀]`. -/
 lemma isLocalization_ℓ1 :
-    letI := (ℓ1 K x0 E0 qB' x1s x0s c0s ω σE0 hx0).toAlgebra
+    letI := (ℓ1 K x0 E0 x1s x0s c0s ω l0 hl0loc).toAlgebra
     IsLocalization.Away (algebraMap Ws (Localization.Away (algebraMap Bs C1 x1s))
       (algebraMap Bs' Ws c0s)) (M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0)) := by
-  have h := RingHomAway_base_equiv ω.toRingEquiv (ℓx K x0 E0 qB' x0s c0s σE0 hx0) _
-    (isLocalization_ℓx K x0 E0 qB' x0s c0s σE0 hx0)
+  have h := RingHomAway_base_equiv ω.toRingEquiv (ℓx K x0 E0 x0s c0s l0 hl0loc) _
+    (isLocalization_ℓx K x0 E0 x0s c0s l0 hl0loc)
   have e : ω.toRingEquiv (algebraMap C0 _ (algebraMap Bs' C0 c0s)) =
       algebraMap Ws (Localization.Away (algebraMap Bs C1 x1s)) (algebraMap Bs' Ws c0s) :=
     ω_c0 x1s x0s c0s ω
   rw [e] at h
   exact h
 
-variable (hcg : algebraMap Bs' Ws c0s * algebraMap Bs Ws x1s ^ 2 = algebraMap Bs Ws gs)
+variable {kc : ℕ} (hcg : algebraMap Bs' Ws c0s * algebraMap Bs Ws x1s ^ kc = algebraMap Bs Ws gs)
   (hxg : x1s ∣ gs)
 
 /-- `C1 → M/J` (over `B'n`-quotients). -/
 def γ0 : C1 →+* M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0) :=
-  (ℓ1 K x0 E0 qB' x1s x0s c0s ω σE0 hx0).comp (algebraMap C1 _)
+  (ℓ1 K x0 E0 x1s x0s c0s ω l0 hl0loc).comp (algebraMap C1 _)
 
-omit [Algebra O E0] [IsScalarTower O B'n E0] [Algebra.FormallyEtale B'n E0] in
+omit [Algebra O E0] [IsScalarTower O B'n E0] in
 include hcg hxg in
 /-- **`M/J = C1[1/ḡ]`.** -/
 lemma isLocalization_γ0 :
-    letI := (γ0 K x0 E0 qB' x1s x0s c0s ω σE0 hx0).toAlgebra
+    letI := (γ0 K x0 E0 x1s x0s c0s ω l0 hl0loc).toAlgebra
     IsLocalization.Away (algebraMap Bs C1 gs)
       (M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0)) := by
   set C1x := Localization.Away (algebraMap Bs C1 x1s)
   set X1 : C1x := algebraMap C1 C1x (algebraMap Bs C1 x1s)
-  letI := (ℓ1 K x0 E0 qB' x1s x0s c0s ω σE0 hx0).toAlgebra
-  haveI := isLocalization_ℓ1 K x0 E0 qB' x1s x0s c0s ω σE0 hx0
+  letI := (ℓ1 K x0 E0 x1s x0s c0s ω l0 hl0loc).toAlgebra
+  haveI := isLocalization_ℓ1 K x0 E0 x1s x0s c0s ω l0 hl0loc
   have hX : IsUnit (algebraMap C1x (M x0 E0 ⧸ JB (K.map (algebraMap O B'n)) (M x0 E0))
-      (X1 ^ 2)) :=
-    ((IsLocalization.Away.algebraMap_isUnit (algebraMap Bs C1 x1s)).pow 2).map _
+      (X1 ^ kc)) :=
+    ((IsLocalization.Away.algebraMap_isUnit (algebraMap Bs C1 x1s)).pow kc).map _
   have h2 := OverlapFibre.away_mul_of_isUnit (T := M x0 E0 ⧸ JB (K.map (algebraMap O B'n))
-    (M x0 E0)) (X1 ^ 2) (algebraMap Ws C1x (algebraMap Bs' Ws c0s)) hX
-  have hg : X1 ^ 2 * algebraMap Ws C1x (algebraMap Bs' Ws c0s) =
+    (M x0 E0)) (X1 ^ kc) (algebraMap Ws C1x (algebraMap Bs' Ws c0s)) hX
+  have hg : X1 ^ kc * algebraMap Ws C1x (algebraMap Bs' Ws c0s) =
       algebraMap C1 C1x (algebraMap Bs C1 gs) := by
     have := congrArg (algebraMap Ws C1x) hcg
     rw [map_mul, map_pow, ← IsScalarTower.algebraMap_apply Bs Ws C1x,
@@ -274,7 +286,7 @@ lemma isLocalization_γ0 :
       IsScalarTower.algebraMap_apply Bs C1 C1x, IsScalarTower.algebraMap_apply Bs C1 C1x] at this
     rw [← this, mul_comm]
   rw [hg] at h2
-  have h3 := RingHomAway.comp (algebraMap C1 C1x) (ℓ1 K x0 E0 qB' x1s x0s c0s ω σE0 hx0) _ _
+  have h3 := RingHomAway.comp (algebraMap C1 C1x) (ℓ1 K x0 E0 x1s x0s c0s ω l0 hl0loc) _ _
     (RingHomAway.of_algebra (algebraMap Bs C1 x1s)) h2
   exact RingHomAway.of_dvd _ _ _ 1 (by rw [pow_one]; exact map_dvd _ hxg) h3
 
@@ -282,17 +294,18 @@ lemma isLocalization_γ0 :
 
 variable (hq1 : ∀ r, qW (algebraMap Bn Wn r) = algebraMap Bs Ws (qB r))
   (hq0 : ∀ y, qW (algebraMap B'n Wn y) = algebraMap Bs' Ws (qB' y))
+  (hl0 : ∀ y, l0 (algebraMap Bs' C0 (qB' y)) = Ideal.Quotient.mk _ (algebraMap B'n (M x0 E0) y))
 
 omit [Algebra O Wn] [IsScalarTower O B'n Wn] [Algebra O E0] [IsScalarTower O B'n E0]
-  [Algebra.FormallyEtale B'n E0] in
-include hq0 in
+  in
+include hq0 hl0 in
 /-- `Ws → C0[1/x̄₀] → M/J` is the reduction of `Wn → M`. -/
-lemma ℓx_qW (w : Wn) : ℓx K x0 E0 qB' x0s c0s σE0 hx0
+lemma ℓx_qW (w : Wn) : ℓx K x0 E0 x0s c0s l0 hl0loc
     (algebraMap Ws (Localization.Away (algebraMap Bs' C0 x0s)) (qW w)) =
       Ideal.Quotient.mk _ (letI := algWM x0 hW0 E0; algebraMap Wn (M x0 E0) w) := by
   letI := algWM x0 hW0 E0
   haveI := hW0
-  have : ((ℓx K x0 E0 qB' x0s c0s σE0 hx0).comp
+  have : ((ℓx K x0 E0 x0s c0s l0 hl0loc).comp
       (algebraMap Ws (Localization.Away (algebraMap Bs' C0 x0s)))).comp qW =
       (Ideal.Quotient.mk (JB (K.map (algebraMap O B'n)) (M x0 E0))).comp
         (algebraMap Wn (M x0 E0)) := by
@@ -300,10 +313,9 @@ lemma ℓx_qW (w : Wn) : ℓx K x0 E0 qB' x0s c0s σE0 hx0
     simp only [RingHom.comp_apply]
     rw [hq0, ← IsScalarTower.algebraMap_apply Bs' Ws,
       IsScalarTower.algebraMap_apply Bs' C0 (Localization.Away (algebraMap Bs' C0 x0s)),
-      ℓx_algebraMap, ℓ0_algebraMap, algWM_algebraMap]
+      ℓx_algebraMap, hl0, algWM_algebraMap]
   exact RingHom.congr_fun this w
 
-omit [Algebra.FormallyEtale B'n E0] in
 /-- The two ideals `J` of `M` (over `B'n` and over `Bn`) agree. -/
 lemma JB_eq : JB (K.map (algebraMap O B'n)) (M x0 E0) =
     (letI := algBM x0 hW0 E0 (Bn := Bn); JB (K.map (algebraMap O Bn)) (M x0 E0)) := by
@@ -318,29 +330,28 @@ def γM : letI := ((algebraMap Bs C1).comp qB).toAlgebra
   letI := ((algebraMap Bs C1).comp qB).toAlgebra
   letI := algBM x0 hW0 E0 (Bn := Bn)
   { ((Ideal.quotEquivOfEq (JB_eq K x0 hW0 E0 (Bn := Bn))).toRingHom.comp
-      (γ0 K x0 E0 qB' x1s x0s c0s ω σE0 hx0) : C1 →+* _) with
+      (γ0 K x0 E0 x1s x0s c0s ω l0 hl0loc) : C1 →+* _) with
     commutes' := fun r ↦ by
       letI := algWM x0 hW0 E0
       change Ideal.quotEquivOfEq (JB_eq K x0 hW0 E0 (Bn := Bn))
-        (ℓ1 K x0 E0 qB' x1s x0s c0s ω σE0 hx0 (algebraMap C1 _ (algebraMap Bs C1 (qB r)))) =
+        (ℓ1 K x0 E0 x1s x0s c0s ω l0 hl0loc (algebraMap C1 _ (algebraMap Bs C1 (qB r)))) =
           Ideal.Quotient.mk _ (algebraMap Wn (M x0 E0) (algebraMap Bn Wn r))
       rw [← IsScalarTower.algebraMap_apply Bs C1,
         IsScalarTower.algebraMap_apply Bs Ws (Localization.Away (algebraMap Bs C1 x1s)), ← hq1]
-      change Ideal.quotEquivOfEq _ (ℓx K x0 E0 qB' x0s c0s σE0 hx0 (ω.symm (algebraMap Ws _ _))) = _
-      rw [AlgEquiv.commutes, ℓx_qW K x0 hW0 E0 qB' qW x0s c0s σE0 hx0 hq0]
+      change Ideal.quotEquivOfEq _ (ℓx K x0 E0 x0s c0s l0 hl0loc (ω.symm (algebraMap Ws _ _))) = _
+      rw [AlgEquiv.commutes, ℓx_qW K x0 hW0 E0 qB' qW x0s c0s l0 hl0loc hq0 hl0]
       rfl }
 
-omit [Algebra.FormallyEtale B'n E0] in
 include hcg hxg in
 /-- **`M/JM = C1[1/ḡ]`** (the input of `NodeEtaleGlue.Input.glueM`). -/
 theorem isLocalization_γM :
     letI := ((algebraMap Bs C1).comp qB).toAlgebra
     letI := algBM x0 hW0 E0 (Bn := Bn)
-    letI := (γM K x0 hW0 E0 qB qB' qW x1s x0s c0s ω σE0 hx0 hq1 hq0).toRingHom.toAlgebra
+    letI := (γM K x0 hW0 E0 qB qB' qW x1s x0s c0s ω l0 hl0loc hq1 hq0 hl0).toRingHom.toAlgebra
     IsLocalization.Away (algebraMap Bs C1 gs)
       (M x0 E0 ⧸ JB (K.map (algebraMap O Bn)) (M x0 E0)) :=
   RingHomAway.equiv _ (Ideal.quotEquivOfEq (JB_eq K x0 hW0 E0 (Bn := Bn))) _
-    (isLocalization_γ0 K x0 E0 qB' x1s x0s c0s gs ω σE0 hx0 hcg hxg)
+    (isLocalization_γ0 K x0 E0 x1s x0s c0s gs ω l0 hl0loc hcg hxg)
 
 end
 

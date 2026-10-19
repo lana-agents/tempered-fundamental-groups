@@ -214,7 +214,7 @@ theorem gen_Q : letI := V.alg0'Q hθ m; AwaySpan.Gen V.x0 (V.Q hθ m) := by
   exact hs
 
 include hO in
-/-- **`R0 n = Q n ×_{M n} E0 n` is finite over the chart `B0'`.** -/
+/-- **`R0 n = Q n ×_{M n} P0 n` is finite over the chart `B0'`.** -/
 theorem finite_R0 : letI := V.alg0'Q hθ m; letI := V.alg0'E m; letI := V.alg0'M m
     Module.Finite V.B0' (ZariskiTwo.glued (V.ρ0a hθ hO m) (V.ρ0b m)) := by
   letI := V.alg0'Q hθ m
@@ -222,11 +222,11 @@ theorem finite_R0 : letI := V.alg0'Q hθ m; letI := V.alg0'E m; letI := V.alg0'M
   letI := V.alg0'M m
   have hx : IsUnit (algebraMap V.B0' (V.Q hθ m) V.x0) := IsUnit.of_mul_eq_one _ (V.hxy hθ m)
   haveI := ZariskiTwo.isLocalizedModule_fst V.x0 (ρa := V.ρ0a hθ hO m) hx (V.isLocalization_ρ0b m)
-  haveI := ZariskiTwo.isLocalizedModule_snd V.c0 (ρb := V.ρ0b m) (V.hcE0 m)
+  haveI := ZariskiTwo.isLocalizedModule_snd V.c0 (ρb := V.ρ0b m) (V.P0.hcP m)
     (V.isLocalization_ρ0a' hθ hO m)
-  haveI : IsScalarTower V.B0' (V.B' m) (V.E0 m) := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
-  exact ZariskiTwo.finite_glued_of_gen V.x0 V.c0 V.hxc hx (V.hcE0 m) (V.gen_Q hθ hO m)
-    (AwaySpan.gen_of_surjective (V.surjB' m) (V.hfinE0 m))
+  haveI : IsScalarTower V.B0' (V.B' m) (V.P0.P m) := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  exact ZariskiTwo.finite_glued_of_gen V.x0 V.c0 V.hxc hx (V.P0.hcP m) (V.gen_Q hθ hO m)
+    (AwaySpan.gen_of_surjective (V.surjB' m) (V.P0.hfinP m))
 
 include hO in
 /-- **The chart module of `twoChart` on `U₁` is finite over `O[X]`.** -/

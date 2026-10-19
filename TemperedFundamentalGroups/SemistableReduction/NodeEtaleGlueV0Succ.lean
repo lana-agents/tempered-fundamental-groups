@@ -7,16 +7,16 @@ import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueV0
 import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueOverlapSucc
 
 /-!
-# The successor maps of the étale piece over the overlap (Blueprint §12.8, M2.3 (f), tower)
+# The successor maps of the piece over the overlap (Blueprint §12.8, M2.3 (f), tower)
 
-For `V : NodeEtaleGlue.Overlap I` with the successor maps `sE0 n : E0 (n+1) → E0 n` of the étale
-lifts over `D(c₀) ⊆ V₀`:
+For `V : NodeEtaleGlue.Overlap I` with the successor maps `sP n : P0 (n+1) → P0 n` of the piece
+over `D(c₀) ⊆ V₀` (`Piece0`):
 
-* **`Overlap.sM n : M (n+1) → M n`**: the localization of `sE0 n` away from `x₀`
-  (`M n = E0 n[1/x₀]`), `sM_algebraMap`, `sM_algebraMapO` (it is `O`-linear);
+* **`Overlap.sM n : M (n+1) → M n`**: the localization of `sP n` away from `x₀`
+  (`M n = P0 n[1/x₀]`, `Piece0.sM`), `sM_algebraMap`, `sM_algebraMapO` (it is `O`-linear);
 * `Overlap.sMbar n`: its reduction `M (n+1)/J → M n/J`;
 * **`Overlap.γM_succ`**: the special fibres `γM : C1 → M/J` are compatible with the successor
-  maps (`hσE0`; the overlap datum `ω` is the same at all levels).
+  maps (`Piece0.hℓ0succ`; the overlap datum `ω` is the same at all levels).
 -/
 
 universe u
@@ -37,40 +37,31 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {cov₀ : Admissible.Covering φ₀ ψ₀} {πL : cov₀.ι → O}
   {I : Input θ cov₀ πL} (V : Overlap I) (n : ℕ)
 
-lemma isUnit_sM : IsUnit (((algebraMap (V.E0 n) (V.M n)).comp (V.sE0 n))
-    (algebraMap (V.B' (n + 1)) (V.E0 (n + 1)) (algebraMap V.B0' (V.B' (n + 1)) V.x0))) := by
-  rw [RingHom.comp_apply, V.hsE0, ← IsScalarTower.algebraMap_apply V.B0' (V.B' (n + 1)) (V.B' n)]
-  exact IsLocalization.Away.algebraMap_isUnit _
+/-- **The successor map of the piece over the overlap** (`Piece0.sM`). -/
+abbrev sM : V.M (n + 1) →+* V.M n := V.P0.sM n
 
-/-- **The successor map of the étale piece over the overlap**: `sE0 n` localized away from
-`x₀`. -/
-def sM : V.M (n + 1) →+* V.M n :=
-  IsLocalization.Away.lift
-    (algebraMap (V.B' (n + 1)) (V.E0 (n + 1)) (algebraMap V.B0' (V.B' (n + 1)) V.x0))
-    (V.isUnit_sM n)
+lemma sM_algebraMap (e : V.P0.P (n + 1)) :
+    V.sM n (algebraMap (V.P0.P (n + 1)) (V.M (n + 1)) e) =
+      algebraMap (V.P0.P n) (V.M n) (V.P0.sP n e) :=
+  V.P0.hsM n e
 
-lemma sM_algebraMap (e : V.E0 (n + 1)) :
-    V.sM n (algebraMap (V.E0 (n + 1)) (V.M (n + 1)) e) =
-      algebraMap (V.E0 n) (V.M n) (V.sE0 n e) :=
-  IsLocalization.Away.lift_eq _ (V.isUnit_sM n) e
-
-lemma sE0_algebraMapO (o : O) :
-    V.sE0 n (algebraMap O (V.E0 (n + 1)) o) = algebraMap O (V.E0 n) o := by
-  rw [IsScalarTower.algebraMap_apply O (V.B' (n + 1)) (V.E0 (n + 1)), V.hsE0,
+lemma sP_algebraMapO (o : O) :
+    V.P0.sP n (algebraMap O (V.P0.P (n + 1)) o) = algebraMap O (V.P0.P n) o := by
+  rw [IsScalarTower.algebraMap_apply O (V.B' (n + 1)) (V.P0.P (n + 1)), V.P0.hsP,
     ← IsScalarTower.algebraMap_apply O (V.B' (n + 1)) (V.B' n),
     ← IsScalarTower.algebraMap_apply]
 
 /-- `sM` is `O`-linear. -/
 lemma sM_algebraMapO (o : O) :
     V.sM n (algebraMap O (V.M (n + 1)) o) = algebraMap O (V.M n) o := by
-  rw [IsScalarTower.algebraMap_apply O (V.E0 (n + 1)) (V.M (n + 1)), sM_algebraMap,
-    sE0_algebraMapO, ← IsScalarTower.algebraMap_apply]
+  rw [IsScalarTower.algebraMap_apply O (V.P0.P (n + 1)) (V.M (n + 1)), sM_algebraMap,
+    sP_algebraMapO, ← IsScalarTower.algebraMap_apply]
 
 /-- The ideal `J` of `M n` is `(ker θ) M n`. -/
 lemma JB_M : (letI := V.algBM n; EtaleNil.JB (J θ (R := I.B n)) (V.M n)) =
     (RingHom.ker θ).map (algebraMap O (V.M n)) := by
   letI := V.algBM n
-  haveI := OverlapPiece.towerOB (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.E0 n) (O := O)
+  haveI := OverlapPiece.towerOB (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.P0.P n) (O := O)
     (Bn := I.B n)
   exact OverlapPiece.JB_map _
 
@@ -90,42 +81,37 @@ lemma sMbar_mk (m : V.M (n + 1)) :
     V.sMbar n (Ideal.Quotient.mk _ m) = Ideal.Quotient.mk _ (V.sM n m) :=
   Ideal.quotientMap_mk
 
-/-- The special fibre maps `C0 → E0 n/J → M n/J` (`OverlapPiece.ℓ0`) are compatible with the
-successor maps. -/
+omit [Field k] in
+/-- A map of quotients applied to an element given through a change of the ideal. -/
+lemma quotientMap_quotEquivOfEq {A A' : Type u} [CommRing A] [CommRing A'] {I I₀ : Ideal A}
+    {I' I₀' : Ideal A'} (h : I₀ = I) (h' : I₀' = I') (s : A →+* A') (hs : I ≤ I'.comap s)
+    (x : A ⧸ I₀) (y : A' ⧸ I₀')
+    (hxy : ∀ m, Ideal.Quotient.mk I₀ m = x → Ideal.Quotient.mk I₀' (s m) = y) :
+    Ideal.quotientMap I' s hs (Ideal.quotEquivOfEq h x) = Ideal.quotEquivOfEq h' y := by
+  obtain ⟨m, rfl⟩ := Ideal.Quotient.mk_surjective x
+  rw [Ideal.quotEquivOfEq_mk, Ideal.quotientMap_mk, ← hxy m rfl, Ideal.quotEquivOfEq_mk]
+
+/-- The special fibre maps `C0 → M n/J` (`Piece0.ℓ0`) are compatible with the successor
+maps. -/
 lemma ℓ0_succ (c : V.C0) :
     V.sMbar n (Ideal.quotEquivOfEq (OverlapPiece.JB_eq (RingHom.ker θ)
-      (algebraMap V.B0' (V.B' (n + 1)) V.x0) (V.hWn0 (n + 1)) (V.E0 (n + 1)) (Bn := I.B (n + 1)))
-      (OverlapPiece.ℓ0 (RingHom.ker θ) (algebraMap V.B0' (V.B' (n + 1)) V.x0) (V.E0 (n + 1))
-        (V.qB' (n + 1)) V.c0s (V.σE0 (n + 1)) c)) =
+      (algebraMap V.B0' (V.B' (n + 1)) V.x0) (V.hWn0 (n + 1)) (V.P0.P (n + 1))
+        (Bn := I.B (n + 1))) (V.P0.ℓ0 (n + 1) c)) =
     Ideal.quotEquivOfEq (OverlapPiece.JB_eq (RingHom.ker θ)
-      (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.E0 n) (Bn := I.B n))
-      (OverlapPiece.ℓ0 (RingHom.ker θ) (algebraMap V.B0' (V.B' n) V.x0) (V.E0 n)
-        (V.qB' n) V.c0s (V.σE0 n) c) := by
-  letI := ((algebraMap V.Bs' V.C0).comp (V.qB' (n + 1))).toAlgebra
-  letI := ((algebraMap V.Bs' V.C0).comp (V.qB' n)).toAlgebra
-  obtain ⟨e, he⟩ := Ideal.Quotient.mk_surjective
-    ((V.σE0 (n + 1)).symm (algebraMap V.C0 (Localization.Away (algebraMap V.Bs' V.C0 V.c0s)) c))
-  have h1 : (V.σE0 n).symm (algebraMap V.C0 (Localization.Away (algebraMap V.Bs' V.C0 V.c0s)) c) =
-      Ideal.Quotient.mk _ (V.sE0 n e) := by
-    apply (V.σE0 n).injective
-    rw [AlgEquiv.apply_symm_apply, V.hσE0, he, AlgEquiv.apply_symm_apply]
-  unfold OverlapPiece.ℓ0
-  simp only [RingHom.comp_apply, RingEquiv.toRingHom_eq_coe,
-    AlgEquiv.coe_ringEquiv, AlgHom.toRingHom_eq_coe, RingHom.coe_coe]
-  rw [h1, ← he, EtaleNil.red_mk, EtaleNil.red_mk, Ideal.quotEquivOfEq_mk, Ideal.quotEquivOfEq_mk,
-    sMbar_mk, IsScalarTower.coe_toAlgHom', IsScalarTower.coe_toAlgHom', sM_algebraMap]
+      (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.P0.P n) (Bn := I.B n)) (V.P0.ℓ0 n c) := by
+  exact quotientMap_quotEquivOfEq _ _ (V.sM n) (V.JB_M_le n) _ _ (V.P0.hℓ0succ n c)
 
 /-- **The special fibres of `M` are compatible with the successor maps.** -/
 theorem γM_succ (c : I.C1) : V.sMbar n (V.γM (n + 1) c) = V.γM n c := by
   have h : (V.sMbar n).comp ((Ideal.quotEquivOfEq (OverlapPiece.JB_eq (RingHom.ker θ)
-      (algebraMap V.B0' (V.B' (n + 1)) V.x0) (V.hWn0 (n + 1)) (V.E0 (n + 1))
+      (algebraMap V.B0' (V.B' (n + 1)) V.x0) (V.hWn0 (n + 1)) (V.P0.P (n + 1))
         (Bn := I.B (n + 1)))).toRingHom.comp
-      (OverlapPiece.ℓx (RingHom.ker θ) (algebraMap V.B0' (V.B' (n + 1)) V.x0) (V.E0 (n + 1))
-        (V.qB' (n + 1)) V.x0s V.c0s (V.σE0 (n + 1)) (V.hx0 (n + 1)))) =
+      (OverlapPiece.ℓx (RingHom.ker θ) (algebraMap V.B0' (V.B' (n + 1)) V.x0) (V.P0.P (n + 1))
+        V.x0s V.c0s (V.P0.ℓ0 (n + 1)) (V.P0.hℓ0loc (n + 1)))) =
       (Ideal.quotEquivOfEq (OverlapPiece.JB_eq (RingHom.ker θ)
-        (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.E0 n) (Bn := I.B n))).toRingHom.comp
-      (OverlapPiece.ℓx (RingHom.ker θ) (algebraMap V.B0' (V.B' n) V.x0) (V.E0 n)
-        (V.qB' n) V.x0s V.c0s (V.σE0 n) (V.hx0 n)) := by
+        (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.P0.P n) (Bn := I.B n))).toRingHom.comp
+      (OverlapPiece.ℓx (RingHom.ker θ) (algebraMap V.B0' (V.B' n) V.x0) (V.P0.P n)
+        V.x0s V.c0s (V.P0.ℓ0 n) (V.P0.hℓ0loc n)) := by
     refine IsLocalization.ringHom_ext (Submonoid.powers (algebraMap V.Bs' V.C0 V.x0s))
       (RingHom.ext fun c ↦ ?_)
     simp only [RingHom.comp_apply, RingEquiv.toRingHom_eq_coe, RingEquiv.coe_toRingHom,
@@ -145,8 +131,8 @@ lemma sM_algWM (w : V.W (n + 1)) :
       (RingHom.ext fun y ↦ ?_)
     simp only [RingHom.comp_apply]
     rw [V.hWs0, OverlapPiece.algWM_algebraMap, OverlapPiece.algWM_algebraMap,
-      IsScalarTower.algebraMap_apply (V.B' (n + 1)) (V.E0 (n + 1)) (V.M (n + 1)), sM_algebraMap,
-      V.hsE0, ← IsScalarTower.algebraMap_apply]
+      IsScalarTower.algebraMap_apply (V.B' (n + 1)) (V.P0.P (n + 1)) (V.M (n + 1)), sM_algebraMap,
+      V.P0.hsP, ← IsScalarTower.algebraMap_apply]
   exact RingHom.congr_fun this w
 
 /-- `sM` is semilinear over the levels of the first chart. -/

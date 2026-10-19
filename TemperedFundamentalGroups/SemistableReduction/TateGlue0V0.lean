@@ -213,6 +213,21 @@ lemma hkE0 (n : ℕ) : letI := algOE0 hϖ hker Sp0 (n + 1)
   rw [ker_sE0, Ideal.map_map]
   rfl
 
+/-- **The étale lifts of `C0` over `D(1 + h)`** as the piece of the covering over `D(c₀)`
+(`NodeEtaleGlue.Piece0.ofEtale`). -/
+def piece0 : NodeEtaleGlue.Piece0 θ (B ϖ π b₄ t κ) (EtaleTower.q (T0 π b₄ t κ) hϖ) Sp0.C
+    (h0 π b₄ t κ) (c0 π b₄ t κ) (Ideal.Quotient.mk _ (h0 π b₄ t κ))
+    (Ideal.Quotient.mk _ (c0 π b₄ t κ)) ϖ := by
+  letI : ∀ n, Algebra O (E0 Sp0 hϖ hker n).E := algOE0 hϖ hker Sp0
+  haveI : ∀ n, IsScalarTower O (B ϖ π b₄ t κ n) (E0 Sp0 hϖ hker n).E := towerOE0 hϖ hker Sp0
+  haveI : ∀ n, IsScalarTower (T0 π b₄ t κ) (B ϖ π b₄ t κ (n + 1)) (B ϖ π b₄ t κ n) :=
+    fun _ ↦ IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  exact NodeEtaleGlue.Piece0.ofEtale (fun n ↦ (E0 Sp0 hϖ hker n).E)
+    (fun n ↦ (E0 Sp0 hϖ hker n).σ) (fun n ↦ (E0 Sp0 hϖ hker n).hb)
+    (fun n ↦ (E0 Sp0 hϖ hker n).hfin) (fun _ ↦ rfl) (sE0 Sp0 hϖ hker)
+    (Sp0.succ_algebraMap hϖ hker) (Sp0.σ_succ' hϖ hker) (surjective_sE0 Sp0 hϖ hker)
+    (hkE0 hϖ hker Sp0)
+
 /-- **The Tate covering over the chart `V₀` and the overlap datum** (`NodeEtaleGlue.Overlap`). -/
 def overlap (ω : Omega hκ hπ Sp Sp0) :
     NodeEtaleGlue.Overlap (TateGlue1.input hκ hπ hε hϖ π' hπ' hker Sp hm) where
@@ -241,6 +256,7 @@ def overlap (ω : Omega hκ hπ Sp Sp0) :
     change rho0 π b₄ t κ (h0 π b₄ t κ) * _ = 1
     rw [rho0_h0, mul_comm]
     exact h1_mul_hinv π b₄ t κ
+  kc := 2
   hcW0 := rho0_c0
   hx1g := Dvd.intro _ rfl
   hWn0 := isLocalization_rho0n ϖ π b₄ t κ
@@ -276,11 +292,6 @@ def overlap (ω : Omega hκ hπ Sp Sp0) :
   algWs0 := algC0x Sp0.C
   towerWs0 := towerC0x Sp0.C
   ω := ω
-  E0 := fun n ↦ (E0 Sp0 hϖ hker n).E
-  algOE0 := algOE0 hϖ hker Sp0
-  towerOE0 := towerOE0 hϖ hker Sp0
-  σE0 := fun n ↦ (E0 Sp0 hϖ hker n).σ
-  hcE0 := fun n ↦ (E0 Sp0 hϖ hker n).hb
   hxc := span_h0_c0
   hW0' := isLocalization_rho0 π b₄ t κ
   finB0 := finite_aeval_h1
@@ -288,14 +299,9 @@ def overlap (ω : Omega hκ hπ Sp Sp0) :
   surjB := fun _ ↦ Ideal.Quotient.mk_surjective
   surjB' := fun _ ↦ Ideal.Quotient.mk_surjective
   hfinE := fun n ↦ (TateGlue1.E1 hκ hπ hϖ hker Sp n).hfin
-  hfinE0 := fun n ↦ (E0 Sp0 hϖ hker n).hfin
   algSuccB' := fun _ ↦ inferInstance
   towerOSuccB' := fun _ ↦ inferInstance
   towerB0'SuccB' := fun _ ↦ IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
-  sE0 := sE0 Sp0 hϖ hker
-  hsE0 := Sp0.succ_algebraMap hϖ hker
-  hσE0 := Sp0.σ_succ' hϖ hker
-  hsE0s := surjective_sE0 Sp0 hϖ hker
   algSuccW := fun n ↦ (inferInstance :
     Algebra (EtaleTower.Tn ϖ (T01 π b₄ t κ) (n + 1)) (EtaleTower.Tn ϖ (T01 π b₄ t κ) n))
   hWs1 := hWs1T
@@ -303,9 +309,9 @@ def overlap (ω : Omega hκ hπ Sp Sp0) :
   ϖ := ϖ
   hOB0B := fun _ _ ↦ rfl
   hK := fun _ ↦ rfl
-  hkE0 := hkE0 hϖ hker Sp0
   killB := EtaleTower.kill (T1 π b₄ t κ)
   killB' := EtaleTower.kill (T0 π b₄ t κ)
+  P0 := piece0 (hϖ := hϖ) (hker := hker) (Sp0 := Sp0)
 
 end
 

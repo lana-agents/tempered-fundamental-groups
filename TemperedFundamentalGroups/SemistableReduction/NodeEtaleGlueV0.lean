@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: LANA Project
 -/
 import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueOverlap
-import TemperedFundamentalGroups.SemistableReduction.EtaleOverlapPiece
+import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueV0Piece
 import TemperedFundamentalGroups.SemistableReduction.TwoChartPatch
 
 /-!
@@ -13,8 +13,9 @@ import TemperedFundamentalGroups.SemistableReduction.TwoChartPatch
 An input `I : NodeEtaleGlue.Input` describes a covering over the chart `V₁ = Spec B0` of a model
 of `ℙ¹` (levels `B n`). **`NodeEtaleGlue.Overlap I`** adds the second chart `V₀ = Spec B0'`
 (levels `B' n`), the overlaps `W0 = B0[1/x₁] = B0'[1/x₀]` (levels `W n`), and the covering over
-`V₀` away from the nodes: a special-fibre covering `C0` over `Bs'` with its étale lifts `E0 n`
-over `D(c₀) ⊆ V₀`, together with the **overlap datum**
+`V₀`: a special-fibre covering `C0` over `Bs'` with a **piece `P0 : Piece0` over
+`D(c₀) ⊆ V₀`** (the étale lifts `Piece0.ofEtale` of `C0` if `C0` is étale over `D(c̄₀)`, or a
+formal patch with cusp factors), together with the **overlap datum**
 `ω : C0[1/x̄₀] ≃ₐ[Ws] C1[1/x̄₁]` over the special fibre `Ws` of the overlap.
 
 `ω` is part of the given covering: `C0`, `C1`, `ω` are the **chart description (glueing data) of
@@ -22,12 +23,12 @@ one covering of the special fibre**. (When the charts are identified with the se
 model over the preimages of the charts of `ℙ¹` (Blueprint §12.8 (g)), this description has to be
 shown equivalent to giving the covering as a scheme over the special fibre.)
 
-* `Overlap.M n = E0 n[1/x₀]`, **`Overlap.γM`**, `isLocalization_γM`: its special fibre is
+* `Overlap.M n = P0 n[1/x₀]`, **`Overlap.γM`**, `isLocalization_γM`: its special fibre is
   `C1[1/ḡ]` (`OverlapPiece`);
 * **`Overlap.ψ n : Y n → M n`**, `isLocalization_ψ`: a localization away from `g`
   (`Input.glueM`);
 * `Overlap.Q n = Y n[1/x₁]`, **`Overlap.ρ0a : Q n → M n`** (`isLocalization_ρ0a`: away from `c₀`),
-  `ρ0b : E0 n → M n` (away from `x₀`), **`Overlap.patch0 n`** (`TwoChartGlue.Patch0`) and
+  `ρ0b : P0 n → M n` (away from `x₀`), **`Overlap.patch0 n`** (`TwoChartGlue.Patch0`) and
   **`Overlap.twoChart n`**: the two-chart rings of the covering at level `n`.
 -/
 
@@ -46,8 +47,8 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat f₀} {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
   {cov₀ : Admissible.Covering φ₀ ψ₀} {πL : cov₀.ι → O}
 
-/-- **The second chart and the overlap datum** of a covering given over the first chart by `I`
-(scope: étale outside the nodes over `D(c₀)`). -/
+/-- **The second chart and the overlap datum** of a covering given over the first chart by `I`,
+with the piece `P0` of the covering over `D(c₀)`. -/
 structure Overlap (I : Input θ cov₀ πL) where
   /-- the second chart `V₀ = Spec B0'` and its levels -/
   B0' : Type u
@@ -81,7 +82,8 @@ structure Overlap (I : Input θ cov₀ πL) where
   g : I.B0
   hW0 : IsLocalization.Away x1 W0
   hxW0 : algebraMap B0' W0 x0 * algebraMap I.B0 W0 x1 = 1
-  hcW0 : algebraMap B0' W0 c0 * algebraMap I.B0 W0 x1 ^ 2 = algebraMap I.B0 W0 g
+  kc : ℕ
+  hcW0 : algebraMap B0' W0 c0 * algebraMap I.B0 W0 x1 ^ kc = algebraMap I.B0 W0 g
   hx1g : x1 ∣ g
   hWn0 : ∀ n, IsLocalization.Away (algebraMap B0' (B' n) x0) (W n)
   hWn1 : ∀ n, IsLocalization.Away (algebraMap I.B0 (I.B n) x1) (W n)
@@ -111,7 +113,7 @@ structure Overlap (I : Input θ cov₀ πL) where
   hc0 : ∀ n, qB' n (algebraMap B0' (B' n) c0) = c0s
   hx1 : ∀ n, I.qB n (algebraMap I.B0 (I.B n) x1) = x1s
   hg : ∀ n, I.qB n (algebraMap I.B0 (I.B n) g) = gs
-  hcg : algebraMap Bs' Ws c0s * algebraMap I.Bs Ws x1s ^ 2 = algebraMap I.Bs Ws gs
+  hcg : algebraMap Bs' Ws c0s * algebraMap I.Bs Ws x1s ^ kc = algebraMap I.Bs Ws gs
   /-- the special-fibre covering over `V₀` and the overlap datum `ω` -/
   C0 : Type u
   [commRingC0 : CommRing C0]
@@ -121,16 +123,6 @@ structure Overlap (I : Input θ cov₀ πL) where
   [algWs0 : Algebra Ws (Localization.Away (algebraMap Bs' C0 x0s))]
   [towerWs0 : IsScalarTower Bs' Ws (Localization.Away (algebraMap Bs' C0 x0s))]
   ω : Localization.Away (algebraMap Bs' C0 x0s) ≃ₐ[Ws] Localization.Away (algebraMap I.Bs I.C1 x1s)
-  /-- the étale lifts of `C0` over `D(c₀)` -/
-  E0 : ℕ → Type u
-  [commRingE0 : ∀ n, CommRing (E0 n)]
-  [algB'E0 : ∀ n, Algebra (B' n) (E0 n)]
-  [algOE0 : ∀ n, Algebra O (E0 n)]
-  [towerOE0 : ∀ n, IsScalarTower O (B' n) (E0 n)]
-  [etaleE0 : ∀ n, Algebra.FormallyEtale (B' n) (E0 n)]
-  σE0 : ∀ n, letI := ((algebraMap Bs' C0).comp (qB' n)).toAlgebra
-    (E0 n ⧸ EtaleNil.JB (J θ (R := B' n)) (E0 n)) ≃ₐ[B' n] Localization.Away (algebraMap Bs' C0 c0s)
-  hcE0 : ∀ n, IsUnit (algebraMap (B' n) (E0 n) (algebraMap B0' (B' n) c0))
   /-- `V₀ = D(x₀) ∪ D(c₀)` -/
   hxc : Ideal.span {x0, c0} = ⊤
   /-- finiteness: the charts are finite over `O[X]` (via `x₁`, `x₀`), the levels are quotients,
@@ -144,18 +136,10 @@ structure Overlap (I : Input θ cov₀ πL) where
   surjB' : ∀ n, Function.Surjective (algebraMap B0' (B' n))
   hfinE : ∀ n, ∃ s : Finset (I.E n), ∀ p : I.E n, ∃ k : ℕ,
     algebraMap I.B0 (I.B n) I.b0 ^ k • p ∈ Submodule.span (I.B n) (s : Set (I.E n))
-  hfinE0 : ∀ n, ∃ s : Finset (E0 n), ∀ p : E0 n, ∃ k : ℕ,
-    algebraMap B0' (B' n) c0 ^ k • p ∈ Submodule.span (B' n) (s : Set (E0 n))
   /-- the successor maps over `V₀` -/
   [algSuccB' : ∀ n, Algebra (B' (n + 1)) (B' n)]
   [towerOSuccB' : ∀ n, IsScalarTower O (B' (n + 1)) (B' n)]
   [towerB0'SuccB' : ∀ n, IsScalarTower B0' (B' (n + 1)) (B' n)]
-  sE0 : ∀ n, E0 (n + 1) →+* E0 n
-  hsE0 : ∀ n (x : B' (n + 1)), sE0 n (algebraMap (B' (n + 1)) (E0 (n + 1)) x) =
-    algebraMap (B' n) (E0 n) (algebraMap (B' (n + 1)) (B' n) x)
-  hσE0 : ∀ n (x : E0 (n + 1)), σE0 n (Ideal.Quotient.mk _ (sE0 n x)) =
-    σE0 (n + 1) (Ideal.Quotient.mk _ x)
-  hsE0s : ∀ n, Function.Surjective (sE0 n)
   [algSuccW : ∀ n, Algebra (W (n + 1)) (W n)]
   hWs1 : ∀ n (x : I.B (n + 1)),
     algebraMap (W (n + 1)) (W n) (algebraMap (I.B (n + 1)) (W (n + 1)) x) =
@@ -167,27 +151,29 @@ structure Overlap (I : Input θ cov₀ πL) where
   ϖ : O
   hOB0B : ∀ n (o : O), algebraMap I.B0 (I.B n) (algebraMap O I.B0 o) = algebraMap O (I.B n) o
   hK : ∀ n, I.K n = (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O I.B0)
-  hkE0 : ∀ n, RingHom.ker (sE0 n) = (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O (E0 (n + 1)))
   killB : ∀ n, (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O (I.B n)) = ⊥
   killB' : ∀ n, (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O (B' n)) = ⊥
+  /-- **the piece of the covering over `D(c₀)`** (étale lifts, or a formal patch with cusp
+  factors) -/
+  P0 : Piece0 θ B' qB' C0 x0 c0 x0s c0s ϖ
 
 namespace Overlap
 
 attribute [instance] commRingB0' algOB0' commRingB' algOB' algB0'B' towerOB' commRingW0 algB0W0
   algB0'W0 algOW0 towerOB0W0 towerOB0'W0 commRingW algOW algBW algB'W towerOBW towerOB'W algW0W
   commRingBs' commRingWs algBsWs
-  algBs'Ws commRingC0 algC0 algWs1 towerWs1 algWs0 towerWs0 commRingE0 algB'E0 algOE0 towerOE0
-  etaleE0 algSuccB' towerOSuccB' towerB0'SuccB' algSuccW
+  algBs'Ws commRingC0 algC0 algWs1 towerWs1 algWs0 towerWs0 algSuccB' towerOSuccB' towerB0'SuccB'
+  algSuccW
 
 variable {I : Input θ cov₀ πL} (V : Overlap I) (hθ : Function.Surjective θ)
   (hO : ∀ x : O, θ x ≠ 0 → IsUnit x) (n : ℕ)
 
-/-- **The étale piece over `D(c₀)` restricted to the overlap**: `E0 n[1/x₀]`. -/
-abbrev M : Type u := OverlapPiece.M (algebraMap V.B0' (V.B' n) V.x0) (V.E0 n)
+/-- **The piece over `D(c₀)` restricted to the overlap**: `P0 n[1/x₀]`. -/
+abbrev M : Type u := OverlapPiece.M (algebraMap V.B0' (V.B' n) V.x0) (V.P0.P n)
 
 /-- `M n` over the level `B n` of the first chart (through the overlap). -/
 @[reducible] def algBM : Algebra (I.B n) (V.M n) :=
-  OverlapPiece.algBM (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.E0 n)
+  OverlapPiece.algBM (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.P0.P n)
 
 /-- `M n` over the first chart `B0`. -/
 @[reducible] def alg0M : Algebra I.B0 (V.M n) :=
@@ -198,8 +184,9 @@ abbrev M : Type u := OverlapPiece.M (algebraMap V.B0' (V.B' n) V.x0) (V.E0 n)
 def γM : letI := NodeEtaleGlue.algC1 I.B I.qB I.C1 n
     letI := V.algBM n
     I.C1 →ₐ[I.B n] V.M n ⧸ EtaleNil.JB (J θ (R := I.B n)) (V.M n) :=
-  OverlapPiece.γM (RingHom.ker θ) (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.E0 n) (I.qB n)
-    (V.qB' n) (V.qW n) V.x1s V.x0s V.c0s V.ω (V.σE0 n) (V.hx0 n) (V.hq1 n) (V.hq0 n)
+  OverlapPiece.γM (RingHom.ker θ) (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.P0.P n) (I.qB n)
+    (V.qB' n) (V.qW n) V.x1s V.x0s V.c0s V.ω (V.P0.ℓ0 n) (V.P0.hℓ0loc n) (V.hq1 n) (V.hq0 n)
+    (V.P0.hℓ0 n)
 
 /-- **`M n/J = C1[1/ḡ]`.** -/
 theorem isLocalization_γM : letI := NodeEtaleGlue.algC1 I.B I.qB I.C1 n
@@ -210,15 +197,16 @@ theorem isLocalization_γM : letI := NodeEtaleGlue.algC1 I.B I.qB I.C1 n
   letI := NodeEtaleGlue.algC1 I.B I.qB I.C1 n
   letI := V.algBM n
   have h := OverlapPiece.isLocalization_γM (RingHom.ker θ) (algebraMap V.B0' (V.B' n) V.x0)
-    (V.hWn0 n) (V.E0 n) (I.qB n) (V.qB' n) (V.qW n) V.x1s V.x0s V.c0s V.gs V.ω (V.σE0 n) (V.hx0 n)
-    V.hcg (by rw [← V.hx1 n, ← V.hg n]; exact map_dvd _ (map_dvd _ V.hx1g)) (V.hq1 n) (V.hq0 n)
+    (V.hWn0 n) (V.P0.P n) (I.qB n) (V.qB' n) (V.qW n) V.x1s V.x0s V.c0s V.gs V.ω (V.P0.ℓ0 n)
+    (V.P0.hℓ0loc n) V.hcg (by rw [← V.hx1 n, ← V.hg n]; exact map_dvd _ (map_dvd _ V.hx1g))
+    (V.hq1 n) (V.hq0 n) (V.P0.hℓ0 n)
   have e : algebraMap I.Bs I.C1 V.gs = algebraMap (I.B n) I.C1 (algebraMap I.B0 (I.B n) V.g) := by
     rw [← V.hg n]
     rfl
   exact RingHomAway.congr _ e h
 
 lemma formallyEtale_M : letI := V.algBM n; Algebra.FormallyEtale (I.B n) (V.M n) :=
-  OverlapPiece.formallyEtale_M (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.E0 n) (V.hWn1 n)
+  OverlapPiece.formallyEtale_M (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.P0.P n) (V.hWn1 n)
 
 lemma tower0M : letI := V.algBM n; letI := V.alg0M n; IsScalarTower I.B0 (I.B n) (V.M n) :=
   letI := V.algBM n
@@ -227,7 +215,7 @@ lemma tower0M : letI := V.algBM n; letI := V.alg0M n; IsScalarTower I.B0 (I.B n)
 
 include hO in
 /-- **The covering over `V₁` restricted to the overlap with the étale piece**:
-`ψ : Y n → M n = E0 n[1/x₀]`, a localization away from `g` (`Input.ψ`). -/
+`ψ : Y n → M n = P0 n[1/x₀]`, a localization away from `g` (`Input.ψ`). -/
 def ψ : letI := V.alg0M n; I.Y hθ n →ₐ[I.B0] V.M n :=
   letI := V.algBM n
   letI := V.alg0M n
@@ -282,20 +270,20 @@ lemma towerOQ : letI := V.alg0'Q hθ n; letI := V.algOQ hθ n
   letI := V.algOQ hθ n
   IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
 
-/-- `E0 n` over `B0'`. -/
-@[reducible] def alg0'E : Algebra V.B0' (V.E0 n) :=
-  ((algebraMap (V.B' n) (V.E0 n)).comp (algebraMap V.B0' (V.B' n))).toAlgebra
+/-- `P0 n` over `B0'`. -/
+@[reducible] def alg0'E : Algebra V.B0' (V.P0.P n) :=
+  ((algebraMap (V.B' n) (V.P0.P n)).comp (algebraMap V.B0' (V.B' n))).toAlgebra
 
 /-- `M n` over `B0'`. -/
 @[reducible] def alg0'M : Algebra V.B0' (V.M n) :=
   ((algebraMap (V.B' n) (V.M n)).comp (algebraMap V.B0' (V.B' n))).toAlgebra
 
-lemma towerOE : letI := V.alg0'E n; IsScalarTower O V.B0' (V.E0 n) := by
+lemma towerOE : letI := V.alg0'E n; IsScalarTower O V.B0' (V.P0.P n) := by
   letI := V.alg0'E n
   refine IsScalarTower.of_algebraMap_eq fun o ↦ ?_
-  change _ = algebraMap (V.B' n) (V.E0 n) (algebraMap V.B0' (V.B' n) (algebraMap O V.B0' o))
+  change _ = algebraMap (V.B' n) (V.P0.P n) (algebraMap V.B0' (V.B' n) (algebraMap O V.B0' o))
   rw [← IsScalarTower.algebraMap_apply O V.B0' (V.B' n),
-    ← IsScalarTower.algebraMap_apply O (V.B' n) (V.E0 n)]
+    ← IsScalarTower.algebraMap_apply O (V.B' n) (V.P0.P n)]
 
 lemma towerOM : letI := V.alg0'M n; IsScalarTower O V.B0' (V.M n) := by
   letI := V.alg0'M n
@@ -306,7 +294,7 @@ lemma towerOM : letI := V.alg0'M n; IsScalarTower O V.B0' (V.M n) := by
 
 /-- `M n` over the overlap `W n`. -/
 @[reducible] def algWM : Algebra (V.W n) (V.M n) :=
-  OverlapPiece.algWM (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.E0 n)
+  OverlapPiece.algWM (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.P0.P n)
 
 include hθ hO in
 lemma isUnit_x1_M : letI := V.alg0M n; IsUnit (algebraMap I.B0 (V.M n) V.x1) := by
@@ -357,7 +345,7 @@ def ρ0a : letI := V.alg0'Q hθ n; letI := V.alg0'M n; V.Q hθ n →ₐ[V.B0'] V
       letI := V.algWM n
       change V.ρ0aR hθ hO n (algebraMap V.W0 (V.Q hθ n) (algebraMap V.B0' V.W0 y)) = _
       rw [ρ0aR_W0, V.hWB' n]
-      exact OverlapPiece.algWM_algebraMap (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.E0 n) _ }
+      exact OverlapPiece.algWM_algebraMap (algebraMap V.B0' (V.B' n) V.x0) (V.hWn0 n) (V.P0.P n) _ }
 
 /-- **`M n = Q n[1/c₀]`.** -/
 theorem isLocalization_ρ0a : letI := V.alg0'Q hθ n
@@ -384,12 +372,12 @@ theorem isLocalization_ρ0a : letI := V.alg0'Q hθ n
   have h2 := RingHomAway.of_comp (algebraMap Y (V.Q hθ n)) (V.ρ0aR hθ hO n) _ _
     (RingHomAway.of_algebra x1Y) h1
   have e : algebraMap Y (V.Q hθ n) gY =
-      algebraMap I.B0 (V.Q hθ n) V.x1 ^ 2 * algebraMap V.B0' (V.Q hθ n) V.c0 := by
+      algebraMap I.B0 (V.Q hθ n) V.x1 ^ V.kc * algebraMap V.B0' (V.Q hθ n) V.c0 := by
     rw [← IsScalarTower.algebraMap_apply, ← V.algW0Q_algebraMap hθ n, ← V.hcW0,
       ← V.algW0Q_algebraMap hθ n, map_mul, map_pow, mul_comm]
     rfl
   rw [e] at h2
-  exact RingHomAway.of_dvd _ _ _ 0 (by rw [pow_zero]; exact ((V.isUnit_x1_Q hθ n).pow 2).dvd) h2
+  exact RingHomAway.of_dvd _ _ _ 0 (by rw [pow_zero]; exact ((V.isUnit_x1_Q hθ n).pow V.kc).dvd) h2
 
 /-- `ρ0a` as a map of `B0'`-algebras is a localization away from `c₀`. -/
 theorem isLocalization_ρ0a' : letI := V.alg0'Q hθ n; letI := V.alg0'M n
@@ -397,21 +385,21 @@ theorem isLocalization_ρ0a' : letI := V.alg0'Q hθ n; letI := V.alg0'M n
     IsLocalization.Away (algebraMap V.B0' (V.Q hθ n) V.c0) (V.M n) :=
   V.isLocalization_ρ0a hθ hO n
 
-/-- **The localization map `ρ0b : E0 n → M n = E0 n[1/x₀]`** over `B0'`. -/
-def ρ0b : letI := V.alg0'E n; letI := V.alg0'M n; V.E0 n →ₐ[V.B0'] V.M n :=
+/-- **The localization map `ρ0b : P0 n → M n = P0 n[1/x₀]`** over `B0'`. -/
+def ρ0b : letI := V.alg0'E n; letI := V.alg0'M n; V.P0.P n →ₐ[V.B0'] V.M n :=
   letI := V.alg0'E n
   letI := V.alg0'M n
-  { algebraMap (V.E0 n) (V.M n) with
-    commutes' := fun _ ↦ (IsScalarTower.algebraMap_apply (V.B' n) (V.E0 n) (V.M n) _).symm }
+  { algebraMap (V.P0.P n) (V.M n) with
+    commutes' := fun _ ↦ (IsScalarTower.algebraMap_apply (V.B' n) (V.P0.P n) (V.M n) _).symm }
 
-/-- `M n = E0 n[1/x₀]`. -/
+/-- `M n = P0 n[1/x₀]`. -/
 theorem isLocalization_ρ0b : letI := V.alg0'E n; letI := V.alg0'M n
     letI := (V.ρ0b n).toRingHom.toAlgebra
-    IsLocalization.Away (algebraMap V.B0' (V.E0 n) V.x0) (V.M n) := by
+    IsLocalization.Away (algebraMap V.B0' (V.P0.P n) V.x0) (V.M n) := by
   letI := V.alg0'E n
-  exact RingHomAway.of_algebra (algebraMap (V.B' n) (V.E0 n) (algebraMap V.B0' (V.B' n) V.x0))
+  exact RingHomAway.of_algebra (algebraMap (V.B' n) (V.P0.P n) (algebraMap V.B0' (V.B' n) V.x0))
 
-/-- **The piece over `V₀` at level `n`** (`TwoChartGlue.Patch0`): `E0 n` over `D(c₀)`, glued with
+/-- **The piece over `V₀` at level `n`** (`TwoChartGlue.Patch0`): `P0 n` over `D(c₀)`, glued with
 `Q n = Y n[1/x₁]` along `M n`. -/
 def patch0 : letI := V.alg0'Q hθ n; letI := V.algOQ hθ n; haveI := V.towerOQ hθ n
     TwoChartGlue.Patch0 (A := O) (V.Q hθ n) V.x0 :=
@@ -423,11 +411,11 @@ def patch0 : letI := V.alg0'Q hθ n; letI := V.algOQ hθ n; haveI := V.towerOQ h
   letI := V.alg0'M n
   haveI := V.towerOM n
   { b0 := V.c0
-    P0b := V.E0 n
+    P0b := V.P0.P n
     P0ab := V.M n
     ρ0a := V.ρ0a hθ hO n
     ρ0b := V.ρ0b n
-    hunit := V.hcE0 n
+    hunit := V.P0.hcP n
     hb0 := V.isLocalization_ρ0b n
     ha0 := V.isLocalization_ρ0a' hθ hO n }
 
@@ -462,7 +450,7 @@ lemma hxy : letI := V.alg0'Q hθ n
     ← map_mul, V.hxW0, map_one]
 
 /-- **The two-chart rings of the covering at level `n`** (`TwoChartGlue.Patch0.twoChart`):
-`R1 = Y n`, `R01 = Q n`, `R0 = Q n ×_{M n} E0 n`. -/
+`R1 = Y n`, `R01 = Q n`, `R0 = Q n ×_{M n} P0 n`. -/
 def twoChart : ProjectiveLine.TwoChartRings O :=
   letI := V.alg0'Q hθ n
   letI := V.algOQ hθ n

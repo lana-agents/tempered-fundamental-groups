@@ -16,7 +16,7 @@ successor maps, `Overlap.ψ_succ`):
 
 * `Overlap.qmap n : Q (n+1) → Q n` (the localization of `Ymap n` away from `x₁`), surjective with
   kernel `ϖⁿ⁺¹` (`surjective_qmap`, `ker_qmap`);
-* `Overlap.sE0'`, `sM'`, `qmap'`: the successor maps as maps of `B0'`-algebras;
+* `Overlap.sP'`, `sM'`, `qmap'`: the successor maps as maps of `B0'`-algebras;
 * **`Overlap.f0 n`**: the successor map of the sections over `V₀` (`ZariskiTwo.map`);
 * **`Overlap.succ n : TwoChartMap (twoChart (n+1)) (twoChart n)`**, surjective with kernels
   `ϖⁿ⁺¹` (`surjective_f0`, `ker_f0'`, `ker_f1`), levels killed by `ϖⁿ⁺¹` (`kill0`, `kill1`);
@@ -103,15 +103,15 @@ def qmap' : letI := V.alg0'Q hθ (n + 1); letI := V.alg0'Q hθ n
   { (V.qmap hθ hO n : V.Q hθ (n + 1) →+* V.Q hθ n) with
     commutes' := fun y ↦ V.qmap_W0 hθ hO n (algebraMap V.B0' V.W0 y) }
 
-/-- `sE0` as a map of `B0'`-algebras. -/
-def sE0' : letI := V.alg0'E (n + 1); letI := V.alg0'E n; V.E0 (n + 1) →ₐ[V.B0'] V.E0 n :=
+/-- `sP` as a map of `B0'`-algebras. -/
+def sP' : letI := V.alg0'E (n + 1); letI := V.alg0'E n; V.P0.P (n + 1) →ₐ[V.B0'] V.P0.P n :=
   letI := V.alg0'E (n + 1)
   letI := V.alg0'E n
-  { V.sE0 n with
+  { V.P0.sP n with
     commutes' := fun y ↦ by
-      change V.sE0 n (algebraMap (V.B' (n + 1)) _ (algebraMap V.B0' (V.B' (n + 1)) y)) =
+      change V.P0.sP n (algebraMap (V.B' (n + 1)) _ (algebraMap V.B0' (V.B' (n + 1)) y)) =
         algebraMap (V.B' n) _ (algebraMap V.B0' (V.B' n) y)
-      rw [V.hsE0, ← IsScalarTower.algebraMap_apply V.B0' (V.B' (n + 1)) (V.B' n)] }
+      rw [V.P0.hsP, ← IsScalarTower.algebraMap_apply V.B0' (V.B' (n + 1)) (V.B' n)] }
 
 /-- `sM` as a map of `B0'`-algebras. -/
 def sM' : letI := V.alg0'M (n + 1); letI := V.alg0'M n; V.M (n + 1) →ₐ[V.B0'] V.M n :=
@@ -121,9 +121,9 @@ def sM' : letI := V.alg0'M (n + 1); letI := V.alg0'M n; V.M (n + 1) →ₐ[V.B0'
     commutes' := fun y ↦ by
       change V.sM n (algebraMap (V.B' (n + 1)) _ (algebraMap V.B0' (V.B' (n + 1)) y)) =
         algebraMap (V.B' n) _ (algebraMap V.B0' (V.B' n) y)
-      rw [IsScalarTower.algebraMap_apply (V.B' (n + 1)) (V.E0 (n + 1)) (V.M (n + 1)),
-        sM_algebraMap, V.hsE0, ← IsScalarTower.algebraMap_apply V.B0' (V.B' (n + 1)) (V.B' n),
-        ← IsScalarTower.algebraMap_apply (V.B' n) (V.E0 n) (V.M n)] }
+      rw [IsScalarTower.algebraMap_apply (V.B' (n + 1)) (V.P0.P (n + 1)) (V.M (n + 1)),
+        sM_algebraMap, V.P0.hsP, ← IsScalarTower.algebraMap_apply V.B0' (V.B' (n + 1)) (V.B' n),
+        ← IsScalarTower.algebraMap_apply (V.B' n) (V.P0.P n) (V.M n)] }
 
 /-! ### Compatibility with the restriction maps -/
 
@@ -137,7 +137,7 @@ lemma ρ0aR_succ (q : V.Q hθ (n + 1)) :
     rw [qmap_algebraMap, ρ0aR_algebraMap, ρ0aR_algebraMap, V.ψ_succ _ hθ hO]
   exact RingHom.congr_fun this q
 
-lemma ρ0b_succ (e : V.E0 (n + 1)) : V.ρ0b n (V.sE0 n e) = V.sM n (V.ρ0b (n + 1) e) :=
+lemma ρ0b_succ (e : V.P0.P (n + 1)) : V.ρ0b n (V.P0.sP n e) = V.sM n (V.ρ0b (n + 1) e) :=
   (V.sM_algebraMap n e).symm
 
 /-- **The successor map of the sections over `V₀`** (`ZariskiTwo.map` over `B0'`). -/
@@ -152,7 +152,7 @@ def f0 : letI := V.alg0'Q hθ (n + 1); letI := V.alg0'Q hθ n
   letI := V.alg0'E n
   letI := V.alg0'M (n + 1)
   letI := V.alg0'M n
-  ZariskiTwo.map (V.qmap' hθ hO n) (V.sE0' n) (V.sM' n)
+  ZariskiTwo.map (V.qmap' hθ hO n) (V.sP' n) (V.sM' n)
     (fun q ↦ V.ρ0aR_succ hθ hO n q) (fun e ↦ V.ρ0b_succ n e)
 
 lemma towerOY (m : ℕ) : letI := V.algOB0; letI := V.algOY hθ m
@@ -240,8 +240,9 @@ theorem kill0 (m : ℕ) :
   letI := V.alg0'E m
   have h1 : algebraMap O (V.Q hθ m) o = 0 := by
     rw [V.algOQ_apply hθ m, V.algebraMap_Y_eq_zero hθ m ho, map_zero]
-  have h2 : algebraMap O (V.E0 m) o = 0 := by
-    rw [IsScalarTower.algebraMap_apply O (V.B' m) (V.E0 m), V.algebraMap_B'_eq_zero m ho, map_zero]
+  have h2 : algebraMap O (V.P0.P m) o = 0 := by
+    rw [IsScalarTower.algebraMap_apply O (V.B' m) (V.P0.P m), V.algebraMap_B'_eq_zero m ho,
+      map_zero]
   exact Subtype.ext (Prod.ext h1 h2)
 
 /-- **The sections over `U₁` at level `m` are killed by `ϖᵐ⁺¹`.** -/
@@ -268,7 +269,7 @@ lemma sndLM (m : ℕ) : letI := V.alg0'Q hθ m; letI := V.alg0'E m; letI := V.al
   letI := V.alg0'Q hθ m
   letI := V.alg0'E m
   letI := V.alg0'M m
-  ZariskiTwo.isLocalizedModule_snd V.c0 (V.hcE0 m) (V.isLocalization_ρ0a' hθ hO m)
+  ZariskiTwo.isLocalizedModule_snd V.c0 (V.P0.hcP m) (V.isLocalization_ρ0a' hθ hO m)
 
 /-- The ideal `ϖⁿ⁺¹` of the second chart. -/
 abbrev K' : Ideal V.B0' := (Ideal.span {V.ϖ} ^ (n + 1)).map (algebraMap O V.B0')
@@ -284,13 +285,13 @@ lemma ker_qmap' : letI := V.alg0'Q hθ (n + 1); letI := V.alg0'Q hθ n
   ext o
   exact (V.algOQ_apply hθ (n + 1) o).symm
 
-lemma ker_sE0' : letI := V.alg0'E (n + 1); letI := V.alg0'E n
-    RingHom.ker (V.sE0' n) = (V.K' n).map (algebraMap V.B0' (V.E0 (n + 1))) := by
+lemma ker_sP' : letI := V.alg0'E (n + 1); letI := V.alg0'E n
+    RingHom.ker (V.sP' n) = (V.K' n).map (algebraMap V.B0' (V.P0.P (n + 1))) := by
   letI := V.alg0'E (n + 1)
   letI := V.alg0'E n
   haveI := V.towerOE (n + 1)
-  change RingHom.ker (V.sE0 n) = _
-  rw [V.hkE0, Ideal.map_map, ← IsScalarTower.algebraMap_eq]
+  change RingHom.ker (V.P0.sP n) = _
+  rw [V.P0.hkP, Ideal.map_map, ← IsScalarTower.algebraMap_eq]
 
 /-- **The successor maps over `V₀` are surjective.** -/
 theorem surjective_f0 : Function.Surjective (V.f0 hθ hO n) := by
@@ -304,8 +305,8 @@ theorem surjective_f0 : Function.Surjective (V.f0 hθ hO n) := by
   haveI := V.sndLM hθ hO (n + 1)
   haveI := V.fstLM hθ hO n
   haveI := V.sndLM hθ hO n
-  exact ZariskiTwo.surjective_map V.x0 V.c0 (V.qmap' hθ hO n) (V.sE0' n) (V.sM' n) _ _ (V.K' n)
-    V.hxc (V.surjective_qmap hθ hO n) (V.hsE0s n) (V.ker_qmap' hθ hO n) (V.ker_sE0' n)
+  exact ZariskiTwo.surjective_map V.x0 V.c0 (V.qmap' hθ hO n) (V.sP' n) (V.sM' n) _ _ (V.K' n)
+    V.hxc (V.surjective_qmap hθ hO n) (V.P0.hsPs n) (V.ker_qmap' hθ hO n) (V.ker_sP' n)
 
 /-- **The kernel of the successor map over `V₀` is `ϖⁿ⁺¹`.** -/
 theorem ker_f0 : letI := V.alg0'Q hθ (n + 1); letI := V.alg0'E (n + 1); letI := V.alg0'M (n + 1)
@@ -321,8 +322,8 @@ theorem ker_f0 : letI := V.alg0'Q hθ (n + 1); letI := V.alg0'E (n + 1); letI :=
   haveI := V.sndLM hθ hO (n + 1)
   haveI := V.fstLM hθ hO n
   haveI := V.sndLM hθ hO n
-  exact ZariskiTwo.ker_map V.x0 V.c0 (V.qmap' hθ hO n) (V.sE0' n) (V.sM' n) _ _ (V.K' n)
-    V.hxc (V.surjective_qmap hθ hO n) (V.hsE0s n) (V.ker_qmap' hθ hO n) (V.ker_sE0' n)
+  exact ZariskiTwo.ker_map V.x0 V.c0 (V.qmap' hθ hO n) (V.sP' n) (V.sM' n) _ _ (V.K' n)
+    V.hxc (V.surjective_qmap hθ hO n) (V.P0.hsPs n) (V.ker_qmap' hθ hO n) (V.ker_sP' n)
 
 /-- **The kernel of the successor map over `V₁` is `ϖⁿ⁺¹`.** -/
 theorem ker_f1 : RingHom.ker (V.succ hθ hO n).f1 =
