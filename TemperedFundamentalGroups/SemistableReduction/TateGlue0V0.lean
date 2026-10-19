@@ -46,16 +46,19 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   (hker : RingHom.ker θ ≤ Ideal.span {ϖ}) [IsNoetherianRing O]
   (Sp : TateGlue1.Special1 hκ hπ hπe τ cov₀) (hm : m ≠ 0) (Sp0 : Special0 θ π b₄ t κ)
 
-/-- **The type of the overlap datum**: `C0[1/h̄] ≃ₐ C1[1/h̄']` over the special fibre `T01/J` of
-the overlap chart. Together with `C0` and `C1` this is the chart description of one covering of
-the special fibre. -/
-abbrev Omega : Type u :=
-  letI := algC0x Sp0.C (θ := θ) (π := π) (b₄ := b₄) (t := t) (κ := κ)
+/-- **The type of the overlap datum** for a covering `C0` of the special fibre of `V₀`:
+`C0[1/h̄] ≃ₐ C1[1/h̄']` over the special fibre `T01/J` of the overlap chart. Together with `C0`
+and `C1` this is the chart description of one covering of the special fibre. -/
+abbrev OmegaC (C0 : Type u) [CommRing C0] [Algebra (T0s θ π b₄ t κ) C0] : Type u :=
+  letI := algC0x C0 (θ := θ) (π := π) (b₄ := b₄) (t := t) (κ := κ)
   letI := algC1x Sp.C1 (θ := θ) (π := π) (b₄ := b₄) (t := t) (κ := κ)
-  Localization.Away (algebraMap (T0s θ π b₄ t κ) Sp0.C (Ideal.Quotient.mk _ (h0 π b₄ t κ))) ≃ₐ[
+  Localization.Away (algebraMap (T0s θ π b₄ t κ) C0 (Ideal.Quotient.mk _ (h0 π b₄ t κ))) ≃ₐ[
     T01s θ π b₄ t κ]
     Localization.Away (algebraMap (TateGlue1.T1s θ π b₄ t κ) Sp.C1
       (Ideal.Quotient.mk _ (h1 π b₄ t κ)))
+
+/-- **The type of the overlap datum** for the covering `Sp0` étale over `D(1 + h̄)`. -/
+abbrev Omega : Type u := OmegaC hκ hπ Sp Sp0.C
 
 /-- The function `g = h'(1 + h')` on `V₁`: `D(g)` is the overlap of `D(1 + h) ⊆ V₀` with `V₁`. -/
 abbrev g1 (π b₄ t κ : O) : T1 π b₄ t κ := h1 π b₄ t κ * (1 + h1 π b₄ t κ)
@@ -228,8 +231,13 @@ def piece0 : NodeEtaleGlue.Piece0 θ (B ϖ π b₄ t κ) (EtaleTower.q (T0 π b�
     (Sp0.succ_algebraMap hϖ hker) (Sp0.σ_succ' hϖ hker) (surjective_sE0 Sp0 hϖ hker)
     (hkE0 hϖ hker Sp0)
 
-/-- **The Tate covering over the chart `V₀` and the overlap datum** (`NodeEtaleGlue.Overlap`). -/
-def overlap (ω : Omega hκ hπ Sp Sp0) :
+/-- **The Tate covering over the chart `V₀` and the overlap datum** (`NodeEtaleGlue.Overlap`),
+for any special-fibre covering `C0` of `V₀`, overlap datum `ω` and piece `P0` of the covering over
+`D(1 + h)` (`NodeEtaleGlue.Piece0`: the étale lifts `piece0`, or a cusp patch). -/
+def overlapP (C0 : Type u) [CommRing C0] [Algebra (T0s θ π b₄ t κ) C0] (ω : OmegaC hκ hπ Sp C0)
+    (P0 : NodeEtaleGlue.Piece0 θ (B ϖ π b₄ t κ) (EtaleTower.q (T0 π b₄ t κ) hϖ) C0
+      (h0 π b₄ t κ) (c0 π b₄ t κ) (Ideal.Quotient.mk _ (h0 π b₄ t κ))
+      (Ideal.Quotient.mk _ (c0 π b₄ t κ)) ϖ) :
     NodeEtaleGlue.Overlap (TateGlue1.input hκ hπ hε hϖ π' hπ' hker Sp hm) where
   B0' := T0 π b₄ t κ
   B' := B ϖ π b₄ t κ
@@ -286,11 +294,11 @@ def overlap (ω : Omega hκ hπ Sp Sp0) :
       Ideal.Quotient.mk _ (algebraMap (T1 π b₄ t κ) (T01 π b₄ t κ) (h1 π b₄ t κ)) ^ 2 =
         Ideal.Quotient.mk _ (algebraMap (T1 π b₄ t κ) (T01 π b₄ t κ) (g1 π b₄ t κ))
     rw [← map_pow, ← map_mul, rho0_c0]
-  C0 := Sp0.C
+  C0 := C0
   algWs1 := algC1x Sp.C1
   towerWs1 := towerC1x Sp.C1
-  algWs0 := algC0x Sp0.C
-  towerWs0 := towerC0x Sp0.C
+  algWs0 := algC0x C0
+  towerWs0 := towerC0x C0
   ω := ω
   hxc := span_h0_c0
   hW0' := isLocalization_rho0 π b₄ t κ
@@ -311,7 +319,13 @@ def overlap (ω : Omega hκ hπ Sp Sp0) :
   hK := fun _ ↦ rfl
   killB := EtaleTower.kill (T1 π b₄ t κ)
   killB' := EtaleTower.kill (T0 π b₄ t κ)
-  P0 := piece0 (hϖ := hϖ) (hker := hker) (Sp0 := Sp0)
+  P0 := P0
+
+/-- **The Tate covering over `V₀` étale outside the nodes** (`overlapP` with the étale lifts
+`piece0` of `Sp0` over `D(1 + h)`). -/
+def overlap (ω : Omega hκ hπ Sp Sp0) :
+    NodeEtaleGlue.Overlap (TateGlue1.input hκ hπ hε hϖ π' hπ' hker Sp hm) :=
+  overlapP hκ hπ hε hϖ π' hπ' hker Sp hm Sp0.C ω (piece0 (hϖ := hϖ) (hker := hker) (Sp0 := Sp0))
 
 end
 
