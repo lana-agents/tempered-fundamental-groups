@@ -21,8 +21,8 @@ basic open `D(b̄)` (`b ∈ T`).
   `(Tn n)[1/b]` (`hfin`), with `σ : E/JE ≃ C[1/b̄]` (`AwayLift.exists_lift`, the choice at level
   `n`);
 * **`EtaleTower.succ n : E (n+1) → E n`**: the unique lift compatible with the `σ`
-  (`σ_succ`), **surjective with kernel `ϖⁿ⁺¹ E (n+1)`** (`surjective_succ`, `ker_succ`;
-  `EtaleNil.surjective_of_red`, `EtaleNil.ker_of_red`).
+  (`σ_succ`), **surjective with kernel `ϖⁿ⁺¹ E (n+1)`** (`surjective_succ`, `ker_succ`,
+  `ker_succ_base`; `EtaleNil.surjective_of_red`, `EtaleNil.ker_of_red`).
 
 This is the étale part of the level-`n` coverings away from the nodes and the marked points.
 -/
@@ -399,6 +399,15 @@ theorem ker_succ {n : ℕ} (L' : Lift T hϖ C b (n + 1)) (L : Lift T hϖ C b n) 
     rw [Ideal.Quotient.eq_zero_iff_mem.mpr hx, map_zero, eq_comm,
       map_eq_zero_iff _ L'.σ.injective] at h
     exact Ideal.Quotient.eq_zero_iff_mem.mp h
+
+omit [IsNoetherianRing T] [Module.Finite (Ts θ T) C] in
+/-- The kernel of the successor map as the extension of the ideal `ϖⁿ⁺¹ T` of the chart. -/
+theorem ker_succ_base {n : ℕ} (L' : Lift T hϖ C b (n + 1)) (L : Lift T hϖ C b n) :
+    RingHom.ker (succ T hϖ C b hker L' L) =
+      ((Iv ϖ n).map (algebraMap O T)).map
+        ((algebraMap (Tn ϖ T (n + 1)) L'.E).comp (algebraMap T (Tn ϖ T (n + 1)))) := by
+  rw [ker_succ, Ideal.map_map, Ideal.map_map, RingHom.comp_assoc,
+    ← IsScalarTower.algebraMap_eq O T (Tn ϖ T (n + 1))]
 
 end
 

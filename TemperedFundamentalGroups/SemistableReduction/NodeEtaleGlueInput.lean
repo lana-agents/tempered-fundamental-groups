@@ -17,6 +17,7 @@ definitions of type `Input`, so the generic statements apply to them without re-
 glued algebras:
 
 * `Input.Y I n`: the covering over `Spec B n` (`NodeEtaleGlue.Y0`);
+* `Input.hkG`: the kernels of the transition maps of the node patches;
 * **`Input.Ymap I n : Y (n+1) → Y n`**, **`Input.surjective_Ymap`**, **`Input.ker_Ymap`**
   (kernel `K n · Y (n+1)`).
 -/
@@ -39,7 +40,9 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] (θ : O →+* k)
 
 /-- **The input of the glueing**: a tower of node patches, base charts, the special-fibre
 covering with its restriction to the node chart, étale pieces with successor maps, and the
-kernels of the successor maps. -/
+kernels of the successor maps (of the node charts for the node patches, `hkR`: the input never
+mentions the patched algebras `G n`, whose instances are expensive to synthesize for concrete
+charts). -/
 structure Input where
   R : ℕ → Type u
   [commRingR : ∀ n, CommRing (R n)]
@@ -99,8 +102,8 @@ structure Input where
     σE (n + 1) (Ideal.Quotient.mk _ x)
   hsEs : ∀ n, Function.Surjective (sE n)
   K : ℕ → Ideal B0
-  hkG : ∀ n, RingHom.ker (T.tr hθ hO n) =
-    (K n).map (letI := alg0G T hθ B B0 (n + 1); algebraMap B0 (T.G hθ (n + 1)))
+  hkR : ∀ n, RingHom.ker (algebraMap (R (n + 1)) (R n)) =
+    (K n).map ((algebraMap (B (n + 1)) (R (n + 1))).comp (algebraMap B0 (B (n + 1))))
   hkE : ∀ n, RingHom.ker (sE n) =
     (K n).map (letI := alg0 B B0 (n + 1) (E (n + 1)); algebraMap B0 (E (n + 1)))
 
@@ -109,7 +112,7 @@ namespace Input
 attribute [instance] commRingR algOR noethR algkR algSuccR towerOR commRingB algBR algOB towerOBR
   algSuccB towerOB commRingB0 algB0B towerB0 away commRingBs commRingC1 algC1 commRingE algBE etaleE
 
-variable {θ cov₀ πL hθ hO} (I : Input θ cov₀ πL hθ hO)
+variable {θ cov₀ πL} (I : Input θ cov₀ πL)
 
 /-- The family `a n`. -/
 abbrev a (n : ℕ) : I.B n := algebraMap I.B0 (I.B n) I.a0
@@ -120,27 +123,33 @@ abbrev b (n : ℕ) : I.B n := algebraMap I.B0 (I.B n) I.b0
 lemma haS (n : ℕ) : algebraMap (I.B (n + 1)) (I.B n) (I.a (n + 1)) = I.a n :=
   (IsScalarTower.algebraMap_apply I.B0 (I.B (n + 1)) (I.B n) I.a0).symm
 
+/-- The kernels of the transition maps of the node patches (`LevelTower.Data.ker_tr`). -/
+theorem hkG (n : ℕ) : RingHom.ker (I.T.tr hθ hO n) =
+    (I.K n).map (letI := alg0G I.T hθ I.B I.B0 (n + 1); algebraMap I.B0 (I.T.G hθ (n + 1))) := by
+  rw [I.T.ker_tr hθ hO n, I.hkR n, Ideal.map_map]
+  rfl
+
 /-- **The covering over `Spec B n`** (`NodeEtaleGlue.Y0`). -/
 abbrev Y (n : ℕ) : Type u :=
   Y0 I.T hθ I.B I.qB I.φs I.hφs I.ι₀ I.hι₀ I.a I.b I.ha I.hι I.E I.σE I.hbE I.hdiv I.hJB I.B0 n
 
 /-- **The successor maps** `Y (n+1) → Y n` (`NodeEtaleGlue.Ymap`). -/
-def Ymap (n : ℕ) : I.Y (n + 1) →ₐ[I.B0] I.Y n :=
+def Ymap (n : ℕ) : I.Y hθ (n + 1) →ₐ[I.B0] I.Y hθ n :=
   NodeEtaleGlue.Ymap I.T hθ I.B hO I.qB I.φs I.hφs I.ι₀ I.hι₀ I.a I.b I.ha I.hι I.E I.σE I.hbE
     I.hdiv I.hJB I.hBR I.haS I.sE I.hsE I.hσE I.B0 n
 
 /-- **The successor maps are surjective.** -/
-theorem surjective_Ymap (n : ℕ) : Function.Surjective (I.Ymap n) :=
+theorem surjective_Ymap (n : ℕ) : Function.Surjective (I.Ymap hθ hO n) :=
   NodeEtaleGlue.surjective_Ymap I.T hθ I.B hO I.qB I.φs I.hφs I.ι₀ I.hι₀ I.a I.b I.ha I.hι I.E
     I.σE I.hbE I.hdiv I.hbb I.hJB I.hBR I.haS I.sE I.hsE I.hσE I.B0 (fun _ ↦ rfl) (fun _ ↦ rfl)
-    I.hab I.K I.hsEs I.hkG I.hkE n
+    I.hab I.K I.hsEs (I.hkG hθ hO) I.hkE n
 
 /-- **The kernel of the successor map is `K n · Y (n+1)`.** -/
 theorem ker_Ymap (n : ℕ) :
-    RingHom.ker (I.Ymap n) = (I.K n).map (algebraMap I.B0 (I.Y (n + 1))) :=
+    RingHom.ker (I.Ymap hθ hO n) = (I.K n).map (algebraMap I.B0 (I.Y hθ (n + 1))) :=
   NodeEtaleGlue.ker_Ymap I.T hθ I.B hO I.qB I.φs I.hφs I.ι₀ I.hι₀ I.a I.b I.ha I.hι I.E
     I.σE I.hbE I.hdiv I.hbb I.hJB I.hBR I.haS I.sE I.hsE I.hσE I.B0 (fun _ ↦ rfl) (fun _ ↦ rfl)
-    I.hab I.K I.hsEs I.hkG I.hkE n
+    I.hab I.K I.hsEs (I.hkG hθ hO) I.hkE n
 
 end Input
 
