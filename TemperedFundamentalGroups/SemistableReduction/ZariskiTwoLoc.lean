@@ -14,11 +14,16 @@ generating the unit ideal) and `c ∈ R`:
 
 * `ZariskiTwo.isLocalizedModule_of_away`, `ZariskiTwo.away_of_isLocalizedModule`: the two forms
   of "`φ : M → B` is a localization away from `c`" (`R`-linear / as an algebra over `M`);
+* `ZariskiTwo.pieceL`, `isLocalizedModule_pieceL`: `M → X` away from `d` and `X → X'` away from
+  `c` give `M[1/c] → X'` away from `d`;
 * **`ZariskiTwo.isLocalization_map`**: if the maps of pieces `sa : Ba → Ba'`, `sb : Bb → Bb'`
   are localizations away from `c`, then so is the induced map of glued algebras
   `glued ρa ρb → glued ρa' ρb'` (both glueings with pieces on `D(a)`, `D(b)`; localization
   commutes with the glueing; via
-  `ZariskiTwo.bijective_lift` for `(glued ρa ρb)[1/c]`).
+  `ZariskiTwo.bijective_lift` for `(glued ρa ρb)[1/c]`);
+* **`ZariskiTwo.isLocalization_mapL`**: the glueing of the localized pieces `ρaL c`, `ρbL c`
+  (`Ba[1/c] → Bab[1/c] ← Bb[1/c]`) is `(glued ρa ρb)[1/c]`, with pieces on `D(a)`, `D(b)`
+  (`isLocalizedModule_fstL`, `isLocalizedModule_sndL`).
 -/
 
 universe u
@@ -160,5 +165,77 @@ theorem isLocalization_map :
     · exact pieceL_algebraMap c (snd ρa ρb) sb hlb p
   exact IsLocalization.isLocalization_of_algEquiv (Submonoid.powers (algebraMap R Gl c))
     { e0 with commutes' := he }
+
+section Loc
+
+variable {X : Type u} [CommRing X] [Algebra R X]
+
+/-- The localization `X[1/c]` of an `R`-algebra. -/
+abbrev Lc (X : Type u) [CommRing X] [Algebra R X] : Type u := Localization.Away (algebraMap R X c)
+
+/-- The localization map `X → X[1/c]`. -/
+abbrev lc (X : Type u) [CommRing X] [Algebra R X] : X →ₐ[R] Lc c X := IsScalarTower.toAlgHom R X _
+
+lemma isLocalization_lc :
+    letI := (lc c X).toRingHom.toAlgebra; IsLocalization.Away (algebraMap R X c) (Lc c X) := by
+  have h : IsLocalization.Away (algebraMap R X c) (Lc c X) := Localization.isLocalization
+  letI := (lc c X).toRingHom.toAlgebra
+  exact ⟨h.toIsLocalizationMap⟩
+
+/-- `ρa` localized at `c`. -/
+noncomputable abbrev ρaL : Lc c Ba →ₐ[R] Lc c Bab := pieceL c ρa (lc c Bab) (isLocalization_lc c)
+
+/-- `ρb` localized at `c`. -/
+noncomputable abbrev ρbL : Lc c Bb →ₐ[R] Lc c Bab := pieceL c ρb (lc c Bab) (isLocalization_lc c)
+
+/-- The map from the glueing to the glueing of the localized pieces. -/
+noncomputable abbrev mapL : glued ρa ρb →ₐ[R] glued (ρaL (ρa := ρa) c) (ρbL (ρb := ρb) c) :=
+  map (lc c Ba) (lc c Bb) (lc c Bab)
+    (fun x ↦ pieceL_algebraMap c ρa (lc c Bab) (isLocalization_lc c) x)
+    (fun x ↦ pieceL_algebraMap c ρb (lc c Bab) (isLocalization_lc c) x)
+
+variable (ha : IsUnit (algebraMap R Ba a))
+  (hb : letI := ρb.toRingHom.toAlgebra; IsLocalization.Away (algebraMap R Bb a) Bab)
+  (hb' : IsUnit (algebraMap R Bb b))
+  (ha' : letI := ρa.toRingHom.toAlgebra; IsLocalization.Away (algebraMap R Ba b) Bab)
+
+omit [IsLocalizedModule (Submonoid.powers a) (fst ρa ρb).toLinearMap]
+  [IsLocalizedModule (Submonoid.powers b) (snd ρa ρb).toLinearMap] in
+include ha hb in
+/-- The localized glueing has its first piece on `D(a)`. -/
+theorem isLocalizedModule_fstL :
+    IsLocalizedModule (Submonoid.powers a)
+      (fst (ρaL (ρa := ρa) c) (ρbL (ρb := ρb) c)).toLinearMap :=
+  haveI := isLocalizedModule_of_away a ρb hb
+  isLocalizedModule_fst a (by rw [IsScalarTower.algebraMap_apply R Ba (Lc c Ba)]; exact ha.map _)
+    (away_of_isLocalizedModule a _ (h := isLocalizedModule_pieceL c a ρb (lc c Bab)
+      (isLocalization_lc c)))
+
+omit [IsLocalizedModule (Submonoid.powers a) (fst ρa ρb).toLinearMap]
+  [IsLocalizedModule (Submonoid.powers b) (snd ρa ρb).toLinearMap] in
+include hb' ha' in
+/-- The localized glueing has its second piece on `D(b)`. -/
+theorem isLocalizedModule_sndL :
+    IsLocalizedModule (Submonoid.powers b)
+      (snd (ρaL (ρa := ρa) c) (ρbL (ρb := ρb) c)).toLinearMap :=
+  haveI := isLocalizedModule_of_away b ρa ha'
+  isLocalizedModule_snd b (by rw [IsScalarTower.algebraMap_apply R Bb (Lc c Bb)]; exact hb'.map _)
+    (away_of_isLocalizedModule b _ (h := isLocalizedModule_pieceL c b ρa (lc c Bab)
+      (isLocalization_lc c)))
+
+include hab ha hb hb' ha' in
+/-- **The glueing of the localized pieces is the localization of the glueing.** -/
+theorem isLocalization_mapL :
+    letI := (mapL c (ρa := ρa) (ρb := ρb)).toRingHom.toAlgebra
+    IsLocalization.Away (algebraMap R (glued ρa ρb) c)
+      (glued (ρaL (ρa := ρa) c) (ρbL (ρb := ρb) c)) := by
+  haveI := isLocalizedModule_fstL a c (ρa := ρa) ha hb
+  haveI := isLocalizedModule_sndL b c (ρb := ρb) hb' ha'
+  exact isLocalization_map a b (lc c Ba) (lc c Bb) (lc c Bab)
+    (fun x ↦ pieceL_algebraMap c ρa (lc c Bab) (isLocalization_lc c) x)
+    (fun x ↦ pieceL_algebraMap c ρb (lc c Bab) (isLocalization_lc c) x) c hab
+    (isLocalization_lc c) (isLocalization_lc c)
+
+end Loc
 
 end ZariskiTwo
