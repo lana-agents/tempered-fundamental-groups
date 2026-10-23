@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Merten
 -/
 import TemperedFundamentalGroups.Andre.TateObject
+import TemperedFundamentalGroups.Andre.TateNormalAlgebra
 import TemperedFundamentalGroups.Orbicurve.GeomStable
 
 /-!
@@ -52,6 +53,14 @@ lemma equation_gen_of_isTate {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) :
     WeierstrassCurve.map_a₃, WeierstrassCurve.map_a₄, WeierstrassCurve.map_a₆, hW.a₁, hW.a₂,
     hW.a₃, hW.a₄, hW.a₆, map_one, map_zero] at h
   linear_combination h
+
+/-- **The Tate parameters of an elliptic curve satisfy `E ≠ 0`** (`Δ = −π² E` is a unit), the
+smoothness hypothesis of the generic fibre of the Tate model
+(`SemistableReduction.TateGlue0.exists_etale_normalisedModel`). -/
+lemma IsTate.tateE_ne_zero [W.IsElliptic] {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) :
+    TateNormal.tateE π b₄ b₆ ≠ 0 :=
+  TateNormal.tateE_ne_zero_of_isElliptic (π := π) (b₄ := b₄) (b₆ := b₆) O.subtype W hW.a₁ hW.a₂
+    hW.a₃ (by rw [hW.a₄]; simp) (by rw [hW.a₆]; simp)
 
 /-- The data of `X₀` for a subalgebra of the function field containing the coordinates. -/
 def dataOfSubalgebra {π b₄ b₆ : O} (hW : IsTate W π b₄ b₆) (hπ : π ≠ 0)

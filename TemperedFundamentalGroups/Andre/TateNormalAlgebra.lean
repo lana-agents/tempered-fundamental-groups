@@ -326,6 +326,27 @@ lemma Δ_eq_tateDisc {K : Type*} [CommRing K] (φ : O →+* K) (W : WeierstrassC
     map_neg, map_ofNat]
   ring
 
+omit [IsDomain O] in
+variable {π b₄ b₆} in
+/-- **`E ≠ 0` for an elliptic curve of Tate type.** If `W : y² + xy = x³ + π² b₄ x + π² b₆` (the
+coefficients being the images of `π² b₄`, `π² b₆` under `φ : O →+* K`) is elliptic, then
+`Δ = φ(−π² E)` is a unit of `K`, so `E ≠ 0` in `O`. -/
+theorem tateE_ne_zero_of_isElliptic {K : Type*} [CommRing K] [Nontrivial K] (φ : O →+* K)
+    (W : WeierstrassCurve K) [W.IsElliptic] (h₁ : W.a₁ = 1) (h₂ : W.a₂ = 0) (h₃ : W.a₃ = 0)
+    (h₄ : W.a₄ = φ (π ^ 2 * b₄)) (h₆ : W.a₆ = φ (π ^ 2 * b₆)) : tateE π b₄ b₆ ≠ 0 := by
+  intro h
+  have hΔ := Δ_eq_tateDisc (π := π) (b₄ := b₄) (b₆ := b₆) φ W h₁ h₂ h₃ h₄ h₆
+  rw [tateDisc_eq, h, mul_zero, neg_zero, map_zero] at hΔ
+  exact W.isUnit_Δ.ne_zero hΔ
+
+omit [IsDomain O] in
+/-- `3 ≠ 0` in a ring mapping to a ring of characteristic zero. -/
+lemma three_ne_zero_of_charZero {K : Type*} [Ring K] [CharZero K] (φ : O →+* K) :
+    (3 : O) ≠ 0 := fun h ↦ by
+  have h' := congrArg φ h
+  rw [map_zero, map_ofNat] at h'
+  exact (by norm_num : (3 : K) ≠ 0) h'
+
 /-- **`d` is squarefree for a curve of Tate type with `Δ ≠ 0`, if `2 ≠ 0`.** Indeed
 `-2 U d + V d' = 8 E` for explicit `U, V ∈ O[X]`, so a square factor of `d` divides the nonzero
 constant `8 E` and hence is a unit (the coefficient of `X²` in `d` is `1`). -/

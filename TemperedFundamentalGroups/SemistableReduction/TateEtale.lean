@@ -29,7 +29,13 @@ The hypotheses are those of the Dedekind property of the generic fibre of the Ta
 (`TateTwoChart.isDedekindDomain_away_T0_of_dvr`): `O` a discrete valuation ring, `(3 : O) ≠ 0`,
 and `TateNormal.tateE π b₄ b₆ ≠ 0` (the generic fibre is smooth; this is not implied by the
 remaining hypotheses, e.g. `b₄ = b₆ = 0`, `t = κ = 1`); `π ≠ 0` and `ϖ` not a unit follow from
-`π = ε ϖᵐ`, `ε` a unit, `ϖ ≠ 0` and `θ ϖ = 0`.
+`π = ε ϖᵐ`, `ε` a unit, `ϖ ≠ 0` and `θ ϖ = 0`. For the actual Tate parameters (an elliptic curve
+`y² + xy = x³ + π² b₄ x + π² b₆` over a field of characteristic zero, e.g. IUT's
+`TateOrbicurve.IsTate`) both `(3 : O) ≠ 0` and `E ≠ 0` hold (`Δ = −π² E` is a unit:
+`TateNormal.tateE_ne_zero_of_isElliptic`, `TateOrbicurve.IsTate.tateE_ne_zero`), and
+**`TateGlue0.exists_etale_normalisedModel_of_isElliptic`**,
+**`exists_etale_normalisedModel_cusp_of_isElliptic`** take the curve instead of these two
+hypotheses.
 
 ## Proof
 
@@ -563,6 +569,117 @@ theorem exists_etale_normalisedModel_cusp [(Ideal.span {ϖ}).IsMaximal]
   obtain ⟨he0, he1⟩ := etale_overlapCusp hκ hπ hε hϖ π' hπ' hker Sp hm hO hϖ0 h3 hE Sc ω
     hα hB hψ hψα
   exact ⟨N, hN0, hN1, B, α, hα, hc, hB, hf0, hf1, ψ, hψ, hψα, hi0, hi1, he0, he1⟩
+
+include hπ' hm hϖ0 in
+/-- **`exists_etale_normalisedModel` for the actual Tate parameters.** If `π, b₄, b₆` are the
+parameters of an elliptic curve `W : y² + xy = x³ + π² b₄ x + π² b₆` over a field `K` of
+characteristic zero receiving `O` (for IUT: `TateOrbicurve.IsTate`, `K = Frac O`), the hypotheses
+`(3 : O) ≠ 0` and `TateNormal.tateE π b₄ b₆ ≠ 0` of `exists_etale_normalisedModel` hold
+(`TateNormal.three_ne_zero_of_charZero`, `TateNormal.tateE_ne_zero_of_isElliptic`). -/
+theorem exists_etale_normalisedModel_of_isElliptic [(Ideal.span {ϖ}).IsMaximal]
+    {K : Type*} [Field K] [CharZero K] (φ : O →+* K) (W : WeierstrassCurve K) [W.IsElliptic]
+    (h₁ : W.a₁ = 1) (h₂ : W.a₂ = 0) (h₃ : W.a₃ = 0) (h₄ : W.a₄ = φ (π ^ 2 * b₄))
+    (h₆ : W.a₆ = φ (π ^ 2 * b₆)) (Sp0 : Special0 θ π b₄ t κ)
+    (ω : Omega hκ hπ Sp Sp0) :
+    ∃ (N : ProjectiveLine.ChartModule O) (_ : Module.Finite O[X] (Module.AEval' N.x0))
+      (_ : Module.Finite O[X] (Module.AEval' N.x1))
+      (B : ProjectiveLine.ChartModule.AlgStr N)
+      (α : ∀ n, ProjectiveLine.ChartModule.Hom N
+        ((system hκ hπ hε hϖ π' hπ' hker Sp hm Sp0 hO ω).M n)),
+      (∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+        LinearMap.ker (α n).f0 = Ideal.span {ϖ} ^ n • ⊤ ∧
+        LinearMap.ker (α n).f1 = Ideal.span {ϖ} ^ n • ⊤) ∧
+      (∀ m n (h : m ≤ n),
+        ((system hκ hπ hε hϖ π' hπ' hker Sp hm Sp0 hO ω).tr h).comp (α n) = α m) ∧
+      (∀ n, B.IsHom ((system hκ hπ hε hϖ π' hπ' hker Sp hm Sp0 hO ω).alg n) (α n)) ∧
+      Module.Flat O[X] (Module.AEval' N.x0) ∧ Module.Flat O[X] (Module.AEval' N.x1) ∧
+      ∃ (ψ : ProjectiveLine.ChartModule.Hom (TateTwoChart.twoChart π b₄ t κ).chartModule N)
+        (hψ : (TateTwoChart.twoChart π b₄ t κ).algStr.IsHom B ψ),
+        (∀ n, (α (n + 1)).comp ψ = structureMaps hκ hπ hε hϖ π' hπ' hker Sp hm hO Sp0 ω n) ∧
+        (letI : Algebra (T0 π b₄ t κ) B.Ring0 := B.algR0 hψ;
+          letI : Algebra (T0 π b₄ t κ) (Localization.Away (B.const0 ϖ)) :=
+            ((algebraMap B.Ring0 _).comp (algebraMap (T0 π b₄ t κ) B.Ring0)).toAlgebra;
+          IsIntegralClosure B.Ring0 (T0 π b₄ t κ) (Localization.Away (B.const0 ϖ))) ∧
+        (letI : Algebra (T1 π b₄ t κ) B.Ring1 := B.algR1 hψ;
+          letI : Algebra (T1 π b₄ t κ) (Localization.Away (B.const1 ϖ)) :=
+            ((algebraMap B.Ring1 _).comp (algebraMap (T1 π b₄ t κ) B.Ring1)).toAlgebra;
+          IsIntegralClosure B.Ring1 (T1 π b₄ t κ) (Localization.Away (B.const1 ϖ))) ∧
+        (letI : Algebra (T0 π b₄ t κ) B.Ring0 := B.algR0 hψ;
+          letI : Algebra (T0 π b₄ t κ) (Localization.Away (B.const0 ϖ)) :=
+            ((algebraMap B.Ring0 _).comp (algebraMap (T0 π b₄ t κ) B.Ring0)).toAlgebra;
+          ∀ [Algebra (Localization.Away (algebraMap O (T0 π b₄ t κ) ϖ))
+              (Localization.Away (B.const0 ϖ))]
+            [@IsScalarTower (T0 π b₄ t κ) (Localization.Away (algebraMap O (T0 π b₄ t κ) ϖ))
+              (Localization.Away (B.const0 ϖ)) Algebra.toSMul Algebra.toSMul Algebra.toSMul],
+            Algebra.Etale (Localization.Away (algebraMap O (T0 π b₄ t κ) ϖ))
+                (Localization.Away (B.const0 ϖ))) ∧
+        (letI : Algebra (T1 π b₄ t κ) B.Ring1 := B.algR1 hψ;
+          letI : Algebra (T1 π b₄ t κ) (Localization.Away (B.const1 ϖ)) :=
+            ((algebraMap B.Ring1 _).comp (algebraMap (T1 π b₄ t κ) B.Ring1)).toAlgebra;
+          ∀ [Algebra (Localization.Away (algebraMap O (T1 π b₄ t κ) ϖ))
+              (Localization.Away (B.const1 ϖ))]
+            [@IsScalarTower (T1 π b₄ t κ) (Localization.Away (algebraMap O (T1 π b₄ t κ) ϖ))
+              (Localization.Away (B.const1 ϖ)) Algebra.toSMul Algebra.toSMul Algebra.toSMul],
+            Algebra.Etale (Localization.Away (algebraMap O (T1 π b₄ t κ) ϖ))
+                (Localization.Away (B.const1 ϖ))) :=
+  exists_etale_normalisedModel hκ hπ hε hϖ π' hπ' hker Sp hm hO hϖ0
+    (TemperedFundamentalGroups.TateNormal.three_ne_zero_of_charZero φ)
+    (TemperedFundamentalGroups.TateNormal.tateE_ne_zero_of_isElliptic φ W h₁ h₂ h₃ h₄ h₆) Sp0 ω
+
+include hπ' hm hϖ0 in
+/-- **`exists_etale_normalisedModel_cusp` for the actual Tate parameters** (an elliptic curve
+`W : y² + xy = x³ + π² b₄ x + π² b₆` over a field of characteristic zero receiving `O`). -/
+theorem exists_etale_normalisedModel_cusp_of_isElliptic [(Ideal.span {ϖ}).IsMaximal]
+    {K : Type*} [Field K] [CharZero K] (φ : O →+* K) (W : WeierstrassCurve K) [W.IsElliptic]
+    (h₁ : W.a₁ = 1) (h₂ : W.a₂ = 0) (h₃ : W.a₃ = 0) (h₄ : W.a₄ = φ (π ^ 2 * b₄))
+    (h₆ : W.a₆ = φ (π ^ 2 * b₆))
+    (Sc : CuspTower.CuspSpecial (T0 π b₄ t κ) (c0 π b₄ t κ) (h0 π b₄ t κ) (θ := θ))
+    (ω : OmegaC hκ hπ Sp Sc.C0) :
+    ∃ (N : ProjectiveLine.ChartModule O) (_ : Module.Finite O[X] (Module.AEval' N.x0))
+      (_ : Module.Finite O[X] (Module.AEval' N.x1))
+      (B : ProjectiveLine.ChartModule.AlgStr N)
+      (α : ∀ n, ProjectiveLine.ChartModule.Hom N
+        ((systemCusp hκ hπ hε hϖ π' hπ' hker Sp hm Sc hO ω).M n)),
+      (∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+        LinearMap.ker (α n).f0 = Ideal.span {ϖ} ^ n • ⊤ ∧
+        LinearMap.ker (α n).f1 = Ideal.span {ϖ} ^ n • ⊤) ∧
+      (∀ m n (h : m ≤ n),
+        ((systemCusp hκ hπ hε hϖ π' hπ' hker Sp hm Sc hO ω).tr h).comp (α n) = α m) ∧
+      (∀ n, B.IsHom ((systemCusp hκ hπ hε hϖ π' hπ' hker Sp hm Sc hO ω).alg n) (α n)) ∧
+      Module.Flat O[X] (Module.AEval' N.x0) ∧ Module.Flat O[X] (Module.AEval' N.x1) ∧
+      ∃ (ψ : ProjectiveLine.ChartModule.Hom (TateTwoChart.twoChart π b₄ t κ).chartModule N)
+        (hψ : (TateTwoChart.twoChart π b₄ t κ).algStr.IsHom B ψ),
+        (∀ n, (α (n + 1)).comp ψ = structureMapsCusp hκ hπ hε hϖ π' hπ' hker Sp hm hO Sc ω n) ∧
+        (letI : Algebra (T0 π b₄ t κ) B.Ring0 := B.algR0 hψ;
+          letI : Algebra (T0 π b₄ t κ) (Localization.Away (B.const0 ϖ)) :=
+            ((algebraMap B.Ring0 _).comp (algebraMap (T0 π b₄ t κ) B.Ring0)).toAlgebra;
+          IsIntegralClosure B.Ring0 (T0 π b₄ t κ) (Localization.Away (B.const0 ϖ))) ∧
+        (letI : Algebra (T1 π b₄ t κ) B.Ring1 := B.algR1 hψ;
+          letI : Algebra (T1 π b₄ t κ) (Localization.Away (B.const1 ϖ)) :=
+            ((algebraMap B.Ring1 _).comp (algebraMap (T1 π b₄ t κ) B.Ring1)).toAlgebra;
+          IsIntegralClosure B.Ring1 (T1 π b₄ t κ) (Localization.Away (B.const1 ϖ))) ∧
+        (letI : Algebra (T0 π b₄ t κ) B.Ring0 := B.algR0 hψ;
+          letI : Algebra (T0 π b₄ t κ) (Localization.Away (B.const0 ϖ * B.X0)) :=
+            ((algebraMap B.Ring0 _).comp (algebraMap (T0 π b₄ t κ) B.Ring0)).toAlgebra;
+          ∀ [Algebra (Localization.Away (algebraMap O (T0 π b₄ t κ) ϖ * h0 π b₄ t κ))
+              (Localization.Away (B.const0 ϖ * B.X0))]
+            [@IsScalarTower (T0 π b₄ t κ)
+              (Localization.Away (algebraMap O (T0 π b₄ t κ) ϖ * h0 π b₄ t κ))
+              (Localization.Away (B.const0 ϖ * B.X0)) Algebra.toSMul Algebra.toSMul Algebra.toSMul],
+            Algebra.Etale (Localization.Away (algebraMap O (T0 π b₄ t κ) ϖ * h0 π b₄ t κ))
+                (Localization.Away (B.const0 ϖ * B.X0))) ∧
+        (letI : Algebra (T1 π b₄ t κ) B.Ring1 := B.algR1 hψ;
+          letI : Algebra (T1 π b₄ t κ) (Localization.Away (B.const1 ϖ)) :=
+            ((algebraMap B.Ring1 _).comp (algebraMap (T1 π b₄ t κ) B.Ring1)).toAlgebra;
+          ∀ [Algebra (Localization.Away (algebraMap O (T1 π b₄ t κ) ϖ))
+              (Localization.Away (B.const1 ϖ))]
+            [@IsScalarTower (T1 π b₄ t κ) (Localization.Away (algebraMap O (T1 π b₄ t κ) ϖ))
+              (Localization.Away (B.const1 ϖ)) Algebra.toSMul Algebra.toSMul Algebra.toSMul],
+            Algebra.Etale (Localization.Away (algebraMap O (T1 π b₄ t κ) ϖ))
+                (Localization.Away (B.const1 ϖ))) :=
+  exists_etale_normalisedModel_cusp hκ hπ hε hϖ π' hπ' hker Sp hm hO hϖ0
+    (TemperedFundamentalGroups.TateNormal.three_ne_zero_of_charZero φ)
+    (TemperedFundamentalGroups.TateNormal.tateE_ne_zero_of_isElliptic φ W h₁ h₂ h₃ h₄ h₆) Sc ω
 
 end TateGlue0
 
