@@ -32,6 +32,7 @@ import TemperedFundamentalGroups.Andre.GaloisObject
 import TemperedFundamentalGroups.Andre.HeightW
 import TemperedFundamentalGroups.Andre.LengthW
 import TemperedFundamentalGroups.Andre.LevelClass
+import TemperedFundamentalGroups.Andre.LimGroupKonig
 import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.OrbClosure
 import TemperedFundamentalGroups.Andre.OrbGalois
@@ -54,6 +55,7 @@ import TemperedFundamentalGroups.Andre.RamifiedQuadratic
 import TemperedFundamentalGroups.Andre.RamifiedQuadraticGal
 import TemperedFundamentalGroups.Andre.Refinement
 import TemperedFundamentalGroups.Andre.RootLevel
+import TemperedFundamentalGroups.Andre.StageFix
 import TemperedFundamentalGroups.Andre.StageFunctor
 import TemperedFundamentalGroups.Andre.StageGroup
 import TemperedFundamentalGroups.Andre.StageLimit
@@ -118,6 +120,7 @@ import TemperedFundamentalGroups.Andre.TransferGeneric
 import TemperedFundamentalGroups.Andre.TransferTate
 import TemperedFundamentalGroups.Andre.Transport
 import TemperedFundamentalGroups.Andre.ValuativeCentre
+import TemperedFundamentalGroups.Andre.VertexPoints
 import TemperedFundamentalGroups.Andre.WCentre
 import TemperedFundamentalGroups.Andre.WCentreLocal
 import TemperedFundamentalGroups.Andre.WData
