@@ -2962,6 +2962,21 @@ Tate-only shortcut (explicit levels `x ↦ x^e`) does not help: those levels are
 cusps and not cofinal, and on the restricted tower `Estranged` fails
 (MR12 plan, step-0 verdict).
 
+**Status (2026-10-23): the restricted `hedge` is proved for André's tower, without M2.**
+`TreeTower.LimAdjInf` (`SemiAnbd/MidpointAdj.lean`: verticial systems adjacent in the limit tree
+have intersecting stabilizers) is all that `PSCAdj` needs (`pscAdj_of_estranged_of_limAdjInf`), and
+`limAdjInf_andreTower` (`Andre/LimAdjInfAndre.lean`) proves it unconditionally. Argument: at a level
+`j₀` where the systems differ, the valuation of the component of `s` has `ϖ = u tⁿ`; for a prime
+`ℓ > n` a level `p` containing `ϖ^{1/ℓ}` dominates `j₀` (`exists_ptGal_pow_eq`). At every level
+`l ⟶ p` a composite valuation `W` centred at the midpoint node and contained in the valuation of
+the (non-contracted, `VertexPoints`) component satisfies the Kummer condition, so `W ∩ F₀` has a
+unique extension to `F₀(ϖ^{1/ℓ})` and some `σ ∈ Gal(L/F₀)` with `σ W = W` moves `ϖ^{1/ℓ}`
+(`KummerValuation`); its model automorphism fixes the node (`CentreMove`), a deck correction fixes
+the midpoint vertex (`StageFix`), and König (`LimGroupKonig`) gives a nontrivial element of André's
+group fixing both systems. Hedge-free consumers: `pscAdj_andreTower_of_estranged''`,
+`isGraphic_iff_andreTower_andreTower'`, `…_of_tame_wild'`, `…_of_tateWild'`. The elements are
+arithmetic (they act on `ϖ^{1/ℓ}`); a geometric (`Δ` / pro-`Σ`) version would still need M2.
+
 Missing in the repository for each step: the pro-`Σ` quotient of André's group and its tree
 tower, admissible coverings as objects of the tempered category (levels with Kummer ramification
 at nodes, compare `Andre/QuadraticLevel.lean` for `e = 2` at a single level), the identification
