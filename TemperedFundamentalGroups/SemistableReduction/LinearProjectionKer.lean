@@ -3,6 +3,7 @@ Copyright (c) 2026 LANA Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: LANA Project
 -/
+import Oka.AlgebraicGeometry.Modules.Support
 import TemperedFundamentalGroups.SemistableReduction.ModelProjection
 
 /-!
@@ -13,28 +14,14 @@ positive degree `e`) and linear forms `ℓ₀, ℓ₁`, the restriction of homog
 chart `V_k = ι⁻¹ D₊(ℓ_k)` (`LinearProjection.secRes`, surjective) has kernel the radical of
 `F / ℓ_k ^ e` (**`LinearProjection.ker_secRes`**), so `Γ(V_k) ≅ (O[x]_{(ℓ_k)})₀ ⧸ √(F / ℓ_k ^ e)`.
 
-Also: the closed subscheme of a vanishing ideal is reduced
-(**`Scheme.IdealSheafData.isReduced_subscheme_vanishingIdeal`**).
+That the closed subscheme of a vanishing ideal is reduced
+(`Scheme.IdealSheafData.isReduced_subscheme_vanishingIdeal`) is taken from
+`Oka.AlgebraicGeometry.Modules.Support`.
 -/
 
 universe u
 
 open CategoryTheory AlgebraicGeometry MvPolynomial HomogeneousLocalization
-
-namespace AlgebraicGeometry.Scheme.IdealSheafData
-
-/-- **The closed subscheme defined by a vanishing ideal is reduced.** -/
-instance isReduced_subscheme_vanishingIdeal {X : Scheme.{u}} (Z : TopologicalSpace.Closeds X) :
-    IsReduced (vanishingIdeal Z).subscheme := by
-  have (U : X.affineOpens) : IsReduced ((vanishingIdeal Z).subschemeCover.openCover.X U) := by
-    have : _root_.IsReduced (Γ(X, U) ⧸ (vanishingIdeal Z).ideal U) := by
-      rw [vanishingIdeal_ideal]
-      exact (Ideal.isRadical_iff_quotient_reduced _).1 (PrimeSpectrum.isRadical_vanishingIdeal _)
-    exact inferInstanceAs (IsReduced (Spec (.of (Γ(X, U) ⧸ (vanishingIdeal Z).ideal U))))
-  exact IsReduced.of_openCover (X := (vanishingIdeal Z).subscheme)
-    (vanishingIdeal Z).subschemeCover.openCover
-
-end AlgebraicGeometry.Scheme.IdealSheafData
 
 namespace SemistableReduction
 
