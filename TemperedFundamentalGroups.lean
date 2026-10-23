@@ -32,6 +32,7 @@ import TemperedFundamentalGroups.Andre.GaloisObject
 import TemperedFundamentalGroups.Andre.HeightW
 import TemperedFundamentalGroups.Andre.LengthW
 import TemperedFundamentalGroups.Andre.LevelClass
+import TemperedFundamentalGroups.Andre.LimAdjInfAndre
 import TemperedFundamentalGroups.Andre.LimGroupKonig
 import TemperedFundamentalGroups.Andre.NonzeroCharacter
 import TemperedFundamentalGroups.Andre.OrbClosure
