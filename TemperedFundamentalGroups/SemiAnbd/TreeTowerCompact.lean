@@ -25,8 +25,9 @@ levels; the fixed vertices then form an inverse system of finite nonempty sets, 
   **`TreeTower.exists_le_stab_of_estranged`**, **`TreeTower.exists_isVert_le_stab_of_estranged`**:
   under estrangement every nontrivial subgroup with finite images lies in a (verticial, if the
   maps preserve colours and edges are not inverted) subgroup `stab s` ([SemiAnbd] Thm. 3.7(iii)).
-* `TreeTower.Elevated` (**W10**, [SemiAnbd] Def. 2.4(i)-type) and **`TreeTower.HI_of_elevated`**:
-  the hypothesis `(HI)` follows from elevatedness (the argument of [SemiAnbd] Prop. 2.6).
+* `TreeTower.Elevated` (**W10**, [SemiAnbd] Def. 2.4(i), level form: the large subgroups `N` live
+  in the level groups `G k`) and **`TreeTower.HI_of_elevated`**: the hypothesis `(HI)` follows
+  from elevatedness (the argument of [SemiAnbd] Prop. 2.6).
 * **`TreeTower.limAdj_of_adjG`**, **`TreeTower.adjG_of_limAdj`**,
   **`TreeTower.pscAdj_of_estranged`** (**W11**): the PSC-type adjacency hypothesis `PSCAdj` of
   CG3 follows from estrangement, the absence of branch inversions and nontrivial edge-like
@@ -245,14 +246,22 @@ end Konig
 /-! ### W10: elevated systems satisfy `(HI)` -/
 
 variable (T) in
-/-- **Elevated systems** ([SemiAnbd] Def. 2.4(i)-type): for every `n`, at arbitrarily deep levels
-`k` the verticial subgroup contains a subgroup of order `> n` meeting the stabilizers of all
-neighbours of `s k` trivially. -/
-def Elevated (s : T.Sys) : Prop :=
-  ∀ (n : ℕ) (j : J), ∃ (k : J) (_ : k ⟶ j) (N : Subgroup Γ), N ≤ stab s ∧ n < Nat.card N ∧
-    ∀ w, (T.graph k).Adj (s.1 k) w → N ⊓ T.fixAt k w = ⊥
+/-- **Elevated systems** ([SemiAnbd] Def. 2.4(i), level form): for every `n`, at arbitrarily deep
+levels `k` the image `ρ_k(stab s)` of the verticial subgroup in the level group `G k` (the
+`π₁(G'_v)` of a `π₁`-epimorphic approximator `G → G'`) contains a subgroup `N` of order `> n`
+meeting the stabilizers in `G k` of all neighbours of `s k` (the conjugates of the `π₁(G'_e)`, `e`
+abutting to `v`) trivially.
 
-/-- **W10** (the argument of [SemiAnbd] Prop. 2.6): elevated systems satisfy `(HI)`. -/
+The subgroup `N` lives in the FINITE-level group `G k`, as in [SemiAnbd] Def. 2.4(i) (where
+`N_M ⊆ π₁(G'_v)`, `G'` of bounded order). A version with `N` a finite subgroup of the limit group
+`Γ` could never hold for torsion-free verticial subgroups (pro-`Σ` surface groups), so it would
+make `HI_of_elevated` vacuous. -/
+def Elevated (s : T.Sys) : Prop :=
+  ∀ (n : ℕ) (j : J), ∃ (k : J) (_ : k ⟶ j) (N : Subgroup (T.G k)), N ≤ (stab s).map (T.ρ k) ∧
+    n < Nat.card N ∧ ∀ w, (T.graph k).Adj (s.1 k) w → N ⊓ MulAction.stabilizer (T.G k) w = ⊥
+
+/-- **W10** (the argument of [SemiAnbd] Prop. 2.6): elevated systems satisfy `(HI)`:
+`|N| = [N : N ∩ Stab w] ≤ [ρ_k(stab s) : ρ_k(stab s) ∩ Stab w] = [stab s : stab s ∩ fixAt k w]`. -/
 theorem HI_of_elevated {s : T.Sys} (hs : T.Elevated s) : T.HI s := by
   intro n j
   obtain ⟨k, f, N, hN, hn, hw⟩ := hs n j
@@ -260,7 +269,8 @@ theorem HI_of_elevated {s : T.Sys} (hs : T.Elevated s) : T.HI s := by
   by_cases h0 : (T.fixAt k w).relIndex (stab s) = 0
   · exact .inl h0
   refine .inr (lt_of_lt_of_le hn ?_)
-  have h1 : (T.fixAt k w).relIndex N = Nat.card N := by
+  rw [fixAt, Subgroup.relIndex_comap] at h0 ⊢
+  have h1 : (MulAction.stabilizer (T.G k) w).relIndex N = Nat.card N := by
     rw [← Subgroup.inf_relIndex_right, inf_comm, hw w hadj, Subgroup.relIndex_bot_left]
   rw [← h1]
   exact Subgroup.relIndex_le_of_le_right hN h0
