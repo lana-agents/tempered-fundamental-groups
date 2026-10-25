@@ -166,6 +166,7 @@ import TemperedFundamentalGroups.SemiAnbd.IncidenceTree
 import TemperedFundamentalGroups.SemiAnbd.MidpointAdj
 import TemperedFundamentalGroups.SemiAnbd.SemiGraph
 import TemperedFundamentalGroups.SemiAnbd.TempSlim
+import TemperedFundamentalGroups.SemiAnbd.TempSlimPi1
 import TemperedFundamentalGroups.SemiAnbd.TreeFixedPoint
 import TemperedFundamentalGroups.SemiAnbd.TreeTower
 import TemperedFundamentalGroups.SemiAnbd.TreeTowerCompact
