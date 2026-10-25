@@ -1,0 +1,214 @@
+/-
+Copyright (c) 2026 LANA Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: LANA Project
+-/
+import TemperedFundamentalGroups.SemistableReduction.NodeCoverSplit
+import TemperedFundamentalGroups.SemistableReduction.NodeCoverBase
+import TemperedFundamentalGroups.SemistableReduction.NodeCoverCompositum
+
+/-!
+# "S4-local" over an étale neighbourhood of the node
+
+Let `O` be a discrete valuation ring with uniformizer `s`, `R_M` the local ring of the node
+`u v = s ^ M` at its closed point and `R_1` that of the regular node, with fraction fields `K_M`,
+`K_1` (`K_1 = K_M(X)`, `X ^ M ∈ K_M`, `[K_1 : K_M] = M`, e.g. `K(T ^ M) ⊆ K(T)`). Write
+`M = q M'` and let `K_M` contain a primitive `M'`-th root of unity.
+
+**`NodeCover.exists_etale_tensor_algEquiv_pi`** (the lemma "S4-local" of the MR12 plan in
+étale-local form, the generalisation of [Mzk1] §3.12 to arbitrary thickness; a special case of
+[MzkExt] Thm. 3.3 with Lemmas 3.1, 3.2): let `L / K_M` be finite Galois of degree prime to `q`
+whose normalisation over `R_M` is unramified over the punctured spectrum `W_M`. Then there are an
+étale neighbourhood `(R', P)` of the closed point of `R_M` and `e ∣ M'` such that, with
+`E = K_M ⊗_{R_M} R'_P` (the function field of the neighbourhood, a field),
+`E ⊗_{K_M} L ≅ ∏ E ⊗_{K_M} K_M(X ^ (q (M' / e)))`: over the étale neighbourhood the cover is a
+product of Kummer covers `u = w ^ e` of the node.
+
+Proof: the normalisation `B₁` of `R_1` in a factor `L₁` of `L ⊗_{K_M} K_1` is étale over `R_1`
+(gap G1 and purity, `NodeCover.etale_of_baseChange`); it splits over an étale neighbourhood
+(`EtaleSplit.exists_etale_section`), which embeds `L` into `F = E ⊗_{K_M} K_1`
+(`NodeCover.exists_algHom_tensorTensor`); the field step `NodeCover.tensor_algEquiv_pi_of_algHom`
+concludes. This is route (a) of the lead decision for S4 G2 (étale-local splitting instead of the
+strict henselisation); the descent from the local ring `R_M` to the node chart is separate.
+
+## References
+
+* [Mzk1] S. Mochizuki, *The geometry of the compactification of the Hurwitz scheme*, §3.12.
+* [MzkExt] S. Mochizuki, *Extending families of curves over log regular schemes*, J. reine angew.
+  Math. 511 (1999), Thm. 3.3, Lemmas 3.1, 3.2.
+-/
+
+open Algebra TensorProduct IsLocalRing IntermediateField Module
+
+universe u
+
+namespace SemistableReduction.NodeCover
+
+section Separable
+
+/-- A field generated over `K₁` by the image of a separable extension `L / K₀` is separable over
+`K₁`. -/
+theorem isSeparable_of_surjective_productMap {K₀ K₁ L L₁ : Type*} [Field K₀] [Field K₁] [Field L]
+    [Field L₁] [Algebra K₀ K₁] [Algebra K₀ L] [Algebra K₀ L₁] [Algebra K₁ L₁] [Algebra L L₁]
+    [IsScalarTower K₀ K₁ L₁] [IsScalarTower K₀ L L₁] [Algebra.IsSeparable K₀ L]
+    (hgen : Function.Surjective (Algebra.TensorProduct.productMap
+      (IsScalarTower.toAlgHom K₀ L L₁) (IsScalarTower.toAlgHom K₀ K₁ L₁))) :
+    Algebra.IsSeparable K₁ L₁ := by
+  have hS : ∀ y ∈ Set.range (algebraMap L L₁), IsSeparable K₁ y := by
+    rintro _ ⟨l, rfl⟩
+    have h0 : IsSeparable K₀ (algebraMap L L₁ l) :=
+      (Algebra.IsSeparable.isSeparable K₀ l).map (f := IsScalarTower.toAlgHom K₀ L L₁)
+        (algebraMap L L₁).injective
+    exact h0.tower_top K₁
+  have htop : IntermediateField.adjoin K₁ (Set.range (algebraMap L L₁)) = ⊤ := by
+    rw [_root_.eq_top_iff]
+    rintro y -
+    obtain ⟨t, rfl⟩ := hgen y
+    induction t using TensorProduct.induction_on with
+    | zero => simp
+    | tmul l k =>
+      rw [Algebra.TensorProduct.productMap_apply_tmul, IsScalarTower.coe_toAlgHom',
+        IsScalarTower.coe_toAlgHom', mul_comm]
+      exact mul_mem (IntermediateField.algebraMap_mem _ k) (subset_adjoin _ _ ⟨l, rfl⟩)
+    | add a b ha hb => rw [map_add]; exact add_mem ha hb
+  have := (isSeparable_adjoin_iff_isSeparable K₁ _).mpr hS
+  rw [htop] at this
+  exact Algebra.IsSeparable.of_algHom K₁ (⊤ : IntermediateField K₁ L₁) topEquiv.symm.toAlgHom
+
+end Separable
+
+section Node
+
+open Node
+
+variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {s : O} {M : ℕ}
+  [NeZero M] [(closedPoint s (s ^ M)).IsPrime] [(closedPoint s s).IsPrime]
+
+local notation "R_M" => Localization.AtPrime (closedPoint s (s ^ M))
+local notation "R_1" => Localization.AtPrime (closedPoint s s)
+
+attribute [local instance] Node.localKummerAlgebra Algebra.TensorProduct.rightAlgebra
+
+set_option maxHeartbeats 1000000 in
+-- The many tensor product and quotient algebra structures make elaboration of this proof slow.
+/-- **"S4-local", étale-local form** (see the module docstring). -/
+theorem exists_etale_tensor_algEquiv_pi (hs : Irreducible s) {q M' : ℕ} (hqM : q * M' = M)
+    (hq : 0 < q) (hM' : 0 < M')
+    (K_M : Type u) [Field K_M] [Algebra R_M K_M] [IsFractionRing R_M K_M]
+    (K_1 : Type u) [Field K_1] [Algebra R_1 K_1] [IsFractionRing R_1 K_1] [Algebra K_M K_1]
+    [Algebra R_M K_1] [IsScalarTower R_M K_M K_1] [IsScalarTower R_M R_1 K_1]
+    {X : K_1} {x : K_M} (hx : X ^ M = algebraMap K_M K_1 x) (hX : K_M⟮X⟯ = ⊤)
+    (hfin : finrank K_M K_1 = M) {ζ : K_M} (hζ : IsPrimitiveRoot ζ M')
+    (L : Type u) [Field L] [Algebra K_M L] [Algebra R_M L] [IsScalarTower R_M K_M L]
+    [FiniteDimensional K_M L] [IsGalois K_M L] (hL : (finrank K_M L).Coprime q)
+    (B : Type u) [CommRing B] [Algebra R_M B] [Algebra B L] [IsScalarTower R_M B L]
+    [IsIntegralClosure B R_M L]
+    (hunr : ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap R_M B) ≠ maximalIdeal R_M →
+      Algebra.IsUnramifiedAt R_M Q) :
+    ∃ (R' : Type u) (_ : CommRing R') (_ : Algebra R_M R') (_ : Algebra.Etale R_M R')
+      (P : Ideal R') (_ : P.IsPrime) (_ : P.LiesOver (maximalIdeal R_M)),
+      ∃ (E : Type u) (_ : Field E) (_ : Algebra K_M E),
+        Nonempty (K_M ⊗[R_M] Localization.AtPrime P ≃ₐ[K_M] E) ∧ ∃ e, e ∣ M' ∧ ∃ r : ℕ,
+          Nonempty (E ⊗[K_M] L ≃ₐ[E] (Fin r → E ⊗[K_M] K_M⟮X ^ (q * (M' / e))⟯)) := by
+  have := ThicknessOne.isMaximal_span hs
+  have := Node.isDomain_localization s M hs.ne_zero
+  have := Node.isNoetherianRing_localization s M
+  have := Node.isIntegrallyClosed_localization s M hs.ne_zero
+  have := ThicknessOne.isDomain R_1 hs.ne_zero
+  have := ThicknessOne.isNoetherianRing (s := s) R_1
+  have := ThicknessOne.isIntegrallyClosed R_1 hs.ne_zero
+  have := Node.localKummer_finite s M
+  have : FiniteDimensional K_M K_1 :=
+    Module.finite_of_finrank_pos (by rw [hfin]; exact Nat.pos_of_neZero M)
+  have : IsLocalHom (algebraMap R_M R_1) := Node.isLocalHom_localKummer s M
+  have hκ' : Function.Bijective (IsLocalRing.ResidueField.map (algebraMap R_M R_1)) :=
+    residueField_map_localKummer_bijective s M
+  -- the compositum `L₁`, a factor of `K_1 ⊗_{K_M} L`
+  obtain ⟨𝔪, h𝔪⟩ := Ideal.exists_maximal (K_1 ⊗[K_M] L)
+  let L₁ := (K_1 ⊗[K_M] L) ⧸ 𝔪
+  letI : Field L₁ := Ideal.Quotient.field 𝔪
+  have hgen : Function.Surjective (Algebra.TensorProduct.productMap
+      (IsScalarTower.toAlgHom K_M L L₁) (IsScalarTower.toAlgHom K_M K_1 L₁)) := by
+    intro y
+    obtain ⟨t, rfl⟩ := Ideal.Quotient.mk_surjective y
+    induction t using TensorProduct.induction_on with
+    | zero => exact ⟨0, by simp⟩
+    | tmul k l =>
+      refine ⟨l ⊗ₜ k, ?_⟩
+      rw [Algebra.TensorProduct.productMap_apply_tmul, IsScalarTower.coe_toAlgHom',
+        IsScalarTower.coe_toAlgHom', ← Ideal.Quotient.mk_algebraMap,
+        ← Ideal.Quotient.mk_algebraMap, ← map_mul]
+      congr 1
+      change ((1 : K_1) ⊗ₜ[K_M] l) * (k ⊗ₜ[K_M] (1 : L)) = k ⊗ₜ[K_M] l
+      rw [Algebra.TensorProduct.tmul_mul_tmul, one_mul, mul_one]
+    | add a b ha hb =>
+      obtain ⟨a', ha'⟩ := ha
+      obtain ⟨b', hb'⟩ := hb
+      exact ⟨a' + b', by rw [map_add, ha', hb', map_add]⟩
+  have : Algebra.IsSeparable K_1 L₁ := isSeparable_of_surjective_productMap hgen
+  have : FiniteDimensional K_1 L₁ := Module.Finite.of_surjective
+    (Ideal.Quotient.mkₐ K_1 𝔪).toLinearMap (Ideal.Quotient.mkₐ_surjective K_1 𝔪)
+  -- its normalisation `B₁` over `R_1` is finite étale
+  let B₁ := integralClosure R_1 L₁
+  have hB₁ : Algebra.Etale R_1 B₁ :=
+    etale_of_baseChange hs K_M K_1 L B L₁ hgen B₁ hunr
+  have : Module.Finite R_1 B₁ := IsIntegralClosure.finite R_1 K_1 L₁ B₁
+  have : IsFractionRing B₁ L₁ := integralClosure.isFractionRing_of_finite_extension K_1 L₁
+  -- the embedding into the compositum over an étale neighbourhood
+  obtain ⟨R', _, _, _, P, _, _, P₁, _, h₁, ⟨ι⟩⟩ :=
+    exists_algHom_tensorTensor (R := R_M) (C := R_1) K_M K_1 hκ' L L₁ B₁
+  have hκ := bijective_mapₐ_of_forall_sub_mem (exists_sub_mem_of_bijective hκ')
+  have : Algebra.IsIntegral R_M R_1 := Algebra.IsIntegral.of_finite R_M R_1
+  have hE : IsField (K_M ⊗[R_M] Localization.AtPrime P) := isField_tensor_localization K_M P
+  have hF := isField_tensor_tensor K_M K_1 P hκ P₁ h₁
+  -- genuine field structures on `E` and `F = E ⊗_{K_M} K_1` (quotients by `⊥`)
+  set E₀ := K_M ⊗[R_M] Localization.AtPrime P
+  have : Nontrivial E₀ := ⟨hE.exists_pair_ne⟩
+  have : (⊥ : Ideal E₀).IsMaximal := Ring.isField_iff_maximal_bot.mp hE
+  let E := E₀ ⧸ (⊥ : Ideal E₀)
+  letI : Field E := Ideal.Quotient.field _
+  let φ : E₀ ≃ₐ[K_M] E := (AlgEquiv.quotientBot K_M E₀).symm
+  refine ⟨R', inferInstance, inferInstance, inferInstance, P, inferInstance, inferInstance, E,
+    inferInstance, inferInstance, ⟨φ⟩, ?_⟩
+  let F₀ := E ⊗[K_M] K_1
+  let φF : E₀ ⊗[K_M] K_1 ≃ₐ[K_M] F₀ := Algebra.TensorProduct.congr φ AlgEquiv.refl
+  have hF₀ : IsField F₀ := MulEquiv.isField hF φF.symm.toRingEquiv.toMulEquiv
+  have : Nontrivial F₀ := ⟨hF₀.exists_pair_ne⟩
+  have : (⊥ : Ideal F₀).IsMaximal := Ring.isField_iff_maximal_bot.mp hF₀
+  let F := F₀ ⧸ (⊥ : Ideal F₀)
+  letI : Field F := Ideal.Quotient.field _
+  have : IsScalarTower K_M K_1 F₀ := IsScalarTower.of_algebraMap_eq fun k ↦
+    ((includeRight : K_1 →ₐ[K_M] F₀).commutes k).symm
+  have : IsScalarTower K_M E F₀ := IsScalarTower.of_algebraMap_eq fun k ↦
+    ((includeLeft : E →ₐ[K_M] F₀).commutes k).symm
+  let ι' : L →ₐ[K_M] F :=
+    (((AlgEquiv.quotientBot K_M F₀).symm.toAlgHom.comp φF.toAlgHom).comp ι)
+  have : FiniteDimensional E F := Module.Finite.of_surjective
+    (Ideal.Quotient.mkₐ E (⊥ : Ideal F₀)).toLinearMap (Ideal.Quotient.mkₐ_surjective E _)
+  have hXalg : IsIntegral K_M X := .of_finite K_M X
+  have hXF : E⟮algebraMap K_1 F X⟯ = ⊤ := by
+    have h1 : Algebra.adjoin K_M {X} = ⊤ := by
+      rw [← adjoin_simple_toSubalgebra_of_isAlgebraic hXalg.isAlgebraic, hX, top_toSubalgebra]
+    have h2 := Algebra.TensorProduct.adjoin_one_tmul_image_eq_top (A := E) {X} h1
+    rw [Set.image_singleton] at h2
+    have h4 : Algebra.adjoin E {algebraMap K_1 F X} = ⊤ := by
+      rw [_root_.eq_top_iff]
+      rintro y -
+      obtain ⟨z, rfl⟩ := Ideal.Quotient.mkₐ_surjective E (⊥ : Ideal F₀) y
+      have hz : z ∈ Algebra.adjoin E {(1 : E) ⊗ₜ[K_M] X} := h2 ▸ Algebra.mem_top
+      have := (Subalgebra.mem_map (f := Ideal.Quotient.mkₐ E (⊥ : Ideal F₀))).mpr ⟨z, hz, rfl⟩
+      rw [AlgHom.map_adjoin, Set.image_singleton] at this
+      exact this
+    have h3 : IsIntegral E (algebraMap K_1 F X) := .of_finite E _
+    apply toSubalgebra_injective
+    rw [adjoin_simple_toSubalgebra_of_isAlgebraic h3.isAlgebraic, top_toSubalgebra]
+    exact h4
+  have hFdim : finrank E F = q * M' := by
+    rw [(AlgEquiv.quotientBot E F₀).toLinearEquiv.finrank_eq, Module.finrank_baseChange, hfin,
+      hqM]
+  have hx' : X ^ (q * M') = algebraMap K_M K_1 x := by rw [hqM, hx]
+  exact tensor_algEquiv_pi_of_algHom E hq hM' hζ hx' hXF hFdim hL ι'
+
+end Node
+
+end SemistableReduction.NodeCover
