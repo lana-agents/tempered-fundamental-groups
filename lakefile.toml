@@ -29,7 +29,7 @@ name = "TemperedFundamentalGroups"
 [[require]]
 name = "elliptic-curves"
 git = "https://github.com/lana-agents/elliptic-curves"
-rev = "bebec3fc9f2602e81c83e5236789572a541c85fb"
+rev = "e70086a9c442dcfe76152fa03777091c50985d43"
 
 # The étale fundamental group of an affine orbifold `[Spec R / A]` (`Pi1.Orbifold.etalePi1`), its
 # fibre-functor topology (`Pi1.Orbifold.FibreAut`) and the coded finite étale algebras
@@ -37,7 +37,7 @@ rev = "bebec3fc9f2602e81c83e5236789572a541c85fb"
 [[require]]
 name = "pi1"
 git = "https://github.com/lana-agents/pi1"
-rev = "3fedb19347f488773f39dba6b3b20065596a7e4e"
+rev = "119c4aa9648f184b3a438ec6a3611a51a605618a"
 
 # Serre's finiteness theorem on projective space and Zariski's connectedness theorem for integral
 # projective schemes over a complete discrete valuation ring
