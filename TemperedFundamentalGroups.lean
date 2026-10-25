@@ -159,14 +159,17 @@ import TemperedFundamentalGroups.SemiAnbd.CharacterEstrangement
 import TemperedFundamentalGroups.SemiAnbd.CombGC
 import TemperedFundamentalGroups.SemiAnbd.CoverVertex
 import TemperedFundamentalGroups.SemiAnbd.Def24
+import TemperedFundamentalGroups.SemiAnbd.DenseSlim
 import TemperedFundamentalGroups.SemiAnbd.DepthTree
 import TemperedFundamentalGroups.SemiAnbd.DihedralLine
 import TemperedFundamentalGroups.SemiAnbd.EllipticEstrangement
 import TemperedFundamentalGroups.SemiAnbd.Estrangement
 import TemperedFundamentalGroups.SemiAnbd.FixedArc
 import TemperedFundamentalGroups.SemiAnbd.HNNLength
+import TemperedFundamentalGroups.SemiAnbd.HNNResFinite
 import TemperedFundamentalGroups.SemiAnbd.HNNTree
 import TemperedFundamentalGroups.SemiAnbd.IncidenceTree
+import TemperedFundamentalGroups.SemiAnbd.LoopProfinite
 import TemperedFundamentalGroups.SemiAnbd.LoopTower
 import TemperedFundamentalGroups.SemiAnbd.LoopTowerBounded
 import TemperedFundamentalGroups.SemiAnbd.LoopTowerEdge
@@ -176,6 +179,7 @@ import TemperedFundamentalGroups.SemiAnbd.LoopTowerVertex
 import TemperedFundamentalGroups.SemiAnbd.MidpointAdj
 import TemperedFundamentalGroups.SemiAnbd.OneGonNotEstranged
 import TemperedFundamentalGroups.SemiAnbd.OneGonOpen
+import TemperedFundamentalGroups.SemiAnbd.OneGonOpenGraphic
 import TemperedFundamentalGroups.SemiAnbd.OneGonSigma
 import TemperedFundamentalGroups.SemiAnbd.OneGonSysEstranged
 import TemperedFundamentalGroups.SemiAnbd.OneGonTower
