@@ -5,6 +5,8 @@ Authors: LANA Project
 -/
 import TemperedFundamentalGroups.SemiAnbd.Def24
 import Pi1.Surface.ProSigma
+import Pi1.Surface.SlimProSigma
+import TemperedFundamentalGroups.SemiAnbd.TempSlimPi1
 
 /-!
 # The pro-`Σ` semi-graph of anabelioids of the stable 1-gon is totally elevated
@@ -23,7 +25,9 @@ inertia generators of the two branches at `xy = t` are inverse to each other) an
 * **`oneGonSigma_totallyElevated`** ([SemiAnbd] Def 2.4(i) for `G^Σ`, the "totally elevated" of
   Ex 2.10): if `Σ` contains a prime, `oneGonSigma P` is totally elevated (from
   `Pi1.SurfaceGroup.exists_elevated_proSigma`: all cusps of order exactly `n³`, so the two branches
-  of the loop have the same kernel and the quotients form a `π₁`-epimorphic approximator).
+  of the loop have the same kernel and the quotients form a `π₁`-epimorphic approximator);
+* **`oneGonSigma_verticiallySlim`** ([SemiAnbd] Def 2.4(ii) for `G^Σ`): `Π^Σ_{0,3}` is slim
+  (`Pi1.SurfaceGroup.isSlim_proSigma`).
 -/
 
 open CategoryTheory Pi1 Pi1.Profinite Pi1.SurfaceGroup
@@ -148,5 +152,13 @@ theorem oneGonSigma_totallyElevated {ℓ : ℕ} (hℓ : ℓ.Prime) (hP : P ℓ) 
     have h2 := hconj' e β q
     rw [← this] at h2
     exact h2
+
+/-- **`G^Σ` of the stable 1-gon is verticially slim** ([SemiAnbd] Def 2.4(ii), Ex 2.10), for any
+`Σ` containing a prime `ℓ`. -/
+theorem oneGonSigma_verticiallySlim {ℓ : ℕ} (hℓ : ℓ.Prime) (hP : P ℓ) :
+    (oneGonSigma P).VerticiallySlim := fun _ ↦
+  (tempSlim_iff_isSlim _).2
+    (SurfaceGroup.isSlim_proSigma (g := 0) (r := 3) (by norm_num) (by unfold IsHyperbolic; omega)
+      hℓ hP)
 
 end TemperedFundamentalGroups
