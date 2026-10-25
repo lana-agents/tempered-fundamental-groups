@@ -37,7 +37,7 @@ rev = "e70086a9c442dcfe76152fa03777091c50985d43"
 [[require]]
 name = "pi1"
 git = "https://github.com/lana-agents/pi1"
-rev = "ec87bbd7c078f17cfe02fc474d488390231daaa4"
+rev = "d7e705ffcffbf9c87b64418a0cf864245be982cc"
 
 # Serre's finiteness theorem on projective space and Zariski's connectedness theorem for integral
 # projective schemes over a complete discrete valuation ring

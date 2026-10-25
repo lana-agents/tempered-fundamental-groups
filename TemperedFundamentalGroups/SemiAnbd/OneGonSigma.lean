@@ -8,6 +8,7 @@ import Pi1.Surface.ProSigma
 import Pi1.Surface.SlimProSigma
 import TemperedFundamentalGroups.SemiAnbd.TempSlimPi1
 
+import Pi1.Surface.EstrangedProSigma
 /-!
 # The pro-`Σ` semi-graph of anabelioids of the stable 1-gon is totally elevated
 
@@ -26,6 +27,8 @@ inertia generators of the two branches at `xy = t` are inverse to each other) an
   Ex 2.10): if `Σ` contains a prime, `oneGonSigma P` is totally elevated (from
   `Pi1.SurfaceGroup.exists_elevated_proSigma`: all cusps of order exactly `n³`, so the two branches
   of the loop have the same kernel and the quotients form a `π₁`-epimorphic approximator);
+* **`oneGonSigma_totallyEstranged`** ([SemiAnbd] Def 2.4(iv)): the branch inertia groups are
+  estranged (pi1 `SurfaceGroup.cuspInertiaSigma_estranged_zero_three`).
 * **`oneGonSigma_verticiallySlim`** ([SemiAnbd] Def 2.4(ii) for `G^Σ`): `Π^Σ_{0,3}` is slim
   (`Pi1.SurfaceGroup.isSlim_proSigma`).
 -/
@@ -160,5 +163,60 @@ theorem oneGonSigma_verticiallySlim {ℓ : ℕ} (hℓ : ℓ.Prime) (hP : P ℓ) 
   (tempSlim_iff_isSlim _).2
     (SurfaceGroup.isSlim_proSigma (g := 0) (r := 3) (by norm_num) (by unfold IsHyperbolic; omega)
       hℓ hP)
+
+/-- The cusp index of a branch of the 1-gon: `c₀`, `c₁` for the two branches of the loop, `c₂` for
+the cusp. -/
+def oneGonIdx : Bool → Bool → Fin 3
+  | false, true => 0
+  | false, false => 1
+  | true, _ => 2
+
+/-- The range of `ℤ^Σ → Γ^Σ`, `1 ↦ γ⁻¹`, is that of `1 ↦ γ`. -/
+theorem range_map_zpowersHom_inv {Γ : Type} [Group Γ] (γ : Γ) :
+    (ProSigmaCompletion.map (P := P) (zpowersHom _ γ⁻¹)).range =
+      (ProSigmaCompletion.map (P := P) (zpowersHom _ γ)).range := by
+  set ν : Multiplicative ℤ →* Multiplicative ℤ := zpowersHom _ (Multiplicative.ofAdd (-1))
+  have hν : (zpowersHom _ γ).comp ν = zpowersHom _ γ⁻¹ := by
+    ext; simp [ν]
+  have hνν : ν.comp ν = MonoidHom.id _ := by
+    ext; simp [ν]
+  have hsurj : Function.Surjective (ProSigmaCompletion.map (P := P) ν) := fun x ↦
+    ⟨ProSigmaCompletion.map ν x, by
+      rw [← MonoidHom.comp_apply, ProSigmaCompletion.map_comp, hνν, ProSigmaCompletion.map_id,
+        MonoidHom.id_apply]⟩
+  rw [← hν, ← ProSigmaCompletion.map_comp, MonoidHom.range_comp,
+    MonoidHom.range_eq_top.mpr hsurj]
+  exact (MonoidHom.range_eq_map _).symm
+
+theorem oneGonSigma_brRange (e β : Bool) (h : oneGon.ζ (e, β) = some ()) :
+    (oneGonSigma P).brRange e β () h =
+      (SurfaceGroup.cuspInertiaSigma P (g := 0) (r := 3) (oneGonIdx e β)).range := by
+  rw [SemiGraphOfAnabelioids.brRange, oneGonSigma_brHom]
+  rcases e <;> rcases β
+  · exact range_map_zpowersHom_inv _
+  · rfl
+  · exact absurd h (by simp [oneGon])
+  · rfl
+
+/-- **`G^Σ` of the stable 1-gon is totally estranged** ([SemiAnbd] Def 2.4(iv), Ex 2.10): the
+branch inertia groups `⟨c₀⟩, ⟨c₁⟩, ⟨c₂⟩` of `Π^Σ_{0,3}` are pairwise conjugacy-disjoint and
+malnormal (pi1 `SurfaceGroup.cuspInertiaSigma_estranged_zero_three`), for every `Σ`. -/
+theorem oneGonSigma_totallyEstranged : (oneGonSigma P).TotallyEstranged := by
+  intro e β v h e' β' h' g hr
+  obtain rfl : v = () := rfl
+  rw [oneGonSigma_brRange e β h, oneGonSigma_brRange e' β' h']
+  obtain ⟨h1, h2⟩ := SurfaceGroup.cuspInertiaSigma_estranged_zero_three (P := P)
+  by_cases hb : (e', β') = (e, β)
+  · obtain ⟨rfl, rfl⟩ := Prod.ext_iff.mp hb
+    rcases hr with hr | hr
+    · exact absurd hb hr
+    · rw [oneGonSigma_brRange _ _ h] at hr
+      exact h2 _ g hr
+  · have hf : oneGon.ζ (true, false) ≠ some () := by intro hx; cases hx
+    refine h1 _ _ ?_ g
+    intro hidx
+    apply hb
+    rcases e <;> rcases β <;> rcases e' <;> rcases β' <;>
+      first | rfl | exact absurd h hf | exact absurd h' hf | (simp [oneGonIdx] at hidx)
 
 end TemperedFundamentalGroups
