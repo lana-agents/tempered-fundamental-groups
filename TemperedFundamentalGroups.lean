@@ -168,6 +168,7 @@ import TemperedFundamentalGroups.SemiAnbd.HNNLength
 import TemperedFundamentalGroups.SemiAnbd.HNNTree
 import TemperedFundamentalGroups.SemiAnbd.IncidenceTree
 import TemperedFundamentalGroups.SemiAnbd.LoopTower
+import TemperedFundamentalGroups.SemiAnbd.LoopTowerEdge
 import TemperedFundamentalGroups.SemiAnbd.LoopTowerVertex
 import TemperedFundamentalGroups.SemiAnbd.MidpointAdj
 import TemperedFundamentalGroups.SemiAnbd.OneGonSigma

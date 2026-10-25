@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: LANA Project
 -/
 import Mathlib.Topology.Algebra.ClopenNhdofOne
-import TemperedFundamentalGroups.SemiAnbd.LoopTowerVertex
+import TemperedFundamentalGroups.SemiAnbd.LoopTowerEdge
 import TemperedFundamentalGroups.SemiAnbd.OneGonSigma
 
 /-!
@@ -21,6 +21,10 @@ fundamental group (the inverse limit of the HNN level groups, `SemiAnbd/LoopTowe
   `oneGonSigma_totallyElevated` ([SemiAnbd] Def 2.4(i), Ex 2.10).
 * `oneGon_sep`: the levels separate the points of `Π^Σ_{0,3}` (every open subgroup of `ℤ^Σ` of
   index `m` contains the kernel of a cusp-order-`m³` quotient, pi1 Lemma A).
+* `oneGon_comm`, `oneGon_hnt`, **`oneGon_hedge`**: the edge-like subgroups of the tower are
+  nontrivial (`ℤ^Σ` is commutative; the second branch is nontrivial at a level of cusp order `ℓ³`);
+  with `noBranchSwap_tower`, `isFunctorial_tower`, only estrangement (bridge B3) is missing for
+  `TreeTower.pscAdj_of_estranged` and CG3' on `oneGonTower P`.
 * **`oneGon_tempSlim`** (`tempSlim^Σ` of the MR13 plan, [SemiAnbd] Prop 3.6(iv)/Ex 3.10 for
   `G^Σ`): `π^temp(G^Σ)` of the stable `1`-gon is temp-slim, for every `Σ` containing a prime.
 -/
@@ -144,5 +148,52 @@ theorem oneGon_tempSlim {ℓ : ℕ} (hℓ : ℓ.Prime) (hP : P ℓ) : TempSlim (
   tempSlim_loopGroup oneGon_sep (oneGon_HI hℓ hP)
     ((tempSlim_iff_isSlim _).2 (SurfaceGroup.isSlim_proSigma (g := 0) (r := 3) (by norm_num)
       (by unfold IsHyperbolic; omega) hℓ hP))
+
+/-- `ℤ^Σ` is commutative (`ℤ` is dense). -/
+theorem oneGon_comm (x y : ProSigmaCompletion P (Multiplicative ℤ)) : x * y = y * x := by
+  have hd := (ProSigmaCompletion.denseRange_eta (P := P) (Γ := Multiplicative ℤ)).prodMap
+    (ProSigmaCompletion.denseRange_eta (P := P) (Γ := Multiplicative ℤ))
+  have hcl : IsClosed {p : ProSigmaCompletion P (Multiplicative ℤ) ×
+      ProSigmaCompletion P (Multiplicative ℤ) | p.1 * p.2 = p.2 * p.1} :=
+    isClosed_eq (continuous_fst.mul continuous_snd) (continuous_snd.mul continuous_fst)
+  have hsub : Set.range (Prod.map (ProSigmaCompletion.eta P) (ProSigmaCompletion.eta P)) ⊆
+      {p : ProSigmaCompletion P (Multiplicative ℤ) × ProSigmaCompletion P (Multiplicative ℤ) |
+        p.1 * p.2 = p.2 * p.1} := by
+    rintro _ ⟨⟨a, b⟩, rfl⟩
+    simp only [Prod.map_apply, Set.mem_setOf_eq, ← map_mul, mul_comm a b]
+  exact (hcl.closure_subset_iff.2 hsub) (hd.closure_eq ▸ Set.mem_univ (x, y))
+
+/-- The second branch of the loop is nontrivial at some level (cusp order `ℓ³`). -/
+theorem oneGon_hnt {ℓ : ℕ} (hℓ : ℓ.Prime) (hP : P ℓ) :
+    ∃ (N₀ : Level (oneGonB₀ P) (oneGonB₁ P)) (ε : ProSigmaCompletion P (Multiplicative ℤ)),
+      branch₁ N₀ ε ≠ 1 := by
+  obtain ⟨Q, _, _, _, ρ, -, hρo, -, hc, -, -, -⟩ :=
+    exists_elevated_proSigma (P := P) (g := 0) (r := 3) hℓ.pos
+      (fun p hp hpℓ ↦ (Nat.prime_dvd_prime_iff_eq hp hℓ).1 hpℓ ▸ hP) (by unfold IsHyperbolic; omega)
+  have hord : ∀ β, orderOf (ρ (ProSigmaCompletion.eta P (oneGonGen false β))) = ℓ ^ 3 := by
+    rintro (_ | _)
+    · simp only [oneGonGen, map_inv, orderOf_inv]; exact hc 1
+    · exact hc 0
+  have hloop : ρ.ker.comap (oneGonB₀ P) = ρ.ker.comap (oneGonB₁ P) := by
+    ext x
+    simp only [Subgroup.mem_comap, MonoidHom.mem_ker]
+    obtain ⟨k, hk, hk'⟩ := ProSigmaCompletion.exists_zpow_eq ρ hρo (oneGonGen false true)
+      (oneGonGen false false) x
+    rw [hk, hk', ← orderOf_dvd_iff_zpow_eq_one, ← orderOf_dvd_iff_zpow_eq_one, hord, hord]
+  refine ⟨⟨ρ.ker, ρ.normal_ker, hρo 1, hloop⟩,
+    ProSigmaCompletion.eta P (Multiplicative.ofAdd (1 : ℤ)), fun h ↦ ?_⟩
+  rw [branch₁, MonoidHom.comp_apply, QuotientGroup.mk'_apply, QuotientGroup.eq_one_iff,
+    MonoidHom.mem_ker, ProSigmaCompletion.map_eta, zpowersHom_apply, toAdd_ofAdd, zpow_one,
+    ← orderOf_eq_one_iff, hord] at h
+  have : 1 < ℓ ^ 3 := Nat.one_lt_pow (by norm_num) hℓ.one_lt
+  omega
+
+/-- **The edge-like subgroups of `oneGonTower P` are nontrivial** (the `hedge` hypothesis of
+`TreeTower.pscAdj_of_estranged`, [CombGC] Rem 1.1.3), for `Σ ∋ ℓ`. -/
+theorem oneGon_hedge {ℓ : ℕ} (hℓ : ℓ.Prime) (hP : P ℓ) (e : (oneGonTower P).Sys)
+    (he : ∀ N, ∃ (N' : Level (oneGonB₀ P) (oneGonB₁ P)) (_ : N' ⟶ N),
+      (oneGonTower P).kind N' (e.1 N') = false) :
+    TreeTower.stab e ≠ ⊥ :=
+  stab_ne_bot_of_edge oneGon_comm (oneGon_hnt hℓ hP) e he
 
 end TemperedFundamentalGroups
