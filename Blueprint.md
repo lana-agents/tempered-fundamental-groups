@@ -3227,3 +3227,20 @@ comparison of decomposition groups of components with `π₁` of components (D4)
 research-level; not targeted.** The formal content proved here is the precise statement, its
 equivalence with the estrangement hypothesis of the consumers, necessary conditions, and the
 line (single-cycle) case.
+
+### 12.11 The tree tower of `G^Σ` for the stable 1-gon (bridges B1, B2b, B4; MR13)
+
+`G^Σ` of the stable 1-gon (`SemiAnbd/OneGonSigma.lean`) is a loop of groups: vertex group
+`Π^Σ_{0,3}`, edge group `ℤ^Σ`, branches `c₀`, `c₁⁻¹`. Its tempered fundamental group is the inverse
+limit of the HNN extensions `Q_N *_{φ_N}` over the open normal `N ⊴ Π^Σ_{0,3}` on which both branches
+have the same preimage (the level groups of [SemiAnbd] §3 for a loop), acting on their Bass–Serre
+trees (decision (c) of the MR12 plan).
+
+| # | Statement | Lean | Status |
+|---|---|---|---|
+| B1a | depth criterion for trees; `t`-length of HNN elements (Britton); the subdivided Bass–Serre graph of an HNN extension is a tree, `H` acts by automorphisms | `SimpleGraph.isTree_of_depth` (`SemiAnbd/DepthTree.lean`), `HNNExtension.tLength_mul_of_mul_t_pow` (`SemiAnbd/HNNLength.lean`), `HNNExtension.isTree_bassSerreGraph`, `bassSerreGraph_adj_smul` (`SemiAnbd/HNNTree.lean`) | [L] |
+| B1b | levels of a loop of groups (closed under `⊓`), HNN level groups, transition maps (functorial), the inverse limit `loopGroup`, the functorial tree tower | `LoopTower.Level`, `levelGroup`, `levelMap_comp`, `loopGroup`, `LoopTower.tower`, `isFunctorial_tower` (`SemiAnbd/LoopTower.lean`) | [L] |
+| B4 | inverse-limit topology (topological group, Hausdorff); for compact `Π` separated by the levels, the stabilizer of the base vertex system is `Π` as a topological group, compact | `instIsTopologicalGroup`, `stab_baseSys_eq_range`, `vertexEquiv`, `isCompact_stab_baseSys` (`SemiAnbd/LoopTowerVertex.lean`) | [L] |
+| B2b | [SemiAnbd] Def 2.4(i) at cofinally many levels (level form) ⇒ `HI` of the base system ([SemiAnbd] Prop 2.6 argument); then TS4 ⇒ temp-slim loop group | `LoopTower.HI_baseSys`, `tempSlim_loopGroup` | [L] |
+| 1-gon | approximators are levels; levels separate points of `Π^Σ_{0,3}` (pi1 Lemma A); `HI`; **`π^temp(G^Σ)` of the stable 1-gon is temp-slim** for `Σ ∋ ℓ` | `oneGon_level_of_approximator`, `oneGon_sep`, `oneGon_HI`, **`oneGon_tempSlim`** (`SemiAnbd/OneGonTower.lean`) | [L] |
+| B3 | totally estranged `G^Σ` ⇒ `Estranged` of the tower; `PSCAdj`, CG3' | — | ✗ (needs the pro-`Σ` estrangement of cusp inertia in `Π^Σ_{0,3}`, MR12/pi1) |
