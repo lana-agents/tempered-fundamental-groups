@@ -790,6 +790,7 @@ import TemperedFundamentalGroups.Tempered.InducedUnit
 import TemperedFundamentalGroups.Tempered.Kummer
 import TemperedFundamentalGroups.Tempered.Level
 import TemperedFundamentalGroups.Tempered.MixedCover
+import TemperedFundamentalGroups.Tempered.MulByNCover
 import TemperedFundamentalGroups.Tempered.OrbifoldCover
 import TemperedFundamentalGroups.Tempered.PushLevel
 import TemperedFundamentalGroups.Topology.CountableFibres
