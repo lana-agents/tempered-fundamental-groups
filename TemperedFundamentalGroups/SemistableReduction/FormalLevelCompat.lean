@@ -18,6 +18,11 @@ The reduction `AdmissibleLift.pieceEquiv : N/K ≃ KummerPiece` of a lifted Kumm
 of the level-`n` forms with the formal Kummer form of the special fibre (the `kummer` field of the
 covering, `FormalKummer.kummerEquivOf`) to the equality of maps `N₁ → R̂'` out of the étale
 neighbourhoods, which holds by `FormalLevel.hatLift_unique`.
+
+**`FormalLevel.levelEquiv_compat`**: for residue maps `r j` killing the chosen points `𝔫`, the
+reduction of the `p`-th component of `levelEquiv (1 ⊗ b)` is the transported `p`-th component of
+the special-fibre Kummer form `kummerEquivOf (1 ⊗ b̄)` (via `σ_levelHom`: `σ ∘ levelHom p =
+pieceBaseEquiv ∘ pieceOf`, and `redHat_hatLift`: the reduction of `hatLift (r j)` is `hatOfₐ`).
 -/
 
 universe u
@@ -268,5 +273,157 @@ theorem pieceEquiv_mk_map [IsNoetherianRing R] {N' : Type u} [CommRing N']
 end
 
 end AdmissibleLift
+
+namespace FormalLevel
+
+noncomputable section
+
+section HatRes
+
+variable {R : Type u} [CommRing R] {N₁ : Type u} [CommRing N₁] [Algebra R N₁]
+  {R' : Type u} [CommRing R'] [Algebra R R'] {𝔪 : Ideal R'} [Algebra.FormallyEtale R N₁]
+
+/-- The residue map of `hatLift r` is `r`. -/
+lemma resHat_hatLift (r : N₁ →ₐ[R] R' ⧸ 𝔪) (z : N₁) : resHat 𝔪 (hatLift r z) = r z := by
+  rw [resHat_mk, evalₐ_hatLift, levMap, AlgHom.comp_apply]
+  conv_rhs => rw [← factor_levLift r 1]
+  obtain ⟨w, hw⟩ := Ideal.Quotient.mk_surjective (levLift r 1 z)
+  rw [AlgHom.comp_apply, ← hw]
+  rfl
+
+end HatRes
+
+/-- `redTensorMap` depends only on the ring map. -/
+lemma redTensorMap_congr {O : Type u} [CommRing O] {k : Type u} [Field k] (θ : O →+* k) {c : O}
+    {d : ℕ} (hc : θ c = 0) {N : Type u} [CommRing N] [Algebra (KummerEtale.A c d) N]
+    {T : Type u} [CommRing T] [Algebra (KummerEtale.A (0 : k) d) T] {g₁ g₂ : N →+* T}
+    (h : g₁ = g₂) (hg₁ : ∀ a, g₁ (algebraMap (KummerEtale.A c d) N a) =
+      algebraMap (KummerEtale.A (0 : k) d) T (Node.baseMap θ (FormalKummer.θ_pow (d := d) hc) a))
+    (hg₂ : ∀ a, g₂ (algebraMap (KummerEtale.A c d) N a) =
+      algebraMap (KummerEtale.A (0 : k) d) T (Node.baseMap θ (FormalKummer.θ_pow (d := d) hc) a)) :
+    redTensorMap θ hc g₁ hg₁ = redTensorMap θ hc g₂ hg₂ := by
+  subst h; rfl
+
+open KummerEtale FormalKummer AdmissibleLift
+
+attribute [local instance] KummerNormAtData.algO algRN
+
+variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
+  [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {ϖ : O} {n M' : ℕ} {x y : R}
+  (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
+  {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
+  (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j)
+  (hres : ∀ j, Function.Surjective ((Ideal.Quotient.mk (𝔪 j)).comp (algebraMap O R)))
+  (D : ∀ j, KummerNormAtData ϖ n M' x y B (𝔪 j)) {fk : Rs θ R}
+  (hinjk : Function.Injective fun j ↦ sIdeal (θ := θ) (𝔪 j))
+  (hfk : ∀ j, fk ∈ sIdeal (θ := θ) (𝔪 j))
+  (hradk : ⨅ j, sIdeal (θ := θ) (𝔪 j) ≤ (Ideal.span {fk}).radical)
+  (φ : Node k (0 : k) →ₐ[k] Admissible.Hat fk)
+  (hφu : φ (Node.u _) = algebraMap (Rs θ R) _ (Ideal.Quotient.mk _ x))
+  (hφv : φ (Node.v _) = algebraMap (Rs θ R) _ (Ideal.Quotient.mk _ y))
+  {R' : Type u} [CommRing R'] [Algebra R R'] [Algebra O R'] [IsScalarTower O R R']
+  [IsNoetherianRing R'] [Algebra k (R' ⧸ J θ (R := R'))]
+  (e : Rs θ R ≃ₐ[k] R' ⧸ J θ (R := R'))
+  (he : ∀ r : R, e (Ideal.Quotient.mk _ r) = Ideal.Quotient.mk _ (algebraMap R R' r))
+  {f : R'} (hfe : e fk = fbar θ f)
+  {𝔪' : ι → Ideal R'} [∀ j, (𝔪' j).IsMaximal] (hinj : Function.Injective 𝔪')
+  (hf : ∀ j, f ∈ 𝔪' j) (hrad : ⨅ j, 𝔪' j ≤ (Ideal.span {f}).radical)
+  (hm : ∀ j, (𝔪' j).map (red θ e) ≤ sIdeal (θ := θ) (𝔪 j))
+  [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal]
+  (r : ∀ j, (D j).N₁ →ₐ[R] R' ⧸ 𝔪' j) (hr : ∀ j, ∀ z ∈ (D j).𝔫, r j z = 0)
+  (χ : ∀ p : (Σ j, Fin (D j).r),
+    A (ϖ ^ (D p.1).m p.2) ((D p.1).d p.2) →ₐ[O] FormalPatchLevel.Hat f)
+  (hχ : ∀ p a, χ p a = algebraMap R (FormalPatchLevel.Hat f) (chart hxy (D p.1) p.2 a))
+  (ε : ι → FormalPatchLevel.Hat f) (hε : ∀ j, ε j = CompletionProd.idem hinj hf hrad j)
+
+omit [IsNoetherianRing R] [Fintype ι] [DecidableEq ι] [IsScalarTower O R R']
+  [IsNoetherianRing R'] [∀ j, (𝔪' j).IsMaximal] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+include hr in
+/-- The reduction of the level lift `hatLift (r j)` is the special-fibre lift `hatOfₐ`. -/
+theorem redHat_hatLift (j : ι) :
+    (redHat 𝔪 e he hm j).comp (hatLift (r j)) = hatOfₐ (𝔪 j) (hJ j) (hres j) (D j) := by
+  refine hatHom_ext (hsurj0_of (𝔪 j) (hJ j) (hres j) (D j)) _ _ (fun z hz ↦ ?_) (fun z hz ↦ ?_)
+  · change resHat _ (CompletionMap.map (red θ e) (hm j) (hatLift (r j) z)) = 0
+    rw [resHat_map, resHat_hatLift, hr j z hz, map_zero]
+  · rw [hatOfₐ_eq_hatLift, resHat_hatLift]
+    exact resMap_eq_zero _ _ _ hz
+
+omit [IsScalarTower O R R'] in
+include hr he hm in
+/-- **The reductions of the level and special-fibre piece maps agree**:
+`σ ∘ levelHom p = pieceBaseEquiv ∘ pieceOf j i` as maps `N₁ → (R̂'/J)/(1 − Ê εⱼ)`. -/
+theorem σ_levelHom (p : Σ j, Fin (D j).r)
+    (hεψ : ψ θ f (ε p.1) = Admissible.hatEquiv e hfe (CompletionProd.idem hinjk hfk hradk p.1)) :
+    letI := nodeAlgebra (D p.1).N₁ (ϖ ^ (D p.1).m p.2) ((D p.1).d p.2)
+      (huv_i (D p.1).huv (D p.1).hmd p.2)
+    (σ θ f (Admissible.φT (h := hfe) φ) ((D p.1).hd p.2) (χ p) (ε p.1)
+        (Admissible.hatEquiv e hfe (CompletionProd.idem hinjk hfk hradk p.1)) hεψ).comp
+      (levelHom hxy hinj hf hrad D r χ hχ ε hε p).toRingHom =
+    (Admissible.pieceBaseEquiv (h := hfe) φ (CompletionProd.idem hinjk hfk hradk p.1)
+        ((D p.1).hd p.2)).toAlgHom.toRingHom.comp
+      (pieceOf hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv p.1 p.2) := by
+  letI := nodeAlgebra (D p.1).N₁ (ϖ ^ (D p.1).m p.2) ((D p.1).d p.2)
+    (huv_i (D p.1).huv (D p.1).hmd p.2)
+  ext z
+  apply (Admissible.baseEquiv (h := hfe) (CompletionProd.idem hinjk hfk hradk p.1)).symm.injective
+  apply (CompletionProd.quotEquiv hinjk hfk hradk p.1).injective
+  have h1 := quotEquiv_σ_pieceIso hxy 𝔪 D hinjk hfk hradk φ e he hfe hinj hf hrad hm χ hχ ε hε p
+    hεψ (hatLift (r p.1) z)
+  have h2 : (CompletionProd.quotEquiv hinjk hfk hradk p.1)
+      ((Admissible.baseEquiv (h := hfe) (CompletionProd.idem hinjk hfk hradk p.1)).symm
+        ((Admissible.pieceBaseEquiv (h := hfe) φ (CompletionProd.idem hinjk hfk hradk p.1)
+          ((D p.1).hd p.2)) (pieceOf hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv p.1 p.2
+            z))) = hatOfₐ (𝔪 p.1) (hJ p.1) (hres p.1) (D p.1) z := by
+    change (CompletionProd.quotEquiv hinjk hfk hradk p.1)
+      ((Admissible.baseEquiv (h := hfe) (CompletionProd.idem hinjk hfk hradk p.1)).symm
+        (Admissible.baseEquiv (h := hfe) (CompletionProd.idem hinjk hfk hradk p.1)
+          ((CompletionProd.quotEquiv hinjk hfk hradk p.1).symm
+            (hatOf (𝔪 p.1) (hJ p.1) (hres p.1) (D p.1) z)))) = _
+    rw [RingEquiv.symm_apply_apply, RingEquiv.apply_symm_apply]
+    rfl
+  calc _ = redHat 𝔪 e he hm p.1 (hatLift (r p.1) z) := h1
+    _ = hatOfₐ (𝔪 p.1) (hJ p.1) (hres p.1) (D p.1) z := by
+      rw [← redHat_hatLift 𝔪 hJ hres D e he hm r hr p.1]; rfl
+    _ = _ := h2.symm
+
+omit [IsScalarTower O R R'] in
+include hr he hm in
+/-- **Compatibility of the level formal Kummer form with the special-fibre one** (S6 G2): on
+`1 ⊗ b`, the reduction (`AdmissibleLift.pieceEquiv`, for the covering transported to the level)
+of the `p`-th component of `levelEquiv` is the transported `p`-th component of
+`kummerEquivOf (1 ⊗ b̄)`. -/
+theorem levelEquiv_compat (b : B) (p : Σ j, Fin (D j).r)
+    (hεψ : ψ θ f (ε p.1) = Admissible.hatEquiv e hfe (CompletionProd.idem hinjk hfk hradk p.1))
+    (hχ' : ∀ a, ψ θ f (χ p a) = Admissible.φT (h := hfe) φ (Admissible.nodeCongr ((D p.1).hd p.2)
+      (Node.baseMap θ (hA (hc_of hϖ hn0 (𝔪 p.1) (D p.1) p.2)) a))) :
+    pieceEquiv f (Admissible.φT (h := hfe) φ) ((D p.1).hd p.2) (χ p) (ε p.1)
+        (Admissible.hatEquiv e hfe (CompletionProd.idem hinjk hfk hradk p.1)) hεψ hθ.out
+        (hc_of hϖ hn0 (𝔪 p.1) (D p.1) p.2) hχ'
+        (Ideal.Quotient.mk _ (levelEquiv hxy hinj hf hrad D r χ hχ ε hε
+          ((1 : FormalPatchLevel.Hat f) ⊗ₜ b) p)) =
+      Admissible.kummerPieceEquiv (h := hfe) φ (CompletionProd.idem hinjk hfk hradk p.1)
+        ((D p.1).hd p.2)
+        (kummerEquivOf hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv
+          ((1 : Admissible.Hat fk) ⊗ₜ Ideal.Quotient.mk _ b) p) := by
+  rw [levelEquiv_one_tmul, pieceEquiv_mk_map, kummerEquivOf_one_tmul]
+  change _ = (Algebra.TensorProduct.map (Admissible.pieceBaseEquiv (h := hfe) φ _ _).toAlgHom
+    (AlgHom.id _ _)) _
+  rw [map_redTensorMap]
+  swap
+  · intro a
+    rw [RingHom.comp_apply, pieceOf_node hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv]
+    exact (Admissible.pieceBaseEquiv (h := hfe) φ (CompletionProd.idem hinjk hfk hradk p.1)
+      ((D p.1).hd p.2)).commutes _
+  letI := nodeAlgebra (D p.1).N₁ (ϖ ^ (D p.1).m p.2) ((D p.1).d p.2)
+    (huv_i (D p.1).huv (D p.1).hmd p.2)
+  exact congrFun (congrArg DFunLike.coe (redTensorMap_congr θ (hc_of hϖ hn0 (𝔪 p.1) (D p.1) p.2)
+    (σ_levelHom hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv e he hfe hinj hf hrad hm r hr
+      χ hχ ε hε p hεψ) _ _)) _
+
+end
+
+end FormalLevel
 
 end SemistableReduction
