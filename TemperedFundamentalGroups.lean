@@ -85,6 +85,7 @@ import TemperedFundamentalGroups.Andre.TateNodePoints
 import TemperedFundamentalGroups.Andre.TateNormalAlgebra
 import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Andre.TateObjectDouble
+import TemperedFundamentalGroups.Andre.TateObjectIsogeny
 import TemperedFundamentalGroups.Andre.TateOrbicurve
 import TemperedFundamentalGroups.Andre.TateProjection
 import TemperedFundamentalGroups.Andre.TateRestrictCrossing
