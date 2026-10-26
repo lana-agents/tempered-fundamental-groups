@@ -136,8 +136,9 @@ theorem exists_cusp' [IsNoetherianRing R] {s : R} {ι : Type} [Finite ι] [Decid
           (CompletionProd.idem hinj hf hrad p.1) (d p.1 p.2)) := by
   haveI := fun j ↦ isMaximal_sIdeal (θ := θ) (𝔪 j) (hJ j)
   haveI := Fintype.ofFinite ι
-  choose r d hd hde Ψ using hloc
-  exact ⟨r, d, hd, hde, ⟨assembleCuspEquiv hinj hf hrad ψ hψ fun j ↦ (Ψ j).some⟩⟩
+  let D := fun j ↦ PointCuspFormData.ofPointCuspForm (hloc j)
+  exact ⟨fun j ↦ (D j).r, fun j ↦ (D j).d, fun j ↦ (D j).hd, fun j ↦ (D j).hde,
+    ⟨cuspEquivOf 𝔪 hJ D hinj hf hrad ψ hψ⟩⟩
 
 omit [Algebra R B] in
 /-- **The closed points of the special fibre are rational** over an algebraically closed `k`:

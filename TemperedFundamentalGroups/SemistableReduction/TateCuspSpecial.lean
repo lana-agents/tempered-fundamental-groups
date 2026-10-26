@@ -115,8 +115,8 @@ theorem covCusp_z_mul_cidem [IsIntegralClosure B (RcT π b₄ t κ) L]
   obtain ⟨j, i⟩ := i
   have hdvd : (covCusp hϖ hker hπ hm hε h3 hE hκ hb₆ he K hζ L hd B hunr φ₀).ce ⟨j, i⟩ ∣
       eP π b₄ t κ e (mC θ π b₄ t κ j) :=
-    (exists_cusp hϖ hker hπ hm hε h3 hE hκ hb₆ (e := e) K hζ L hd B
-      hunr).choose_spec.choose_spec.2.1 j i
+    (pointCuspData hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr (mC θ π b₄ t κ j)
+      (J_le_mC θ π b₄ t κ j) (sC_mem_mC θ π b₄ t κ j)).hde i
   have hz : algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π b₄ t κ) ∈ mC θ π b₄ t κ j := by
     by_contra hz
     rw [eP_of_notMem hz, Nat.dvd_one] at hdvd

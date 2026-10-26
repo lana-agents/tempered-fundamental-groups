@@ -46,6 +46,22 @@ lemma ϖ_mem_nodeIdeal (hker : RingHom.ker θ = Ideal.span {ϖ}) (hm : 1 ≤ m) 
   J_le_nodeIdeal (θ_ϖ hker) hm j (Ideal.mem_map_of_mem _ (by
     rw [hker]; exact Ideal.mem_span_singleton_self ϖ))
 
+/-- The local unramifiedness hypothesis of `exists_kummer_NR` from the global one. -/
+theorem hunrLoc [hθ : Fact (Function.Surjective θ)] {L : Type u} [Field L] [Algebra 𝒩 L]
+    (hker : RingHom.ker θ = Ideal.span {ϖ}) [NeZero m]
+    (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
+    [IsIntegralClosure B 𝒩 L]
+    (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
+      ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
+    (j : Fin 2) (Q : Ideal (integralClosure 𝒩 L)) [Q.IsPrime]
+    (hQ : Q.comap (algebraMap 𝒩 (integralClosure 𝒩 L)) <
+      nodeIdeal b₄ b₆ ϖ m ε (θ_ϖ hker) (Nat.pos_of_neZero m) j) :
+    Algebra.IsUnramifiedAt 𝒩 Q := by
+  haveI := isMaximal_nodeIdeal (b₄ := b₄) (b₆ := b₆) (ε := ε) hθ.out (θ_ϖ hker)
+    (Nat.pos_of_neZero m) j
+  exact PurityLocal.isUnramifiedAt_integralClosure B
+    (hunr _ (ϖ_mem_nodeIdeal hker (Nat.pos_of_neZero m) j)) Q hQ
+
 /-- `exists_kummer_NR` for any normalisation `B`, from unramifiedness over the punctured
 spectra of the closed points of the special fibre. -/
 theorem exists_kummer_NR' [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
@@ -67,11 +83,7 @@ theorem exists_kummer_NR' [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] 
           (CompletionProd.idem (sIdeal_injective (θ := θ) (θ_ϖ hker) (Nat.pos_of_neZero m))
             (fbar_mem_sIdeal (θ_ϖ hker) (Nat.pos_of_neZero m))
             (iInf_sIdeal_le_radical (θ_ϖ hker) (Nat.pos_of_neZero m)) p.1) (hd p.1 p.2)) := by
-  have hm : 1 ≤ m := Nat.pos_of_neZero m
-  refine exists_kummer_NR hϖ hker hε hqM hq hM' K hζ L hL (fun j Q _ hQ ↦ ?_) B hπe
-  haveI := isMaximal_nodeIdeal (b₄ := b₄) (b₆ := b₆) (ε := ε) hθ.out (θ_ϖ hker) hm j
-  exact PurityLocal.isUnramifiedAt_integralClosure B
-    (hunr _ (ϖ_mem_nodeIdeal hker hm j)) Q hQ
+  exact exists_kummer_NR hϖ hker hε hqM hq hM' K hζ L hL (hunrLoc hker B hunr) B hπe
 
 /-- **The admissible covering `cov₀` of the Tate node chart** defined by the special fibre
 `B/JB` of the normalisation `B` of the chart in a tame Galois cover (`C = Cs θ NR B`), given the
@@ -96,17 +108,17 @@ def covNR_of_regular [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDo
     (hπe : θ (ϖ ^ m) = 0)
     (ψ : Polynomial k →ₐ[k] Admissible.Hat (fbar θ (NodeChart.fR (π := ϖ) (e := m) 𝒩))) :
     Admissible.Covering (NodeChart.φ 𝒩 hπe) ψ :=
-  let H := exists_kummer_NR' hϖ hker hε hqM hq hM' K hζ L hL B hunr hπe
+  let D := kummerDataNR hϖ hker hε hqM hq hM' K hζ L hL (hunrLoc hker B hunr) B
   { C := Cs θ 𝒩 B
     finite := finite_Cs hϖ (Nat.pos_of_neZero m) hε h3 hE θ K L B
     etale := etale_Cs_of_regular hϖ hker (Nat.pos_of_neZero m) hε h3 hE K L hreg B hunr
-    ι := Σ j, Fin (H.choose j)
+    ι := Σ j, Fin (D j).r
     idem := fun p ↦ CompletionProd.idem _ _ _ p.1
     isIdempotentElem_idem := fun p ↦ CompletionProd.isIdempotentElem_idem _ _ _ p.1
-    e := fun p ↦ H.choose_spec.choose p.1 p.2
-    e_pos := fun p ↦ H.choose_spec.choose_spec.choose p.1 p.2
+    e := fun p ↦ (D p.1).d p.2
+    e_pos := fun p ↦ (D p.1).hd p.2
     e_ne_zero := fun p h0 ↦ by
-      obtain ⟨c, hc⟩ := H.choose_spec.choose_spec.choose_spec.1 p.1 p.2
+      obtain ⟨c, hc⟩ := (D p.1).hdM p.2
       exact hM'k (by rw [hc, Nat.cast_mul, h0, zero_mul])
     κ := Empty
     cidem := Empty.elim
@@ -114,7 +126,8 @@ def covNR_of_regular [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDo
     ce := Empty.elim
     ce_pos := fun i ↦ i.elim
     ce_ne_zero := fun i ↦ i.elim
-    kummer := H.choose_spec.choose_spec.choose_spec.2.some.trans AlgEquiv.prodUnique.symm }
+    kummer := (kummerEquivNR hϖ hker hε hqM hq hM' K hζ L hL (hunrLoc hker B hunr) B
+      hπe).trans AlgEquiv.prodUnique.symm }
 
 /-- The ring of `covNR_of_regular` is the special fibre of the normalisation. -/
 lemma covNR_of_regular_C [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
@@ -175,6 +188,26 @@ def covNR [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
     Admissible.Covering (NodeChart.φ 𝒩 hπe) ψ :=
   covNR_of_regular hϖ hker hε h3 hE hqM hq hM' hM'k K hζ L hL B
     (fun P _ hϖP hf ↦ hreg_NR hϖ hker (Nat.pos_of_neZero m) hε P hϖP hf) hunr hπe ψ
+
+/-- **The ramification indices of `covNR` divide `M'`.** -/
+theorem covNR_e_dvd [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+    [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
+    [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
+    (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
+    {q M' : ℕ} (hqM : q * M' = m) (hq : 0 < q) (hM' : 0 < M') (hM'k : (M' : k) ≠ 0)
+    (K : Type u) [Field K] [Algebra 𝒩 K] [IsFractionRing 𝒩 K]
+    {ζ : K} (hζ : IsPrimitiveRoot ζ M')
+    (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
+    (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
+    (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
+    [IsIntegralClosure B 𝒩 L]
+    (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
+      ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
+    (hπe : θ (ϖ ^ m) = 0)
+    (ψ : Polynomial k →ₐ[k] Admissible.Hat (fbar θ (NodeChart.fR (π := ϖ) (e := m) 𝒩)))
+    (j : (covNR hϖ hker hε h3 hE hqM hq hM' hM'k K hζ L hL B hunr hπe ψ).ι) :
+    (covNR hϖ hker hε h3 hE hqM hq hM' hM'k K hζ L hL B hunr hπe ψ).e j ∣ M' :=
+  (kummerDataNR hϖ hker hε hqM hq hM' K hζ L hL (hunrLoc hker B hunr) B j.1).hdM j.2
 
 end
 

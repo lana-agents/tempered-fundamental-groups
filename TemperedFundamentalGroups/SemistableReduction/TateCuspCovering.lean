@@ -43,7 +43,8 @@ namespace TateCuspCov
 
 open TateTwoChart
 open AdmissibleLift (J)
-open FormalKummer (Cs Rs sIdeal PointCuspForm)
+open FormalKummer (Cs Rs sIdeal PointCuspForm PointCuspFormData pointCuspFormDataOf)
+open FormalKummer (CuspNormAtData)
 
 noncomputable section
 
@@ -232,69 +233,106 @@ theorem etale_s : (Localization.awayMap (algebraMap (Rs θ (RcT π b₄ t κ))
       (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ)))).Etale :=
   etale_away hϖ hker hπ hm hε h3 hE hκ hb₆ K L B hunr _ fun _ _ hs _ ↦ hs
 
+omit [IsAlgClosed k] hθ in
+include hϖ hker hπ hε hκ h3 hE hζ hd hunr in
+/-- **The normalisation is tamely Kummer at the cusp** (`z ∈ 𝔪`, `s ∈ 𝔪`). -/
+theorem isCuspNormAt_cusp (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaximal]
+    (hJ : J θ (R := RcT π b₄ t κ) ≤ 𝔪)
+    (hs : CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ) ∈ 𝔪)
+    (hz : algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π b₄ t κ) ∈ 𝔪) :
+    Cusp.IsCuspNormAt O e (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ))
+      B 𝔪 := by
+  haveI := isDomain_Rc' hϖ hπ hε h3 hE hκ
+  haveI := finiteType_Rc (O := O) (π := π) (b₄ := b₄) (t := t) (κ := κ)
+  have hϖ𝔪 := hJ (ϖ_mem_J (π := π) (b₄ := b₄) (t := t) (κ := κ) hker)
+  have hinj : Function.Injective (algebraMap (RcT π b₄ t κ) L) := by
+    rw [IsScalarTower.algebraMap_eq (RcT π b₄ t κ) K L]
+    exact (algebraMap K L).injective.comp (IsFractionRing.injective (RcT π b₄ t κ) K)
+  letI := NormLocal.algAtPrime 𝔪 hinj
+  haveI := NormLocal.isScalarTower_algAtPrime 𝔪 hinj
+  set p : Ideal (RcT π b₄ t κ) → Prop := fun q ↦
+    q.map (algebraMap (RcT π b₄ t κ) (Localization.AtPrime 𝔪)) ≠
+      Ideal.span {algebraMap (RcT π b₄ t κ) (Localization.AtPrime 𝔪)
+        (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ))}
+  have hunr' : ∀ (Q : Ideal (integralClosure (RcT π b₄ t κ) L)) [Q.IsPrime],
+      Q.comap (algebraMap (RcT π b₄ t κ) (integralClosure (RcT π b₄ t κ) L)) < 𝔪 →
+        p (Q.comap (algebraMap (RcT π b₄ t κ) (integralClosure (RcT π b₄ t κ) L))) →
+          Algebra.IsUnramifiedAt (RcT π b₄ t κ) Q := fun Q _ hQ hp ↦
+    PurityLocal.isUnramifiedAt_integralClosure_of_pred B p
+      (fun Q' _ hQ' hp' ↦ hunr 𝔪 hϖ𝔪 Q' hQ' fun _ ↦ hp') Q hQ hp
+  have h := isTameCuspKummerAt_cusp hϖ hκ 𝔪 hϖ𝔪 hs hz K hζ L hd
+    (integralClosure (Localization.AtPrime 𝔪) L) fun Q _ h1 h2 ↦
+      NormLocal.isUnramifiedAt_of_pred hinj p hunr' Q h1 (by
+        change (Ideal.comap _ _).map _ ≠ _
+        rwa [show ((Q.comap (algebraMap (Localization.AtPrime 𝔪)
+            (integralClosure (Localization.AtPrime 𝔪) L))).comap
+              (algebraMap (RcT π b₄ t κ) (Localization.AtPrime 𝔪))).map
+            (algebraMap (RcT π b₄ t κ) (Localization.AtPrime 𝔪)) =
+          Q.comap (algebraMap (Localization.AtPrime 𝔪)
+            (integralClosure (Localization.AtPrime 𝔪) L)) from
+          IsLocalization.map_under 𝔪.primeCompl _ _])
+  exact h.isCuspNormAt (B := B)
+
+omit [IsAlgClosed k] [CharZero O] [NeZero e] in
+include hϖ hker hπ hm hε hκ h3 hE hb₆ K L hunr in
+/-- **The local formal cusp form at a point of `h̄ = 0` off the cusp** (`z ∉ 𝔪`): index `1`, by
+purity. -/
+theorem pointCuspForm_etale [IsSepClosed k] (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaximal]
+    (hJ : J θ (R := RcT π b₄ t κ) ≤ 𝔪)
+    (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O (RcT π b₄ t κ))))
+    (hz : algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π b₄ t κ) ∉ 𝔪) :
+    PointCuspForm (θ := θ) (B := B)
+      (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ)) 1 𝔪 := by
+  haveI := finite_Cs hϖ hker hπ hm hε h3 hE hκ hb₆ K L B
+  exact FormalKummer.pointCuspForm_of_etale_special 𝔪 hJ hres hz
+    (etale_away hϖ hker hπ hm hε h3 hE hκ hb₆ K L B hunr _ fun _ _ hzP hz ↦ absurd hz hzP) _
+
+open scoped Classical in
+/-- **The chosen local formal cusp form at a point of `h̄ = 0`** (refactor R1): at the cusp from
+the chosen data of `isCuspNormAt_cusp`, elsewhere (index `1`) a chosen étale form. -/
+def pointCuspData (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaximal]
+    (hJ : J θ (R := RcT π b₄ t κ) ≤ 𝔪)
+    (hs : CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ) ∈ 𝔪) :
+    PointCuspFormData (θ := θ) (B := B)
+      (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ)) (eP π b₄ t κ e 𝔪) 𝔪 :=
+  haveI := finiteType_Rc (O := O) (π := π) (b₄ := b₄) (t := t) (κ := κ)
+  if hz : algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π b₄ t κ) ∈ 𝔪 then
+    (pointCuspFormDataOf 𝔪 hJ (FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ)
+      (CuspNormAtData.ofIsCuspNormAt (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd B
+        hunr 𝔪 hJ hs hz))).mono (dvd_of_eq (eP_of_mem hz).symm)
+  else
+    (PointCuspFormData.ofPointCuspForm (pointCuspForm_etale hϖ hker hπ hm hε h3 hE hκ hb₆ K L B
+      hunr 𝔪 hJ (FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ) hz)).mono
+      (one_dvd _)
+
 include hϖ hker hπ hm hε hκ h3 hE hb₆ hζ hd hunr in
 /-- **The local formal cusp form at a point of `h̄ = 0`**, with indices dividing `eP e 𝔪`. -/
 theorem pointCuspForm (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaximal]
     (hJ : J θ (R := RcT π b₄ t κ) ≤ 𝔪)
     (hs : CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ) ∈ 𝔪) :
     PointCuspForm (θ := θ) (B := B)
-      (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ)) (eP π b₄ t κ e 𝔪) 𝔪 := by
-  haveI := isDomain_Rc' hϖ hπ hε h3 hE hκ
-  haveI := isIntegrallyClosed_Rc' hϖ hker hπ hm hε h3 hE hκ hb₆
-  haveI := finiteType_Rc (O := O) (π := π) (b₄ := b₄) (t := t) (κ := κ)
-  have hϖ𝔪 := hJ (ϖ_mem_J (π := π) (b₄ := b₄) (t := t) (κ := κ) hker)
-  have hres := FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ
-  by_cases hz : algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π b₄ t κ) ∈ 𝔪
-  · rw [eP_of_mem hz]
-    have hinj : Function.Injective (algebraMap (RcT π b₄ t κ) L) := by
-      rw [IsScalarTower.algebraMap_eq (RcT π b₄ t κ) K L]
-      exact (algebraMap K L).injective.comp (IsFractionRing.injective (RcT π b₄ t κ) K)
-    letI := NormLocal.algAtPrime 𝔪 hinj
-    haveI := NormLocal.isScalarTower_algAtPrime 𝔪 hinj
-    set p : Ideal (RcT π b₄ t κ) → Prop := fun q ↦
-      q.map (algebraMap (RcT π b₄ t κ) (Localization.AtPrime 𝔪)) ≠
-        Ideal.span {algebraMap (RcT π b₄ t κ) (Localization.AtPrime 𝔪)
-          (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ))}
-    have hunr' : ∀ (Q : Ideal (integralClosure (RcT π b₄ t κ) L)) [Q.IsPrime],
-        Q.comap (algebraMap (RcT π b₄ t κ) (integralClosure (RcT π b₄ t κ) L)) < 𝔪 →
-          p (Q.comap (algebraMap (RcT π b₄ t κ) (integralClosure (RcT π b₄ t κ) L))) →
-            Algebra.IsUnramifiedAt (RcT π b₄ t κ) Q := fun Q _ hQ hp ↦
-      PurityLocal.isUnramifiedAt_integralClosure_of_pred B p
-        (fun Q' _ hQ' hp' ↦ hunr 𝔪 hϖ𝔪 Q' hQ' fun _ ↦ hp') Q hQ hp
-    have h := isTameCuspKummerAt_cusp hϖ hκ 𝔪 hϖ𝔪 hs hz K hζ L hd
-      (integralClosure (Localization.AtPrime 𝔪) L) fun Q _ h1 h2 ↦
-        NormLocal.isUnramifiedAt_of_pred hinj p hunr' Q h1 (by
-          change (Ideal.comap _ _).map _ ≠ _
-          rwa [show ((Q.comap (algebraMap (Localization.AtPrime 𝔪)
-              (integralClosure (Localization.AtPrime 𝔪) L))).comap
-                (algebraMap (RcT π b₄ t κ) (Localization.AtPrime 𝔪))).map
-              (algebraMap (RcT π b₄ t κ) (Localization.AtPrime 𝔪)) =
-            Q.comap (algebraMap (Localization.AtPrime 𝔪)
-              (integralClosure (Localization.AtPrime 𝔪) L)) from
-            IsLocalization.map_under 𝔪.primeCompl _ _])
-    exact FormalKummer.pointCuspForm_of_isCuspNormAt 𝔪 hJ hres (h.isCuspNormAt (B := B))
-  · rw [eP_of_notMem hz]
-    haveI := finite_Cs hϖ hker hπ hm hε h3 hE hκ hb₆ K L B
-    exact FormalKummer.pointCuspForm_of_etale_special 𝔪 hJ hres hz
-      (etale_away hϖ hker hπ hm hε h3 hE hκ hb₆ K L B hunr _ fun _ _ hzP hz ↦ absurd hz hzP) _
+      (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ)) (eP π b₄ t κ e 𝔪) 𝔪 :=
+  (pointCuspData hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr 𝔪 hJ hs).pointCuspForm
 
-include hϖ hker hπ hm hε hκ h3 hE hb₆ hζ hd hunr in
-/-- **The cusp part of the formal Kummer form** of `C` over the special fibre of `Rc`. -/
-theorem exists_cusp :
+/-- **The cusp part of the formal Kummer form** of `C` over the special fibre of `Rc`, defined from
+the chosen local forms `pointCuspData` (refactor R1). -/
+def cuspEquivTate :
     haveI := fun j ↦ FormalKummer.isMaximal_sIdeal (θ := θ) (mC θ π b₄ t κ j) (J_le_mC θ π b₄ t κ j)
-    ∃ (r : Fin (nC θ π b₄ t κ) → ℕ) (d : ∀ j, Fin (r j) → ℕ), (∀ j i, 0 < d j i) ∧
-      (∀ j i, d j i ∣ eP π b₄ t κ e (mC θ π b₄ t κ j)) ∧
-      Nonempty (Admissible.Hat (sbarC θ π b₄ t κ) ⊗[Rs θ (RcT π b₄ t κ)]
-          Cs θ (RcT π b₄ t κ) B ≃ₐ[Admissible.Hat (sbarC θ π b₄ t κ)]
-        ∀ p : (Σ j, Fin (r j)), Admissible.CuspPiece
+    Admissible.Hat (sbarC θ π b₄ t κ) ⊗[Rs θ (RcT π b₄ t κ)]
+        Cs θ (RcT π b₄ t κ) B ≃ₐ[Admissible.Hat (sbarC θ π b₄ t κ)]
+      ∀ p : (Σ j, Fin (pointCuspData hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr
+          (mC θ π b₄ t κ j) (J_le_mC θ π b₄ t κ j) (sC_mem_mC θ π b₄ t κ j)).r),
+        Admissible.CuspPiece
           (CuspTower.ψb (θ := θ) (RcT π b₄ t κ)
             (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ))
             (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ)))
           (CompletionProd.idem (injective_mC θ π b₄ t κ) (sbar_mem_mC θ π b₄ t κ)
-            (iInf_mC_le θ π b₄ t κ) p.1) (d p.1 p.2)) :=
-  FormalKummer.exists_cusp' (mC θ π b₄ t κ) (J_le_mC θ π b₄ t κ)
-    (fun j ↦ pointCuspForm hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr _ (J_le_mC θ π b₄ t κ j)
-      (sC_mem_mC θ π b₄ t κ j)) _ _ _ _ (Polynomial.aeval_X _)
+            (iInf_mC_le θ π b₄ t κ) p.1)
+          ((pointCuspData hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr
+            (mC θ π b₄ t κ p.1) (J_le_mC θ π b₄ t κ p.1) (sC_mem_mC θ π b₄ t κ p.1)).d p.2) :=
+  FormalKummer.cuspEquivOf (mC θ π b₄ t κ) (J_le_mC θ π b₄ t κ)
+    (fun j ↦ pointCuspData hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr _
+      (J_le_mC θ π b₄ t κ j) (sC_mem_mC θ π b₄ t κ j)) _ _ _ _ (Polynomial.aeval_X _)
 
 /-- **The admissible covering of the special fibre of the cusp chart** (no nodes) defined by the
 special fibre `C = B/JB` of the normalisation `B` of `Rc` in a tame Galois cover `L`; `φ₀` is
@@ -305,7 +343,8 @@ def covCusp (φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat (AdmissibleLift.fba
       (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ))
       (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ))) :=
   haveI := fun j ↦ FormalKummer.isMaximal_sIdeal (θ := θ) (mC θ π b₄ t κ j) (J_le_mC θ π b₄ t κ j)
-  let H := exists_cusp hϖ hker hπ hm hε h3 hE hκ hb₆ (e := e) K hζ L hd B hunr
+  let D := fun j ↦ pointCuspData hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr
+    (mC θ π b₄ t κ j) (J_le_mC θ π b₄ t κ j) (sC_mem_mC θ π b₄ t κ j)
   { C := Cs θ (RcT π b₄ t κ) B
     finite := finite_Cs hϖ hker hπ hm hε h3 hE hκ hb₆ K L B
     etale := etale_s hϖ hker hπ hm hε h3 hE hκ hb₆ K L B hunr
@@ -315,15 +354,16 @@ def covCusp (φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat (AdmissibleLift.fba
     e := Empty.elim
     e_pos := fun j ↦ j.elim
     e_ne_zero := fun j ↦ j.elim
-    κ := Σ j, Fin (H.choose j)
+    κ := Σ j, Fin (D j).r
     cidem := fun p ↦ CompletionProd.idem _ _ _ p.1
     isIdempotentElem_cidem := fun p ↦ CompletionProd.isIdempotentElem_idem _ _ _ p.1
-    ce := fun p ↦ H.choose_spec.choose p.1 p.2
-    ce_pos := fun p ↦ H.choose_spec.choose_spec.1 p.1 p.2
+    ce := fun p ↦ (D p.1).d p.2
+    ce_pos := fun p ↦ (D p.1).hd p.2
     ce_ne_zero := fun p h0 ↦ by
-      obtain ⟨c, hc⟩ := (H.choose_spec.choose_spec.2.1 p.1 p.2).trans (eP_dvd e _)
+      obtain ⟨c, hc⟩ := ((D p.1).hde p.2).trans (eP_dvd e _)
       exact he (by rw [hc, Nat.cast_mul, h0, zero_mul])
-    kummer := H.choose_spec.choose_spec.2.2.some.trans AlgEquiv.uniqueProd.symm }
+    kummer := (cuspEquivTate hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr).trans
+      AlgEquiv.uniqueProd.symm }
 
 end
 

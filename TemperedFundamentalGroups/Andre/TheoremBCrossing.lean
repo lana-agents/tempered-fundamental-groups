@@ -147,6 +147,20 @@ lemma hasGoodTatePresentation_of_normalForm {ϖ : O} (hϖ : Irreducible ϖ) (ha�
           rw [show ϖ * ↑w * (ϖ ^ (k - 1) * ↑w⁻¹) = ϖ * ϖ ^ (k - 1) * (↑w * ↑w⁻¹) by ring,
             Units.mul_inv, mul_one]
 
+omit [CharZero K] [IsDiscreteValuationRing O] [IsAdicComplete (IsLocalRing.maximalIdeal O) O]
+  [W.IsElliptic] [DecidableEq K] in
+/-- **The 2-gon case (`IsUnit b₆`) for even valuation**: if `a₁ = 1`, `a₂ = a₃ = 0`,
+`a₄ = ϖ^(2k) u₄` and `a₆ = ϖ^(2k) ε` with `ε` a unit — e.g. `E_q` in normal form with
+`v(q) = 2k` — then `W` is Tate for `π = ϖᵏ`, `b₄ = u₄`, `b₆ = ε`, and `b₆` is a unit. This is the
+case of IUT's curves at the bad places: `q_v` admits a `2l`-th root ([IUTchI], Example 3.2, (iv)),
+so `v(q_v)` is even. (`IsUnit b₆` is the hypothesis of the cusp chart of MR12 S5,
+`SemistableReduction.TateCuspCov.cuspSpecial`.) -/
+lemma isTate_isUnit_of_normalForm_even {ϖ : O} (ha₁ : W.a₁ = 1) (ha₂ : W.a₂ = 0)
+    (ha₃ : W.a₃ = 0) (k : ℕ) (u₄ : O) (ha₄ : W.a₄ = ((ϖ ^ (2 * k) * u₄ : O) : K)) (ε : Oˣ)
+    (ha₆ : W.a₆ = ((ϖ ^ (2 * k) * ε : O) : K)) :
+    IsTate W (ϖ ^ k) u₄ ε ∧ IsUnit (ε : O) :=
+  ⟨⟨ha₁, ha₂, ha₃, by rw [ha₄]; push_cast; ring, by rw [ha₆]; push_cast; ring⟩, ε.isUnit⟩
+
 include A' in
 /-- **Theorem B for IUT's orbicurves without `HarmonicTate` and `HarmonicX`**: for an elliptic
 curve `W` with a

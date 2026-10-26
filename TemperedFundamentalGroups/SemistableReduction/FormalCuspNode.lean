@@ -223,47 +223,148 @@ def PointCuspForm (s : R) (e : ℕ) (𝔪 : Ideal R) : Prop :=
     Nonempty (Tn θ 𝔪 ⊗[Rs θ R] Cs θ R B ≃ₐ[Tn θ 𝔪]
       ∀ i, AdjoinRoot (X ^ d i - C (algebraMap (Rs θ R) (Tn θ 𝔪) (Ideal.Quotient.mk _ s))))
 
-/-- **The local formal cusp form at a marked point with separably closed residue field**, from
-the normalisation-level tame cusp predicate. -/
-theorem pointCuspForm_of_isCuspNormAt [IsSepClosed k] {s : R} {e : ℕ}
+/-- **The local formal cusp form as data** (refactor R1): the indices `dᵢ ∣ e` and the
+isomorphism `Ψ : R̂_𝔪 ⊗_{R̄} C ≅ ∏ᵢ R̂_𝔪[y]/(y ^ dᵢ − s̄)`. -/
+structure PointCuspFormData (s : R) (e : ℕ) (𝔪 : Ideal R) where
+  /-- The number of factors. -/
+  r : ℕ
+  /-- The ramification indices. -/
+  d : Fin r → ℕ
+  hd : ∀ i, 0 < d i
+  hde : ∀ i, d i ∣ e
+  /-- The local formal cusp form. -/
+  Ψ : Tn θ 𝔪 ⊗[Rs θ R] Cs θ R B ≃ₐ[Tn θ 𝔪]
+    ∀ i, AdjoinRoot (X ^ d i - C (algebraMap (Rs θ R) (Tn θ 𝔪) (Ideal.Quotient.mk _ s)))
+
+/-- Chosen data of a local formal cusp form. -/
+def PointCuspFormData.ofPointCuspForm {s : R} {e : ℕ} {𝔪 : Ideal R}
+    (h : PointCuspForm (θ := θ) (B := B) s e 𝔪) : PointCuspFormData (θ := θ) (B := B) s e 𝔪 :=
+  Classical.choice (by
+    obtain ⟨r, d, hd, hde, ⟨Ψ⟩⟩ := h
+    exact ⟨⟨r, d, hd, hde, Ψ⟩⟩)
+
+omit hθ in
+lemma PointCuspFormData.pointCuspForm {s : R} {e : ℕ} {𝔪 : Ideal R}
+    (D : PointCuspFormData (θ := θ) (B := B) s e 𝔪) : PointCuspForm (θ := θ) (B := B) s e 𝔪 :=
+  ⟨D.r, D.d, D.hd, D.hde, ⟨D.Ψ⟩⟩
+
+/-- Weakening the bound on the indices. -/
+def PointCuspFormData.mono {s : R} {e e' : ℕ} (hee' : e ∣ e') {𝔪 : Ideal R}
+    (D : PointCuspFormData (θ := θ) (B := B) s e 𝔪) : PointCuspFormData (θ := θ) (B := B) s e' 𝔪 :=
+  { D with hde := fun i ↦ (D.hde i).trans hee' }
+
+/-- **The data of `IsCuspNormAt` as a type** (refactor R1): an étale neighbourhood `N₁ ⊇ 𝔫` of
+`𝔪`, an étale cusp chart `O[X] → N₁`, `X ↦ s`, and the splitting `Φ` of `N₁ ⊗_R B` into
+normalised cusp Kummer factors. -/
+structure CuspNormAtData (O : Type u) [CommRing O] {R : Type u} [CommRing R] [Algebra O R]
+    (B : Type u) [CommRing B] [Algebra R B] (s : R) (e : ℕ) (𝔪 : Ideal R) where
+  /-- The étale neighbourhood. -/
+  N₁ : Type u
+  [commRing : CommRing N₁]
+  [algebra : Algebra R N₁]
+  [etale : Algebra.Etale R N₁]
+  /-- The point of `N₁` over `𝔪`. -/
+  𝔫 : Ideal N₁
+  [isPrime : 𝔫.IsPrime]
+  comap_eq : 𝔫.comap (algebraMap R N₁) = 𝔪
+  /-- The cusp chart. -/
+  polyAlg : Algebra O[X] N₁
+  tower : letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
+    letI := polyAlg
+    IsScalarTower O O[X] N₁
+  hX : letI := polyAlg
+    algebraMap O[X] N₁ X = algebraMap R N₁ s
+  /-- The number of factors. -/
+  r : ℕ
+  /-- The ramification indices. -/
+  d : Fin r → ℕ
+  hd : ∀ i, 0 < d i
+  hde : ∀ i, d i ∣ e
+  /-- The splitting. -/
+  Φ : letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
+    letI := polyAlg
+    N₁ ⊗[R] B ≃ₐ[N₁] ∀ i, CuspNormalFactor O (d i) N₁
+
+attribute [instance] CuspNormAtData.commRing CuspNormAtData.algebra CuspNormAtData.etale
+  CuspNormAtData.isPrime
+
+/-- **The chosen data of `IsCuspNormAt`.** -/
+def CuspNormAtData.ofIsCuspNormAt {s : R} {e : ℕ} {𝔪 : Ideal R} (h : IsCuspNormAt O e s B 𝔪) :
+    CuspNormAtData O B s e 𝔪 :=
+  Classical.choice (by
+    obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, hdata⟩ := h
+    letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
+    obtain ⟨palg, hT, hX, -, -, r, d, hd, hde, ⟨Φ⟩⟩ := hdata
+    exact ⟨{ N₁ := N₁, 𝔫 := 𝔫, comap_eq := h𝔫, polyAlg := palg, tower := hT, hX := hX, r := r,
+             d := d, hd := hd, hde := hde, Φ := Φ }⟩)
+
+/-- **The local formal cusp form at a marked point with separably closed residue field**, defined
+from the data `D` (`cuspEquiv` for the splitting `D.Φ`). -/
+def pointCuspFormDataOf [IsSepClosed k] {s : R} {e : ℕ}
     (𝔪 : Ideal R) [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
     (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R)))
-    (h : IsCuspNormAt O e s B 𝔪) : PointCuspForm (θ := θ) (B := B) s e 𝔪 := by
-  obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, hdata⟩ := h
-  letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
-  haveI : IsScalarTower O R N₁ := IsScalarTower.of_algebraMap_eq' rfl
-  obtain ⟨_, hT, hX, -, -, r, d, hd, hde, ⟨Φ⟩⟩ := hdata
-  -- the special fibres of the points
-  have hJ𝔫 : J θ (R := N₁) ≤ 𝔫 := by
-    rw [← J_N₁_eq θ R N₁, Ideal.map_le_iff_le_comap, h𝔫]
+    (D : CuspNormAtData O B s e 𝔪) : PointCuspFormData (θ := θ) (B := B) s e 𝔪 :=
+  letI : Algebra O D.N₁ := ((algebraMap R D.N₁).comp (algebraMap O R)).toAlgebra
+  haveI : IsScalarTower O R D.N₁ := IsScalarTower.of_algebraMap_eq' rfl
+  letI := D.polyAlg
+  haveI : IsScalarTower O O[X] D.N₁ := D.tower
+  have hJ𝔫 : J θ (R := D.N₁) ≤ D.𝔫 := by
+    rw [← J_N₁_eq θ R D.N₁, Ideal.map_le_iff_le_comap, D.comap_eq]
     exact hJ
-  set 𝔫s : Ideal (Ns θ N₁) := 𝔫.map (Ideal.Quotient.mk _)
-  have hcomap : 𝔫s.comap (algebraMap (Rs θ R) (Ns θ N₁)) = sIdeal (θ := θ) 𝔪 := by
+  have hcomap : (D.𝔫.map (Ideal.Quotient.mk (J θ (R := D.N₁)))).comap
+      (algebraMap (Rs θ R) (Ns θ D.N₁)) = sIdeal (θ := θ) 𝔪 := by
     ext z
     obtain ⟨a, rfl⟩ := Ideal.Quotient.mk_surjective z
     rw [Ideal.mem_comap, algebraMap_RN, Ideal.mem_quotient_iff_mem hJ𝔫,
-      Ideal.mem_quotient_iff_mem hJ, ← Ideal.mem_comap, h𝔫]
+      Ideal.mem_quotient_iff_mem hJ, ← Ideal.mem_comap, D.comap_eq]
   have hρ : Function.Surjective ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R))) := by
     intro z
     obtain ⟨o, ho⟩ := hres z
     refine ⟨θ o, ?_⟩
     rw [RingHom.comp_apply, QuadNodeTower.algK_θ, Ideal.Quotient.factor_mk]
     exact ho
-  have hsurj0 := EtaleResidue.surjective_of_isSepClosed' 𝔪 𝔫 h𝔫
+  have hsurj0 := EtaleResidue.surjective_of_isSepClosed' 𝔪 D.𝔫 D.comap_eq
     ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R))) hρ
   have hsurj : Function.Surjective
-      ((Ideal.Quotient.mk 𝔫s).comp (algebraMap (Rs θ R) (Ns θ N₁))) := by
+      ((Ideal.Quotient.mk (D.𝔫.map (Ideal.Quotient.mk (J θ (R := D.N₁))))).comp
+        (algebraMap (Rs θ R) (Ns θ D.N₁))) := by
     intro z
     obtain ⟨z, rfl⟩ := Ideal.Quotient.mk_surjective z
     obtain ⟨z, rfl⟩ := Ideal.Quotient.mk_surjective z
-    obtain ⟨a, ha⟩ := hsurj0 (Ideal.Quotient.mk 𝔫 z)
+    obtain ⟨a, ha⟩ := hsurj0 (Ideal.Quotient.mk D.𝔫 z)
     refine ⟨Ideal.Quotient.mk _ a, ?_⟩
     simp only [RingHom.comp_apply] at ha ⊢
     rw [Ideal.Quotient.eq] at ha ⊢
     rw [algebraMap_RN, ← map_sub]
     exact Ideal.mem_map_of_mem _ ha
-  haveI : Algebra.FormallyEtale R N₁ := inferInstance
-  exact ⟨r, d, hd, hde, ⟨cuspEquiv (sIdeal 𝔪) 𝔫s hcomap hsurj hX Φ⟩⟩
+  { r := D.r, d := D.d, hd := D.hd, hde := D.hde,
+    Ψ := cuspEquiv (sIdeal 𝔪) _ hcomap hsurj D.hX D.Φ }
+
+/-- **The local formal cusp form at a marked point with separably closed residue field**, from
+the normalisation-level tame cusp predicate. -/
+theorem pointCuspForm_of_isCuspNormAt [IsSepClosed k] {s : R} {e : ℕ}
+    (𝔪 : Ideal R) [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
+    (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R)))
+    (h : IsCuspNormAt O e s B 𝔪) : PointCuspForm (θ := θ) (B := B) s e 𝔪 :=
+  (pointCuspFormDataOf 𝔪 hJ hres (CuspNormAtData.ofIsCuspNormAt h)).pointCuspForm
+
+/-- **The formal cusp form of the special fibre of a chart along its marked points**, defined
+from chosen local data `D j` (`assembleCuspEquiv`; refactor R1). -/
+def cuspEquivOf [IsNoetherianRing R] {s : R} {ι : Type} [Fintype ι] [DecidableEq ι]
+    {e : ι → ℕ} (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal] (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j)
+    (D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (e j) (𝔪 j)) {f : Rs θ R}
+    (hinj : Function.Injective fun j ↦ sIdeal (θ := θ) (𝔪 j))
+    (hf : ∀ j, f ∈ sIdeal (θ := θ) (𝔪 j))
+    (hrad : ⨅ j, sIdeal (θ := θ) (𝔪 j) ≤ (Ideal.span {f}).radical)
+    (ψ : Polynomial k →ₐ[k] Admissible.Hat f)
+    (hψ : ψ X = algebraMap (Rs θ R) _ (Ideal.Quotient.mk _ s)) :
+    haveI := fun j ↦ isMaximal_sIdeal (θ := θ) (𝔪 j) (hJ j)
+    Admissible.Hat f ⊗[Rs θ R] Cs θ R B ≃ₐ[Admissible.Hat f]
+      ∀ p : (Σ j, Fin (D j).r), Admissible.CuspPiece ψ
+        (CompletionProd.idem hinj hf hrad p.1) ((D p.1).d p.2) :=
+  haveI := fun j ↦ isMaximal_sIdeal (θ := θ) (𝔪 j) (hJ j)
+  assembleCuspEquiv (r := fun j ↦ (D j).r) (d := fun j ↦ (D j).d) hinj hf hrad ψ hψ
+    fun j ↦ (D j).Ψ
 
 /-- **The formal cusp form of the special fibre of a chart along its marked points**: if the zero
 set of `f̄` on the special fibre consists of the points `𝔪ⱼ` and at each of them the local formal
