@@ -57,7 +57,8 @@ over the closed point of `A`, `K = Frac N' ∋ ζ_{M'}`, `M = q M'`, and `L / K`
 degree prime to `q` whose normalisation `B` over `N'_𝔫` is unramified over the punctured spectrum.
 Then `L` is Kummer at `𝔫` with the coordinates `f u, f v` (from `isKummerAt_of_etale` for `N`,
 descended along `N' → N`). -/
-theorem isKummerAt_of_isLocalization_etale (hs : Irreducible s) {q M' : ℕ} (hqM : q * M' = M)
+theorem isTameKummerAt_of_isLocalization_etale (hs : Irreducible s) {q M' : ℕ}
+    (hqM : q * M' = M)
     (hq : 0 < q) (hM' : 0 < M') {N' : Type u} [CommRing N'] [IsDomain N'] [Algebra O N']
     (N : Type u) [CommRing N] [IsDomain N] [Algebra O N] [Algebra (Node O (s ^ M)) N]
     [IsScalarTower O (Node O (s ^ M)) N] [Algebra.Etale (Node O (s ^ M)) N] [Algebra N' N]
@@ -76,7 +77,7 @@ theorem isKummerAt_of_isLocalization_etale (hs : Irreducible s) {q M' : ℕ} (hq
     (hunr : ∀ (Q : Ideal B) [Q.IsPrime],
       Q.comap (algebraMap (Localization.AtPrime 𝔫) B) ≠ maximalIdeal (Localization.AtPrime 𝔫) →
       Algebra.IsUnramifiedAt (Localization.AtPrime 𝔫) Q) :
-    IsKummerAt s M (f (Node.u (s ^ M))) (f (Node.v (s ^ M))) L 𝔫 := by
+    IsTameKummerAt s M M' (f (Node.u (s ^ M))) (f (Node.v (s ^ M))) L 𝔫 := by
   classical
   -- the prime of the étale chart over `𝔫`
   set 𝔫E : Ideal N := 𝔫.map (algebraMap N' N)
@@ -146,11 +147,35 @@ theorem isKummerAt_of_isLocalization_etale (hs : Irreducible s) {q M' : ℕ} (hq
     isUnramifiedAt_of_ringEquiv e.toRingEquiv he Q
       (hunr Q (comap_ne_maximalIdeal_of_ringEquiv e.symm.toRingEquiv he' Q hQ))
   -- the étale chart is Kummer at `𝔫E`, and this descends to `T1[1/D]`
-  have hK := isKummerAt_of_etale hs hqM hq hM' N 𝔫E h𝔫E K hζ L hL B
+  have hK := isTameKummerAt_of_etale hs hqM hq hM' N 𝔫E h𝔫E K hζ L hL B
     hunr'
   rw [hf, hf] at hK
   have := hK.comap_of_isLocalization S
   rwa [hc] at this
+
+/-- `isTameKummerAt_of_isLocalization_etale`, forgetting the tameness data. -/
+theorem isKummerAt_of_isLocalization_etale (hs : Irreducible s) {q M' : ℕ} (hqM : q * M' = M)
+    (hq : 0 < q) (hM' : 0 < M') {N' : Type u} [CommRing N'] [IsDomain N'] [Algebra O N']
+    (N : Type u) [CommRing N] [IsDomain N] [Algebra O N] [Algebra (Node O (s ^ M)) N]
+    [IsScalarTower O (Node O (s ^ M)) N] [Algebra.Etale (Node O (s ^ M)) N] [Algebra N' N]
+    [IsScalarTower O N' N] (S : Submonoid N') [IsLocalization S N] [Algebra.Etale N' N]
+    (f : Node O (s ^ M) →+* N')
+    (hf : ∀ a, algebraMap (Node O (s ^ M)) N a = algebraMap N' N (f a))
+    (𝔫 : Ideal N') [𝔫.IsPrime] (hdisj : Disjoint (S : Set N') 𝔫)
+    (h𝔫 : 𝔫.comap f = closedPoint s (s ^ M))
+    (K : Type u) [Field K] [Algebra N' K] [IsFractionRing N' K] {ζ : K}
+    (hζ : IsPrimitiveRoot ζ M')
+    (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
+    (hL : (finrank K L).Coprime q) [Algebra N' L] [IsScalarTower N' K L]
+    [Algebra (Localization.AtPrime 𝔫) L] [IsScalarTower N' (Localization.AtPrime 𝔫) L]
+    (B : Type u) [CommRing B] [Algebra (Localization.AtPrime 𝔫) B] [Algebra B L]
+    [IsScalarTower (Localization.AtPrime 𝔫) B L] [IsIntegralClosure B (Localization.AtPrime 𝔫) L]
+    (hunr : ∀ (Q : Ideal B) [Q.IsPrime],
+      Q.comap (algebraMap (Localization.AtPrime 𝔫) B) ≠ maximalIdeal (Localization.AtPrime 𝔫) →
+      Algebra.IsUnramifiedAt (Localization.AtPrime 𝔫) Q) :
+    IsKummerAt s M (f (Node.u (s ^ M))) (f (Node.v (s ^ M))) L 𝔫 :=
+  (isTameKummerAt_of_isLocalization_etale hs hqM hq hM' N S f hf 𝔫 hdisj h𝔫 K hζ L hL B
+    hunr).isKummerAt
 
 end NodeCover
 
@@ -206,7 +231,8 @@ ring `A = O[u,v]/(uv − ϖᵐ)`, `K = Frac T1[1/D] ∋ ζ_{M'}`, and `L / K` fi
 to `q` whose normalisation `B` over the local ring `T1[1/D]_𝔫` is unramified over the punctured
 spectrum. Then `L` is Kummer at `𝔫` (`IsKummerAt ϖ m u v L 𝔫`) for the node coordinates
 `u = w`, `v` of the chart. -/
-theorem isKummerAt_T1D [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) [NeZero m]
+theorem isTameKummerAt_T1D [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ)
+    [NeZero m]
     (hκ : κ * (t ^ 2 - b₆) = 1) (hπ : π = ε * ϖ ^ m) (hε : εi * ε = 1)
     {q M' : ℕ} (hqM : q * M' = m) (hq : 0 < q) (hM' : 0 < M')
     (𝔫 : Ideal (T1D π b₄ t κ)) [𝔫.IsPrime]
@@ -221,7 +247,7 @@ theorem isKummerAt_T1D [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducib
     (hunr : ∀ (Q : Ideal B) [Q.IsPrime],
       Q.comap (algebraMap (Localization.AtPrime 𝔫) B) ≠ maximalIdeal (Localization.AtPrime 𝔫) →
       Algebra.IsUnramifiedAt (Localization.AtPrime 𝔫) Q) :
-    IsKummerAt ϖ m (toT1D b₄ hκ hπ hε (Node.u (ϖ ^ m))) (toT1D b₄ hκ hπ hε (Node.v (ϖ ^ m)))
+    IsTameKummerAt ϖ m M' (toT1D b₄ hκ hπ hε (Node.u (ϖ ^ m))) (toT1D b₄ hκ hπ hε (Node.v (ϖ ^ m)))
       L 𝔫 := by
   classical
   have hϖp : Prime ϖ := hϖ.prime
@@ -271,8 +297,28 @@ theorem isKummerAt_T1D [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducib
     rw [hS, Submonoid.map_powers, Set.disjoint_left]
     rintro _ ⟨k, rfl⟩ hy
     exact h2 (Ideal.IsPrime.mem_of_pow_mem ‹_› k hy)
-  exact NodeCover.isKummerAt_of_isLocalization_etale hϖ hqM hq hM' (NE b₄ b₆ ϖ m ε) S
+  exact NodeCover.isTameKummerAt_of_isLocalization_etale hϖ hqM hq hM' (NE b₄ b₆ ϖ m ε) S
     (toT1D b₄ hκ hπ hε) hA 𝔫 hdisj h𝔫 K hζ L hL B hunr
+
+/-- `isTameKummerAt_T1D`, forgetting the tameness data. -/
+theorem isKummerAt_T1D [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) [NeZero m]
+    (hκ : κ * (t ^ 2 - b₆) = 1) (hπ : π = ε * ϖ ^ m) (hε : εi * ε = 1)
+    {q M' : ℕ} (hqM : q * M' = m) (hq : 0 < q) (hM' : 0 < M')
+    (𝔫 : Ideal (T1D π b₄ t κ)) [𝔫.IsPrime]
+    (h𝔫 : 𝔫.comap (toT1D b₄ hκ hπ hε) = Node.closedPoint ϖ (ϖ ^ m))
+    (K : Type u) [Field K] [Algebra (T1D π b₄ t κ) K] [IsFractionRing (T1D π b₄ t κ) K]
+    {ζ : K} (hζ : IsPrimitiveRoot ζ M')
+    (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
+    (hL : (finrank K L).Coprime q) [Algebra (T1D π b₄ t κ) L] [IsScalarTower (T1D π b₄ t κ) K L]
+    [Algebra (Localization.AtPrime 𝔫) L] [IsScalarTower (T1D π b₄ t κ) (Localization.AtPrime 𝔫) L]
+    (B : Type u) [CommRing B] [Algebra (Localization.AtPrime 𝔫) B] [Algebra B L]
+    [IsScalarTower (Localization.AtPrime 𝔫) B L] [IsIntegralClosure B (Localization.AtPrime 𝔫) L]
+    (hunr : ∀ (Q : Ideal B) [Q.IsPrime],
+      Q.comap (algebraMap (Localization.AtPrime 𝔫) B) ≠ maximalIdeal (Localization.AtPrime 𝔫) →
+      Algebra.IsUnramifiedAt (Localization.AtPrime 𝔫) Q) :
+    IsKummerAt ϖ m (toT1D b₄ hκ hπ hε (Node.u (ϖ ^ m))) (toT1D b₄ hκ hπ hε (Node.v (ϖ ^ m)))
+      L 𝔫 :=
+  (isTameKummerAt_T1D hϖ hκ hπ hε hqM hq hM' 𝔫 h𝔫 K hζ L hL B hunr).isKummerAt
 
 end TateTwoChartNode
 

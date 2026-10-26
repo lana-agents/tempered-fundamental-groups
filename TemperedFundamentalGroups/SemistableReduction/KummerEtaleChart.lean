@@ -5,6 +5,7 @@ Authors: LANA Project
 -/
 import TemperedFundamentalGroups.SemistableReduction.KummerNodeChart
 import TemperedFundamentalGroups.SemistableReduction.NodeCoverEtaleNbhd
+import TemperedFundamentalGroups.SemistableReduction.KummerTame
 
 /-!
 # Tame covers of charts étale over the node are Kummer (MR12 T2 S4, étale charts)
@@ -134,7 +135,7 @@ discrete valuation ring `O`), `K_N = Frac N`, `𝔫` a prime of `N` over the clo
 `M = q M'`, `K_N ∋ ζ_{M'}`, and `L / K_N` finite Galois of degree prime to `q` whose
 normalisation `B` over `N_𝔫` is unramified over the punctured spectrum of `N_𝔫`. Then `L` is
 Kummer at `𝔫`: étale-locally a product of Kummer covers `u = w ^ e`, `v = z ^ e`, `e ∣ M'`. -/
-theorem isKummerAt_of_etale (hs : Irreducible s) {q M' : ℕ} (hqM : q * M' = M) (hq : 0 < q)
+theorem isTameKummerAt_of_etale (hs : Irreducible s) {q M' : ℕ} (hqM : q * M' = M) (hq : 0 < q)
     (hM' : 0 < M') (N : Type u) [CommRing N] [IsDomain N] [Algebra O N] [Algebra A N]
     [IsScalarTower O A N] [Algebra.Etale A N] (𝔫 : Ideal N) [𝔫.IsPrime]
     (h𝔫 : 𝔫.comap (algebraMap A N) = closedPoint s (s ^ M))
@@ -149,7 +150,7 @@ theorem isKummerAt_of_etale (hs : Irreducible s) {q M' : ℕ} (hqM : q * M' = M)
     (hunr : ∀ (Q : Ideal B) [Q.IsPrime],
       Q.comap (algebraMap (Localization.AtPrime 𝔫) B) ≠ maximalIdeal (Localization.AtPrime 𝔫) →
       Algebra.IsUnramifiedAt (Localization.AtPrime 𝔫) Q) :
-    IsKummerAt s M (algebraMap A N (u (s ^ M))) (algebraMap A N (v (s ^ M))) L 𝔫 := by
+    IsTameKummerAt s M M' (algebraMap A N (u (s ^ M))) (algebraMap A N (v (s ^ M))) L 𝔫 := by
   classical
   have hs0 : s ≠ 0 := hs.ne_zero
   have hM : 0 < M := Nat.pos_of_neZero M
@@ -382,13 +383,32 @@ theorem isKummerAt_of_etale (hs : Irreducible s) {q M' : ℕ} (hqM : q * M' = M)
       (adjoinPowFieldEquiv_algebraMap hs0 hn0 hne hc x).trans (hKF _).symm
   have hsurj : Function.Surjective
       (algebraMap A (Node O ((s ^ n) ^ e))) := (Node.congr hc).surjective
-  refine ⟨N₁, inferInstance, inferInstance, inferInstance, 𝔫₁, inferInstance, h𝔫₁', u₁, v₁, huv,
-    hEt, hu𝔫, hv𝔫, ⟨1, 1, isUnit_one, isUnit_one, by rw [one_mul, hu₁]; rfl,
-      by rw [one_mul, hv₁]; rfl⟩,
-    r, fun _ ↦ n, fun _ ↦ e, fun _ ↦ he0, fun _ ↦ hne, ⟨Ψ₁.trans (AlgEquiv.piCongrRight fun _ ↦
+  subst hu₁ hv₁
+  refine ⟨N₁, inferInstance, inferInstance, inferInstance, 𝔫₁, inferInstance, h𝔫₁', huv,
+    hEt, hu𝔫, hv𝔫, r, fun _ ↦ n, fun _ ↦ e, fun _ ↦ he0, fun _ ↦ he, fun _ ↦ hne,
+    ⟨Ψ₁.trans (AlgEquiv.piCongrRight fun _ ↦
       (tensorTensorEquiv (tensorTensorRingEquiv ι) (tensorTensorRingEquiv_tmul_one ι hι)).trans
         ((Algebra.TensorProduct.congr AlgEquiv.refl χ).trans
           (tensorEquivOfSurjective hsurj)))⟩⟩
+
+/-- `isTameKummerAt_of_etale`, forgetting the tameness data. -/
+theorem isKummerAt_of_etale (hs : Irreducible s) {q M' : ℕ} (hqM : q * M' = M) (hq : 0 < q)
+    (hM' : 0 < M') (N : Type u) [CommRing N] [IsDomain N] [Algebra O N] [Algebra A N]
+    [IsScalarTower O A N] [Algebra.Etale A N] (𝔫 : Ideal N) [𝔫.IsPrime]
+    (h𝔫 : 𝔫.comap (algebraMap A N) = closedPoint s (s ^ M))
+    (K_N : Type u) [Field K_N] [Algebra N K_N] [IsFractionRing N K_N] {ζ : K_N}
+    (hζ : IsPrimitiveRoot ζ M')
+    (L : Type u) [Field L] [Algebra K_N L] [FiniteDimensional K_N L] [IsGalois K_N L]
+    (hL : (finrank K_N L).Coprime q) [Algebra N L] [IsScalarTower N K_N L]
+    [Algebra (Localization.AtPrime 𝔫) L] [IsScalarTower N (Localization.AtPrime 𝔫) L]
+    (B : Type u) [CommRing B] [Algebra (Localization.AtPrime 𝔫) B] [Algebra B L]
+    [IsScalarTower (Localization.AtPrime 𝔫) B L]
+    [IsIntegralClosure B (Localization.AtPrime 𝔫) L]
+    (hunr : ∀ (Q : Ideal B) [Q.IsPrime],
+      Q.comap (algebraMap (Localization.AtPrime 𝔫) B) ≠ maximalIdeal (Localization.AtPrime 𝔫) →
+      Algebra.IsUnramifiedAt (Localization.AtPrime 𝔫) Q) :
+    IsKummerAt s M (algebraMap A N (u (s ^ M))) (algebraMap A N (v (s ^ M))) L 𝔫 :=
+  (isTameKummerAt_of_etale hs hqM hq hM' N 𝔫 h𝔫 K_N hζ L hL B hunr).isKummerAt
 
 end NodeCover
 
