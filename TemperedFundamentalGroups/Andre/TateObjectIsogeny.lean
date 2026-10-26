@@ -5,6 +5,7 @@ Authors: LANA Project
 -/
 import TemperedFundamentalGroups.Andre.TateObject
 import TemperedFundamentalGroups.Tempered.CoverImage
+import TemperedFundamentalGroups.Tempered.BaseChangeComp
 
 /-!
 # The tempered covering `Ÿ → X` for `X = E_q ∖ {O}` through a finite étale level ([EtTh], §1)
@@ -31,6 +32,12 @@ Setting: `R` and `R'` with trivial groups `A`, `A'`, `R → R'` finite étale (`
   there (`map_comap_piYddot`: `Π^tp_Ÿ` is the image of a normal subgroup of `Π^tp_{X'}`).
 * `yddotToCover`: the structure morphism `Ÿ → (Spec R' → Spec R)` (`TempObj.coverHom`), so that
   `Π^tp_Ÿ` fixes the base point of the cover `Spec R'` (`piYddot_le_range` again).
+
+**Towers** `R → R' → R''` (`piYddotAt`): the image in `Π^tp_X` of the kernel of
+`χ_{D'} ∘ (Π^tp_{X''} → Π^tp_{X'})` is `Π^tp_Ÿ ∩ Π^tp_{X''}` (`piYddotAt_eq`). For `R''` the
+coordinate ring of a finite étale cover `X'' → X'` (e.g. the level `Ÿ'_N` of [EtTh] §1), this is the
+part of `Π^tp_Ÿ` that lies in `Π^tp_{X''}`; it is all of `Π^tp_Ÿ` exactly when
+`Π^tp_Ÿ ≤ Π^tp_{X''}` (`piYddotAt_eq_iff`), i.e. when `X''` is dominated by the `ℤ`-covering `Ÿ`.
 
 This is the object of requirement R1 of the étale theta function track (`MR14-plan.md`): the
 finite level `R'` is arbitrary, so it can be the coordinate ring of `X'` or of any finite étale
@@ -164,6 +171,53 @@ theorem yddotToCover_basePt :
     TempObj.fibreMap V hV (yddotToCover A' D') (basePt (A' := A') R A V hV D') =
       coverFibrePt V hV :=
   ((coverPushData V hV μ).range_ι (yddot A' D') _).1 ⟨TateObject.basePoint D' V hV, rfl⟩
+
+/-! ### Towers `R → R' → R''` -/
+
+section Tower
+
+variable {R'' : Type u} [CommRing R''] [Algebra K R''] [Algebra R' R''] [IsScalarTower K R' R'']
+  [Algebra R R''] [IsScalarTower R R' R''] [IsScalarTower K R R'']
+  {A'' : Type u} [Group A''] [MulSemiringAction A'' R'']
+  [Algebra R'' Ω] [IsScalarTower K R'' Ω] [IsScalarTower R' R'' Ω] [IsScalarTower R R'' Ω]
+  (μ₂ : OrbMap R' A' R'' A'')
+
+/-- **`Π^tp_Ÿ ∩ Π^tp_{X''}`** for a tower `X'' → X' → X`: the image in `Π^tp_X` of the kernel of
+the deck character of `Ÿ → X'` restricted to `Π^tp_{X''}`. -/
+def piYddotAt : Subgroup (temperedPi1 O R A V hV) :=
+  ((TateObject.character (A := A') D' V hV).comp (temperedPi1Map μ₂ V hV)).ker.map
+    (temperedPi1Map (μ.comp μ₂) V hV)
+
+/-- **`piYddotAt = Π^tp_Ÿ ∩ Π^tp_{X''}`.** -/
+theorem piYddotAt_eq :
+    piYddotAt V hV μ D' μ₂ =
+      piYddot V hV μ D' ⊓ (temperedPi1Map (O := O) (μ.comp μ₂) V hV).range := by
+  ext γ
+  constructor
+  · rintro ⟨γ'', hγ'', rfl⟩
+    refine ⟨⟨temperedPi1Map μ₂ V hV γ'', hγ'', (temperedPi1Map_comp μ μ₂ V hV γ'').symm⟩,
+      ⟨γ'', rfl⟩⟩
+  · rintro ⟨⟨γ', hγ', rfl⟩, ⟨γ'', hγ''⟩⟩
+    have e : temperedPi1Map μ₂ V hV γ'' = γ' :=
+      temperedPi1Map_injective V hV μ ((temperedPi1Map_comp μ μ₂ V hV γ'').symm.trans hγ'')
+    refine ⟨γ'', ?_, hγ''⟩
+    change TateObject.character D' V hV (temperedPi1Map μ₂ V hV γ'') = 1
+    rw [e]
+    exact hγ'
+
+/-- `piYddotAt` is all of `Π^tp_Ÿ` iff `Π^tp_Ÿ ≤ Π^tp_{X''}`. -/
+theorem piYddotAt_eq_iff :
+    piYddotAt V hV μ D' μ₂ = piYddot V hV μ D' ↔
+      piYddot V hV μ D' ≤ (temperedPi1Map (O := O) (μ.comp μ₂) V hV).range := by
+  rw [piYddotAt_eq, inf_eq_left]
+
+/-- `piYddotAt ≤ Π^tp_{X''}`. -/
+theorem piYddotAt_le_range :
+    piYddotAt V hV μ D' μ₂ ≤ (temperedPi1Map (O := O) (μ.comp μ₂) V hV).range := by
+  rw [piYddotAt_eq]
+  exact inf_le_right
+
+end Tower
 
 end
 
