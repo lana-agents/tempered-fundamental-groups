@@ -13,7 +13,7 @@ import TemperedFundamentalGroups.SemistableReduction.FormalLevelPatchTr
 `towerS6` of the covering `covNR_of_regular …` of the Tate node chart (the data of
 `levelPatchEquiv_NR` at all levels). Hence (`FormalLevel.NodeLevels.equiv`,
 `FormalLevel.NodeLevels.equiv_tr`) the level patches `NR/ϖˡ⁺¹ ⊗_{NR} B ≃ G l` and their
-compatibility with the transition maps of the tower (**`TateTwoChartNode.levelsS6_tr`**).
+compatibility with the transition maps of the tower.
 -/
 
 universe u
