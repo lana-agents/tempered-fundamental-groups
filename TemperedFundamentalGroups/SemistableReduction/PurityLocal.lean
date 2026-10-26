@@ -20,8 +20,8 @@ of dimension two with parameters `x, y` (`maximalIdeal A_P = (x, y)`, `x` prime,
   the localisation of `B`, `NormLocal`).
 * **`PurityLocal.etale_quot_awayMap`**: if moreover `A/I` is a Jacobson ring and `A` is regular
   at every closed point of `V(I) ∩ D(g)`, with `B` unramified over the punctured spectra of the
-  closed points of `V(I)`, then `B/IB` is étale over `A/I` on `D(ḡ)` (the `etale` fields of the
-  special-fibre coverings, `I = ϖA`).
+  closed points of `V(I) ∩ D(g)`, then `B/IB` is étale over `A/I` on `D(ḡ)` (the `etale` fields
+  of the special-fibre coverings, `I = ϖA`).
 * `PurityLocal.etale_awayMap`: `A → B_{f}` étale ⇒ `A_f → B_f` étale (the form of the `etale`
   field of `Admissible.Covering`).
 -/
@@ -208,7 +208,7 @@ theorem etale_quot_awayMap (I : Ideal A) [IsJacobsonRing (A ⧸ I)]
     (hreg : ∀ (P : Ideal A) [P.IsMaximal], I ≤ P → g ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧
         maximalIdeal (Localization.AtPrime P) = Ideal.span {x, y})
-    (hunr : ∀ (P : Ideal A) [P.IsMaximal], I ≤ P →
+    (hunr : ∀ (P : Ideal A) [P.IsMaximal], I ≤ P → g ∉ P →
       ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap A B) < P → Algebra.IsUnramifiedAt A Q) :
     (Localization.awayMap (algebraMap (A ⧸ I) (B ⧸ I.map (algebraMap A B)))
       (Ideal.Quotient.mk I g)).Etale := by
@@ -228,7 +228,7 @@ theorem etale_quot_awayMap (I : Ideal A) [IsJacobsonRing (A ⧸ I)]
         Ideal.isMaximal_comap_of_isIntegral_of_isMaximal Q
       have hIP : I ≤ Q.comap (algebraMap A B) := Ideal.map_le_iff_le_comap.1 hIQ
       obtain ⟨x, y, hx, hy, hxy⟩ := hreg _ hIP hgQ
-      exact isEtaleAt' K (L := L) _ hx hy hxy B (hunr _ hIP) Q rfl
+      exact isEtaleAt' K (L := L) _ hx hy hxy B (hunr _ hIP hgQ) Q rfl
   haveI : Algebra.Etale (A ⧸ I) (Localization.Away (algebraMap (A ⧸ I)
       (B ⧸ I.map (algebraMap A B)) (Ideal.Quotient.mk I g))) := this
   exact etale_awayMap _

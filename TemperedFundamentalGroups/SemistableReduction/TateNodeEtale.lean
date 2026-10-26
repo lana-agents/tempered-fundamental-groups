@@ -79,7 +79,7 @@ theorem etale_Cs_of_regular [hθ : Fact (Function.Surjective θ)] [IsDomain O]
   have hϖJ : algebraMap O 𝒩 ϖ ∈ J θ (R := 𝒩) := Ideal.mem_map_of_mem _ (by
     rw [hker]; exact Ideal.mem_span_singleton_self ϖ)
   exact PurityLocal.etale_quot_awayMap K (L := L) (J θ (R := 𝒩)) B _
-    (fun P _ hJP hg ↦ hreg P (hJP hϖJ) hg) (fun P _ hJP ↦ hunr P (hJP hϖJ))
+    (fun P _ hJP hg ↦ hreg P (hJP hϖJ) hg) (fun P _ hJP _ ↦ hunr P (hJP hϖJ))
 
 end
 

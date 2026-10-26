@@ -231,7 +231,7 @@ def special1 : Special1 hκ rfl hπe τ
           obtain ⟨y, h1, h2, h3⟩ := exists_regular_pair_T1 hϖ hθ.out hker rfl
             (Nat.pos_of_neZero m) hκ P (hJP hϖJ) hw
           exact ⟨_, y, h1, h2, h3⟩)
-        (fun P _ hJP ↦ hunr P (hJP hϖJ))
+        (fun P _ hJP _ ↦ hunr P (hJP hϖJ))
     ι₀ := NormAway.quotMap (B₁ := B₁) (B := B) (J θ (R := 𝒯)) (J θ (R := 𝒩))
       (J_NR_eq hκ)
     hι₀ := fun x ↦ NormAway.quotMap_algebraMap (B₁ := B₁) (B := B) (J θ (R := 𝒯))
