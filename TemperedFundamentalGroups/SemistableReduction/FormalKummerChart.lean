@@ -71,29 +71,36 @@ structure KummerNormAtData (ϖ : O) (n M' : ℕ) (x y : R) (B : Type u) [CommRin
   comap_eq : 𝔫.comap (algebraMap R N₁) = 𝔪
   /-- The number of Kummer factors. -/
   r : ℕ
-  /-- The exponents `ϖ^{mᵢ}` of the Kummer nodes. -/
-  m : Fin r → ℕ
   /-- The local degrees. -/
   d : Fin r → ℕ
   hd : ∀ i, 0 < d i
   hdM : ∀ i, d i ∣ M'
-  hmd : ∀ i, m i * d i = n
+  /-- The Kummer nodes are `uv = ϖ^{n / dᵢ}`: `dᵢ ∣ n`. -/
+  hmd : ∀ i, n / d i * d i = n
   huv : letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
     algebraMap R N₁ x * algebraMap R N₁ y = algebraMap O N₁ (ϖ ^ n)
   /-- The Kummer splitting. -/
   Φ : letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
-    N₁ ⊗[R] B ≃ₐ[N₁] ∀ i, @KummerNodeFactor O _ (ϖ ^ m i) (d i) N₁ _
-      (nodeAlgebra N₁ (ϖ ^ m i) (d i) (by rw [← pow_mul, hmd i]; exact huv))
+    N₁ ⊗[R] B ≃ₐ[N₁] ∀ i, @KummerNodeFactor O _ (ϖ ^ (n / d i)) (d i) N₁ _
+      (nodeAlgebra N₁ (ϖ ^ (n / d i)) (d i) (by rw [← pow_mul, hmd i]; exact huv))
 
 attribute [instance] KummerNormAtData.commRing KummerNormAtData.algebra KummerNormAtData.etale
   KummerNormAtData.isPrime
+
+/-- The exponents `mᵢ = n / dᵢ` of the Kummer nodes `uv = ϖ^{mᵢ}` (so that the deformation
+parameters `ϖ^(n / dᵢ)` of the M2 lift are definitionally those of the splitting). -/
+abbrev KummerNormAtData.m {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R}
+    (D : KummerNormAtData ϖ n M' x y B 𝔪) (i : Fin D.r) : ℕ :=
+  n / D.d i
 
 /-- **The chosen data of `IsKummerNormAt`.** -/
 def KummerNormAtData.ofIsKummerNormAt {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R}
     (h : IsKummerNormAt ϖ n M' x y B 𝔪) : KummerNormAtData ϖ n M' x y B 𝔪 :=
   Classical.choice (by
     obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, huv, -, -, -, r, m, d, hd, hdM, hmd, ⟨Φ⟩⟩ := h
-    exact ⟨{ N₁ := N₁, 𝔫 := 𝔫, comap_eq := h𝔫, r := r, m := m, d := d, hd := hd,
+    obtain rfl : m = fun i ↦ n / d i :=
+      funext fun i ↦ (Nat.div_eq_of_eq_mul_left (hd i) (hmd i).symm).symm
+    exact ⟨{ N₁ := N₁, 𝔫 := 𝔫, comap_eq := h𝔫, r := r, d := d, hd := hd,
              hdM := hdM, hmd := hmd, huv := huv, Φ := Φ }⟩)
 
 /-- **The local formal Kummer form at a node with separably closed residue field**, defined from
@@ -112,7 +119,8 @@ def nodeEquivOf [IsSepClosed k] {ϖ : O} {n M' : ℕ} {x y : R}
   haveI : IsScalarTower O R D.N₁ := IsScalarTower.of_algebraMap_eq' rfl
   have hn : θ (ϖ ^ n) = 0 := by rw [map_pow, hϖ, zero_pow hn0.ne']
   have hc : ∀ i, θ (ϖ ^ D.m i) = 0 := fun i ↦ by
-    have : 0 < D.m i := Nat.pos_of_ne_zero fun h0 ↦ hn0.ne' (by rw [← D.hmd i, h0, zero_mul])
+    have : 0 < D.m i := Nat.pos_of_ne_zero fun h0 ↦ hn0.ne' (by
+      rw [← D.hmd i]; exact (congrArg (· * D.d i) h0).trans (zero_mul _))
     rw [map_pow, hϖ, zero_pow this.ne']
   have hJ𝔫 : J θ (R := D.N₁) ≤ D.𝔫 := by
     rw [← J_N₁_eq θ R D.N₁, Ideal.map_le_iff_le_comap, D.comap_eq]
