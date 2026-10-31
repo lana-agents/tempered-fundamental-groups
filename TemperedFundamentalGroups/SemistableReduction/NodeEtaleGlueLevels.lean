@@ -135,8 +135,22 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {het : (Localization.awayMap (algebraMap (Rs θ R) (Cs θ R B)) (fbar θ g)).Etale}
   {hk : ∀ j i, ((D j).d i : k) ≠ 0}
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal]
+
+/-- **The type of inputs of a glueing over the covering `cov₀ …` of the level data `V`**, with
+the implicit arguments of `V` (an input of another syntactic type, e.g. at the Tate curve, is
+converted to this type once, by a type ascription, before the generic results are applied). -/
+abbrev NodeLevels.InputOf {Rt : ℕ → Type u} [∀ l, CommRing (Rt l)] [∀ l, Algebra O (Rt l)]
+    [∀ l, IsNoetherianRing (Rt l)] [∀ l, Algebra R (Rt l)] [∀ l, IsScalarTower O R (Rt l)]
+    [∀ l, Algebra (Rt (l + 1)) (Rt l)] [∀ l, IsScalarTower O (Rt (l + 1)) (Rt l)]
+    [∀ l, IsScalarTower R (Rt (l + 1)) (Rt l)]
+    {T : LevelTower.Data (θ := θ) Rt
+      (cov₀ hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv ψc hfin het hk) (πK 𝔪 D)}
+    (_V : NodeLevels hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv ψc hfin het hk Rt T) :=
+  Input θ (cov₀ hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv ψc hfin het hk) (πK 𝔪 D)
+
+variable
   (I : Input θ (cov₀ hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv ψc hfin het hk) (πK 𝔪 D))
-  [∀ l, Algebra R (I.R l)] [∀ l, IsScalarTower O R (I.R l)]
+  [∀ l, Algebra R (I.R l)] [towerORI : ∀ l, IsScalarTower O R (I.R l)]
   [∀ l, IsScalarTower R (I.R (l + 1)) (I.R l)]
   {T' : letI := fun l ↦ QuadNodeTower.algK (θ := θ) (I.R l)
     LevelTower.Data (θ := θ) I.R (cov₀ hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv ψc hfin
@@ -177,6 +191,25 @@ variable (ρX : letI := algC1 I.B I.qB I.C1 l; X →ₐ[I.B l] I.C1)
   (hρ : letI := fun l ↦ QuadNodeTower.algK (θ := θ) (I.R l)
     ∀ x, ρ hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv ψc hfin het hk I.R T'.hfe he l
       (t x) = I.ι₀ (ρX x))
+
+omit [∀ l, IsScalarTower R (I.R (l + 1)) (I.R l)] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal]
+  [∀ l, IsScalarTower O R (I.R l)] in
+set_option linter.unusedSectionVars false in
+-- `V` is included for field notation at the instances
+include V in
+/-- **The hypothesis `hρ` from generators**: if `t` maps generators `q z` of `X` to `1 ⊗ u z` and
+`ι₀ (ρX (q z))` is the class of `u z` in `C = B/JB`, then `ρ ∘ t = ι₀ ∘ ρX`. -/
+theorem hρ_of_mk {Z : Type u} (q : Z → X) (hq : Function.Surjective q) (u : Z → B)
+    (htu : ∀ z, t (q z) = (1 : I.R l) ⊗ₜ u z)
+    (hι : ∀ z, I.ι₀ (ρX (q z)) =
+      (Ideal.Quotient.mk ((J θ (R := R)).map (algebraMap R B)) (u z) : Cs θ R B)) :
+    letI := fun l ↦ QuadNodeTower.algK (θ := θ) (I.R l)
+    ∀ x, ρ hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv ψc hfin het hk I.R T'.hfe he l
+      (t x) = I.ι₀ (ρX x) := by
+  intro x
+  obtain ⟨z, rfl⟩ := hq x
+  rw [htu, ρ_one_tmul, hι]
+  rfl
 
 set_option maxRecDepth 20000 in
 omit [∀ l, IsScalarTower R (I.R (l + 1)) (I.R l)] in
