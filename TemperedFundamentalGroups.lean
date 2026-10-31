@@ -70,6 +70,7 @@ import TemperedFundamentalGroups.Andre.TateCoveringEq
 import TemperedFundamentalGroups.Andre.TateCrossing
 import TemperedFundamentalGroups.Andre.TateCrossingField
 import TemperedFundamentalGroups.Andre.TateCrossingWalk
+import TemperedFundamentalGroups.Andre.TateCuspInertia
 import TemperedFundamentalGroups.Andre.TateEstrangement
 import TemperedFundamentalGroups.Andre.TateG1
 import TemperedFundamentalGroups.Andre.TateInvolution
@@ -879,6 +880,7 @@ import TemperedFundamentalGroups.Tempered.BaseChangeLevel
 import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.CoverImage
+import TemperedFundamentalGroups.Tempered.CuspInertia
 import TemperedFundamentalGroups.Tempered.EtaleInvolution
 import TemperedFundamentalGroups.Tempered.EtaleOrbCover
 import TemperedFundamentalGroups.Tempered.FieldChange
