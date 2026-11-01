@@ -173,6 +173,7 @@ import TemperedFundamentalGroups.SemiAnbd.HNNResFinite
 import TemperedFundamentalGroups.SemiAnbd.HNNTree
 import TemperedFundamentalGroups.SemiAnbd.IncidenceTree
 import TemperedFundamentalGroups.SemiAnbd.LoopProfinite
+import TemperedFundamentalGroups.SemiAnbd.LoopSigmaLevel
 import TemperedFundamentalGroups.SemiAnbd.LoopTower
 import TemperedFundamentalGroups.SemiAnbd.LoopTowerBounded
 import TemperedFundamentalGroups.SemiAnbd.LoopTowerEdge
@@ -912,6 +913,7 @@ import TemperedFundamentalGroups.Tempered.Category
 import TemperedFundamentalGroups.Tempered.Comparison
 import TemperedFundamentalGroups.Tempered.CoverImage
 import TemperedFundamentalGroups.Tempered.CuspInertia
+import TemperedFundamentalGroups.Tempered.DeltaSigma
 import TemperedFundamentalGroups.Tempered.EtaleInvolution
 import TemperedFundamentalGroups.Tempered.EtaleOrbCover
 import TemperedFundamentalGroups.Tempered.FieldChange
