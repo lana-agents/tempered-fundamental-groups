@@ -77,6 +77,20 @@ abbrev CuspLevels.PatchInputOf {Rt : ℕ → Type u} [∀ l, CommRing (Rt l)] [�
     (x0s c0s : Bs') (ϖ : O) :=
   PatchInput θ B' qB' C0 x0 c0 x0s c0s ϖ (cov₀ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk) πL
 
+/-- **The type of the Kummer data `πL` of the covering `cov₀ …` of the cusp level data `V`**,
+spelled with the implicit arguments of `V`. A patch of another syntactic type (e.g. at the Tate
+curve, where `πL` is typed over the covering of the cusp input) should be typed with a `πL` of
+this type: unifying the two spellings of the covering unfolds it, which costs seconds per type
+class query on the levels of the patch. -/
+abbrev CuspLevels.PiOf {Rt : ℕ → Type u} [∀ l, CommRing (Rt l)] [∀ l, Algebra O (Rt l)]
+    [∀ l, IsNoetherianRing (Rt l)] [∀ l, Algebra R (Rt l)] [∀ l, IsScalarTower O R (Rt l)]
+    [∀ l, Algebra (Rt (l + 1)) (Rt l)] [∀ l, IsScalarTower O (Rt (l + 1)) (Rt l)]
+    [∀ l, IsScalarTower R (Rt (l + 1)) (Rt l)]
+    {T : LevelTower.Data (θ := θ) Rt (cov₀ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk) πL}
+    {he : ∀ l (r : R), T.e l (Ideal.Quotient.mk _ r) = Ideal.Quotient.mk _ (algebraMap R (Rt l) r)}
+    (_V : CuspLevels 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt T he) :=
+  (cov₀ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk).ι → O
+
 variable
   (Dp : PatchInput θ B' qB' C0 x0 c0 x0s c0s ϖ (cov₀ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk)
     πL)
