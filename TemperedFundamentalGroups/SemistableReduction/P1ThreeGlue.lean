@@ -1,0 +1,404 @@
+/-
+Copyright (c) 2026 LANA Project. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: LANA Project
+-/
+import TemperedFundamentalGroups.SemistableReduction.P1ThreeLevel
+import TemperedFundamentalGroups.SemistableReduction.CuspInput
+import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueV0Tower
+
+/-!
+# The M2 lift of a tame cover of `ℙ¹_k ∖ {0, 1, ∞}` to `ℙ¹_O` (MR13 A1, glueing and algebraisation)
+
+Let `O` be a complete Noetherian ring with `θ : O ↠ k`, `ϖ ∈ ker θ`, `ker θ ⊆ (ϖ)`, and consider the
+model `h = t (t − 1) : ℙ¹_t → ℙ¹_X` of `P1ThreeChart` (charts `V₀ = Spec R0`, `R0 = O[t]`, and
+`V₁ = Spec R1`, `R1 = O[s][1/(1 − s)]`, `s = 1/t`). A covering of the special fibre `ℙ¹_k` that is
+étale over `ℙ¹_k ∖ {0, 1, ∞}` and tamely ramified (Kummer) over `0, 1, ∞` is given chart-wise by
+
+* **`P1Three.Special1`** over `V₁`: a finite `R1/J`-algebra `C1`, étale over `D(Ȳ)`
+  (`Y = s²/(1 − s)` vanishes on `V₁` exactly at the cusp `∞`, `s = 0`), with an admissible
+  covering `cov` of the special fibre without nodes and with cusp factors `X^e = s̄` along `V(Ȳ)`
+  (`cov.C = C1`);
+* `S0 : CuspTower.CuspSpecial R0 1 X` over `V₀`: the covering `C0` with cusp factors `X^e = X̄`
+  along `V(X̄) = {0} ⊔ {1}` (`X = t (t − 1)` is a uniformizer at both cusps);
+* **`ω : P1Three.OmegaC Sp S0.C0`**: the identification `C0[1/X̄] ≃ C1[1/Ȳ]` over the special fibre
+  of the overlap.
+
+Then:
+
+* **`P1Three.input`** (a `NodeEtaleGlue.Input` over `V₁`: the tower of cusp patches
+  `CuspTower.tower` along `Y` with coordinate `s` at the cusp, and the étale lifts of `C1` over
+  `D(Y)`) and **`P1Three.overlap`** (the `NodeEtaleGlue.Overlap` over `V₀`, whose piece over
+  `D(1) = V₀` is the cusp patch `CuspTower.cuspPiece` along `X`);
+* **`P1Three.system`**: the adic system of chart algebras of the covering on `ℙ¹_O`;
+* **`P1Three.exists_algebraization`**: a coherent chart algebra on `ℙ¹_O` whose reductions modulo
+  `ϖⁿ` are the levels of the covering (Grothendieck existence,
+  `NodeEtaleGlue.Overlap.exists_algebraization`).
+
+This is the formal lifting step of the "lifting half" of tame specialisation for
+`U = ℙ¹ ∖ {0, 1, ∞}` ([SGA1] XIII, proof of Cor 2.12: the specialisation morphism
+`π₁(U_K̄) → π₁^t(U_k)` is surjective, i.e. every tame covering of `U_k` lifts; there via
+cohomological properness, XIII Cor 2.8; here by formal patching and algebraisation as in the
+Tate case `TateGlue0.exists_algebraization_cusp`).
+-/
+
+universe u
+
+namespace SemistableReduction
+
+namespace P1Three
+
+open TateLevel AdmissibleLift EtaleTower
+
+noncomputable section
+
+variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
+  [hθ : Fact (Function.Surjective θ)] {ϖ : O}
+
+variable (O) in
+/-- The chart `V₁` as the cusp chart `D(1)` (`CuspTower.Rc`). -/
+abbrev Rc1 : Type u := CuspTower.Rc (R1 O) 1
+
+variable (O) in
+/-- `Y` on `Rc1`: its zero locus on `V₁` is the cusp `∞`. -/
+abbrev yc : Rc1 O := CuspTower.sC (R1 O) 1 (y1 O)
+
+variable (O) in
+/-- `s` on `Rc1`: the coordinate at the cusp `∞`. -/
+abbrev sc : Rc1 O := CuspTower.sC (R1 O) 1 (s1 O)
+
+namespace CuspChart
+
+variable (θ) (T : Type u) [CommRing T] [Algebra O T] (y s : T)
+
+/-- **The special-fibre covering over a chart `T` with marked points `V(ȳ)`** (coordinate `s̄` at
+the marked points): a finite `T/J`-algebra `C1`, étale over `D(ȳ)`, with an admissible covering
+`cov` of the special fibre of `T[1/1]` without nodes and with cusp factors along `ȳ`,
+`cov.C = C1[1/1]` (`ι₀`). (A variant of `CuspTower.CuspSpecial` with `s ≠ y`.) -/
+structure Special where
+  C1 : Type u
+  [commRing : CommRing C1]
+  [algebra : Algebra (Ts θ T) C1]
+  finite : Module.Finite (Ts θ T) C1
+  etale : (Localization.awayMap (algebraMap (Ts θ T) C1) (Ideal.Quotient.mk _ y)).Etale
+  φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat (fbar θ (CuspTower.sC T 1 y))
+  cov : Admissible.Covering φ₀
+    (CuspTower.ψb (θ := θ) _ (CuspTower.sC T 1 y) (CuspTower.sC T 1 s))
+  [noNodes : IsEmpty cov.ι]
+  ι₀ : C1 →+* cov.C
+  hι₀ : ∀ x, ι₀ (algebraMap (Ts θ T) C1 x) =
+    algebraMap (Ts θ (CuspTower.Rc T 1)) cov.C (CuspTower.φsC T 1 θ x)
+  hι : letI := ι₀.toAlgebra
+    IsLocalization.Away (algebraMap (Ts θ T) C1 (Ideal.Quotient.mk _ 1)) cov.C
+
+attribute [instance] Special.commRing Special.algebra Special.noNodes
+
+end CuspChart
+
+variable (O θ) in
+/-- **The special-fibre covering over `V₁`** (`CuspChart.Special` for `R1`, `y = Y`, `s`): finite
+over `R1/J`, étale over `D(Ȳ)`, Kummer at the cusp `∞` (`s = 0`). -/
+abbrev Special1 : Type (u + 1) := CuspChart.Special θ (R1 O) (y1 O) (s1 O)
+
+variable (Sp : Special1 O θ) (hϖ : θ ϖ = 0) (hker : RingHom.ker θ ≤ Ideal.span {ϖ})
+  [IsNoetherianRing O]
+
+/-- The (empty) deformation parameters of the Kummer factors. -/
+def πc : Sp.cov.ι → O := fun j ↦ isEmptyElim j
+
+instance : IsNoetherianRing (R1 O) := AdjoinRoot.instIsNoetherianRing
+
+instance : IsNoetherianRing (R0 O) := AdjoinRoot.instIsNoetherianRing
+
+/-- **The tower of cusp patches over `V₁`** along `Y`, with coordinate `s` at the cusp. -/
+abbrev tower1 : LevelTower.Data (θ := θ) (Tn ϖ (Rc1 O)) Sp.cov (πc Sp) :=
+  CuspTower.tower _ hϖ (yc O) (sc O) Sp.cov (πc Sp) hker
+    (CuspTower.isSMulRegular_s ϖ (R1 O) 1 (y1 O) (isSMulRegular_y1 ϖ))
+
+lemma hφs1 (n : ℕ) (x : Tn ϖ (R1 O) n) :
+    (tower1 Sp hϖ hker).e n (CuspTower.φsC (R1 O) 1 θ (EtaleTower.q (R1 O) hϖ n x)) =
+      Ideal.Quotient.mk _ (letI := CuspTower.algBR ϖ (R1 O) 1 n
+        algebraMap (Tn ϖ (R1 O) n) (Tn ϖ (Rc1 O) n) x) := by
+  obtain ⟨y, rfl⟩ := Ideal.Quotient.mk_surjective x
+  exact CuspTower.eqv_mk _ hϖ n _
+
+/-- **The étale lifts of `C1` over `D(Y)`** at level `n` (`EtaleTower.lift`). -/
+def E1 (n : ℕ) : EtaleTower.Lift (R1 O) hϖ Sp.C1 (y1 O) n :=
+  haveI := Sp.finite
+  EtaleTower.lift (R1 O) hϖ Sp.C1 (y1 O) hker Sp.etale n
+
+/-- The successor maps of the étale lifts `E1`. -/
+def sE (n : ℕ) : (E1 Sp hϖ hker (n + 1)).E →+* (E1 Sp hϖ hker n).E :=
+  letI := EtaleTower.algE (R1 O) hϖ Sp.C1 (y1 O) (E1 Sp hϖ hker n)
+  (EtaleTower.succ (R1 O) hϖ Sp.C1 (y1 O) hker (E1 Sp hϖ hker (n + 1))
+    (E1 Sp hϖ hker n) : (E1 Sp hϖ hker (n + 1)).E →+* _)
+
+lemma hsE (n : ℕ) (x : Tn ϖ (R1 O) (n + 1)) :
+    sE Sp hϖ hker n (algebraMap _ (E1 Sp hϖ hker (n + 1)).E x) =
+      algebraMap (Tn ϖ (R1 O) n) _ (algebraMap (Tn ϖ (R1 O) (n + 1)) (Tn ϖ (R1 O) n) x) :=
+  letI := EtaleTower.algE (R1 O) hϖ Sp.C1 (y1 O) (E1 Sp hϖ hker n)
+  (EtaleTower.succ (R1 O) hϖ Sp.C1 (y1 O) hker (E1 Sp hϖ hker (n + 1))
+    (E1 Sp hϖ hker n)).commutes x
+
+lemma hσE (n : ℕ) (x : (E1 Sp hϖ hker (n + 1)).E) :
+    (letI := EtaleTower.algC (R1 O) hϖ Sp.C1 n;
+      (E1 Sp hϖ hker n).σ (Ideal.Quotient.mk _ (sE Sp hϖ hker n x))) =
+      (letI := EtaleTower.algC (R1 O) hϖ Sp.C1 (n + 1);
+        (E1 Sp hϖ hker (n + 1)).σ (Ideal.Quotient.mk _ x)) :=
+  EtaleTower.σ_succ (R1 O) hϖ Sp.C1 (y1 O) hker _ _ x
+
+omit [IsNoetherianRing O] in
+variable (O) in
+lemma span_one_y1 : Ideal.span {(1 : R1 O), y1 O} = ⊤ :=
+  (Ideal.eq_top_iff_one _).2 (Ideal.subset_span (Set.mem_insert _ _))
+
+variable (ϖ) in
+/-- The ideal `ϖⁿ⁺¹ R1` of the base chart. -/
+abbrev K1 (n : ℕ) : Ideal (R1 O) := (EtaleTower.Iv ϖ n).map (algebraMap O _)
+
+lemma hkE (n : ℕ) : RingHom.ker (sE Sp hϖ hker n) =
+    (K1 ϖ n).map ((algebraMap (Tn ϖ (R1 O) (n + 1)) (E1 Sp hϖ hker (n + 1)).E).comp
+      (algebraMap (R1 O) (Tn ϖ (R1 O) (n + 1)))) :=
+  EtaleTower.ker_succ_base (R1 O) hϖ Sp.C1 (y1 O) hker _ _
+
+/-- **The covering over `V₁` as an input of the glueing** (`NodeEtaleGlue.Input`): the cusp
+patches on `D(1) = V₁` and the étale lifts on `D(Y)`. -/
+def input : NodeEtaleGlue.Input θ Sp.cov (πc Sp) where
+  R := Tn ϖ (Rc1 O)
+  T := tower1 Sp hϖ hker
+  B := Tn ϖ (R1 O)
+  algBR := CuspTower.algBR ϖ (R1 O) 1
+  towerOBR := CuspTower.towerBR ϖ (R1 O) 1
+  B0 := R1 O
+  a0 := 1
+  b0 := y1 O
+  hab := span_one_y1 O
+  away := CuspTower.isLocalization_BR ϖ (R1 O) 1
+  Bs := Ts θ (R1 O)
+  qB := EtaleTower.q (R1 O) hϖ
+  φs := CuspTower.φsC (R1 O) 1 θ
+  hφs := hφs1 Sp hϖ hker
+  C1 := Sp.C1
+  ι₀ := Sp.ι₀
+  hι₀ := Sp.hι₀
+  abar := Ideal.Quotient.mk _ 1
+  bbar := Ideal.Quotient.mk _ (y1 O)
+  ha := fun _ ↦ rfl
+  hι := Sp.hι
+  hbb := fun _ ↦ rfl
+  E := fun n ↦ (E1 Sp hϖ hker n).E
+  σE := fun n ↦ (E1 Sp hϖ hker n).σ
+  hbE := fun n ↦ (E1 Sp hϖ hker n).hb
+  kdiv := fun _ ↦ 1
+  hdiv := fun _ ↦ by rw [pow_one]; exact dvd_refl _
+  mB := fun n ↦ n + 1
+  hJB := fun n ↦ EtaleTower.hJ hker n
+  hBR := fun _ x ↦ by
+    obtain ⟨y, rfl⟩ := Ideal.Quotient.mk_surjective x
+    rfl
+  sE := sE Sp hϖ hker
+  hsE := hsE Sp hϖ hker
+  hσE := hσE Sp hϖ hker
+  hsEs := fun n ↦ by
+    letI := EtaleTower.algE (R1 O) hϖ Sp.C1 (y1 O) (E1 Sp hϖ hker n)
+    exact EtaleTower.surjective_succ (R1 O) hϖ Sp.C1 (y1 O) hker _ _
+  K := K1 ϖ
+  hkR := fun n ↦ by
+    rw [EtaleTower.ker_succ_T, K1, Ideal.map_map]
+    refine congrArg (fun f ↦ Ideal.map f _) (RingHom.ext fun o ↦ ?_)
+    change _ = quotMap _ _ (Ideal.Quotient.mk _ (algebraMap O (R1 O) o))
+    rw [quotMap_mk, AlgHom.commutes]
+    rfl
+  hkE := hkE Sp hϖ hker
+
+/-! ### The chart `V₀` and the overlap -/
+
+/-- **The type of the overlap datum** for a covering `C0` of the special fibre of `V₀`:
+`C0[1/X̄] ≃ₐ C1[1/Ȳ]` over the special fibre `R01/J` of the overlap chart. -/
+abbrev OmegaC (C0 : Type u) [CommRing C0] [Algebra (Ts θ (R0 O)) C0] : Type u :=
+  letI := algC0x C0 (O := O) (θ := θ)
+  letI := algC1x Sp.C1 (O := O) (θ := θ)
+  Localization.Away (algebraMap (Ts θ (R0 O)) C0 (Ideal.Quotient.mk _ (x0 O))) ≃ₐ[R01s O θ]
+    Localization.Away (algebraMap (Ts θ (R1 O)) Sp.C1 (Ideal.Quotient.mk _ (y1 O)))
+
+/-- `R01` over `R0` (through `ρ₀`). -/
+@[reducible] def algR0R01 : Algebra (R0 O) (R01 O) := (rho0 O : R0 O →+* R01 O).toAlgebra
+
+/-- `R01n` over `R1n` (`ρ₁` at level `n`). -/
+@[reducible] def alg1n (n : ℕ) : Algebra (Tn ϖ (R1 O) n) (Tn ϖ (R01 O) n) := (rho1n ϖ n).toAlgebra
+
+/-- `R01n` over `R0n` (`ρ₀` at level `n`). -/
+@[reducible] def alg0n (n : ℕ) : Algebra (Tn ϖ (R0 O) n) (Tn ϖ (R01 O) n) := (rho0n ϖ n).toAlgebra
+
+omit [IsNoetherianRing O] in
+lemma tower1n (n : ℕ) : letI := alg1n (O := O) (ϖ := ϖ) n
+    IsScalarTower O (Tn ϖ (R1 O) n) (Tn ϖ (R01 O) n) :=
+  letI := alg1n (O := O) (ϖ := ϖ) n
+  IsScalarTower.of_algebraMap_eq fun o ↦ by
+    change Ideal.Quotient.mk _ (algebraMap O (R01 O) o) =
+      Ideal.Quotient.mk _ (algebraMap (R1 O) (R01 O) (algebraMap O _ o))
+    rw [← IsScalarTower.algebraMap_apply]
+
+omit [IsNoetherianRing O] in
+lemma tower0n (n : ℕ) : letI := alg0n (O := O) (ϖ := ϖ) n
+    IsScalarTower O (Tn ϖ (R0 O) n) (Tn ϖ (R01 O) n) :=
+  letI := alg0n (O := O) (ϖ := ϖ) n
+  IsScalarTower.of_algebraMap_eq fun o ↦ by
+    change Ideal.Quotient.mk _ (algebraMap O (R01 O) o) =
+      Ideal.Quotient.mk _ (rho0 O (algebraMap O _ o))
+    rw [AlgHom.commutes]
+
+omit hθ [IsNoetherianRing O] in
+lemma hq1T (n : ℕ) (r : Tn ϖ (R1 O) n) :
+    EtaleTower.q (R01 O) hϖ n (rho1n ϖ n r) =
+      EtaleNil.red (RingHom.ker θ) (IsScalarTower.toAlgHom O (R1 O) (R01 O))
+        (EtaleTower.q (R1 O) hϖ n r) := by
+  obtain ⟨y, rfl⟩ := Ideal.Quotient.mk_surjective r
+  rw [quotMap_mk, EtaleTower.q_mk, EtaleTower.q_mk, EtaleNil.red_mk]
+
+omit hθ [IsNoetherianRing O] in
+lemma hq0T (n : ℕ) (r : Tn ϖ (R0 O) n) :
+    EtaleTower.q (R01 O) hϖ n (rho0n ϖ n r) =
+      EtaleNil.red (RingHom.ker θ) (rho0 O) (EtaleTower.q (R0 O) hϖ n r) := by
+  obtain ⟨y, rfl⟩ := Ideal.Quotient.mk_surjective r
+  rw [quotMap_mk, EtaleTower.q_mk, EtaleTower.q_mk, EtaleNil.red_mk]
+
+omit [IsNoetherianRing O] in
+lemma hWs1T (n : ℕ) (x : Tn ϖ (R1 O) (n + 1)) :
+    algebraMap (Tn ϖ (R01 O) (n + 1)) (Tn ϖ (R01 O) n) (rho1n ϖ (n + 1) x) =
+    rho1n ϖ n (algebraMap (Tn ϖ (R1 O) (n + 1)) (Tn ϖ (R1 O) n) x) := by
+  obtain ⟨y, rfl⟩ := Ideal.Quotient.mk_surjective x
+  rfl
+
+omit [IsNoetherianRing O] in
+lemma hWs0T (n : ℕ) (x : Tn ϖ (R0 O) (n + 1)) :
+    algebraMap (Tn ϖ (R01 O) (n + 1)) (Tn ϖ (R01 O) n) (rho0n ϖ (n + 1) x) =
+    rho0n ϖ n (algebraMap (Tn ϖ (R0 O) (n + 1)) (Tn ϖ (R0 O) n) x) := by
+  obtain ⟨y, rfl⟩ := Ideal.Quotient.mk_surjective x
+  rfl
+
+omit [IsNoetherianRing O] in
+lemma rho0_one_mul : rho0 O 1 * algebraMap (R1 O) (R01 O) (y1 O) ^ 1 =
+    algebraMap (R1 O) (R01 O) (y1 O) := by
+  rw [map_one, one_mul, pow_one]
+
+omit [IsNoetherianRing O] in
+variable (O) in
+lemma span_x0_one : Ideal.span {x0 O, (1 : R0 O)} = ⊤ :=
+  (Ideal.eq_top_iff_one _).2 (Ideal.subset_span (Set.mem_insert_of_mem _ rfl))
+
+variable (S0 : CuspTower.CuspSpecial (R0 O) 1 (x0 O) (θ := θ)) (ω : OmegaC Sp S0.C0)
+  (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
+
+/-- **The covering over `V₀` and the overlap datum** (`NodeEtaleGlue.Overlap`): the second chart
+`V₀ = Spec R0` with levels `R0/ϖⁿ⁺¹`, the overlap `R01` with its levels, `x₀ = X`, `c₀ = 1`,
+`x₁ = g = Y`, and as the piece over `D(c₀) = V₀` the cusp patch of `S0` along `X`. -/
+def overlap : NodeEtaleGlue.Overlap (input Sp hϖ hker) where
+  B0' := R0 O
+  B' := Tn ϖ (R0 O)
+  W0 := R01 O
+  algB0W0 := (inferInstance : Algebra (R1 O) (R01 O))
+  algB0'W0 := algR0R01
+  algOB0 := (inferInstance : Algebra O (R1 O))
+  algOW0 := inferInstance
+  towerOB0W0 := (inferInstance : IsScalarTower O (R1 O) (R01 O))
+  towerOB0'W0 := towerR0R01 O
+  W := Tn ϖ (R01 O)
+  algOW := fun _ ↦ inferInstance
+  algBW := alg1n
+  algB'W := alg0n
+  towerOBW := tower1n
+  towerOB'W := tower0n
+  algW0W := fun _ ↦ inferInstance
+  x0 := x0 O
+  c0 := 1
+  x1 := y1 O
+  g := y1 O
+  hW0 := (inferInstance : IsLocalization.Away (y1 O) (R01 O))
+  hxW0 := by
+    change rho0 O (x0 O) * _ = 1
+    rw [rho0_x0, mul_comm]
+    exact y1_mul_yinv O
+  kc := 1
+  hcW0 := rho0_one_mul
+  hx1g := dvd_refl _
+  hWn0 := isLocalization_rho0n ϖ
+  hWn1 := isLocalization_rho1n ϖ
+  hWB := fun _ _ ↦ rfl
+  hWB' := fun _ _ ↦ rfl
+  kg := fun _ ↦ 1
+  hfg := fun _ ↦ by rw [pow_one]; exact dvd_refl _
+  Bs' := Ts θ (R0 O)
+  qB' := EtaleTower.q (R0 O) hϖ
+  Ws := R01s O θ
+  algBsWs := alg1s O θ
+  algBs'Ws := alg0s O θ
+  qW := EtaleTower.q (R01 O) hϖ
+  hq1 := hq1T hϖ
+  hq0 := hq0T hϖ
+  x0s := Ideal.Quotient.mk _ (x0 O)
+  c0s := Ideal.Quotient.mk _ 1
+  x1s := Ideal.Quotient.mk _ (y1 O)
+  gs := Ideal.Quotient.mk _ (y1 O)
+  hx0 := fun _ ↦ rfl
+  hc0 := fun _ ↦ rfl
+  hx1 := fun _ ↦ rfl
+  hg := fun _ ↦ rfl
+  hcg := by
+    change Ideal.Quotient.mk _ (rho0 O 1) *
+      Ideal.Quotient.mk _ (algebraMap (R1 O) (R01 O) (y1 O)) ^ 1 =
+        Ideal.Quotient.mk _ (algebraMap (R1 O) (R01 O) (y1 O))
+    rw [← map_pow, ← map_mul, rho0_one_mul]
+  C0 := S0.C0
+  algWs1 := algC1x Sp.C1
+  towerWs1 := towerC1x Sp.C1
+  algWs0 := algC0x S0.C0
+  towerWs0 := towerC0x S0.C0
+  ω := ω
+  hxc := span_x0_one O
+  hW0' := isLocalization_rho0 O
+  finB0 := finite_aeval_y1 O
+  finB0' := finite_aeval_x0 O
+  surjB := fun _ ↦ Ideal.Quotient.mk_surjective
+  surjB' := fun _ ↦ Ideal.Quotient.mk_surjective
+  hfinE := fun n ↦ (E1 Sp hϖ hker n).hfin
+  algSuccB' := fun _ ↦ inferInstance
+  towerOSuccB' := fun _ ↦ inferInstance
+  towerB0'SuccB' := fun _ ↦ IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
+  algSuccW := fun n ↦ (inferInstance :
+    Algebra (EtaleTower.Tn ϖ (R01 O) (n + 1)) (EtaleTower.Tn ϖ (R01 O) n))
+  hWs1 := hWs1T
+  hWs0 := hWs0T
+  ϖ := ϖ
+  hOB0B := fun _ _ ↦ rfl
+  hK := fun _ ↦ rfl
+  killB := EtaleTower.kill (R1 O)
+  killB' := EtaleTower.kill (R0 O)
+  P0 := CuspTower.cuspPiece S0 hϖ hker (isSMulRegular_x0 ϖ) hO
+
+/-- **The adic system of chart algebras on `ℙ¹_O` of the covering.** -/
+abbrev system : ProjectiveLine.AdicChartAlgSystem (Ideal.span {ϖ}) :=
+  (overlap Sp hϖ hker S0 ω hO).system hθ.out hO
+
+/-- **Algebraization of the covering** (MR13 A1): a coherent chart algebra on `ℙ¹_O` (finite over
+both charts of `ℙ¹_O`) whose reductions modulo `ϖⁿ` are the levels of the lift of the tame
+covering of `ℙ¹_k ∖ {0, 1, ∞}` given by `Sp`, `S0`, `ω`. -/
+theorem exists_algebraization [IsAdicComplete (Ideal.span {ϖ}) O] :
+    ∃ (N : ProjectiveLine.ChartModule O) (_ : Module.Finite (Polynomial O) (Module.AEval' N.x0))
+      (_ : Module.Finite (Polynomial O) (Module.AEval' N.x1))
+      (B : ProjectiveLine.ChartModule.AlgStr N)
+      (α : ∀ n, ProjectiveLine.ChartModule.Hom N ((system Sp hϖ hker S0 ω hO).M n)),
+      (∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+        LinearMap.ker (α n).f0 = Ideal.span {ϖ} ^ n • ⊤ ∧
+        LinearMap.ker (α n).f1 = Ideal.span {ϖ} ^ n • ⊤) ∧
+      (∀ m n (h : m ≤ n), ((system Sp hϖ hker S0 ω hO).tr h).comp (α n) = α m) ∧
+      ∀ n, B.IsHom ((system Sp hϖ hker S0 ω hO).alg n) (α n) := by
+  haveI : IsAdicComplete (Ideal.span {(overlap Sp hϖ hker S0 ω hO).ϖ}) O :=
+    ‹IsAdicComplete (Ideal.span {ϖ}) O›
+  exact (overlap Sp hϖ hker S0 ω hO).exists_algebraization hθ.out hO
+
+end
+
+end P1Three
+
+end SemistableReduction
