@@ -926,6 +926,7 @@ import TemperedFundamentalGroups.Tempered.FieldChangeImage
 import TemperedFundamentalGroups.Tempered.FieldChangeOrbifold
 import TemperedFundamentalGroups.Tempered.FieldChangePure
 import TemperedFundamentalGroups.Tempered.Galois
+import TemperedFundamentalGroups.Tempered.GaloisContinuous
 import TemperedFundamentalGroups.Tempered.GaloisSurjective
 import TemperedFundamentalGroups.Tempered.InducedAlg
 import TemperedFundamentalGroups.Tempered.InducedCounit
