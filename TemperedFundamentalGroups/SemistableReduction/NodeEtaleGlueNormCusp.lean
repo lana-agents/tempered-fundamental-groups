@@ -21,7 +21,9 @@ families of level data:
 
 **`NodeEtaleGlue.Overlap.exists_iso_of_cuspLevels`**: every algebraization of the covering is
 isomorphic to `P` as a chart algebra (`exists_iso_of_levels'` with `e0 n = levelEquiv0P …`, the
-tower property from `f0_levelEquiv0P`, and `hρ` from `φQn_mul_pow`).
+tower property from `f0_levelEquiv0P`, and `hρ` from `φQn_mul_pow`);
+**`exists_iso_of_cuspLevelsW`**: the same with the common witnesses of consecutive levels
+obtained from `hW`.
 -/
 
 universe u
@@ -187,6 +189,40 @@ theorem exists_iso_of_cuspLevels [IsNoetherianRing O] [IsAdicComplete (Ideal.spa
       (hJm (n + 1)) (hψ1 (n + 1)) (hx1 (n + 1)) (hω (n + 1)) (μ1 n) (μ0 n) (e1.succ n) (hμt n)
       (hω2 n) x)
     hμ0 hμ1 hs0 hs1 hk0 hk1 hS hα hαc hBN
+
+omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+include Vc hkI hT hP0 e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω q0 hq0O q1 hq1O hx hy hW in
+/-- **`exists_iso_of_cuspLevels` with the common witnesses `hω2` from `hW`** (for `b ∈ P.R0` a
+witness `ρ0 b · ρ1 yᵏ = ρ1 m` exists in every two-chart ring, `TwoChartRings.exists1`; `hW` at the
+levels `n + 1` and `n` gives the witnesses of `ωn (n + 1)` and `ωn n`). -/
+theorem exists_iso_of_cuspLevelsW [IsNoetherianRing O] [IsAdicComplete (Ideal.span {V.ϖ}) O]
+    [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]
+    [Module.Finite O[X] (Module.AEval' P.chartModule.x1)]
+    (hμt : ∀ n x, t n (μ0 n x) = levelMap Dp.R n (t (n + 1) x))
+    (hμ0 : ∀ n r, μ0 n (q0 (n + 1) r) = q0 n r) (hμ1 : ∀ n r, μ1 n (q1 (n + 1) r) = q1 n r)
+    (hs0 : ∀ n, Function.Surjective (q0 n)) (hs1 : ∀ n, Function.Surjective (q1 n))
+    (hk0 : ∀ n, RingHom.ker (q0 n) = (Ideal.span {V.ϖ} ^ (n + 1)).map (algebraMap O P.R0))
+    (hk1 : ∀ n, RingHom.ker (q1 n) = (Ideal.span {V.ϖ} ^ (n + 1)).map (algebraMap O P.R1))
+    {S : AdicChartAlgSystem (Ideal.span {V.ϖ})} (hS : V.system hθ.out hO = S)
+    {N : ChartModule O} [Module.Finite O[X] (Module.AEval' N.x0)]
+    [Module.Finite O[X] (Module.AEval' N.x1)]
+    {α : ∀ n, Hom N (S.M n)} {BN : AlgStr N}
+    (hα : ∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+      LinearMap.ker (α n).f0 = Ideal.span {V.ϖ} ^ n • ⊤ ∧
+      LinearMap.ker (α n).f1 = Ideal.span {V.ϖ} ^ n • ⊤)
+    (hαc : ∀ m n (h : m ≤ n), (S.tr h).comp (α n) = α m)
+    (hBN : ∀ n, BN.IsHom (S.alg n) (α n)) :
+    ∃ (γ : Hom P.chartModule N) (δ : Hom N P.chartModule), γ.comp δ = Hom.id N ∧
+      δ.comp γ = Hom.id P.chartModule ∧ P.algStr.IsHom BN γ ∧ BN.IsHom P.algStr δ := by
+  refine V.exists_iso_of_cuspLevels hO Dp Vc hkI hT hP0 P e1 μ0 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1
+    hx1 hω q0 hq0O q1 hq1O hx hy hW hμt ?_ hμ0 hμ1 hs0 hs1 hk0 hk1 hS hα hαc hBN
+  intro n x
+  obtain ⟨b, rfl⟩ := hs0 (n + 1) x
+  obtain ⟨m, k, h⟩ := P.exists1 (P.ρ0 b)
+  have h' : P.ρ0 b * P.ρ1 P.y ^ k = P.ρ1 m := by rw [P.ρ1_y, mul_comm]; exact h
+  refine ⟨q1 (n + 1) m, k, hW (n + 1) b m k h', ?_⟩
+  rw [hμ0, hμ1]
+  exact hW n b m k h'
 
 end
 

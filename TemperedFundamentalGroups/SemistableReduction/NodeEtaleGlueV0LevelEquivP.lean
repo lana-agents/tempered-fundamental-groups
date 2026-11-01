@@ -194,6 +194,39 @@ theorem hω_of_mkA {Z Z1 : Type u} (q0 : Z → X0) (hq0 : Function.Surjective q0
   obtain ⟨y, k, h⟩ := H b
   exact ⟨q1 y, k, h⟩
 
+omit hθ [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+/-- **The hypothesis `hω` from generators with choice functions** (`hω_of_mkA` with the
+witness `(yf b, kf b)` of each generator `b` given by functions, so that at concrete data no
+existential statement over the projections of `V` is formed). -/
+theorem hω_of_mkC {Z Z1 : Type u} (q0 : Z → X0) (hq0 : Function.Surjective q0) (q1 : Z1 → X1)
+    (yf : Z → Z1) (kf : Z → ℕ)
+    (H1 : ∀ b : Z,
+      haveI := V.hW0; haveI := V.hW0'
+      letI := awayAlg (W := V.W0) (C := X0) V.x0
+      letI := awayAlg (W := V.W0) (C := X1) V.x1
+      ωn (algebraMap X0 _ (q0 b)) *
+          algebraMap X1 (Localization.Away (algebraMap I.B0 X1 V.x1))
+            (algebraMap I.B0 X1 V.x1) ^ kf b =
+        algebraMap X1 _ (q1 (yf b)))
+    (H2 : ∀ b : Z,
+      V.ω (algebraMap V.C0 _ (ρX0 (q0 b))) *
+          algebraMap I.C1 (Localization.Away (algebraMap I.Bs I.C1 V.x1s))
+            (algebraMap I.Bs I.C1 V.x1s) ^ kf b = algebraMap I.C1 _ (ρX1 (q1 (yf b)))) :
+    ∀ x : X0, ∃ (y : X1) (k : ℕ),
+      (haveI := V.hW0; haveI := V.hW0'
+        letI := awayAlg (W := V.W0) (C := X0) V.x0
+        letI := awayAlg (W := V.W0) (C := X1) V.x1
+        ωn (algebraMap X0 _ x) *
+          algebraMap X1 (Localization.Away (algebraMap I.B0 X1 V.x1))
+            (algebraMap I.B0 X1 V.x1) ^ k =
+          algebraMap X1 _ y) ∧
+      V.ω (algebraMap V.C0 _ (ρX0 x)) *
+          algebraMap I.C1 (Localization.Away (algebraMap I.Bs I.C1 V.x1s))
+            (algebraMap I.Bs I.C1 V.x1s) ^ k = algebraMap I.C1 _ (ρX1 y) := by
+  intro x
+  obtain ⟨b, rfl⟩ := hq0 x
+  exact ⟨q1 (yf b), kf b, H1 b, H2 b⟩
+
 /-- **G4 over `V₀` from cusp level data: the level `n` of the covering over the second chart is
 `X0`**, `X0 ≃ₐ[B0'] Q n ×_{M n} P0 n` (`levelEquiv0X` with the patch side `φPof` of the cusp
 level data `Vc` along `hP0 : V.P0 = Dp.piece`). -/
