@@ -5,6 +5,7 @@ Authors: LANA Project
 -/
 
 import TemperedFundamentalGroups.Andre.CentreMove
+import TemperedFundamentalGroups.Andre.CompCuspSet
 import TemperedFundamentalGroups.Andre.ComponentDVR
 import TemperedFundamentalGroups.Andre.Components
 import TemperedFundamentalGroups.Andre.CompositeCentre
