@@ -21,9 +21,10 @@ from the node patches `G n` of the tower `towerS6` and the étale lifts `E1 n`) 
   data `levelsS5`, so that the generic results apply without re-checking the covering bridge),
   `TateS6.tF` (`B₁/ϖⁿ⁺¹ → NR/ϖⁿ⁺¹ ⊗ Bn`), **`TateS6.φE`** (`B₁/ϖⁿ⁺¹ → (B₁/ϖⁿ⁺¹)[1/w] ≃ E1 n`),
   **`TateS6.ρX`** (`B₁/ϖⁿ⁺¹ → B₁/JB₁`), `TateS6.hρ_lev` (`NodeLevels.hρ_of_mk`);
-* **`TateS6.equivY1`**: `B₁/ϖⁿ⁺¹ ≃ₐ[T1] Y n` (`FormalLevel.NodeLevels.levelEquivX`);
 * `TateS6.tF_succ`, `TateS6.hμE_lev`: the components commute with the reductions
   `B₁/ϖⁿ⁺² → B₁/ϖⁿ⁺¹` (the hypotheses `hμt`, `hμE` of `levelEquivX_succ`).
+
+The identifications `B₁/ϖⁿ⁺¹ ≃ₐ[T1] Y n` themselves are `TateS6.equivY1` (`TateV1GlueFam`).
 
 Instance arguments of the generic statements whose instances differ syntactically at the Tate
 input (`towerORI`, `towerX`) are passed explicitly; `rw`/`obtain … rfl` in goals mixing the levels
@@ -299,26 +300,6 @@ instance instTowerRbRRF (l : ℕ) :
 instance instTowerNRRRF (l : ℕ) : IsScalarTower 𝒩 ((𝓘F).R (l + 1)) ((𝓘F).R l) :=
   inferInstanceAs (IsScalarTower 𝒩 (QuadNodeTower.Rn ϖ ϖ m (cN b₄ b₆ ϖ m ε) (DN b₄ ϖ m) (l + 1))
     (QuadNodeTower.Rn ϖ ϖ m (cN b₄ b₆ ϖ m ε) (DN b₄ ϖ m) l))
-
-set_option maxHeartbeats 1000000 in
--- instantiating the generic glueing at the Tate input
-/-- **MR12 S6 G4: the level `n` of the M2 lift over `V₁` is `B₁/ϖⁿ⁺¹`**:
-`B₁/ϖⁿ⁺¹ ≃ₐ[T1] Y n` (`FormalLevel.NodeLevels.levelEquivX` for the node level data
-`levelsS5`), with components the node level patch and the étale level `φE`. -/
-def equivY1 (n : ℕ) : TateGlue1.Xn ϖ 𝒯 B₁ n ≃ₐ[(𝓘F).B0] (𝓘F).Y hθ.out n :=
-  (levelsS5 hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ).levelEquivX (𝓘F)
-    (fun l a ↦ QuadNodeTower.eqv_mk ϖ m (cN b₄ b₆ ϖ m ε) (DN b₄ ϖ m) (TateS5.θ_ϖ hker) l a)
-    (isUnit_of_θ_ne_zero hϖ hker) rfl HEq.rfl
-    (towerORI := fun _ ↦ IsScalarTower.of_algebraMap_eq fun _ ↦ rfl)
-    (towerX := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl)
-    (TateGlue1.toTensor hκ B₁ Bn hBn n) (toTensor_algebraMap hκ hBn n)
-    (ρX hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
-    (hρ_lev hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
-    (TateGlue1.isLocalization_toTensor hκ B₁ Bn hBn n)
-    (φE hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
-    (hE_lev hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
-    (hlocE_lev hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
-
 
 /-- **The reduction `B₁/ϖⁿ⁺² → B₁/ϖⁿ⁺¹`.** -/
 abbrev Xmap (n : ℕ) : TateGlue1.Xn ϖ 𝒯 B₁ (n + 1) →+* TateGlue1.Xn ϖ 𝒯 B₁ n :=
