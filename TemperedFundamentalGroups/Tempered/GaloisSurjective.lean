@@ -368,6 +368,46 @@ theorem exists_mem_ker_character_piToGk_eq [IsReduced D.R] [Subsingleton D.A]
   obtain ⟨σ, hσ⟩ := exists_galoisToTempered_piToGk_eq D O V hV A hk hkres hrat hHL hVA g
   exact ⟨_, character_galoisToTempered hV T σ, hσ⟩
 
+/-! ### The tempered homotopy exact sequence `1 → Δ^tp → Π^tp → G_k → 1` -/
+
+omit [IsDiscreteValuationRing O] [IsAdicComplete (maximalIdeal O) O] in
+/-- **The geometric tempered fundamental group** `Δ^tp = Ker(Π^tp → G_k)`. -/
+def deltaTemp : Subgroup (TempPi D O V hV) := ((piToGk D).comp (tempToPi D O V hV)).ker
+
+omit [IsDiscreteValuationRing O] [IsAdicComplete (maximalIdeal O) O] in
+theorem mem_deltaTemp (γ : TempPi D O V hV) :
+    γ ∈ deltaTemp D O V hV ↔ piToGk D (tempToPi D O V hV γ) = 1 := Iff.rfl
+
+omit [IsDiscreteValuationRing O] [IsAdicComplete (maximalIdeal O) O] in
+instance deltaTemp_normal : (deltaTemp D O V hV).Normal := MonoidHom.normal_ker _
+
+include hrat hk hkres hVA hV hHL in
+/-- **`Π^tp = Δ^tp · D_V`** at a base point over a rational point: every element of `Π^tp` is a
+geometric element times a Galois element of the base point. -/
+theorem exists_mem_deltaTemp_mul_galoisToTempered (γ : TempPi D O V hV) :
+    ∃ δ ∈ deltaTemp D O V hV, ∃ σ : decompositionGroup D.R V,
+      γ = δ * galoisToTempered O D.R D.A hV σ := by
+  obtain ⟨σ, hσ⟩ := exists_galoisToTempered_piToGk_eq D O V hV A hk hkres hrat hHL hVA
+    (piToGk D (tempToPi D O V hV γ))
+  refine ⟨γ * (galoisToTempered O D.R D.A hV σ)⁻¹, ?_, σ, by group⟩
+  change ((piToGk D).comp (tempToPi D O V hV)) (γ * (galoisToTempered O D.R D.A hV σ)⁻¹) = 1
+  rw [map_mul, map_inv, MonoidHom.comp_apply, MonoidHom.comp_apply, hσ, mul_inv_cancel]
+
+include hrat hk hkres hVA hV hHL in
+/-- **The exact sequence `1 → Δ^tp_Y → Π^tp_Y → G_k → 1`** for Tate data `T` on `R`
+(`Π^tp_Y = ker χ`, `Δ^tp_Y = Δ^tp ∩ Π^tp_Y`): the kernel of `Π^tp_Y → G_k` is `Δ^tp_Y` (by
+definition) and the map is surjective (`exists_mem_ker_character_piToGk_eq`). -/
+theorem deltaTemp_inf_ker_character [IsReduced D.R] [Subsingleton D.A]
+    (T : TateObject.Data O D.R) :
+    (((piToGk D).comp (tempToPi D O V hV)).comp
+        (TateObject.character (A := D.A) T V hV).ker.subtype).ker =
+      (deltaTemp D O V hV).subgroupOf (TateObject.character (A := D.A) T V hV).ker ∧
+    Function.Surjective (((piToGk D).comp (tempToPi D O V hV)).comp
+        (TateObject.character (A := D.A) T V hV).ker.subtype) := by
+  refine ⟨rfl, fun g => ?_⟩
+  obtain ⟨h, hh, hg⟩ := exists_mem_ker_character_piToGk_eq D O V hV A hk hkres hrat hHL hVA T g
+  exact ⟨⟨h, hh⟩, hg⟩
+
 end
 
 end Kummer
