@@ -19,7 +19,7 @@ rev = "v4.32.0"
 [[require]]
 name = "continuous-kummer-theory"
 git = "https://github.com/lana-agents/continuous-kummer-theory"
-rev = "e3fc64c0b432779995121e138b6f65fc377242c8"
+rev = "1d5194fcc63ddeb7a8cdb6c98d59452503db60fa"
 
 [[lean_lib]]
 name = "TemperedFundamentalGroups"
