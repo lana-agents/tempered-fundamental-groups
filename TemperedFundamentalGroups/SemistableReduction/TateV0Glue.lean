@@ -8,9 +8,12 @@ import TemperedFundamentalGroups.SemistableReduction.TateCuspLevelPatch
 import TemperedFundamentalGroups.SemistableReduction.TateGlue0CuspTower
 import TemperedFundamentalGroups.SemistableReduction.CuspTensorLevel
 import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueV0Cusp
+import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueV0LevelPsi
+import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueV0LevelEquivX
+import TemperedFundamentalGroups.SemistableReduction.TateV1GlueFam
 
 /-!
-# The cusp patch over `D(1 + h)` at the Tate data (MR12 T2 S6, G4 over `V₀`)
+# The cusp patch and the overlap over `V₀` at the Tate data (MR12 T2 S6, G4 over `V₀`)
 
 For the tame cover `L` of the Tate curve (data of `TateS5`) with normalisation `B₀` of the chart
 `T0` and its localization `Bc = B₀[1/(1 + h)]` (the normalisation of the cusp chart `Rc`):
@@ -18,7 +21,17 @@ For the tame cover `L` of the Tate curve (data of `TateS5`) with normalisation `
 * `TateS6.cuspLevels`: the cusp level data `TateCuspCov.cuspLevelsS6` at the data of `sc`;
 * **`TateS6.cuspF`**: the cusp patch `CuspTower.cuspInput (sc …)` typed as
   `FormalCuspLevel.CuspLevels.PatchInputOf` of `cuspLevels` (the ascription unfolds `covCusp` to
-  `covCuspOf` once), so that the generic results of `NodeEtaleGlueV0Cusp` apply to it.
+  `covCuspOf` once), so that the generic results of `NodeEtaleGlueV0Cusp` apply to it;
+* `TateS6.tC` (`B₀/ϖⁿ⁺¹ → Rc/ϖⁿ⁺¹ ⊗ Bc`), `TateS6.ρX0` (`B₀/ϖⁿ⁺¹ → B₀/JB₀`), `TateS6.hρ0`;
+* **`TateS6.φP0`** (`B₀/ϖⁿ⁺¹ → G n`, the level-`n` cusp patch), `TateS6.hP0` (a localization
+  away from `1 + h`), **`TateS6.hPℓ0`** (its special fibre on the overlap is `ℓ0 ∘ ρX0`);
+* **`TateS6.VF`**: the covering over `V₀` (`TateGlue0.overlapP` with the piece of `cuspF`,
+  definitionally `overlapCusp` at the data of S5) over `inpF`; `TateS6.hψ1` (the hypothesis `hψ`
+  of `Overlap.levelEquiv0X` for `equivY1`).
+
+Instance arguments over the levels of `cuspF` are passed by name (`algRI`, `towerORI`,
+`towerRII`) as instances of the levels `Rc/ϖˡ⁺¹`: type class inference on `(cuspF …).R l` takes
+seconds per query.
 -/
 
 universe u
@@ -128,6 +141,101 @@ def cuspF : (cuspLevels hϖ hker hκ hε h3 hE hb₆ he hζe hd hBc hunr₀ φ�
     (Ideal.Quotient.mk _ (h0 (ε * ϖ ^ m) b₄ t κ))
     (Ideal.Quotient.mk _ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ)) ϖ :=
   CuspTower.cuspInput (𝓢c) (TateS5.θ_ϖ hker) hker.le (isSMulRegular_h0 ϖ (ε * ϖ ^ m) b₄ t κ)
+
+local notation "𝓒" => cuspLevels hϖ hker hκ hε h3 hE hb₆ he hζe hd hBc hunr₀ φ₀
+
+local notation "𝓓" => cuspF hϖ hker hκ hε h3 hE hb₆ he hζe hd hBc hunr₀ φ₀
+
+local notation "ℛ" => RcT (ε * ϖ ^ m) b₄ t κ
+
+/-- `B₀/ϖⁿ⁺¹ → Rc/ϖⁿ⁺¹ ⊗_{Rc} Bc` (`CuspTower.toTensorC`). -/
+abbrev tC (n : ℕ) : TateGlue1.Xn ϖ 𝒯0 B₀ n →+* EtaleTower.Tn ϖ ℛ n ⊗[ℛ] Bc :=
+  CuspTower.toTensorC ϖ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ) B₀ Bc hBc n
+
+/-- **The reduction `B₀/ϖⁿ⁺¹ → B₀/JB₀`.** -/
+abbrev ρX0 (n : ℕ) : TateGlue1.Xn ϖ 𝒯0 B₀ n →+* Cs θ 𝒯0 B₀ :=
+  EtaleTower.red (T := 𝒯0) (B := B₀) (TateS5.θ_ϖ hker) n
+
+set_option linter.defProp false in
+set_option maxHeartbeats 1000000 in
+-- instantiating the generic lemma at the Tate cusp patch
+/-- **The reduction hypothesis of the cusp patch side at level `n`** (`CuspLevels.hρ_of_mk`). -/
+def hρ0 (n : ℕ) :=
+  (𝓒).hρ_of_mk (𝓓) (algRI := fun l ↦ inferInstanceAs (Algebra ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (towerORI := fun l ↦ inferInstanceAs (IsScalarTower O ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (towerRII := fun l ↦ inferInstanceAs
+      (IsScalarTower ℛ (EtaleTower.Tn ϖ ℛ (l + 1)) (EtaleTower.Tn ϖ ℛ l)))
+    (tC (B₀ := B₀) hBc n) (ρX0 (B₀ := B₀) hker n) (Ideal.Quotient.mk _)
+    Ideal.Quotient.mk_surjective (algebraMap B₀ Bc)
+    (fun b ↦ CuspTower.toTensorC_mk ϖ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ) B₀ Bc hBc n b)
+    (fun _ ↦ rfl)
+
+set_option maxHeartbeats 1000000 in
+-- instantiating the generic map at the Tate cusp patch
+/-- **The cusp patch side of the level `B₀/ϖⁿ⁺¹`**: `B₀/ϖⁿ⁺¹ → Rc/ϖⁿ⁺¹ ⊗ Bc ≃ G n`. -/
+def φP0 (n : ℕ) :=
+  (𝓒).φPX (𝓓) (algRI := fun l ↦ inferInstanceAs (Algebra ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (towerORI := fun l ↦ inferInstanceAs (IsScalarTower O ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (isUnit_of_θ_ne_zero hϖ hker) rfl HEq.rfl (tC (B₀ := B₀) hBc n)
+    (CuspTower.toTensorC_algebraMap ϖ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ) B₀ Bc hBc n)
+
+set_option linter.defProp false in
+set_option maxHeartbeats 1000000 in
+-- instantiating the generic lemma at the Tate cusp patch
+/-- The cusp patch side is a localization away from `1 + h`. -/
+@[reducible] def hP0 (n : ℕ) :=
+  (𝓒).isLocalization_φPX (𝓓) (algRI := fun l ↦ inferInstanceAs (Algebra ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (towerORI := fun l ↦ inferInstanceAs (IsScalarTower O ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (isUnit_of_θ_ne_zero hϖ hker) rfl HEq.rfl (tC (B₀ := B₀) hBc n)
+    (CuspTower.toTensorC_algebraMap ϖ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ) B₀ Bc hBc n)
+    (CuspTower.isLocalization_toTensorC ϖ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ) B₀ Bc hBc n)
+
+set_option linter.defProp false in
+set_option maxHeartbeats 1000000 in
+-- instantiating the generic lemma at the Tate cusp patch
+/-- The special fibre of the cusp patch side on the overlap is `ℓ0 ∘ ρX0`. -/
+def hPℓ0 (n : ℕ) :=
+  (𝓒).mk_Loc_φPX (𝓓) (algRI := fun l ↦ inferInstanceAs (Algebra ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (towerORI := fun l ↦ inferInstanceAs (IsScalarTower O ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (isUnit_of_θ_ne_zero hϖ hker) rfl HEq.rfl (tC (B₀ := B₀) hBc n) (ρX0 (B₀ := B₀) hker n)
+    (hρ0 hϖ hker hκ hε h3 hE hb₆ he hζe hd hBc hunr₀ φ₀ n)
+
+local notation "𝓘F" => inpF hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ
+
+/-- **The covering over `V₀`**: `TateGlue0.overlapP` with the cusp patch `cuspF` over `D(1 + h)`
+(definitionally `TateGlue0.overlapCusp` at the data of S5), over `inpF`. -/
+def VF : NodeEtaleGlue.Overlap (inpF hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ) :=
+  overlapP hκ rfl hε (TateS5.θ_ϖ hker) (piP hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn
+      hunr₁ τ) (piP_pow hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ) hker.le (𝓢p)
+    (NeZero.ne m) (𝓢c).C0
+    (om hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ hBn hBc hunr₁ hunr₀ τ φ₀)
+    ((𝓓).piece hθ.out (isUnit_of_θ_ne_zero hϖ hker))
+
+local notation "𝓥" => VF hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ hBn hBc
+  hunr₁ hunr₀ τ φ₀
+
+instance instAlgVXn (n : ℕ) : Algebra (𝓥).B0' (TateGlue1.Xn ϖ 𝒯0 B₀ n) :=
+  inferInstanceAs (Algebra 𝒯0 (TateGlue1.Xn ϖ 𝒯0 B₀ n))
+
+set_option linter.defProp false in
+set_option maxHeartbeats 1000000 in
+-- instantiating the generic lemma at the Tate input and overlap
+/-- **The hypothesis `hψ` at level `n`** (`NodeLevels.mk_ψ_levelEquivX` for `equivY1`). -/
+def hψ1 (n : ℕ) :=
+  (levelsS5 hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ).mk_ψ_levelEquivX (𝓘F)
+    (fun l a ↦ QuadNodeTower.eqv_mk ϖ m (cN b₄ b₆ ϖ m ε) (DN b₄ ϖ m) (TateS5.θ_ϖ hker) l a)
+    (isUnit_of_θ_ne_zero hϖ hker) rfl HEq.rfl
+    (towerORI := fun _ ↦ IsScalarTower.of_algebraMap_eq fun _ ↦ rfl)
+    (tF hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
+    (toTensor_algebraMap hκ hBn n)
+    (ρX hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
+    (hρ_lev hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
+    (towerX := IsScalarTower.of_algebraMap_eq fun _ ↦ rfl)
+    (TateGlue1.isLocalization_toTensor hκ B₁ Bn hBn n)
+    (φE hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
+    (hE_lev hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n)
+    (hlocE_lev hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ n) (𝓥)
+
 
 end Data
 end
