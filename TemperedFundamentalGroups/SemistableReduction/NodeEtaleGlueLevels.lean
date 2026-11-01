@@ -136,6 +136,13 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {hk : ∀ j i, ((D j).d i : k) ≠ 0}
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal]
 
+omit [IsSepClosed k] [IsNoetherianRing R] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+/-- `levelMap` on `1 ⊗ b`. -/
+lemma levelMap_one_tmul {Rt : ℕ → Type u} [∀ l, CommRing (Rt l)] [∀ l, Algebra R (Rt l)]
+    [∀ l, Algebra (Rt (l + 1)) (Rt l)] [∀ l, IsScalarTower R (Rt (l + 1)) (Rt l)] (l : ℕ)
+    (b : B) : levelMap Rt l ((1 : Rt (l + 1)) ⊗ₜ[R] b) = (1 : Rt l) ⊗ₜ[R] b := by
+  rw [levelMap, Algebra.TensorProduct.map_tmul, map_one, AlgHom.id_apply]
+
 /-- **The type of inputs of a glueing over the covering `cov₀ …` of the level data `V`**, with
 the implicit arguments of `V` (an input of another syntactic type, e.g. at the Tate curve, is
 converted to this type once, by a type ascription, before the generic results are applied). -/
@@ -150,8 +157,8 @@ abbrev NodeLevels.InputOf {Rt : ℕ → Type u} [∀ l, CommRing (Rt l)] [∀ l,
 
 variable
   (I : Input θ (cov₀ hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv ψc hfin het hk) (πK 𝔪 D))
-  [∀ l, Algebra R (I.R l)] [towerORI : ∀ l, IsScalarTower O R (I.R l)]
-  [∀ l, IsScalarTower R (I.R (l + 1)) (I.R l)]
+  [algRI : ∀ l, Algebra R (I.R l)] [towerORI : ∀ l, IsScalarTower O R (I.R l)]
+  [towerRII : ∀ l, IsScalarTower R (I.R (l + 1)) (I.R l)]
   {T' : letI := fun l ↦ QuadNodeTower.algK (θ := θ) (I.R l)
     LevelTower.Data (θ := θ) I.R (cov₀ hxy hϖ hn0 𝔪 hJ hres D hinjk hfk hradk φ hφu hφv ψc hfin
       het hk) (πK 𝔪 D)}
@@ -234,7 +241,7 @@ theorem hlocGX (htloc : letI := t.toAlgebra
     IsLocalization.Away (algebraMap (I.B l) X (I.a l)) (I.T.G hθ.out l) :=
   RingHomAway.equiv _ (V.inputEquiv I he hO hkI hT l).toRingEquiv _ htloc
 
-variable [Algebra I.B0 X] [IsScalarTower I.B0 (I.B l) X]
+variable [Algebra I.B0 X] [towerX : IsScalarTower I.B0 (I.B l) X]
   (htloc : letI := t.toAlgebra
     IsLocalization.Away (algebraMap (I.B l) X (I.a l)) (I.R l ⊗[R] B))
   (φE : X →ₐ[I.B l] I.E l)
@@ -265,7 +272,7 @@ set_option maxRecDepth 20000 in
 compatible with the maps `t`, `levelMap` and with the étale pieces and their successor maps `sE`,
 `levelEquivX` commutes with the successor maps `Ymap` of the glued coverings. -/
 theorem levelEquivX_succ {X' : Type u} [CommRing X'] [Algebra (I.B (l + 1)) X'] [Algebra I.B0 X']
-    [IsScalarTower I.B0 (I.B (l + 1)) X'] (t' : X' →+* I.R (l + 1) ⊗[R] B)
+    [towerX' : IsScalarTower I.B0 (I.B (l + 1)) X'] (t' : X' →+* I.R (l + 1) ⊗[R] B)
     (ht' : ∀ r, t' (algebraMap (I.B (l + 1)) X' r) =
       algebraMap (I.R (l + 1)) (I.R (l + 1) ⊗[R] B) (algebraMap (I.B (l + 1)) (I.R (l + 1)) r))
     (ρX' : letI := algC1 I.B I.qB I.C1 (l + 1); X' →ₐ[I.B (l + 1)] I.C1)
