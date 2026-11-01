@@ -8,9 +8,9 @@ import TemperedFundamentalGroups.SemistableReduction.TateGlue0Cusp
 import TemperedFundamentalGroups.SemistableReduction.TateGlue0Overlap
 
 /-!
-# Levels and special fibres of the model `h = t (t − 1) : ℙ¹_t → ℙ¹_X` (MR13 A1)
+# Levels and special fibres of the model `h = t (t − 1) (t − a) : ℙ¹_t → ℙ¹_X` (MR13 A1)
 
-For the two-chart rings `P1Three.R0 = O[t]`, `P1Three.R1 = O[s][1/(1 − s)]`,
+For the two-chart rings `P1Three.R0 = O[t]`, `P1Three.R1` (the chart `ℙ¹_t ∖ {0, 1, a}`),
 `P1Three.R01 = R1[1/Y] = R0[1/X]` of `P1ThreeChart`:
 
 * **`P1Three.isLocalization_rho0`**: `R01 = R0[1/X]` via `ρ₀`;
@@ -41,64 +41,64 @@ open TateLevel AdmissibleLift EtaleTower
 
 noncomputable section
 
-variable {O : Type u} [CommRing O] (ϖ : O)
+variable {O : Type u} [CommRing O] (ϖ : O) (a : O)
 
 variable (O) in
 /-- **`R01 = R0[1/X]`** via `ρ₀`. -/
 theorem isLocalization_rho0 :
-    letI := (rho0 O : R0 O →+* R01 O).toAlgebra
-    IsLocalization.Away (x0 O) (R01 O) := by
-  letI := (rho0 O : R0 O →+* R01 O).toAlgebra
-  have hm : ∀ a, algebraMap (R0 O) (R01 O) a = rho0 O a := fun _ ↦ rfl
+    letI := (rho0 O a : R0 O a →+* R01 O a).toAlgebra
+    IsLocalization.Away (x0 O a) (R01 O a) := by
+  letI := (rho0 O a : R0 O a →+* R01 O a).toAlgebra
+  have hm : ∀ c, algebraMap (R0 O a) (R01 O a) c = rho0 O a c := fun _ ↦ rfl
   refine (isLocalization_iff ..).mpr ⟨?_, ?_, ?_⟩
   · rintro ⟨_, k, rfl⟩
     rw [hm, map_pow, rho0_x0]
-    exact (IsUnit.of_mul_eq_one_right _ (y1_mul_yinv O)).pow k
+    exact (IsUnit.of_mul_eq_one_right _ (y1_mul_yinv O a)).pow k
   · intro z
-    obtain ⟨a, k, h⟩ := (twoChart O).exists0 z
-    refine ⟨⟨a, ⟨_, k, rfl⟩⟩, ?_⟩
-    change z * rho0 O (x0 O ^ k) = rho0 O a
+    obtain ⟨c, k, h⟩ := (twoChart O a).exists0 z
+    refine ⟨⟨c, ⟨_, k, rfl⟩⟩, ?_⟩
+    change z * rho0 O a (x0 O a ^ k) = rho0 O a c
     rw [map_pow, rho0_x0, mul_comm]
     exact h
-  · intro a b hab
-    obtain ⟨k, hk⟩ := (twoChart O).ker0 (a - b) (by
-      change rho0 O (a - b) = 0
+  · intro c d hab
+    obtain ⟨k, hk⟩ := (twoChart O a).ker0 (c - d) (by
+      change rho0 O a (c - d) = 0
       rw [map_sub, ← hm, ← hm, hab, sub_self])
     refine ⟨⟨_, k, rfl⟩, ?_⟩
-    change x0 O ^ k * (a - b) = 0 at hk
-    change x0 O ^ k * a = x0 O ^ k * b
+    change x0 O a ^ k * (c - d) = 0 at hk
+    change x0 O a ^ k * c = x0 O a ^ k * d
     rwa [mul_sub, sub_eq_zero] at hk
 
 variable (O) in
-lemma towerR0R01 : letI := (rho0 O : R0 O →+* R01 O).toAlgebra
-    IsScalarTower O (R0 O) (R01 O) :=
-  letI := (rho0 O : R0 O →+* R01 O).toAlgebra
-  IsScalarTower.of_algebraMap_eq fun o ↦ ((rho0 O).commutes o).symm
+lemma towerR0R01 : letI := (rho0 O a : R0 O a →+* R01 O a).toAlgebra
+    IsScalarTower O (R0 O a) (R01 O a) :=
+  letI := (rho0 O a : R0 O a →+* R01 O a).toAlgebra
+  IsScalarTower.of_algebraMap_eq fun o ↦ ((rho0 O a).commutes o).symm
 
 /-! ### The levels -/
 
 /-- `ρ₀` at level `n`. -/
-abbrev rho0n (n : ℕ) : Tn ϖ (R0 O) n →+* Tn ϖ (R01 O) n :=
-  quotMap (rho0 O) (EtaleTower.Iv ϖ n)
+abbrev rho0n (n : ℕ) : Tn ϖ (R0 O a) n →+* Tn ϖ (R01 O a) n :=
+  quotMap (rho0 O a) (EtaleTower.Iv ϖ n)
 
 /-- `ρ₁` at level `n`. -/
-abbrev rho1n (n : ℕ) : Tn ϖ (R1 O) n →+* Tn ϖ (R01 O) n :=
-  quotMap (IsScalarTower.toAlgHom O (R1 O) (R01 O)) (EtaleTower.Iv ϖ n)
+abbrev rho1n (n : ℕ) : Tn ϖ (R1 O a) n →+* Tn ϖ (R01 O a) n :=
+  quotMap (IsScalarTower.toAlgHom O (R1 O a) (R01 O a)) (EtaleTower.Iv ϖ n)
 
 /-- **The overlap at level `n` is `R0n[1/X]`.** -/
 theorem isLocalization_rho0n (n : ℕ) :
-    letI := (rho0n ϖ n).toAlgebra
-    IsLocalization.Away (Ideal.Quotient.mk _ (x0 O) : Tn ϖ (R0 O) n) (Tn ϖ (R01 O) n) := by
-  letI := (rho0 O : R0 O →+* R01 O).toAlgebra
-  haveI := towerR0R01 O
-  haveI := isLocalization_rho0 O
-  exact isLocalization_quotMap (x0 O) (EtaleTower.Iv ϖ n)
+    letI := (rho0n ϖ a n).toAlgebra
+    IsLocalization.Away (Ideal.Quotient.mk _ (x0 O a) : Tn ϖ (R0 O a) n) (Tn ϖ (R01 O a) n) := by
+  letI := (rho0 O a : R0 O a →+* R01 O a).toAlgebra
+  haveI := towerR0R01 O a
+  haveI := isLocalization_rho0 O a
+  exact isLocalization_quotMap (x0 O a) (EtaleTower.Iv ϖ n)
 
 /-- **The overlap at level `n` is `R1n[1/Y]`.** -/
 theorem isLocalization_rho1n (n : ℕ) :
-    letI := (rho1n ϖ n).toAlgebra
-    IsLocalization.Away (Ideal.Quotient.mk _ (y1 O) : Tn ϖ (R1 O) n) (Tn ϖ (R01 O) n) :=
-  isLocalization_quotMap (y1 O) (EtaleTower.Iv ϖ n)
+    letI := (rho1n ϖ a n).toAlgebra
+    IsLocalization.Away (Ideal.Quotient.mk _ (y1 O a) : Tn ϖ (R1 O a) n) (Tn ϖ (R01 O a) n) :=
+  isLocalization_quotMap (y1 O a) (EtaleTower.Iv ϖ n)
 
 /-! ### Regularity of the base coordinates on the levels -/
 
@@ -128,17 +128,17 @@ theorem isSMulRegular_of {G : O[X][X]} (hG : G.Monic) (n : ℕ) :
 
 /-- **`X` is regular on the levels of `R0`.** -/
 theorem isSMulRegular_x0 (n : ℕ) :
-    IsSMulRegular (Tn ϖ (R0 O) n)
-      (Ideal.Quotient.mk ((EtaleTower.Iv ϖ n).map (algebraMap O (R0 O))) (x0 O) :
-        Tn ϖ (R0 O) n) :=
-  isSMulRegular_of ϖ (monic_G0 O) n
+    IsSMulRegular (Tn ϖ (R0 O a) n)
+      (Ideal.Quotient.mk ((EtaleTower.Iv ϖ n).map (algebraMap O (R0 O a))) (x0 O a) :
+        Tn ϖ (R0 O a) n) :=
+  isSMulRegular_of ϖ (monic_G0 O a) n
 
 /-- **`Y` is regular on the levels of `R1`.** -/
 theorem isSMulRegular_y1 (n : ℕ) :
-    IsSMulRegular (Tn ϖ (R1 O) n)
-      (Ideal.Quotient.mk ((EtaleTower.Iv ϖ n).map (algebraMap O (R1 O))) (y1 O) :
-        Tn ϖ (R1 O) n) :=
-  isSMulRegular_of ϖ (monic_G1 O) n
+    IsSMulRegular (Tn ϖ (R1 O a) n)
+      (Ideal.Quotient.mk ((EtaleTower.Iv ϖ n).map (algebraMap O (R1 O a))) (y1 O a) :
+        Tn ϖ (R1 O a) n) :=
+  isSMulRegular_of ϖ (monic_G1 O a) n
 
 /-! ### Finiteness over `O[X]` -/
 
@@ -163,17 +163,17 @@ lemma finite_aeval_of {G : O[X][X]} (hG : G.Monic) :
 
 variable (O) in
 /-- `R0` is finite over `O[X]` via `X`. -/
-lemma finite_aeval_x0 : letI := (Polynomial.aeval (x0 O) :
-      Polynomial O →ₐ[O] R0 O).toRingHom.toAlgebra
-    Module.Finite (Polynomial O) (R0 O) :=
-  finite_aeval_of (monic_G0 O)
+lemma finite_aeval_x0 : letI := (Polynomial.aeval (x0 O a) :
+      Polynomial O →ₐ[O] R0 O a).toRingHom.toAlgebra
+    Module.Finite (Polynomial O) (R0 O a) :=
+  finite_aeval_of (monic_G0 O a)
 
 variable (O) in
 /-- `R1` is finite over `O[X]` via `Y`. -/
-lemma finite_aeval_y1 : letI := (Polynomial.aeval (y1 O) :
-      Polynomial O →ₐ[O] R1 O).toRingHom.toAlgebra
-    Module.Finite (Polynomial O) (R1 O) :=
-  finite_aeval_of (monic_G1 O)
+lemma finite_aeval_y1 : letI := (Polynomial.aeval (y1 O a) :
+      Polynomial O →ₐ[O] R1 O a).toRingHom.toAlgebra
+    Module.Finite (Polynomial O) (R1 O a) :=
+  finite_aeval_of (monic_G1 O a)
 
 /-! ### The special fibres -/
 
@@ -181,67 +181,67 @@ variable {k : Type u} [Field k] (θ : O →+* k)
 
 variable (O) in
 /-- **The special fibre of the overlap chart** `R01`. -/
-abbrev R01s : Type u := EtaleTower.Ts θ (R01 O)
+abbrev R01s : Type u := EtaleTower.Ts θ (R01 O a)
 
 variable (O) in
 /-- `R1/J → R01/J`. -/
-@[reducible] def alg1s : Algebra (EtaleTower.Ts θ (R1 O)) (R01s O θ) :=
-  (EtaleNil.red (RingHom.ker θ) (IsScalarTower.toAlgHom O (R1 O) (R01 O))).toRingHom.toAlgebra
+@[reducible] def alg1s : Algebra (EtaleTower.Ts θ (R1 O a)) (R01s O a θ) :=
+  (EtaleNil.red (RingHom.ker θ) (IsScalarTower.toAlgHom O (R1 O a) (R01 O a))).toRingHom.toAlgebra
 
 variable (O) in
 /-- `R0/J → R01/J` (through `ρ₀`). -/
-@[reducible] def alg0s : Algebra (EtaleTower.Ts θ (R0 O)) (R01s O θ) :=
-  (EtaleNil.red (RingHom.ker θ) (rho0 O)).toRingHom.toAlgebra
+@[reducible] def alg0s : Algebra (EtaleTower.Ts θ (R0 O a)) (R01s O a θ) :=
+  (EtaleNil.red (RingHom.ker θ) (rho0 O a)).toRingHom.toAlgebra
 
 variable (O) in
 /-- **`R01/J = (R1/J)[1/Ȳ]`.** -/
-theorem isLocalization_alg1s : letI := alg1s O θ
-    IsLocalization.Away (Ideal.Quotient.mk _ (y1 O) : EtaleTower.Ts θ (R1 O)) (R01s O θ) :=
-  EtaleNil.isLocalization_red (RingHom.ker θ) (y1 O)
+theorem isLocalization_alg1s : letI := alg1s O a θ
+    IsLocalization.Away (Ideal.Quotient.mk _ (y1 O a) : EtaleTower.Ts θ (R1 O a)) (R01s O a θ) :=
+  EtaleNil.isLocalization_red (RingHom.ker θ) (y1 O a)
 
 variable (O) in
 /-- **`R01/J = (R0/J)[1/X̄]`.** -/
-theorem isLocalization_alg0s : letI := alg0s O θ
-    IsLocalization.Away (Ideal.Quotient.mk _ (x0 O) : EtaleTower.Ts θ (R0 O)) (R01s O θ) := by
-  letI := (rho0 O : R0 O →+* R01 O).toAlgebra
-  haveI := towerR0R01 O
-  haveI := isLocalization_rho0 O
-  exact EtaleNil.isLocalization_red (RingHom.ker θ) (x0 O)
+theorem isLocalization_alg0s : letI := alg0s O a θ
+    IsLocalization.Away (Ideal.Quotient.mk _ (x0 O a) : EtaleTower.Ts θ (R0 O a)) (R01s O a θ) := by
+  letI := (rho0 O a : R0 O a →+* R01 O a).toAlgebra
+  haveI := towerR0R01 O a
+  haveI := isLocalization_rho0 O a
+  exact EtaleNil.isLocalization_red (RingHom.ker θ) (x0 O a)
 
 variable {θ}
 
 /-- `C1[1/Ȳ]` over `R01/J`. -/
-@[reducible] def algC1x (C1 : Type u) [CommRing C1] [Algebra (EtaleTower.Ts θ (R1 O)) C1] :
-    Algebra (R01s O θ) (Localization.Away (algebraMap (EtaleTower.Ts θ (R1 O)) C1
-      (Ideal.Quotient.mk _ (y1 O)))) :=
-  letI := alg1s O θ
-  haveI := isLocalization_alg1s O θ
+@[reducible] def algC1x (C1 : Type u) [CommRing C1] [Algebra (EtaleTower.Ts θ (R1 O a)) C1] :
+    Algebra (R01s O a θ) (Localization.Away (algebraMap (EtaleTower.Ts θ (R1 O a)) C1
+      (Ideal.Quotient.mk _ (y1 O a)))) :=
+  letI := alg1s O a θ
+  haveI := isLocalization_alg1s O a θ
   AwayAlg.alg _
 
-lemma towerC1x (C1 : Type u) [CommRing C1] [Algebra (EtaleTower.Ts θ (R1 O)) C1] :
-    letI := alg1s O θ; letI := algC1x C1 (O := O) (θ := θ)
-    IsScalarTower (EtaleTower.Ts θ (R1 O)) (R01s O θ)
-      (Localization.Away (algebraMap (EtaleTower.Ts θ (R1 O)) C1
-        (Ideal.Quotient.mk _ (y1 O)))) :=
-  letI := alg1s O θ
-  haveI := isLocalization_alg1s O θ
+lemma towerC1x (C1 : Type u) [CommRing C1] [Algebra (EtaleTower.Ts θ (R1 O a)) C1] :
+    letI := alg1s O a θ; letI := algC1x a C1 (θ := θ)
+    IsScalarTower (EtaleTower.Ts θ (R1 O a)) (R01s O a θ)
+      (Localization.Away (algebraMap (EtaleTower.Ts θ (R1 O a)) C1
+        (Ideal.Quotient.mk _ (y1 O a)))) :=
+  letI := alg1s O a θ
+  haveI := isLocalization_alg1s O a θ
   AwayAlg.tower _
 
 /-- `C0[1/X̄]` over `R01/J`. -/
-@[reducible] def algC0x (C0 : Type u) [CommRing C0] [Algebra (EtaleTower.Ts θ (R0 O)) C0] :
-    Algebra (R01s O θ) (Localization.Away (algebraMap (EtaleTower.Ts θ (R0 O)) C0
-      (Ideal.Quotient.mk _ (x0 O)))) :=
-  letI := alg0s O θ
-  haveI := isLocalization_alg0s O θ
+@[reducible] def algC0x (C0 : Type u) [CommRing C0] [Algebra (EtaleTower.Ts θ (R0 O a)) C0] :
+    Algebra (R01s O a θ) (Localization.Away (algebraMap (EtaleTower.Ts θ (R0 O a)) C0
+      (Ideal.Quotient.mk _ (x0 O a)))) :=
+  letI := alg0s O a θ
+  haveI := isLocalization_alg0s O a θ
   AwayAlg.alg _
 
-lemma towerC0x (C0 : Type u) [CommRing C0] [Algebra (EtaleTower.Ts θ (R0 O)) C0] :
-    letI := alg0s O θ; letI := algC0x C0 (O := O) (θ := θ)
-    IsScalarTower (EtaleTower.Ts θ (R0 O)) (R01s O θ)
-      (Localization.Away (algebraMap (EtaleTower.Ts θ (R0 O)) C0
-        (Ideal.Quotient.mk _ (x0 O)))) :=
-  letI := alg0s O θ
-  haveI := isLocalization_alg0s O θ
+lemma towerC0x (C0 : Type u) [CommRing C0] [Algebra (EtaleTower.Ts θ (R0 O a)) C0] :
+    letI := alg0s O a θ; letI := algC0x a C0 (θ := θ)
+    IsScalarTower (EtaleTower.Ts θ (R0 O a)) (R01s O a θ)
+      (Localization.Away (algebraMap (EtaleTower.Ts θ (R0 O a)) C0
+        (Ideal.Quotient.mk _ (x0 O a)))) :=
+  letI := alg0s O a θ
+  haveI := isLocalization_alg0s O a θ
   AwayAlg.tower _
 
 end
