@@ -302,6 +302,86 @@ theorem lift_iso_normalisation [IsAdicComplete (Ideal.span {ϖ}) O]
     (hSF hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ hBn
       hBc hunr₁ hunr₀ τ φ₀) hα hαc hBN
 
+/-- **The base map of `VF`**: the Tate model maps to the charts of `VF` by the identities
+(`TateGlue0.baseMapP`). -/
+def bmF : NodeEtaleGlue.Overlap.BaseMap (𝓥) (TateTwoChart.twoChart (ε * ϖ ^ m) b₄ t κ) :=
+  baseMapP hκ rfl hε (TateS5.θ_ϖ hker) (piP hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn
+      hunr₁ τ) (piP_pow hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ) hker.le (𝓢p)
+    (NeZero.ne m) (𝓢c).C0 (𝓞) ((𝓓).piece hθ.out (isUnit_of_θ_ne_zero hϖ hker))
+
+set_option maxHeartbeats 4000000 in
+-- instantiating the generic G5 at the Tate data
+/-- **MR12 S6 with the structure maps: the M2 lift of a tame cover of the Tate curve is the
+normalisation over the Tate model.** As `lift_iso_normalisation`, and the isomorphism
+`γ : P_L ≅ N` sends the structure map `toNormL` of `P_L` to any structure map `ψ` of the lift
+reducing to the structure maps `structureMapsCusp` of the levels (e.g. the one of
+`TateS5.liftCusp_tame`). For the data
+of `TateS5` (a tame Galois cover `L` of the function field of the Tate model), every
+algebraization `(N, BN, α)` of the adic system `systemCusp … (sp) (sc) (om)` (e.g. the one of
+`TateS5.liftCusp_tame`) is isomorphic as a chart algebra to `P_L = (B₀, B₁)`, the normalisations
+of the charts `T0`, `T1` in `L` (`twoChartL`). -/
+theorem lift_iso_normalisation_base [IsAdicComplete (Ideal.span {ϖ}) O]
+    {N : ProjectiveLine.ChartModule O} [Module.Finite O[X] (Module.AEval' N.x0)]
+    [Module.Finite O[X] (Module.AEval' N.x1)]
+    {α : ∀ n, ProjectiveLine.ChartModule.Hom N ((𝓢𝓒).M n)}
+    {BN : ProjectiveLine.ChartModule.AlgStr N}
+    (hα : ∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+      LinearMap.ker (α n).f0 = Ideal.span {ϖ} ^ n • ⊤ ∧
+      LinearMap.ker (α n).f1 = Ideal.span {ϖ} ^ n • ⊤)
+    (hαc : ∀ a b (h : a ≤ b), ((𝓢𝓒).tr h).comp (α b) = α a)
+    (hBN : ∀ n, BN.IsHom ((𝓢𝓒).alg n) (α n))
+    {ψ : ProjectiveLine.ChartModule.Hom (TateTwoChart.twoChart (ε * ϖ ^ m) b₄ t κ).chartModule N}
+    (hψα : ∀ n, (α (n + 1)).comp ψ = structureMapsCusp hκ rfl hε (TateS5.θ_ϖ hker)
+      (piP hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ)
+      (piP_pow hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ) hker.le (𝓢p)
+      (NeZero.ne m) (isUnit_of_θ_ne_zero hϖ hker) (𝓢c) (𝓞) n) :
+    ∃ (γ : ProjectiveLine.ChartModule.Hom (𝓟).chartModule N)
+      (δ : ProjectiveLine.ChartModule.Hom N (𝓟).chartModule),
+      γ.comp δ = ProjectiveLine.ChartModule.Hom.id N ∧
+      δ.comp γ = ProjectiveLine.ChartModule.Hom.id (𝓟).chartModule ∧
+      (𝓟).algStr.IsHom BN γ ∧ BN.IsHom (𝓟).algStr δ ∧
+      γ.comp (toNormL L hρ B₀ B₁).toHom = ψ := by
+  haveI : IsAdicComplete (Ideal.span {(𝓥).ϖ}) O :=
+    inferInstanceAs (IsAdicComplete (Ideal.span {ϖ}) O)
+  haveI := finite_B₁ hϖ hker hκ hε h3 hE K L B₁
+  haveI := finite_B₀ hϖ hker hκ hε h3 hE hb₆ K L hρ B₁ B₀ Bc hBc
+  haveI := finite_x0L L hρ B₀ B₁
+  haveI := finite_x1L L hρ B₀ B₁
+  haveI := TateTwoChart.finite_x0 (ε * ϖ ^ m) b₄ t κ
+  haveI := TateTwoChart.finite_x1 (ε * ϖ ^ m) b₄ t κ
+  exact (𝓥).exists_iso_of_cuspLevelsW_base (isUnit_of_θ_ne_zero hϖ hker) (𝓓V) (𝓒)
+    (algRI := fun l ↦ inferInstanceAs (Algebra ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (towerORI := fun l ↦ inferInstanceAs (IsScalarTower O ℛ (EtaleTower.Tn ϖ ℛ l)))
+    (towerRII := fun l ↦ inferInstanceAs
+      (IsScalarTower ℛ (EtaleTower.Tn ϖ ℛ (l + 1)) (EtaleTower.Tn ϖ ℛ l)))
+    rfl HEq.rfl rfl (𝓟) (eqFam hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ hL hBn hunr₁ τ) (X0 :=
+        TateGlue1.Xn ϖ 𝒯0 B₀)
+    (CuspTower.XmapC ϖ B₀) (ωFF) (tC (B₀ := B₀) hBc)
+    (fun n ↦ CuspTower.toTensorC_algebraMap ϖ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ) B₀ Bc hBc n)
+    (fun n ↦ CuspTower.isLocalization_toTensorC ϖ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ) B₀ Bc hBc n)
+    (ρXF) (ρX0 (B₀ := B₀) hker) (hρV hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ
+        hBn
+      hBc hunr₁ hunr₀ τ φ₀)
+    (fun n ↦ EtaleTower.hJ hker.le n) (hψ1F hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL
+        hd hρ hBn
+      hBc hunr₁ hunr₀ τ φ₀) (hx1F hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ hBn
+      hBc hunr₁ hunr₀ τ φ₀)
+    (hω0 hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ hBn
+      hBc hunr₁ hunr₀ τ φ₀) (q0FF) (fun _ _ ↦ rfl) (q1FF) (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ ↦
+          rfl)
+    (hWF hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ hBn
+      hBc hunr₁ hunr₀ τ φ₀)
+    (bmF hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ hBn hBc hunr₁ hunr₀ τ φ₀)
+    (toNormL L hρ B₀ B₁) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun n x ↦ CuspTower.toTensorC_succ ϖ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ) B₀ Bc hBc n x)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ Ideal.Quotient.mk_surjective)
+    (fun _ ↦ Ideal.Quotient.mk_surjective) (hk0F hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ
+        hζe hL hd hρ hBn
+      hBc hunr₁ hunr₀ τ φ₀) (hk1F hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ hBn
+      hBc hunr₁ hunr₀ τ φ₀)
+    (hSF hϖ hker hκ hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe hL hd hρ hBn
+      hBc hunr₁ hunr₀ τ φ₀) hα hαc hBN hψα
+
 end Data
 end
 end TateS6

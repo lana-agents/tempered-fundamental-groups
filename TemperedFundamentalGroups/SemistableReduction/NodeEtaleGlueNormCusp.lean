@@ -224,6 +224,106 @@ theorem exists_iso_of_cuspLevelsW [IsNoetherianRing O] [IsAdicComplete (Ideal.sp
   rw [hμ0, hμ1]
   exact hW n b m k h'
 
+/-! ### With the structure maps from a base model -/
+
+variable {D : TwoChartRings O} (b : BaseMap V D) (ψP : TwoChartMap D P)
+  (hq0B : ∀ n r, q0 n (ψP.f0 r) = algebraMap V.B0' (X0 n) (b.a0 r))
+  (hq1B : ∀ n r, q1 n (ψP.f1 r) = algebraMap I.B0 (X1 n) (b.a1 r))
+
+omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+include Vc hkI hT hP0 e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω q0 hq0O q1 hq1O hx hy hW
+  hq0B hq1B in
+/-- **`exists_iso_of_cuspLevels` with the structure maps**: the isomorphism `γ : P ≅ N` sends the
+structure map `ψP : D → P` to the structure map `ψ : D → N` of the algebraization (reducing to
+the base maps `b.β n`). -/
+theorem exists_iso_of_cuspLevels_base [IsNoetherianRing O]
+    [IsAdicComplete (Ideal.span {V.ϖ}) O]
+    [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]
+    [Module.Finite O[X] (Module.AEval' P.chartModule.x1)]
+    [Module.Finite O[X] (Module.AEval' D.chartModule.x0)]
+    [Module.Finite O[X] (Module.AEval' D.chartModule.x1)]
+    (hμt : ∀ n x, t n (μ0 n x) = levelMap Dp.R n (t (n + 1) x))
+    (hω2 : ∀ n (x : X0 (n + 1)), ∃ (y : X1 (n + 1)) (k : ℕ),
+      (haveI := V.hW0; haveI := V.hW0'
+        letI := awayAlg (W := V.W0) (C := X0 (n + 1)) V.x0
+        letI := awayAlg (W := V.W0) (C := X1 (n + 1)) V.x1
+        ωn (n + 1) (algebraMap (X0 (n + 1)) _ x) *
+          algebraMap (X1 (n + 1)) (Localization.Away (algebraMap I.B0 (X1 (n + 1)) V.x1))
+            (algebraMap I.B0 (X1 (n + 1)) V.x1) ^ k = algebraMap (X1 (n + 1)) _ y) ∧
+      (haveI := V.hW0; haveI := V.hW0'
+        letI := awayAlg (W := V.W0) (C := X0 n) V.x0
+        letI := awayAlg (W := V.W0) (C := X1 n) V.x1
+        ωn n (algebraMap (X0 n) _ (μ0 n x)) *
+          algebraMap (X1 n) (Localization.Away (algebraMap I.B0 (X1 n) V.x1))
+            (algebraMap I.B0 (X1 n) V.x1) ^ k = algebraMap (X1 n) _ (μ1 n y)))
+    (hμ0 : ∀ n r, μ0 n (q0 (n + 1) r) = q0 n r) (hμ1 : ∀ n r, μ1 n (q1 (n + 1) r) = q1 n r)
+    (hs0 : ∀ n, Function.Surjective (q0 n)) (hs1 : ∀ n, Function.Surjective (q1 n))
+    (hk0 : ∀ n, RingHom.ker (q0 n) = (Ideal.span {V.ϖ} ^ (n + 1)).map (algebraMap O P.R0))
+    (hk1 : ∀ n, RingHom.ker (q1 n) = (Ideal.span {V.ϖ} ^ (n + 1)).map (algebraMap O P.R1))
+    {S : AdicChartAlgSystem (Ideal.span {V.ϖ})} (hS : V.system hθ.out hO = S)
+    {N : ChartModule O} [Module.Finite O[X] (Module.AEval' N.x0)]
+    [Module.Finite O[X] (Module.AEval' N.x1)]
+    {α : ∀ n, Hom N (S.M n)} {BN : AlgStr N}
+    (hα : ∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+      LinearMap.ker (α n).f0 = Ideal.span {V.ϖ} ^ n • ⊤ ∧
+      LinearMap.ker (α n).f1 = Ideal.span {V.ϖ} ^ n • ⊤)
+    (hαc : ∀ m n (h : m ≤ n), (S.tr h).comp (α n) = α m)
+    (hBN : ∀ n, BN.IsHom (S.alg n) (α n))
+    {ψ : Hom D.chartModule N} (hψ : ∀ n, (α (n + 1)).comp ψ = b.βS hθ.out hO n hS) :
+    ∃ (γ : Hom P.chartModule N) (δ : Hom N P.chartModule), γ.comp δ = Hom.id N ∧
+      δ.comp γ = Hom.id P.chartModule ∧ P.algStr.IsHom BN γ ∧ BN.IsHom P.algStr δ ∧
+      γ.comp ψP.toHom = ψ :=
+  V.exists_iso_of_levels_base hθ.out hO P e1 q1 hq1O
+    (V.e0Cusp hO Dp Vc hkI hT hP0 e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω) q0 hq0O hx hy
+    (V.hρ_e0Cusp hO Dp Vc hkI hT hP0 P e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω q0 hq0O q1 hq1O
+      hW)
+    (fun n x ↦ V.f0_levelEquiv0P hO Dp Vc hkI hT hP0 n (e1.equiv n) (ωn n) (t n) (ht n) (htloc n)
+      (ρX1 n) (ρX0 n) (hρ n) (hJm n) (hψ1 n) (hx1 n) (hω n) (e1.equiv (n + 1)) (ωn (n + 1))
+      (t (n + 1)) (ht (n + 1)) (htloc (n + 1)) (ρX1 (n + 1)) (ρX0 (n + 1)) (hρ (n + 1))
+      (hJm (n + 1)) (hψ1 (n + 1)) (hx1 (n + 1)) (hω (n + 1)) (μ1 n) (μ0 n) (e1.succ n) (hμt n)
+      (hω2 n) x)
+    hμ0 hμ1 b ψP hq0B hq1B hs0 hs1 hk0 hk1 hS hα hαc hBN hψ
+
+omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+include Vc hkI hT hP0 e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω q0 hq0O q1 hq1O hx hy hW
+  hq0B hq1B in
+/-- **`exists_iso_of_cuspLevelsW` with the structure maps**: the isomorphism `γ : P ≅ N` sends the
+structure map `ψP : D → P` to the structure map `ψ : D → N` of the algebraization. -/
+theorem exists_iso_of_cuspLevelsW_base [IsNoetherianRing O]
+    [IsAdicComplete (Ideal.span {V.ϖ}) O]
+    [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]
+    [Module.Finite O[X] (Module.AEval' P.chartModule.x1)]
+    [Module.Finite O[X] (Module.AEval' D.chartModule.x0)]
+    [Module.Finite O[X] (Module.AEval' D.chartModule.x1)]
+    (hμt : ∀ n x, t n (μ0 n x) = levelMap Dp.R n (t (n + 1) x))
+    (hμ0 : ∀ n r, μ0 n (q0 (n + 1) r) = q0 n r) (hμ1 : ∀ n r, μ1 n (q1 (n + 1) r) = q1 n r)
+    (hs0 : ∀ n, Function.Surjective (q0 n)) (hs1 : ∀ n, Function.Surjective (q1 n))
+    (hk0 : ∀ n, RingHom.ker (q0 n) = (Ideal.span {V.ϖ} ^ (n + 1)).map (algebraMap O P.R0))
+    (hk1 : ∀ n, RingHom.ker (q1 n) = (Ideal.span {V.ϖ} ^ (n + 1)).map (algebraMap O P.R1))
+    {S : AdicChartAlgSystem (Ideal.span {V.ϖ})} (hS : V.system hθ.out hO = S)
+    {N : ChartModule O} [Module.Finite O[X] (Module.AEval' N.x0)]
+    [Module.Finite O[X] (Module.AEval' N.x1)]
+    {α : ∀ n, Hom N (S.M n)} {BN : AlgStr N}
+    (hα : ∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+      LinearMap.ker (α n).f0 = Ideal.span {V.ϖ} ^ n • ⊤ ∧
+      LinearMap.ker (α n).f1 = Ideal.span {V.ϖ} ^ n • ⊤)
+    (hαc : ∀ m n (h : m ≤ n), (S.tr h).comp (α n) = α m)
+    (hBN : ∀ n, BN.IsHom (S.alg n) (α n))
+    {ψ : Hom D.chartModule N} (hψ : ∀ n, (α (n + 1)).comp ψ = b.βS hθ.out hO n hS) :
+    ∃ (γ : Hom P.chartModule N) (δ : Hom N P.chartModule), γ.comp δ = Hom.id N ∧
+      δ.comp γ = Hom.id P.chartModule ∧ P.algStr.IsHom BN γ ∧ BN.IsHom P.algStr δ ∧
+      γ.comp ψP.toHom = ψ := by
+  refine V.exists_iso_of_cuspLevels_base hO Dp Vc hkI hT hP0 P e1 μ0 ωn t ht htloc ρX1 ρX0 hρ
+    hJm hψ1 hx1 hω q0 hq0O q1 hq1O hx hy hW b ψP hq0B hq1B hμt ?_ hμ0 hμ1 hs0 hs1 hk0 hk1 hS hα
+    hαc hBN hψ
+  intro n x
+  obtain ⟨b', rfl⟩ := hs0 (n + 1) x
+  obtain ⟨m, k, h⟩ := P.exists1 (P.ρ0 b')
+  have h' : P.ρ0 b' * P.ρ1 P.y ^ k = P.ρ1 m := by rw [P.ρ1_y, mul_comm]; exact h
+  refine ⟨q1 (n + 1) m, k, hW (n + 1) b' m k h', ?_⟩
+  rw [hμ0, hμ1]
+  exact hW n b' m k h'
+
 end
 
 end Overlap

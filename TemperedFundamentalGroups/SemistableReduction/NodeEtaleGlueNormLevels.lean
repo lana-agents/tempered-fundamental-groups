@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: LANA Project
 -/
 import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueNormAlgebraization
+import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueV0Base
 
 /-!
 # Hypotheses of `Overlap.exists_iso_of_levels` from generators and witnesses (MR12 T2 S6, G5)
@@ -108,6 +109,84 @@ theorem exists_iso_of_levels' [IsNoetherianRing O] [IsAdicComplete (Ideal.span {
   obtain ⟨γ, δ, h1, h2, -, -, h3, h4⟩ := V.exists_iso_of_levels hθ hO P e1 q1 hq1O e0 q0 hq0O hx hy
     hρ he0 hμ0 hμ1 hs0 hs1 hk0 hk1 hα hαc hB
   exact ⟨γ, δ, h1, h2, h3, h4⟩
+
+/-! ### Compatibility with a structure map from a base model -/
+
+variable {D : TwoChartRings O} (b : BaseMap V D) (ψP : TwoChartMap D P)
+  (hq0B : ∀ n r, q0 n (ψP.f0 r) = algebraMap V.B0' (X0 n) (b.a0 r))
+  (hq1B : ∀ n r, q1 n (ψP.f1 r) = algebraMap I.B0 (X1 n) (b.a1 r))
+
+include hq0B hq1B in
+/-- **The maps `βOf` restrict to the structure maps of the levels**: if the reductions `q0`, `q1`
+send the structure map `ψP : D → P` to the base map `b`, then `βOf n ∘ ψP = b.β n`. -/
+theorem βOf_comp_base (n : ℕ) :
+    (V.βOf hθ hO P e1 q1 hq1O e0 q0 hq0O hx hy hρ n).toHom.comp ψP.toHom = b.βs hθ hO n := by
+  have h1 : (V.βOf hθ hO P e1 q1 hq1O e0 q0 hq0O hx hy hρ n).f1.comp ψP.f1 =
+      (b.β hθ hO n).f1 := AlgHom.ext fun r ↦ by
+    change e1.equiv n (q1 n (ψP.f1 r)) = algebraMap I.B0 (I.Y hθ n) (b.a1 r)
+    rw [hq1B, AlgEquiv.commutes]
+  refine Hom.ext' (LinearMap.ext fun r ↦ ?_) (LinearMap.ext fun r ↦ AlgHom.congr_fun h1 r)
+    (LinearMap.ext fun r ↦ AlgHom.congr_fun (TwoChartMap.comp_f01_of_f1 ψP (b.β hθ hO n) _ h1) r)
+  change e0 n (q0 n (ψP.f0 r)) = b.f0 hθ hO n r
+  rw [hq0B, AlgEquiv.commutes]
+  rfl
+
+include hq0B hq1B in
+/-- **The comparison morphism respects the structure maps**: if `γ : P → N` reduces to the
+(shifted) maps `βOf` and `ψ : D → N` to the structure maps `b.β n`, then `γ ∘ ψP = ψ`. -/
+theorem comp_base_eq [IsNoetherianRing O] [IsAdicComplete (Ideal.span {V.ϖ}) O]
+    [Module.Finite O[X] (Module.AEval' D.chartModule.x0)]
+    [Module.Finite O[X] (Module.AEval' D.chartModule.x1)]
+    {N : ChartModule O} [Module.Finite O[X] (Module.AEval' N.x0)]
+    [Module.Finite O[X] (Module.AEval' N.x1)] {α : ∀ n, Hom N ((V.system hθ hO).M n)}
+    (hα : ∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+      LinearMap.ker (α n).f0 = Ideal.span {V.ϖ} ^ n • ⊤ ∧
+      LinearMap.ker (α n).f1 = Ideal.span {V.ϖ} ^ n • ⊤)
+    (γ : Hom P.chartModule N)
+    (hγ : ∀ n, (α n).comp γ = (TwoChartTower.shiftCone (fun n ↦ V.twoChart hθ hO n)
+      (V.βOf hθ hO P e1 q1 hq1O e0 q0 hq0O hx hy hρ) n).toHom)
+    {ψ : Hom D.chartModule N} (hψ : ∀ n, (α (n + 1)).comp ψ = b.βs hθ hO n) :
+    γ.comp ψP.toHom = ψ := by
+  refine (V.system hθ hO).eq_of_comp_eq hα _ _ fun n ↦ ?_
+  cases n with
+  | zero =>
+    exact Hom.ext' (LinearMap.ext fun _ ↦ @Subsingleton.elim PUnit _ _ _)
+      (LinearMap.ext fun _ ↦ @Subsingleton.elim PUnit _ _ _)
+      (LinearMap.ext fun _ ↦ @Subsingleton.elim PUnit _ _ _)
+  | succ n =>
+    rw [← Hom.comp_assoc, hγ, hψ]
+    exact V.βOf_comp_base hθ hO P e1 q1 hq1O e0 q0 hq0O hx hy hρ b ψP hq0B hq1B n
+
+include e1 hq1O hq0O hx hy hρ he0 hμ0 hμ1 hq0B hq1B in
+/-- **`exists_iso_of_levels'` with the structure maps**: the isomorphism `γ : P ≅ N` sends the
+structure map `ψP : D → P` to the structure map `ψ : D → N` of the algebraization (reducing to
+the base maps `b.β n`). -/
+theorem exists_iso_of_levels_base [IsNoetherianRing O] [IsAdicComplete (Ideal.span {V.ϖ}) O]
+    [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]
+    [Module.Finite O[X] (Module.AEval' P.chartModule.x1)]
+    [Module.Finite O[X] (Module.AEval' D.chartModule.x0)]
+    [Module.Finite O[X] (Module.AEval' D.chartModule.x1)]
+    (hs0 : ∀ n, Function.Surjective (q0 n)) (hs1 : ∀ n, Function.Surjective (q1 n))
+    (hk0 : ∀ n, RingHom.ker (q0 n) = (Ideal.span {V.ϖ} ^ (n + 1)).map (algebraMap O P.R0))
+    (hk1 : ∀ n, RingHom.ker (q1 n) = (Ideal.span {V.ϖ} ^ (n + 1)).map (algebraMap O P.R1))
+    {S : AdicChartAlgSystem (Ideal.span {V.ϖ})} (hS : V.system hθ hO = S)
+    {N : ChartModule O} [Module.Finite O[X] (Module.AEval' N.x0)]
+    [Module.Finite O[X] (Module.AEval' N.x1)]
+    {α : ∀ n, Hom N (S.M n)} {B : AlgStr N}
+    (hα : ∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+      LinearMap.ker (α n).f0 = Ideal.span {V.ϖ} ^ n • ⊤ ∧
+      LinearMap.ker (α n).f1 = Ideal.span {V.ϖ} ^ n • ⊤)
+    (hαc : ∀ m n (h : m ≤ n), (S.tr h).comp (α n) = α m)
+    (hB : ∀ n, B.IsHom (S.alg n) (α n))
+    {ψ : Hom D.chartModule N} (hψ : ∀ n, (α (n + 1)).comp ψ = b.βS hθ hO n hS) :
+    ∃ (γ : Hom P.chartModule N) (δ : Hom N P.chartModule), γ.comp δ = Hom.id N ∧
+      δ.comp γ = Hom.id P.chartModule ∧ P.algStr.IsHom B γ ∧ B.IsHom P.algStr δ ∧
+      γ.comp ψP.toHom = ψ := by
+  subst hS
+  obtain ⟨γ, δ, h1, h2, h3, -, h4, h5⟩ := V.exists_iso_of_levels hθ hO P e1 q1 hq1O e0 q0 hq0O hx
+    hy hρ he0 hμ0 hμ1 hs0 hs1 hk0 hk1 hα hαc hB
+  exact ⟨γ, δ, h1, h2, h4, h5, V.comp_base_eq hθ hO P e1 q1 hq1O e0 q0 hq0O hx hy hρ b ψP hq0B hq1B
+    hα γ h3 hψ⟩
 
 end Charts
 
