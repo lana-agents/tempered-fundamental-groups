@@ -221,12 +221,13 @@ abbrev pM (f : D.Hom D') (n : ℕ) :
 lemma hp0 (f : D.Hom D') (n : ℕ) :
     pM hϖ hker ha0 ha1 hO f n (algebraMap ((overlap D.Sp hϖ hker D.S0 D.om hO).B' n)
         ((overlap D.Sp hϖ hker D.S0 D.om hO).P0.P n)
-        (algebraMap (overlap D.Sp hϖ hker D.S0 D.om hO).B0' ((overlap D.Sp hϖ hker D.S0 D.om hO).B' n)
-          (overlap D.Sp hϖ hker D.S0 D.om hO).x0)) =
+        (algebraMap (overlap D.Sp hϖ hker D.S0 D.om hO).B0'
+          ((overlap D.Sp hϖ hker D.S0 D.om hO).B' n) (overlap D.Sp hϖ hker D.S0 D.om hO).x0)) =
       algebraMap ((overlap D'.Sp hϖ hker D'.S0 D'.om hO).B' n)
         ((overlap D'.Sp hϖ hker D'.S0 D'.om hO).P0.P n)
         (algebraMap (overlap D'.Sp hϖ hker D'.S0 D'.om hO).B0'
-          ((overlap D'.Sp hϖ hker D'.S0 D'.om hO).B' n) (overlap D'.Sp hϖ hker D'.S0 D'.om hO).x0) :=
+          ((overlap D'.Sp hϖ hker D'.S0 D'.om hO).B' n)
+          (overlap D'.Sp hϖ hker D'.S0 D'.om hO).x0) :=
   CuspTower.pieceP_algebraMapB D.S0 D'.S0 hϖ hker (isSMulRegular_x0 ϖ a) hO
     (cuspNFc a ha0 ha1 D'.S0) f.φ0 n _
 
