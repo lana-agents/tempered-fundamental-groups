@@ -635,9 +635,10 @@ section NF
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {R : Type u} [CommRing R] [Algebra O R] {f : R} [Algebra k (R ⧸ J θ)]
-  {φ : Node k (0 : k) →ₐ[k] Admissible.Hat (fbar θ f)}
+  {φ φ' : Node k (0 : k) →ₐ[k] Admissible.Hat (fbar θ f)}
   {ψc : Polynomial k →ₐ[k] Admissible.Hat (fbar θ f)}
-  {cov cov' : Admissible.Covering φ ψc} {πL : cov.ι → O} {πL' : cov'.ι → O}
+  {cov : Admissible.Covering φ ψc} {cov' : Admissible.Covering φ' ψc}
+  {πL : cov.ι → O} {πL' : cov'.ι → O}
   (L : KummerLift cov πL) (M : CuspLift cov) (L' : KummerLift cov' πL') (M' : CuspLift cov')
 
 /-- The cusp components of the reduction `κ3F` are `redPi`. -/

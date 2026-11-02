@@ -202,8 +202,10 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {S : Type u} [CommRing S] [Algebra O S] [Algebra k (S ⧸ J θ (R := S))] {g : S}
   {R₀ : Type u} [CommRing R₀] [Algebra k R₀] {f₀ : R₀} {e : R₀ ≃ₐ[k] (S ⧸ J θ (R := S))}
   (h : e f₀ = fbar θ g)
-  {φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat f₀} {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
-  {cov₀ cov₀' cov₀'' : Admissible.Covering φ₀ ψ₀}
+  {φ₀ φ₀' φ₀'' : Node k (0 : k) →ₐ[k] Admissible.Hat f₀}
+  {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
+  {cov₀ : Admissible.Covering φ₀ ψ₀} {cov₀' : Admissible.Covering φ₀' ψ₀}
+  {cov₀'' : Admissible.Covering φ₀'' ψ₀}
 
 /-- **A map of special-fibre coverings is a map of the transported coverings** over `S/J`
 (the same function). -/
@@ -243,8 +245,8 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {e₁ : R₀ ≃ₐ[k] (R ⧸ J θ (R := R))} {e₂ : R₀ ≃ₐ[k] (R' ⧸ J θ (R := R'))}
   (h₁ : e₁ f₀ = fbar θ f) (h₂ : e₂ f₀ = fbar θ f₂)
   (he : ∀ r : R, e₂ (e₁.symm (Ideal.Quotient.mk _ r)) = Ideal.Quotient.mk _ (algebraMap R R' r))
-  {φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat f₀} {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
-  (cov₀ cov₀' : Admissible.Covering φ₀ ψ₀)
+  {φ₀ φ₀' : Node k (0 : k) →ₐ[k] Admissible.Hat f₀} {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
+  (cov₀ : Admissible.Covering φ₀ ψ₀) (cov₀' : Admissible.Covering φ₀' ψ₀)
 
 /-- **`Tmap` commutes with the localized transported maps.** -/
 lemma Tmap_NfMap (φ : cov₀.C →ₐ[R₀] cov₀'.C)
@@ -307,8 +309,10 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {R : ℕ → Type u} [∀ n, CommRing (R n)] [∀ n, Algebra O (R n)]
   [∀ n, IsNoetherianRing (R n)] [∀ n, Algebra k (R n ⧸ J θ (R := R n))]
   {R₀ : Type u} [CommRing R₀] [Algebra k R₀] {f₀ : R₀}
-  {φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat f₀} {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
-  {cov₀ cov₀' cov₀'' : Admissible.Covering φ₀ ψ₀} {πL : cov₀.ι → O} {πL' : cov₀'.ι → O}
+  {φ₀ φ₀' φ₀'' : Node k (0 : k) →ₐ[k] Admissible.Hat f₀}
+  {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
+  {cov₀ : Admissible.Covering φ₀ ψ₀} {cov₀' : Admissible.Covering φ₀' ψ₀}
+  {cov₀'' : Admissible.Covering φ₀'' ψ₀} {πL : cov₀.ι → O} {πL' : cov₀'.ι → O}
   {πL'' : cov₀''.ι → O}
   {f : ∀ n, R n} {e : ∀ n, R₀ ≃ₐ[k] (R n ⧸ J θ (R := R n))} {hfe : ∀ n, e n f₀ = fbar θ (f n)}
   (hθ : Function.Surjective θ) {n : ℕ}
@@ -417,8 +421,9 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {R : ℕ → Type u} [∀ n, CommRing (R n)] [∀ n, Algebra O (R n)]
   [∀ n, IsNoetherianRing (R n)] [∀ n, Algebra k (R n ⧸ J θ (R := R n))]
   {R₀ : Type u} [CommRing R₀] [Algebra k R₀] {f₀ : R₀}
-  {φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat f₀} {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
-  {cov₀ cov₀' : Admissible.Covering φ₀ ψ₀} {πL : cov₀.ι → O} {πL' : cov₀'.ι → O}
+  {φ₀ φ₀' : Node k (0 : k) →ₐ[k] Admissible.Hat f₀} {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
+  {cov₀ : Admissible.Covering φ₀ ψ₀} {cov₀' : Admissible.Covering φ₀' ψ₀}
+  {πL : cov₀.ι → O} {πL' : cov₀'.ι → O}
   {f : ∀ n, R n} {e : ∀ n, R₀ ≃ₐ[k] (R n ⧸ J θ (R := R n))} {hfe : ∀ n, e n f₀ = fbar θ (f n)}
   (hθ : Function.Surjective θ)
   [∀ n, Algebra (R (n + 1)) (R n)] [∀ n, IsScalarTower O (R (n + 1)) (R n)]
