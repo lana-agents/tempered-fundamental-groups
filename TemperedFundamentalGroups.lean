@@ -73,6 +73,7 @@ import TemperedFundamentalGroups.Andre.TateCrossingField
 import TemperedFundamentalGroups.Andre.TateCrossingWalk
 import TemperedFundamentalGroups.Andre.TateCuspInertia
 import TemperedFundamentalGroups.Andre.TateEstrangement
+import TemperedFundamentalGroups.Andre.TateFourGon
 import TemperedFundamentalGroups.Andre.TateG1
 import TemperedFundamentalGroups.Andre.TateInvolution
 import TemperedFundamentalGroups.Andre.TateLoop
