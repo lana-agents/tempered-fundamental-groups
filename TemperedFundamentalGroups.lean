@@ -83,6 +83,7 @@ import TemperedFundamentalGroups.Andre.TateModel
 import TemperedFundamentalGroups.Andre.TateModelCharts
 import TemperedFundamentalGroups.Andre.TateModelNormal
 import TemperedFundamentalGroups.Andre.TateNGon
+import TemperedFundamentalGroups.Andre.TateNGonCover
 import TemperedFundamentalGroups.Andre.TateNGonObject
 import TemperedFundamentalGroups.Andre.TateNatural
 import TemperedFundamentalGroups.Andre.TateNodeChart
