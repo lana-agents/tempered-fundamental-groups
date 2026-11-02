@@ -6,6 +6,7 @@ Authors: LANA Project
 import TemperedFundamentalGroups.SemistableReduction.P1ThreeFlat
 import TemperedFundamentalGroups.SemistableReduction.P1ThreeDedekind
 import TemperedFundamentalGroups.SemistableReduction.TateEtale
+import TemperedFundamentalGroups.SemistableReduction.GenericConnected
 
 /-!
 # The generic fibre of the lift of a tame cover of `ℙ¹_k ∖ {0, 1, ā}` (MR13 A1)
@@ -26,7 +27,10 @@ For the M2 lift of a tame covering of `ℙ¹_k ∖ {0, 1, ā}` (given by `Sp`, `
 * **`P1Three.etale_lift`** (`O` a discrete valuation ring): `B₁[1/ϖ]` is **étale over
   `R1[1/ϖ]`, the coordinate ring of `U_K = ℙ¹_K ∖ {0, 1, a}`** (`GenericEtale`, with the Dedekind
   property `P1Three.isDedekindDomain_away_R1_of_dvr`), and finite over it
-  (**`P1Three.finite_lift`**).
+  (**`P1Three.finite_lift`**);
+* **`P1Three.connected_lift`**: if `B₁/ϖ` is reduced with only trivial idempotents (a connected
+  étale cover of `V₁ ⊗ k`), the generic fibre `B₁[1/ϖ]` has only trivial idempotents
+  (`GenericConnected.isIdempotentElem_away` over `O[Y]`).
 
 So the generic fibre of the lift is a finite étale cover of `U_K`: the lifting step of the
 "lifting half" of tame specialisation for `U = ℙ¹ ∖ {three points}` ([SGA1] XIII, proof of
@@ -258,6 +262,29 @@ theorem finite_lift :
     infer_instance
   exact Module.Finite.of_isLocalization (R1 O a) B.Ring1
     (Submonoid.powers (algebraMap O (R1 O a) ϖ))
+
+omit [(Ideal.span {ϖ}).IsMaximal] [IsAdicComplete (Ideal.span {ϖ}) O]
+  [Module.Finite O[X] (Module.AEval' N.x0)] hθ in
+include hϖ hϖ0 in
+/-- **Connected special fibre ⇒ connected generic fibre of the lift**: if `B₁/ϖ` is reduced and
+has only the trivial idempotents, so has `B₁[1/ϖ]`. -/
+theorem connected_lift [Module.Flat O[X] (Module.AEval' N.x1)]
+    (hred : IsReduced (B.Ring1 ⧸ Ideal.span {B.const1 ϖ}))
+    (hconn : ∀ e : B.Ring1 ⧸ Ideal.span {B.const1 ϖ}, IsIdempotentElem e → e = 0 ∨ e = 1)
+    {e : Localization.Away (B.const1 ϖ)} (he : IsIdempotentElem e) : e = 0 ∨ e = 1 := by
+  letI : Algebra O[X] B.Ring1 := B.polyHom1.toAlgebra
+  haveI := B.finite_polyHom1
+  haveI := B.flat_polyHom1
+  have hc : algebraMap O[X] B.Ring1 (C ϖ) = B.const1 ϖ := by
+    simp [ProjectiveLine.ChartModule.AlgStr.polyHom1, RingHom.algebraMap_toAlgebra]
+  have hu : ¬IsUnit (C ϖ : O[X]) := fun h ↦ by
+    have := (Polynomial.isUnit_C.mp h).map θ
+    simp [hϖ] at this
+  haveI : IsLocalization.Away (algebraMap O[X] B.Ring1 (C ϖ))
+      (Localization.Away (B.const1 ϖ)) := by
+    rw [hc]; infer_instance
+  rw [← hc] at hred hconn
+  exact GenericConnected.isIdempotentElem_away (C_ne_zero.2 hϖ0) hu _ hred hconn he
 
 variable [IsDiscreteValuationRing O]
 
