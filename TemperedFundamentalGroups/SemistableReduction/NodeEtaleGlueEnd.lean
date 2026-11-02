@@ -8,122 +8,169 @@ import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueHom
 import TemperedFundamentalGroups.SemistableReduction.AdicSystemHom
 
 /-!
-# Endomorphisms of glued coverings with trivial patches (generic; MR13, G-action on lifts)
+# Functoriality of the glued adic systems (generic; MR13, Galois action on lifts)
 
-Generic consumers of MR12's lifting core (layers 1, 4, 5 and `LevelTowerHom`) for the case where
-the patch tower over the first chart has **zero formal models** (the completion along `f n` is
-the zero ring, e.g. the trivial patch `D(1)` of `P1Three` over `V₁ = ℙ¹ ∖ {0, 1, a}`), and for
-endomorphisms (the Galois action on a single covering):
+Generic consumers of MR12's lifting core (layers 4, 5): the maps of the two-chart rings
+`NodeEtaleGlue.Overlap.twoChartMap` and of the adic systems built from them are functorial in
+the maps `y n` of the coverings over the first chart and `p n` of the pieces over the second
+chart.
 
-* `LevelTower.levelMap_eq_id`, `levelMap_eq_comp` (functoriality up to a propositional equality of
-  the special maps), `subsingleton_NFall_of`, `kappaCompat_of_subsingleton` (`KappaCompat` is
-  automatic for zero formal models);
-* **`LevelTower.Data.zEnd`**: the endomorphism of level `n` induced by an endomorphism `φ` of the
-  special-fibre covering, `zEnd_id`, `zEnd_comp`, **`tr_zEnd`** (compatibility with the transition
-  maps, from `tr_levelMap`);
-* `NodeEtaleGlue.Input.HgAt` (the hypothesis `hg` of `Input.yMap` as a `Prop`), `HgEnd`,
-  **`Input.yEnd`** (`yMap` of `zEnd φ` and étale endomorphisms `e n`), `yEnd_succ`,
-  `yEnd_algebraMap`;
-* **`NodeEtaleGlue.Overlap.twoChartEnd`**, **`Overlap.systemEnd`**: from endomorphisms `y n` of the
-  coverings over the first chart and `p n` of the pieces over the second chart (with the overlap
-  condition `hψ`), the endomorphism of the adic system of chart algebras
-  (`Overlap.twoChartMap`, `succ_comp_twoChartMap`, `TwoChartTower.systemShiftHom`).
+* `AdicChartAlgSystem.Hom.ext'` (morphisms of adic systems are determined by their levels);
+* **`AdicChartAlgSystem.Algebraization`** (a bundled algebraization `(N, B, α)` of an adic system)
+  and **`Algebraization.map`** (the morphism of algebraizations induced by a morphism of systems,
+  `algHom`), `comp_map`, `isHom_map`, `eq_map`, **`map_id`**, **`map_comp`**;
+* `TwoChartTower.systemShiftHom_eq_id`, **`systemShiftHom_comp`** (the shifted system morphism of
+  identities / of a composite);
+* `NodeEtaleGlue.Input.yMap_eq_id`, `Input.yMap_comp` (functoriality of the maps of the coverings
+  over the first chart);
+* `NodeEtaleGlue.Overlap.mQ_eq_id`, `mQ_comp`, **`twoChartMap_eq_id`**, **`twoChartMap_comp`**;
+(the systems of two overlaps live over the ideals `(V.ϖ)`, `(V'.ϖ)`, so the morphism of systems
+itself is assembled in the concrete instances, e.g. `P1Three.Datum.Hom.systemMap`).
 -/
 
 universe u
 
+namespace ProjectiveLine.AdicChartAlgSystem
+
+open Polynomial
+
+variable {A : Type u} [CommRing A] {I : Ideal A} {S S' : AdicChartAlgSystem I}
+
+/-- **Morphisms of adic systems are determined by their levels.** -/
+lemma Hom.ext' {γ γ' : Hom S S'} (h : ∀ n, γ.f n = γ'.f n) : γ = γ' := by
+  cases γ
+  cases γ'
+  congr
+  funext n
+  exact h n
+
+/-- **An algebraization of an adic system of chart algebras**: a chart algebra `(N, B)`, finite
+over both charts, with compatible surjections `α n : N → S.M n` with kernels `Iⁿ N`. -/
+structure Algebraization (S : AdicChartAlgSystem I) where
+  /-- the chart module -/
+  N : ChartModule A
+  [fin0 : Module.Finite A[X] (Module.AEval' N.x0)]
+  [fin1 : Module.Finite A[X] (Module.AEval' N.x1)]
+  /-- the algebra structure -/
+  B : ChartModule.AlgStr N
+  /-- the reductions -/
+  α : ∀ n, ChartModule.Hom N (S.M n)
+  hα : ∀ n, Function.Surjective (α n).f0 ∧ Function.Surjective (α n).f1 ∧
+    LinearMap.ker (α n).f0 = I ^ n • ⊤ ∧ LinearMap.ker (α n).f1 = I ^ n • ⊤
+  hc : ∀ m n (h : m ≤ n), (S.tr h).comp (α n) = α m
+  hB : ∀ n, B.IsHom (S.alg n) (α n)
+
+attribute [instance] Algebraization.fin0 Algebraization.fin1
+
+namespace Algebraization
+
+variable [IsNoetherianRing A] [IsAdicComplete I A] {S'' : AdicChartAlgSystem I}
+
+/-- **The morphism of algebraizations induced by a morphism of adic systems** (`algHom`). -/
+noncomputable def map (γ : Hom S S') (L : Algebraization S) (L' : Algebraization S') :
+    ChartModule.Hom L.N L'.N :=
+  algHom γ L.hc L.hB L'.hα L'.hc L'.hB
+
+lemma comp_map (γ : Hom S S') (L : Algebraization S) (L' : Algebraization S') (n : ℕ) :
+    (L'.α n).comp (map γ L L') = (γ.f n).comp (L.α n) :=
+  comp_algHom γ L.hc L.hB L'.hα L'.hc L'.hB n
+
+lemma isHom_map (γ : Hom S S') (L : Algebraization S) (L' : Algebraization S') :
+    L.B.IsHom L'.B (map γ L L') :=
+  isHom_algHom γ L.hc L.hB L'.hα L'.hc L'.hB
+
+/-- **Uniqueness**: a morphism `L.N → L'.N` with reductions `γ` is `map γ`. -/
+lemma eq_map (γ : Hom S S') (L : Algebraization S) (L' : Algebraization S')
+    (ψ : ChartModule.Hom L.N L'.N) (hψ : ∀ n, (L'.α n).comp ψ = (γ.f n).comp (L.α n)) :
+    ψ = map γ L L' :=
+  eq_algHom γ L.hc L.hB L'.hα L'.hc L'.hB ψ hψ
+
+lemma map_id (L : Algebraization S) : map (Hom.id S) L L = ChartModule.Hom.id L.N :=
+  algHom_id L.hα L.hc L.hB
+
+lemma map_comp (γ : Hom S S') (γ' : Hom S' S'') (L : Algebraization S)
+    (L' : Algebraization S') (L'' : Algebraization S'') :
+    map (γ'.comp γ) L L'' = (map γ' L' L'').comp (map γ L L') :=
+  algHom_comp γ L.hc L.hB L'.hα L'.hc L'.hB γ' L''.hα L''.hc L''.hB
+
+end Algebraization
+
+end ProjectiveLine.AdicChartAlgSystem
+
 namespace SemistableReduction
 
-open AdmissibleLift
+open AdmissibleLift ProjectiveLine Polynomial
 
 noncomputable section
 
-/-! ### Generic: endomorphisms of the levels of a tower with zero formal models -/
+namespace TwoChartTower
 
-namespace LevelTower
+variable {A : Type u} [CommRing A] (I : Ideal A)
+  {E E' E'' : ℕ → TwoChartRings A} {e : ∀ n, TwoChartMap (E (n + 1)) (E n)}
+  {e' : ∀ n, TwoChartMap (E' (n + 1)) (E' n)} {e'' : ∀ n, TwoChartMap (E'' (n + 1)) (E'' n)}
+  {he0 : ∀ n, Function.Surjective (e n).f0} {he1 : ∀ n, Function.Surjective (e n).f1}
+  {hK0 : ∀ n, RingHom.ker (e n).f0 = (I ^ (n + 1)).map (algebraMap A (E (n + 1)).R0)}
+  {hK1 : ∀ n, RingHom.ker (e n).f1 = (I ^ (n + 1)).map (algebraMap A (E (n + 1)).R1)}
+  {hL0 : ∀ n, (I ^ (n + 1)).map (algebraMap A (E n).R0) = ⊥}
+  {hL1 : ∀ n, (I ^ (n + 1)).map (algebraMap A (E n).R1) = ⊥}
+  {hF0 : ∀ n, Module.Finite A[X] (Module.AEval' (E n).chartModule.x0)}
+  {hF1 : ∀ n, Module.Finite A[X] (Module.AEval' (E n).chartModule.x1)}
+  {he0' : ∀ n, Function.Surjective (e' n).f0} {he1' : ∀ n, Function.Surjective (e' n).f1}
+  {hK0' : ∀ n, RingHom.ker (e' n).f0 = (I ^ (n + 1)).map (algebraMap A (E' (n + 1)).R0)}
+  {hK1' : ∀ n, RingHom.ker (e' n).f1 = (I ^ (n + 1)).map (algebraMap A (E' (n + 1)).R1)}
+  {hL0' : ∀ n, (I ^ (n + 1)).map (algebraMap A (E' n).R0) = ⊥}
+  {hL1' : ∀ n, (I ^ (n + 1)).map (algebraMap A (E' n).R1) = ⊥}
+  {hF0' : ∀ n, Module.Finite A[X] (Module.AEval' (E' n).chartModule.x0)}
+  {hF1' : ∀ n, Module.Finite A[X] (Module.AEval' (E' n).chartModule.x1)}
+  {he0'' : ∀ n, Function.Surjective (e'' n).f0} {he1'' : ∀ n, Function.Surjective (e'' n).f1}
+  {hK0'' : ∀ n, RingHom.ker (e'' n).f0 = (I ^ (n + 1)).map (algebraMap A (E'' (n + 1)).R0)}
+  {hK1'' : ∀ n, RingHom.ker (e'' n).f1 = (I ^ (n + 1)).map (algebraMap A (E'' (n + 1)).R1)}
+  {hL0'' : ∀ n, (I ^ (n + 1)).map (algebraMap A (E'' n).R0) = ⊥}
+  {hL1'' : ∀ n, (I ^ (n + 1)).map (algebraMap A (E'' n).R1) = ⊥}
+  {hF0'' : ∀ n, Module.Finite A[X] (Module.AEval' (E'' n).chartModule.x0)}
+  {hF1'' : ∀ n, Module.Finite A[X] (Module.AEval' (E'' n).chartModule.x1)}
 
-variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
-  {R : ℕ → Type u} [∀ n, CommRing (R n)] [∀ n, Algebra O (R n)]
-  [∀ n, IsNoetherianRing (R n)] [∀ n, Algebra k (R n ⧸ J θ (R := R n))]
-  {R₀ : Type u} [CommRing R₀] [Algebra k R₀] {f₀ : R₀}
-  {φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat f₀} {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
-  {cov₀ : Admissible.Covering φ₀ ψ₀} {πL : cov₀.ι → O}
-  (hθ : Function.Surjective θ)
+/-- **The shifted system morphism of identities is the identity.** -/
+lemma systemShiftHom_eq_id (χ : ∀ n, TwoChartMap (E n) (E n))
+    (hχ : ∀ n, (e n).comp (χ (n + 1)) = (χ n).comp (e n)) (hid : ∀ n, χ n = TwoChartMap.id _) :
+    systemShiftHom I χ hχ (he0 := he0) (he1 := he1) (hK0 := hK0) (hK1 := hK1) (hL0 := hL0)
+      (hL1 := hL1) (hF0 := hF0) (hF1 := hF1) (he0' := he0) (he1' := he1) (hK0' := hK0)
+      (hK1' := hK1) (hL0' := hL0) (hL1' := hL1) (hF0' := hF0) (hF1' := hF1) =
+      AdicChartAlgSystem.Hom.id _ :=
+  AdicChartAlgSystem.Hom.ext' fun n ↦ match n with
+    | 0 => TwoChartMap.toHom_id
+    | n + 1 => by
+      change (χ n).toHom = _
+      rw [hid n]
+      exact TwoChartMap.toHom_id
 
-section Level
+/-- **The shifted system morphism of a composite is the composite.** -/
+lemma systemShiftHom_comp (χ : ∀ n, TwoChartMap (E n) (E' n))
+    (hχ : ∀ n, (e' n).comp (χ (n + 1)) = (χ n).comp (e n))
+    (χ' : ∀ n, TwoChartMap (E' n) (E'' n))
+    (hχ' : ∀ n, (e'' n).comp (χ' (n + 1)) = (χ' n).comp (e' n))
+    (χ'' : ∀ n, TwoChartMap (E n) (E'' n))
+    (hχ'' : ∀ n, (e'' n).comp (χ'' (n + 1)) = (χ'' n).comp (e n))
+    (hcomp : ∀ n, χ'' n = (χ' n).comp (χ n)) :
+    systemShiftHom I χ'' hχ'' (he0 := he0) (he1 := he1) (hK0 := hK0) (hK1 := hK1) (hL0 := hL0)
+      (hL1 := hL1) (hF0 := hF0) (hF1 := hF1) (he0' := he0'') (he1' := he1'') (hK0' := hK0'')
+      (hK1' := hK1'') (hL0' := hL0'') (hL1' := hL1'') (hF0' := hF0'') (hF1' := hF1'') =
+    (systemShiftHom I χ' hχ' (he0 := he0') (he1 := he1') (hK0 := hK0') (hK1 := hK1')
+      (hL0 := hL0') (hL1 := hL1') (hF0 := hF0') (hF1 := hF1') (he0' := he0'') (he1' := he1'')
+      (hK0' := hK0'') (hK1' := hK1'') (hL0' := hL0'') (hL1' := hL1'') (hF0' := hF0'')
+      (hF1' := hF1'')).comp
+    (systemShiftHom I χ hχ (he0 := he0) (he1 := he1) (hK0 := hK0) (hK1 := hK1) (hL0 := hL0)
+      (hL1 := hL1) (hF0 := hF0) (hF1 := hF1) (he0' := he0') (he1' := he1') (hK0' := hK0')
+      (hK1' := hK1') (hL0' := hL0') (hL1' := hL1') (hF0' := hF0') (hF1' := hF1')) :=
+  AdicChartAlgSystem.Hom.ext' fun n ↦ match n with
+    | 0 => by
+      change (TwoChartMap.id _).toHom = ((TwoChartMap.id _).comp (TwoChartMap.id _)).toHom
+      rw [TwoChartMap.id_comp]
+    | n + 1 => by
+      change (χ'' n).toHom = ((χ' n).comp (χ n)).toHom
+      rw [hcomp n]
 
-variable {f : ∀ n, R n} {e : ∀ n, R₀ ≃ₐ[k] (R n ⧸ J θ (R := R n))}
-  {hfe : ∀ n, e n f₀ = fbar θ (f n)} {n : ℕ} (D : Level R cov₀ πL hfe n)
-
-lemma levelMap_eq_id {φ : cov₀.C →ₐ[R₀] cov₀.C} (hφ : φ = AlgHom.id _ _)
-    (g : NFall D.L D.M →ₐ[R n] NFall D.L D.M) (hκ : KappaCompat hθ D D φ g) :
-    levelMap hθ D D φ g hκ = AlgHom.id _ _ :=
-  ext_level hθ D fun x ↦ (fst_levelMap hθ D D φ g hκ x).trans (by
-    subst hφ
-    exact congrArg (fun p : D.P →ₐ[R n] D.P ↦ p x.1.1) (pMap_id D))
-
-lemma levelMap_eq_comp {φ φ' φ'' : cov₀.C →ₐ[R₀] cov₀.C} (hφ : φ'' = φ'.comp φ)
-    (g g' g'' : NFall D.L D.M →ₐ[R n] NFall D.L D.M) (hκ : KappaCompat hθ D D φ g)
-    (hκ' : KappaCompat hθ D D φ' g') (hκ'' : KappaCompat hθ D D φ'' g'') :
-    levelMap hθ D D φ'' g'' hκ'' = (levelMap hθ D D φ' g' hκ').comp (levelMap hθ D D φ g hκ) := by
-  subst hφ
-  refine ext_level hθ D fun x ↦ ?_
-  rw [fst_levelMap hθ D D (φ'.comp φ) g'' hκ'' x, AlgHom.comp_apply,
-    fst_levelMap hθ D D φ' g' hκ', fst_levelMap hθ D D φ g hκ x, pMap_comp D D D φ φ',
-    AlgHom.comp_apply]
-
-omit [∀ n, IsNoetherianRing (R n)] in
-/-- The lifted formal model over a zero completion is zero. -/
-lemma subsingleton_NFall_of (h : Subsingleton (FormalPatchLevel.Hat (f n))) :
-    Subsingleton (NFall D.L D.M) := by
-  refine subsingleton_of_zero_eq_one ?_
-  rw [← map_zero (algebraMap (FormalPatchLevel.Hat (f n)) (NFall D.L D.M)),
-    ← map_one (algebraMap (FormalPatchLevel.Hat (f n)) (NFall D.L D.M))]
-  exact congrArg _ (Subsingleton.elim _ _)
-
-/-- `KappaCompat` holds trivially if the target formal model is zero. -/
-lemma kappaCompat_of_subsingleton (h : Subsingleton (NFall D.L D.M))
-    (φ : cov₀.C →ₐ[R₀] cov₀.C) (g : NFall D.L D.M →ₐ[R n] NFall D.L D.M) :
-    KappaCompat hθ D D φ g := fun _ ↦ by
-  haveI := (Ideal.Quotient.mk_surjective (I := (J θ).map (algebraMap (R n)
-    (NFall D.L D.M)))).subsingleton
-  exact Subsingleton.elim _ _
-
-end Level
-
-namespace Data
-
-variable [∀ n, Algebra (R (n + 1)) (R n)] [∀ n, IsScalarTower O (R (n + 1)) (R n)]
-  (T : Data (θ := θ) R cov₀ πL) (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
-  (hs : ∀ n, Subsingleton (FormalPatchLevel.Hat (T.f n)))
-
-/-- **The endomorphism of the level `n` of a tower with zero formal models** induced by an
-endomorphism `φ` of the special-fibre covering (`levelMap` with the identity of the zero formal
-model). -/
-def zEnd (φ : cov₀.C →ₐ[R₀] cov₀.C) (n : ℕ) : T.G hθ n →ₐ[R n] T.G hθ n :=
-  levelMap hθ (T.level n) (T.level n) φ (AlgHom.id _ _)
-    (kappaCompat_of_subsingleton hθ _ (subsingleton_NFall_of _ (hs n)) φ _)
-
-omit [∀ n, IsScalarTower O (R (n + 1)) (R n)] in
-lemma zEnd_id (n : ℕ) : T.zEnd hθ hs (AlgHom.id _ _) n = AlgHom.id _ _ :=
-  levelMap_eq_id hθ (T.level n) rfl _ _
-
-omit [∀ n, IsScalarTower O (R (n + 1)) (R n)] in
-lemma zEnd_comp (φ ψ : cov₀.C →ₐ[R₀] cov₀.C) (n : ℕ) :
-    T.zEnd hθ hs (ψ.comp φ) n = (T.zEnd hθ hs ψ n).comp (T.zEnd hθ hs φ n) :=
-  levelMap_eq_comp hθ (T.level n) rfl _ _ _ _ _ _
-
-lemma tr_zEnd (φ : cov₀.C →ₐ[R₀] cov₀.C) (n : ℕ) (x : T.G hθ (n + 1)) :
-    T.tr hθ hO n (T.zEnd hθ hs φ (n + 1) x) = T.zEnd hθ hs φ n (T.tr hθ hO n x) := by
-  rw [tr_eq_tr]
-  exact tr_levelMap hθ hO T.hq T.hf T.he T.level T.hcχ _ _ T.hct T.level T.hcχ _ _ T.hct φ
-    (fun _ ↦ AlgHom.id _ _) _ n x
-
-end Data
-
-end LevelTower
-
-/-! ### Generic: endomorphisms of the coverings over the first chart -/
+end TwoChartTower
 
 namespace NodeEtaleGlue.Input
 
@@ -134,44 +181,51 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {R₀' : Type u} [CommRing R₀'] [Algebra k R₀'] {f₀' : R₀'}
   {φ₀' : Node k (0 : k) →ₐ[k] Admissible.Hat f₀'} {ψ₀' : Polynomial k →ₐ[k] Admissible.Hat f₀'}
   {cov₀' : Admissible.Covering φ₀' ψ₀'} {πL' : cov₀'.ι → O}
-  (I : Input θ cov₀ πL) (I' : Input θ cov₀' πL') (hθ : Function.Surjective θ) (n : ℕ)
+  {R₀'' : Type u} [CommRing R₀''] [Algebra k R₀''] {f₀'' : R₀''}
+  {φ₀'' : Node k (0 : k) →ₐ[k] Admissible.Hat f₀''}
+  {ψ₀'' : Polynomial k →ₐ[k] Admissible.Hat f₀''}
+  {cov₀'' : Admissible.Covering φ₀'' ψ₀''} {πL'' : cov₀''.ι → O}
+  (I : Input θ cov₀ πL) (I' : Input θ cov₀' πL') (I'' : Input θ cov₀'' πL'')
+  (hθ : Function.Surjective θ) (n : ℕ)
 
-/-- **The hypothesis `hg` of `Input.yMap`** (compatibility of `g` and `e` on `E n[1/a]`). -/
-def HgAt (g : I.T.G hθ n →+* I'.T.G hθ n) (e : I.E n →+* I'.E n)
-    (he : e (algebraMap (I.B n) (I.E n) (I.a n)) = algebraMap (I'.B n) (I'.E n) (I'.a n)) :
-    Prop :=
-  ∀ x, ρa0 I'.T hθ I'.B I'.qB I'.φs I'.hφs I'.ι₀ I'.hι₀ I'.a I'.b I'.ha I'.hι I'.E I'.σE
-    I'.hbE I'.hdiv I'.hJB I'.B0 n (g x) =
-    I.eab I' n e he (ρa0 I.T hθ I.B I.qB I.φs I.hφs I.ι₀ I.hι₀ I.a I.b I.ha I.hι I.E I.σE I.hbE
-      I.hdiv I.hJB I.B0 n x)
+/-- **`yMap` of identities is the identity.** -/
+lemma yMap_eq_id (g : I.T.G hθ n →+* I.T.G hθ n) (e : I.E n →+* I.E n)
+    (he : e (algebraMap (I.B n) (I.E n) (I.a n)) = algebraMap (I.B n) (I.E n) (I.a n))
+    (hg : ∀ x, ρa0 I.T hθ I.B I.qB I.φs I.hφs I.ι₀ I.hι₀ I.a I.b I.ha I.hι I.E I.σE
+      I.hbE I.hdiv I.hJB I.B0 n (g x) =
+      I.eab I n e he (ρa0 I.T hθ I.B I.qB I.φs I.hφs I.ι₀ I.hι₀ I.a I.b I.ha I.hι I.E I.σE I.hbE
+        I.hdiv I.hJB I.B0 n x))
+    (hg' : ∀ x, g x = x) (he' : ∀ x, e x = x) (z : I.Y hθ n) :
+    I.yMap I hθ n g e he hg z = z :=
+  Subtype.ext (Prod.ext (hg' z.1.1) (he' z.1.2))
 
-variable (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
-  (hs : ∀ n, Subsingleton (FormalPatchLevel.Hat (I.T.f n))) (φ : cov₀.C →ₐ[R₀] cov₀.C)
-  (e : ∀ n, I.E n →ₐ[I.B n] I.E n)
-
-/-- The compatibility of the endomorphisms of the patches and of the étale pieces. -/
-def HgEnd : Prop :=
-  ∀ n, I.HgAt I hθ n (I.T.zEnd hθ hs φ n).toRingHom (e n).toRingHom ((e n).commutes _)
-
-/-- **The endomorphism of the covering over the first chart at level `n`** for a tower with zero
-formal models (`yMap` of `zEnd φ` and `e`). -/
-def yEnd (hg : I.HgEnd hθ hs φ e) (n : ℕ) : I.Y hθ n →+* I.Y hθ n :=
-  I.yMap I hθ n (I.T.zEnd hθ hs φ n).toRingHom (e n).toRingHom ((e n).commutes _) (hg n)
-
-lemma yEnd_succ (hg : I.HgEnd hθ hs φ e) (heS : ∀ n x, I.sE n (e (n + 1) x) = e n (I.sE n x))
-    (n : ℕ) (z : I.Y hθ (n + 1)) :
-    I.Ymap hθ hO n (I.yEnd hθ hs φ e hg (n + 1) z) = I.yEnd hθ hs φ e hg n (I.Ymap hθ hO n z) :=
-  I.yMap_succ I hθ hO (fun n ↦ (I.T.zEnd hθ hs φ n).toRingHom) (fun n ↦ (e n).toRingHom)
-    (fun n ↦ (e n).commutes _) hg (I.T.tr_zEnd hθ hO hs φ) heS n z
-
-lemma yEnd_algebraMap (hg : I.HgEnd hθ hs φ e) (n : ℕ) (b : I.B0) :
-    I.yEnd hθ hs φ e hg n (algebraMap I.B0 (I.Y hθ n) b) = algebraMap I.B0 (I.Y hθ n) b :=
-  I.yMap_algebraMap I hθ n _ _ ((e n).commutes _) (hg n) (RingHom.id _)
-    (fun _ ↦ (I.T.zEnd hθ hs φ n).commutes _) (fun _ ↦ (e n).commutes _) b
+/-- **`yMap` of composites is the composite.** -/
+lemma yMap_comp (g : I.T.G hθ n →+* I'.T.G hθ n) (e : I.E n →+* I'.E n)
+    (he : e (algebraMap (I.B n) (I.E n) (I.a n)) = algebraMap (I'.B n) (I'.E n) (I'.a n))
+    (hg : ∀ x, ρa0 I'.T hθ I'.B I'.qB I'.φs I'.hφs I'.ι₀ I'.hι₀ I'.a I'.b I'.ha I'.hι I'.E I'.σE
+      I'.hbE I'.hdiv I'.hJB I'.B0 n (g x) =
+      I.eab I' n e he (ρa0 I.T hθ I.B I.qB I.φs I.hφs I.ι₀ I.hι₀ I.a I.b I.ha I.hι I.E I.σE I.hbE
+        I.hdiv I.hJB I.B0 n x))
+    (g' : I'.T.G hθ n →+* I''.T.G hθ n) (e' : I'.E n →+* I''.E n)
+    (he' : e' (algebraMap (I'.B n) (I'.E n) (I'.a n)) =
+      algebraMap (I''.B n) (I''.E n) (I''.a n))
+    (hg' : ∀ x, ρa0 I''.T hθ I''.B I''.qB I''.φs I''.hφs I''.ι₀ I''.hι₀ I''.a I''.b I''.ha
+      I''.hι I''.E I''.σE I''.hbE I''.hdiv I''.hJB I''.B0 n (g' x) =
+      I'.eab I'' n e' he' (ρa0 I'.T hθ I'.B I'.qB I'.φs I'.hφs I'.ι₀ I'.hι₀ I'.a I'.b I'.ha I'.hι
+        I'.E I'.σE I'.hbE I'.hdiv I'.hJB I'.B0 n x))
+    (g'' : I.T.G hθ n →+* I''.T.G hθ n) (e'' : I.E n →+* I''.E n)
+    (he'' : e'' (algebraMap (I.B n) (I.E n) (I.a n)) =
+      algebraMap (I''.B n) (I''.E n) (I''.a n))
+    (hg'' : ∀ x, ρa0 I''.T hθ I''.B I''.qB I''.φs I''.hφs I''.ι₀ I''.hι₀ I''.a I''.b I''.ha
+      I''.hι I''.E I''.σE I''.hbE I''.hdiv I''.hJB I''.B0 n (g'' x) =
+      I.eab I'' n e'' he'' (ρa0 I.T hθ I.B I.qB I.φs I.hφs I.ι₀ I.hι₀ I.a I.b I.ha I.hι I.E I.σE
+        I.hbE I.hdiv I.hJB I.B0 n x))
+    (hgc : ∀ x, g'' x = g' (g x)) (hec : ∀ x, e'' x = e' (e x)) (z : I.Y hθ n) :
+    I.yMap I'' hθ n g'' e'' he'' hg'' z =
+      I'.yMap I'' hθ n g' e' he' hg' (I.yMap I' hθ n g e he hg z) :=
+  Subtype.ext (Prod.ext (hgc z.1.1) (hec z.1.2))
 
 end NodeEtaleGlue.Input
-
-/-! ### Generic: the endomorphism of the adic system of an overlap -/
 
 namespace NodeEtaleGlue.Overlap
 
@@ -179,31 +233,101 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {R₀ : Type u} [CommRing R₀] [Algebra k R₀] {f₀ : R₀}
   {φ₀ : Node k (0 : k) →ₐ[k] Admissible.Hat f₀} {ψ₀ : Polynomial k →ₐ[k] Admissible.Hat f₀}
   {cov₀ : Admissible.Covering φ₀ ψ₀} {πL : cov₀.ι → O}
-  {I : Input θ cov₀ πL} (V : Overlap I) (hθ : Function.Surjective θ)
+  {R₀' : Type u} [CommRing R₀'] [Algebra k R₀'] {f₀' : R₀'}
+  {φ₀' : Node k (0 : k) →ₐ[k] Admissible.Hat f₀'} {ψ₀' : Polynomial k →ₐ[k] Admissible.Hat f₀'}
+  {cov₀' : Admissible.Covering φ₀' ψ₀'} {πL' : cov₀'.ι → O}
+  {R₀'' : Type u} [CommRing R₀''] [Algebra k R₀''] {f₀'' : R₀''}
+  {φ₀'' : Node k (0 : k) →ₐ[k] Admissible.Hat f₀''}
+  {ψ₀'' : Polynomial k →ₐ[k] Admissible.Hat f₀''}
+  {cov₀'' : Admissible.Covering φ₀'' ψ₀''} {πL'' : cov₀''.ι → O}
+  {I : Input θ cov₀ πL} {I' : Input θ cov₀' πL'} {I'' : Input θ cov₀'' πL''}
+  (V : Overlap I) (V' : Overlap I') (V'' : Overlap I'') (hθ : Function.Surjective θ)
   (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
-  (y : ∀ n, I.Y hθ n →+* I.Y hθ n)
-  (hy : ∀ n b, y n (algebraMap I.B0 (I.Y hθ n) b) = algebraMap I.B0 (I.Y hθ n) b)
-  (hyS : ∀ n z, I.Ymap hθ hO n (y (n + 1) z) = y n (I.Ymap hθ hO n z))
-  (p : ∀ n, V.P0.P n →+* V.P0.P n)
-  (hp0 : ∀ n, p n (algebraMap (V.B' n) (V.P0.P n) (algebraMap V.B0' (V.B' n) V.x0)) =
-    algebraMap (V.B' n) (V.P0.P n) (algebraMap V.B0' (V.B' n) V.x0))
-  (hpO : ∀ n (o : O), p n (algebraMap O (V.P0.P n) o) = algebraMap O (V.P0.P n) o)
-  (hψ : ∀ n z, V.ψ hθ hO n (y n z) = V.mM V n (p n) (hp0 n) (V.ψ hθ hO n z))
-  (hpS : ∀ n e, V.P0.sP n (p (n + 1) e) = p n (V.P0.sP n e))
 
-/-- **The endomorphism of the two-chart ring at level `n`** from endomorphisms `y n` of the
-covering over the first chart (fixing `B0`) and `p n` of the piece over the second chart. -/
-def twoChartEnd (n : ℕ) : SemistableReduction.TwoChartMap (A := O) (V.twoChart hθ hO n)
-    (V.twoChart hθ hO n) :=
-  V.twoChartMap V hθ hO n (y n) (hy n V.x1) (fun o ↦ hy n (@algebraMap O I.B0 _ _ V.algOB0 o))
-    (p n) (hp0 n) (hpO n) (hψ n)
+/-! ### Functoriality at a single level -/
 
-/-- **The endomorphism of the adic system of chart algebras** (`TwoChartTower.systemShiftHom`). -/
-def systemEnd : ProjectiveLine.AdicChartAlgSystem.Hom (V.system hθ hO) (V.system hθ hO) :=
-  TwoChartTower.systemShiftHom _ (V.twoChartEnd hθ hO y hy p hp0 hpO hψ)
-    (fun n ↦ V.succ_comp_twoChartMap V hθ hO y (fun n ↦ hy n V.x1)
-      (fun n o ↦ hy n (@algebraMap O I.B0 _ _ V.algOB0 o)) p hp0 hpO
-      hψ hyS hpS n)
+section Level
+
+variable (n : ℕ)
+
+lemma mQ_eq_id (y : I.Y hθ n →+* I.Y hθ n)
+    (hy1 : y (algebraMap I.B0 (I.Y hθ n) V.x1) = algebraMap I.B0 (I.Y hθ n) V.x1)
+    (hy : ∀ z, y z = z) (q : V.Q hθ n) : V.mQ V hθ n y hy1 q = q := by
+  have h : V.mQ V hθ n y hy1 = RingHom.id _ :=
+    IsLocalization.ringHom_ext (Submonoid.powers (algebraMap I.B0 (I.Y hθ n) V.x1))
+      (RingHom.ext fun z ↦ by
+        rw [RingHom.comp_apply, mQ_algebraMap, hy, RingHom.comp_apply, RingHom.id_apply])
+  exact RingHom.congr_fun h q
+
+lemma mQ_comp (y : I.Y hθ n →+* I'.Y hθ n)
+    (hy1 : y (algebraMap I.B0 (I.Y hθ n) V.x1) = algebraMap I'.B0 (I'.Y hθ n) V'.x1)
+    (y' : I'.Y hθ n →+* I''.Y hθ n)
+    (hy1' : y' (algebraMap I'.B0 (I'.Y hθ n) V'.x1) = algebraMap I''.B0 (I''.Y hθ n) V''.x1)
+    (y'' : I.Y hθ n →+* I''.Y hθ n)
+    (hy1'' : y'' (algebraMap I.B0 (I.Y hθ n) V.x1) = algebraMap I''.B0 (I''.Y hθ n) V''.x1)
+    (hy : ∀ z, y'' z = y' (y z)) (q : V.Q hθ n) :
+    V.mQ V'' hθ n y'' hy1'' q = V'.mQ V'' hθ n y' hy1' (V.mQ V' hθ n y hy1 q) := by
+  have h : V.mQ V'' hθ n y'' hy1'' = (V'.mQ V'' hθ n y' hy1').comp (V.mQ V' hθ n y hy1) :=
+    IsLocalization.ringHom_ext (Submonoid.powers (algebraMap I.B0 (I.Y hθ n) V.x1))
+      (RingHom.ext fun z ↦ by
+        rw [RingHom.comp_apply, mQ_algebraMap, hy, RingHom.comp_apply, RingHom.comp_apply,
+          mQ_algebraMap, mQ_algebraMap])
+  exact RingHom.congr_fun h q
+
+/-- **`twoChartMap` of identities is the identity.** -/
+lemma twoChartMap_eq_id (y : I.Y hθ n →+* I.Y hθ n)
+    (hy1 : y (algebraMap I.B0 (I.Y hθ n) V.x1) = algebraMap I.B0 (I.Y hθ n) V.x1)
+    (hyO : ∀ o : O, y (letI := V.algOY hθ n; algebraMap O (I.Y hθ n) o) =
+      (letI := V.algOY hθ n; algebraMap O (I.Y hθ n) o))
+    (p : V.P0.P n →+* V.P0.P n)
+    (hp0 : p (algebraMap (V.B' n) (V.P0.P n) (algebraMap V.B0' (V.B' n) V.x0)) =
+      algebraMap (V.B' n) (V.P0.P n) (algebraMap V.B0' (V.B' n) V.x0))
+    (hpO : ∀ o : O, p (algebraMap O (V.P0.P n) o) = algebraMap O (V.P0.P n) o)
+    (hψ : ∀ z, V.ψ hθ hO n (y z) = V.mM V n p hp0 (V.ψ hθ hO n z))
+    (hy : ∀ z, y z = z) (hp : ∀ e, p e = e) :
+    V.twoChartMap V hθ hO n y hy1 hyO p hp0 hpO hψ = TwoChartMap.id _ :=
+  TwoChartMap.ext_of_f0_f1
+    (AlgHom.ext fun a ↦ Subtype.ext (Prod.ext (V.mQ_eq_id hθ n y hy1 hy a.1.1) (hp a.1.2)))
+    (AlgHom.ext fun z ↦ hy z)
+
+/-- **`twoChartMap` of composites is the composite.** -/
+lemma twoChartMap_comp (y : I.Y hθ n →+* I'.Y hθ n)
+    (hy1 : y (algebraMap I.B0 (I.Y hθ n) V.x1) = algebraMap I'.B0 (I'.Y hθ n) V'.x1)
+    (hyO : ∀ o : O, y (letI := V.algOY hθ n; algebraMap O (I.Y hθ n) o) =
+      (letI := V'.algOY hθ n; algebraMap O (I'.Y hθ n) o))
+    (p : V.P0.P n →+* V'.P0.P n)
+    (hp0 : p (algebraMap (V.B' n) (V.P0.P n) (algebraMap V.B0' (V.B' n) V.x0)) =
+      algebraMap (V'.B' n) (V'.P0.P n) (algebraMap V'.B0' (V'.B' n) V'.x0))
+    (hpO : ∀ o : O, p (algebraMap O (V.P0.P n) o) = algebraMap O (V'.P0.P n) o)
+    (hψ : ∀ z, V'.ψ hθ hO n (y z) = V.mM V' n p hp0 (V.ψ hθ hO n z))
+    (y' : I'.Y hθ n →+* I''.Y hθ n)
+    (hy1' : y' (algebraMap I'.B0 (I'.Y hθ n) V'.x1) = algebraMap I''.B0 (I''.Y hθ n) V''.x1)
+    (hyO' : ∀ o : O, y' (letI := V'.algOY hθ n; algebraMap O (I'.Y hθ n) o) =
+      (letI := V''.algOY hθ n; algebraMap O (I''.Y hθ n) o))
+    (p' : V'.P0.P n →+* V''.P0.P n)
+    (hp0' : p' (algebraMap (V'.B' n) (V'.P0.P n) (algebraMap V'.B0' (V'.B' n) V'.x0)) =
+      algebraMap (V''.B' n) (V''.P0.P n) (algebraMap V''.B0' (V''.B' n) V''.x0))
+    (hpO' : ∀ o : O, p' (algebraMap O (V'.P0.P n) o) = algebraMap O (V''.P0.P n) o)
+    (hψ' : ∀ z, V''.ψ hθ hO n (y' z) = V'.mM V'' n p' hp0' (V'.ψ hθ hO n z))
+    (y'' : I.Y hθ n →+* I''.Y hθ n)
+    (hy1'' : y'' (algebraMap I.B0 (I.Y hθ n) V.x1) = algebraMap I''.B0 (I''.Y hθ n) V''.x1)
+    (hyO'' : ∀ o : O, y'' (letI := V.algOY hθ n; algebraMap O (I.Y hθ n) o) =
+      (letI := V''.algOY hθ n; algebraMap O (I''.Y hθ n) o))
+    (p'' : V.P0.P n →+* V''.P0.P n)
+    (hp0'' : p'' (algebraMap (V.B' n) (V.P0.P n) (algebraMap V.B0' (V.B' n) V.x0)) =
+      algebraMap (V''.B' n) (V''.P0.P n) (algebraMap V''.B0' (V''.B' n) V''.x0))
+    (hpO'' : ∀ o : O, p'' (algebraMap O (V.P0.P n) o) = algebraMap O (V''.P0.P n) o)
+    (hψ'' : ∀ z, V''.ψ hθ hO n (y'' z) = V.mM V'' n p'' hp0'' (V.ψ hθ hO n z))
+    (hy : ∀ z, y'' z = y' (y z)) (hp : ∀ e, p'' e = p' (p e)) :
+    V.twoChartMap V'' hθ hO n y'' hy1'' hyO'' p'' hp0'' hpO'' hψ'' =
+      (V'.twoChartMap V'' hθ hO n y' hy1' hyO' p' hp0' hpO' hψ').comp
+        (V.twoChartMap V' hθ hO n y hy1 hyO p hp0 hpO hψ) :=
+  TwoChartMap.ext_of_f0_f1
+    (AlgHom.ext fun a ↦ Subtype.ext (Prod.ext
+      (V.mQ_comp V' V'' hθ n y hy1 y' hy1' y'' hy1'' hy a.1.1) (hp a.1.2)))
+    (AlgHom.ext fun z ↦ hy z)
+
+end Level
 
 end NodeEtaleGlue.Overlap
 
