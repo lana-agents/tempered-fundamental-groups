@@ -7,22 +7,23 @@ import TemperedFundamentalGroups.SemistableReduction.TateLevelHom
 import TemperedFundamentalGroups.SemistableReduction.LevelTowerHomH
 
 /-!
-# The maps of the node patches of Tate coverings over `V₁` (MR12 I3, Tate instance, part 2)
+# The base data of the Tate inputs over `V₁` for two coverings (MR12 I3, Tate instance, part 2)
 
-For a morphism `f₁ : Sp.C1 → Sp'.C1` of special-fibre coverings over `V₁` whose induced map of
-node coverings is balanced (`TateGlue1.Balanced`):
+For two special-fibre coverings `Sp`, `Sp'` over `V₁` and a morphism `f₁ : Sp.C1 → Sp'.C1`:
 
-* `TateGlue1.input_R`, `input_commRingR`, `input_algOR`, `input_algkR`, `input_f`, `input_e`,
-  `input_algBR` (`rfl`/`HEq.rfl`: the base data of `TateGlue1.input` for one covering);
-* **`TateGlue1.gI`**: the maps of the node patches `(input … Sp).T.G n → (input … Sp').T.G n`
-  (`LevelTower.nodeLevelMapH`, the base identifications composed from the lemmas above, so that
-  no unification problem between the levels of the two inputs is posed). `gI` is accepted as the
-  argument `g` of `NodeEtaleGlue.Input.yMap` (input … Sp) (input … Sp').
+* `TateGlue1.input_R`, `input_commRingR`, `input_algOR`, `input_algkR`, `input_algSuccR`,
+  `input_f`, `input_e`, `input_algBR` (`rfl`/`HEq.rfl`: the base data of `TateGlue1.input` for
+  one covering), `nodeCoordI`;
+* `TateGlue1.βI`, `hβaI`, `hβJI`, `heβI`, `hβRI`: the identity maps of the bases `B n` of the two
+  inputs and their compatibilities.
 
-Next (MR12 c49): the overlap condition `hg` of `yMap` for `gI` and `eMap` by
-`Input.hg_of_special` with `LevelTower.pMapH`, `nfMapH`, `fst_nodeLevelMapH`, `σP_pMapH`,
-`pMapH_algebraMap` (a first draft exceeds the heartbeat limit), then `yMap_succ`
-(`LevelTower.tr_nodeLevelMapH`) and the overlap wiring.
+These are the arguments of the generic `NodeEtaleGlue.Input.gH`/`yH` and
+`NodeEtaleGlue.Overlap.systemMapH` (`InputNodeHomH`, `OverlapNodeHomH`) at the Tate inputs. All
+equations between the base data of the two inputs are composites of the single-input lemmas, so
+that no unification problem between the levels of the two inputs is posed (MR12 c48/c49: such
+problems do not terminate at the Tate charts; in particular, a `def` wrapping `gH` at the Tate
+inputs and statements of the overlap condition `hg` at the Tate inputs hang, while the generic
+terms applied with explicit arguments elaborate in seconds).
 -/
 
 universe u
@@ -71,6 +72,9 @@ lemma input_algBR (n : ℕ) (r : B ϖ π b₄ t κ n) :
 lemma input_e : HEq (input hκ hπ hε hϖ π' hπ' hker Sp hm).T.e
     (QuadNodeTower.eqv ϖ m (cN b₄ b₆ ϖ m ε) (DN b₄ ϖ m) hϖ) := HEq.rfl
 
+lemma input_algSuccR : HEq (input hκ hπ hε hϖ π' hπ' hker Sp hm).algSuccR
+    (fun n ↦ (inferInstance : Algebra (R b₄ b₆ ϖ m ε (n + 1)) (R b₄ b₆ ϖ m ε n))) := HEq.rfl
+
 lemma nodeCoordI (n : ℕ) :
     LevelTower.NodeCoord ((input hκ hπ hε hϖ π' hπ' hker Sp hm).T.level n)
       (algebraMap (KummerEtale.A ϖ m) (FormalPatchLevel.Hat
@@ -87,27 +91,41 @@ lemma heq_refl_hat {X : Type u} (x : X) : HEq x x := HEq.rfl
 variable (Sp : Special1 hκ hπ hπe τ cov₀) (Sp' : Special1 hκ hπ hπe τ cov₀')
   (π' : cov₀.ι → O) (hπ' : ∀ j, π' j ^ cov₀.e j = ϖ ^ m)
   (π'' : cov₀'.ι → O) (hπ'' : ∀ j, π'' j ^ cov₀'.e j = ϖ ^ m)
-  [IsEmpty cov₀.κ] [IsEmpty cov₀'.κ] (f₁ : Sp.C1 →ₐ[T1s θ π b₄ t κ] Sp'.C1)
-  (hbal : Balanced hκ hπ hε Sp Sp' hϖ π' π'' f₁)
+  (f₁ : Sp.C1 →ₐ[T1s θ π b₄ t κ] Sp'.C1)
 
-/-- **The map of the node patches at level `n`** over the levels of the two inputs
-(`LevelTower.nodeLevelMapH`; all base identifications are composites of the `rfl`-lemmas
-`input_R`, `input_commRingR`, … of one input at a time). -/
-noncomputable def gI (n : ℕ) :=
-  LevelTower.nodeLevelMapH hθ.out
-    ((input_R hκ hπ hε hϖ hker hm Sp' π'' hπ'').trans (input_R hκ hπ hε hϖ hker hm Sp π' hπ').symm)
-    ((input_commRingR hκ hπ hε hϖ hker hm Sp' π'' hπ'').trans
-      (input_commRingR hκ hπ hε hϖ hker hm Sp π' hπ').symm)
-    ((input_algOR hκ hπ hε hϖ hker hm Sp' π'' hπ'').trans
-      (input_algOR hκ hπ hε hϖ hker hm Sp π' hπ').symm)
-    ((input_algkR hκ hπ hε hϖ hker hm Sp' π'' hπ'').trans
-      (input_algkR hκ hπ hε hϖ hker hm Sp π' hπ').symm)
-    ((input_f hκ hπ hε hϖ hker hm Sp' π'' hπ'').trans (input_f hκ hπ hε hϖ hker hm Sp π' hπ').symm)
-    ((input_e hκ hπ hε hϖ hker hm Sp' π'' hπ'').trans (input_e hκ hπ hε hϖ hker hm Sp π' hπ').symm)
-    ((input hκ hπ hε hϖ π' hπ' hker Sp hm).T.level n)
-    ((input hκ hπ hε hϖ π'' hπ'' hker Sp' hm).T.level n)
-    (covMap hκ hπ hε Sp Sp' f₁) (nodeCoordI hκ hπ hε hϖ hker hm Sp π' hπ' n)
-    (nodeCoordI hκ hπ hε hϖ hker hm Sp' π'' hπ'' n) (heq_refl_hat _) (heq_refl_hat _) (hbal n)
+/-- The family of identity maps of the base rings `B n` of the two inputs (the `β` of
+`NodeEtaleGlue.Input.hg_gH`). -/
+def βI (n : ℕ) : (input hκ hπ hε hϖ π' hπ' hker Sp hm).B n →+*
+    (input hκ hπ hε hϖ π'' hπ'' hker Sp' hm).B n :=
+  RingHom.id (B ϖ π b₄ t κ n)
+
+lemma hβaI (n : ℕ) : βI hκ hπ hε hϖ hker hm Sp Sp' π' hπ' π'' hπ'' n
+    ((input hκ hπ hε hϖ π' hπ' hker Sp hm).a n) = (input hκ hπ hε hϖ π'' hπ'' hker Sp' hm).a n :=
+  rfl
+
+lemma hβJI (n : ℕ) : (J θ (R := (input hκ hπ hε hϖ π' hπ' hker Sp hm).B n)).map
+    (βI hκ hπ hε hϖ hker hm Sp Sp' π' hπ' π'' hπ'' n) ≤
+      J θ (R := (input hκ hπ hε hϖ π'' hπ'' hker Sp' hm).B n) :=
+  Ideal.map_le_iff_le_comap.2 fun _ hx ↦ hx
+
+lemma heβI (n : ℕ) (r : (input hκ hπ hε hϖ π' hπ' hker Sp hm).B n) :
+    (eMap hκ hπ Sp Sp' hϖ hker f₁ n).toRingHom
+        (algebraMap ((input hκ hπ hε hϖ π' hπ' hker Sp hm).B n)
+          ((input hκ hπ hε hϖ π' hπ' hker Sp hm).E n) r) =
+      algebraMap ((input hκ hπ hε hϖ π'' hπ'' hker Sp' hm).B n)
+        ((input hκ hπ hε hϖ π'' hπ'' hker Sp' hm).E n)
+        (βI hκ hπ hε hϖ hker hm Sp Sp' π' hπ' π'' hπ'' n r) :=
+  (eMap hκ hπ Sp Sp' hϖ hker f₁ n).commutes r
+
+lemma hβRI (n : ℕ) (r : (input hκ hπ hε hϖ π' hπ' hker Sp hm).B n) :
+    HEq (algebraMap ((input hκ hπ hε hϖ π'' hπ'' hker Sp' hm).B n)
+        ((input hκ hπ hε hϖ π'' hπ'' hker Sp' hm).R n)
+        (βI hκ hπ hε hϖ hker hm Sp Sp' π' hπ' π'' hπ'' n r))
+      (algebraMap ((input hκ hπ hε hϖ π' hπ' hker Sp hm).B n)
+        ((input hκ hπ hε hϖ π' hπ' hker Sp hm).R n) r) :=
+  (input_algBR hκ hπ hε hϖ hker hm Sp' π'' hπ'' n
+    (βI hκ hπ hε hϖ hker hm Sp Sp' π' hπ' π'' hπ'' n r)).trans
+    (input_algBR hκ hπ hε hϖ hker hm Sp π' hπ' n r).symm
 
 end TateGlue1
 
