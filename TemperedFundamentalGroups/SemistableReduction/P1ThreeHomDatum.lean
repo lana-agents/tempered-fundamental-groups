@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: LANA Project
 -/
 import TemperedFundamentalGroups.SemistableReduction.P1ThreeHom
+import TemperedFundamentalGroups.SemistableReduction.NodeEtaleGlueSystemMap
 
 /-!
 # Morphisms of data of tame covers of `ℙ¹_k ∖ {0, 1, ā}` and the functoriality of their lifts
@@ -19,12 +20,14 @@ generic core, recipe "P1Three step-3", MR12-tfg-plan c47):
   with the Kummer normal form hypotheses `P1Three.cuspNFc` at the cusps;
 * `Datum.hp0`, `hpO`, `hpS`, `hpB`, `hpγ` and **`Datum.hψ`** (the overlap condition over
   `V₀ ∩ V₁`, `NodeEtaleGlue.Overlap.hψ_of_bottom`);
-* `Datum.hyO`, `Datum.twoChartMap` (the morphisms of the two-chart rings at every level).
-
-The morphism of the adic systems (`TwoChartTower.systemShiftHom` of `Datum.twoChartMap`), its
-functoriality (`Overlap.twoChartMap_eq_id/comp`, `TwoChartTower.systemShiftHom_eq_id/comp`) and the
-morphisms of the algebraizations (`AdicChartAlgSystem.Algebraization.map`) are the next step
-(MR13-plan run 14: the concrete `systemShiftHom` application does not elaborate in time yet).
+* **`Datum.systemMap`** (the morphism of the adic systems of chart algebras of the lifts),
+  **`systemMap_id`**, **`systemMap_comp`**: the lift is a functor;
+* `Datum.nonempty_algebraization`, **`Datum.algMap`** (the morphism of the algebraized coverings
+  `(N, B)` on `ℙ¹_O`, `AdicChartAlgSystem.Algebraization.map`), `isHom_algMap`, **`algMap_id`**,
+  **`algMap_comp`**: in particular the automorphism group of a datum acts on the algebraized
+  covering (and hence on its generic fibre `B₁[1/ϖ]`);
+* **`Datum.specialFibreEquiv1_algMap`**: under `specialFibreEquiv1 : B₁ ⧸ (ϖ) ≃ C1` the morphism
+  `algMap f` reduces to `φ1`.
 
 The P1Three data have no nodes (`IsEmpty cov.ι` for `Sp` and `S0`), so the node balance condition
 of MR12's I3 (`NodeHom.Balanced`/`BalancedK`, lead decision after MR12 c47) is vacuous here: every
@@ -310,6 +313,123 @@ abbrev twoChartMap (f : D.Hom D') (n : ℕ) :=
     (yMap_algebraMap hϖ hker D.Sp D'.Sp f.φ1 n _) (hyO hϖ hker hO f n)
     (pM hϖ hker ha0 ha1 hO f n) (hp0 hϖ hker ha0 ha1 hO f n) (hpO hϖ hker ha0 ha1 hO f n)
     (hψ hϖ hker ha0 ha1 hO f n)
+
+/-- **The adic system of chart algebras of the lift of a datum**, over `(ϖ)`
+(`NodeEtaleGlue.Overlap.systemAt`; definitionally `P1Three.system`, `systemD_eq`). Stating the
+systems of all data over the same `(ϖ)` keeps the morphisms of systems from unifying the
+`ϖ`-fields of two different overlaps (rule 17). -/
+abbrev systemD (D : Datum O θ a) : ProjectiveLine.AdicChartAlgSystem (Ideal.span {ϖ}) :=
+  (overlap D.Sp hϖ hker D.S0 D.om hO).systemAt hθ.out hO ϖ rfl
+
+lemma systemD_eq (D : Datum O θ a) :
+    systemD hϖ hker hO D = system D.Sp hϖ hker D.S0 D.om hO :=
+  rfl
+
+/-- **The morphism of the adic systems of chart algebras of the lifts** induced by a morphism
+of data (`NodeEtaleGlue.Overlap.systemMap`). -/
+def systemMap (f : D.Hom D') :
+    ProjectiveLine.AdicChartAlgSystem.Hom (systemD hϖ hker hO D) (systemD hϖ hker hO D') :=
+  (overlap D.Sp hϖ hker D.S0 D.om hO).systemMap (overlap D'.Sp hϖ hker D'.S0 D'.om hO)
+    hθ.out hO ϖ rfl rfl
+    (fun n ↦ yMap hϖ hker D.Sp D'.Sp f.φ1 n)
+    (fun n ↦ yMap_algebraMap hϖ hker D.Sp D'.Sp f.φ1 n _) (fun n ↦ hyO hϖ hker hO f n)
+    (fun n ↦ pM hϖ hker ha0 ha1 hO f n) (fun n ↦ hp0 hϖ hker ha0 ha1 hO f n)
+    (fun n ↦ hpO hϖ hker ha0 ha1 hO f n) (fun n ↦ hψ hϖ hker ha0 ha1 hO f n)
+    (fun n z ↦ yMap_succ hϖ hker D.Sp D'.Sp hO f.φ1 n z)
+    (fun n e ↦ hpS hϖ hker ha0 ha1 hO f n e)
+
+/-- **Functoriality: identities.** -/
+lemma systemMap_id :
+    systemMap hϖ hker ha0 ha1 hO (Hom.id D) = ProjectiveLine.AdicChartAlgSystem.Hom.id _ :=
+  (overlap D.Sp hϖ hker D.S0 D.om hO).systemMap_eq_id hθ.out hO ϖ rfl _ _ _ _ _ _ _ _ _
+    (fun n z ↦ yMap_id hϖ hker D.Sp n z)
+    (fun n e ↦ CuspTower.pieceP_id D.S0 hϖ hker (isSMulRegular_x0 ϖ a) hO
+      (cuspNFc a ha0 ha1 D.S0) n e)
+
+/-- **Functoriality: composites.** -/
+lemma systemMap_comp (f : D.Hom D') (g : D'.Hom D'') :
+    systemMap hϖ hker ha0 ha1 hO (g.comp f) =
+      (systemMap hϖ hker ha0 ha1 hO g).comp (systemMap hϖ hker ha0 ha1 hO f) :=
+  (overlap D.Sp hϖ hker D.S0 D.om hO).systemMap_comp (overlap D'.Sp hϖ hker D'.S0 D'.om hO)
+    (overlap D''.Sp hϖ hker D''.S0 D''.om hO) hθ.out hO ϖ rfl rfl rfl _ _ _ _ _ _ _ _ _
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+    (fun n z ↦ yMap_comp hϖ hker D.Sp D'.Sp D''.Sp f.φ1 g.φ1 n z)
+    (fun n e ↦ CuspTower.pieceP_comp D.S0 D'.S0 D''.S0 hϖ hker (isSMulRegular_x0 ϖ a) hO
+      (cuspNFc a ha0 ha1 D'.S0) (cuspNFc a ha0 ha1 D''.S0) f.φ0 g.φ0 n e)
+
+/-! ### The morphisms of the algebraizations -/
+
+/-- **An algebraization of the lift of a datum exists** (`P1Three.exists_algebraization`). -/
+theorem nonempty_algebraization [IsAdicComplete (Ideal.span {ϖ}) O] (D : Datum O θ a) :
+    Nonempty (ProjectiveLine.AdicChartAlgSystem.Algebraization
+      (systemD hϖ hker hO D)) := by
+  obtain ⟨N, h0, h1, B, α, hα, hc, hB⟩ := (systemD hϖ hker hO D).exists_algebraization
+  exact ⟨⟨N, B, α, hα, hc, hB⟩⟩
+
+variable [IsAdicComplete (Ideal.span {ϖ}) O]
+
+/-- **The morphism of the algebraized coverings `(N, B)` on `ℙ¹_O`** induced by a morphism of
+data: the unique morphism of chart algebras reducing to `systemMap f`. -/
+def algMap (f : D.Hom D')
+    (L : ProjectiveLine.AdicChartAlgSystem.Algebraization (systemD hϖ hker hO D))
+    (L' : ProjectiveLine.AdicChartAlgSystem.Algebraization
+      (systemD hϖ hker hO D')) :
+    ProjectiveLine.ChartModule.Hom L.N L'.N :=
+  ProjectiveLine.AdicChartAlgSystem.Algebraization.map (systemMap hϖ hker ha0 ha1 hO f) L L'
+
+lemma isHom_algMap (f : D.Hom D')
+    (L : ProjectiveLine.AdicChartAlgSystem.Algebraization (systemD hϖ hker hO D))
+    (L' : ProjectiveLine.AdicChartAlgSystem.Algebraization
+      (systemD hϖ hker hO D')) :
+    L.B.IsHom L'.B (algMap hϖ hker ha0 ha1 hO f L L') :=
+  ProjectiveLine.AdicChartAlgSystem.Algebraization.isHom_map _ L L'
+
+lemma algMap_id
+    (L : ProjectiveLine.AdicChartAlgSystem.Algebraization (systemD hϖ hker hO D)) :
+    algMap hϖ hker ha0 ha1 hO (Hom.id D) L L = ProjectiveLine.ChartModule.Hom.id L.N := by
+  rw [algMap, systemMap_id]
+  exact ProjectiveLine.AdicChartAlgSystem.Algebraization.map_id L
+
+lemma algMap_comp (f : D.Hom D') (g : D'.Hom D'')
+    (L : ProjectiveLine.AdicChartAlgSystem.Algebraization (systemD hϖ hker hO D))
+    (L' : ProjectiveLine.AdicChartAlgSystem.Algebraization
+      (systemD hϖ hker hO D'))
+    (L'' : ProjectiveLine.AdicChartAlgSystem.Algebraization
+      (systemD hϖ hker hO D'')) :
+    algMap hϖ hker ha0 ha1 hO (g.comp f) L L'' =
+      (algMap hϖ hker ha0 ha1 hO g L' L'').comp (algMap hϖ hker ha0 ha1 hO f L L') := by
+  rw [algMap, systemMap_comp]
+  exact ProjectiveLine.AdicChartAlgSystem.Algebraization.map_comp _ _ L L' L''
+
+/-! ### Compatibility with the special fibres -/
+
+omit [IsAdicComplete (Ideal.span {ϖ}) O] in
+lemma yEquiv_specialFibreEquiv1 (D : Datum O θ a)
+    (L : ProjectiveLine.AdicChartAlgSystem.Algebraization (systemD hϖ hker hO D))
+    (b : L.B.Ring1) :
+    (input D.Sp hϖ hker).yEquiv hθ.out hO (J_Tn_zero_eq_bot hker _)
+        (specialFibreEquiv1 D.Sp hϖ hker D.S0 D.om hO L.hα L.hB (Ideal.Quotient.mk _ b)) =
+      (L.α 1).f1 b := by
+  letI := (input D.Sp hϖ hker).algC10 0
+  exact ((input D.Sp hϖ hker).yEquiv hθ.out hO (J_Tn_zero_eq_bot hker _)).apply_symm_apply _
+
+/-- **The reduction of `algMap f` over `V₁` is `φ1`**: under the identifications
+`specialFibreEquiv1 : B₁ ⧸ (ϖ) ≃ C1`, the morphism of the algebraized coverings induced by a
+morphism of data reduces to its component `φ1`. -/
+theorem specialFibreEquiv1_algMap (f : D.Hom D')
+    (L : ProjectiveLine.AdicChartAlgSystem.Algebraization (systemD hϖ hker hO D))
+    (L' : ProjectiveLine.AdicChartAlgSystem.Algebraization
+      (systemD hϖ hker hO D')) (b : L.B.Ring1) :
+    specialFibreEquiv1 D'.Sp hϖ hker D'.S0 D'.om hO L'.hα L'.hB
+        (Ideal.Quotient.mk _ ((isHom_algMap hϖ hker ha0 ha1 hO f L L').ringHom1 b)) =
+      f.φ1 (specialFibreEquiv1 D.Sp hϖ hker D.S0 D.om hO L.hα L.hB (Ideal.Quotient.mk _ b)) := by
+  letI := (input D'.Sp hϖ hker).algC10 0
+  apply ((input D'.Sp hϖ hker).yEquiv hθ.out hO (J_Tn_zero_eq_bot hker _)).injective
+  rw [yEquiv_specialFibreEquiv1, ← yMap_yEquiv hϖ hker D.Sp D'.Sp hO f.φ1,
+    yEquiv_specialFibreEquiv1]
+  exact LinearMap.congr_fun (congrArg ProjectiveLine.ChartModule.Hom.f1
+    (ProjectiveLine.AdicChartAlgSystem.Algebraization.comp_map
+      (systemMap hϖ hker ha0 ha1 hO f) L L' 1)) b
 
 end Datum
 end
