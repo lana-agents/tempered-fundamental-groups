@@ -120,7 +120,7 @@ lemma toAlgAct_apply {R B : Type*} [CommRing R] [CommRing B] [Algebra R B] {G : 
 
 lemma toAlgAct_injective {R B : Type*} [CommRing R] [CommRing B] [Algebra R B] {G : Type*}
     [Group G] (ρ : G →* (B ≃+* B)) (h : ∀ g r, ρ g (algebraMap R B r) = algebraMap R B r)
-    (hρ : Function.Injective ρ) : Function.Injective (toAlgAct ρ h) := fun g g' hgg' ↦
+    (hρ : Function.Injective ρ) : Function.Injective (toAlgAct ρ h) := fun _ _ hgg' ↦
   hρ (RingEquiv.ext fun x ↦ AlgEquiv.congr_fun hgg' x)
 
 end BaseChangeAct
