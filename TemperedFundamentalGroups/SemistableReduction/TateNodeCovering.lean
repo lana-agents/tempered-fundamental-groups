@@ -10,7 +10,7 @@ import TemperedFundamentalGroups.SemistableReduction.TateNodeRegular
 # The admissible covering `cov₀` of the Tate node chart from a tame cover (MR12 S5, first milestone)
 
 For the quadratic node chart `NR` of the Tate model over a discrete valuation ring `O` (residue
-field `k` separably closed, `ker θ = (ϖ)`, `π = ε ϖᵐ`, `m = q M'`, `M'` invertible in `k`), a
+field `k`, `ker θ = (ϖ)`, `π = ε ϖᵐ`, `m = q M'`, `M'` invertible in `k`), a
 finite Galois extension `L` of `K = Frac NR` of degree prime to `q` with `μ_{M'} ⊆ K`, and the
 normalisation `B` of `NR` in `L`: if `B` is unramified over the punctured spectra of the closed
 points of the special fibre (`hunr`), then the special fibre `B/JB` is an admissible covering of
@@ -64,7 +64,7 @@ theorem hunrLoc [hθ : Fact (Function.Surjective θ)] {L : Type u} [Field L] [Al
 
 /-- `exists_kummer_NR` for any normalisation `B`, from unramifiedness over the punctured
 spectra of the closed points of the special fibre. -/
-theorem exists_kummer_NR' [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+theorem exists_kummer_NR' [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) {q M' : ℕ} (hqM : q * M' = m) (hq : 0 < q) (hM' : 0 < M')
     (K : Type u) [Field K] [Algebra 𝒩 K] [IsFractionRing 𝒩 K]
@@ -72,7 +72,7 @@ theorem exists_kummer_NR' [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] 
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (hπe : θ (ϖ ^ m) = 0) :
@@ -88,7 +88,7 @@ theorem exists_kummer_NR' [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] 
 /-- **The admissible covering `cov₀` of the Tate node chart** defined by the special fibre
 `B/JB` of the normalisation `B` of the chart in a tame Galois cover (`C = Cs θ NR B`), given the
 regularity of the chart at the closed points of the special fibre off the nodes. -/
-def covNR_of_regular [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+def covNR_of_regular [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
@@ -98,7 +98,7 @@ def covNR_of_regular [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDo
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hreg : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       NodeChart.fR (π := ϖ) (e := m) 𝒩 ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧
@@ -130,7 +130,7 @@ def covNR_of_regular [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDo
       hπe).trans AlgEquiv.prodUnique.symm }
 
 /-- The ring of `covNR_of_regular` is the special fibre of the normalisation. -/
-lemma covNR_of_regular_C [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+lemma covNR_of_regular_C [Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
@@ -140,7 +140,7 @@ lemma covNR_of_regular_C [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDoma
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hreg : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       NodeChart.fR (π := ϖ) (e := m) 𝒩 ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧
@@ -167,10 +167,11 @@ theorem hreg_NR [hθ : Fact (Function.Surjective θ)] [IsDomain O] [IsDiscreteVa
 
 /-- **The admissible covering `cov₀` of the Tate node chart** defined by the special fibre `B/JB`
 of the normalisation `B` of the chart in a tame Galois cover `L` (`C = Cs θ NR B`; first
-milestone of S5, `k` separably closed). Hypothesis `hunr`: `B` is unramified over the punctured
-spectra of the closed points of the special fibre (debt D3/A1: étaleness of the generic fibre
-on the chart + tame base change at the generic points of the special fibre). -/
-def covNR [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+milestone of S5; residue hypothesis `NodeNbhdRational`, S5.7 (b)). Hypothesis `hunr`: `B` is
+unramified over the punctured spectra of the closed points of the special fibre (debt D3/A1:
+étaleness of the generic fibre on the chart + tame base change at the generic points of the
+special fibre). -/
+def covNR [Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
@@ -180,7 +181,7 @@ def covNR [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (hπe : θ (ϖ ^ m) = 0)
@@ -190,7 +191,7 @@ def covNR [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
     (fun P _ hϖP hf ↦ hreg_NR hϖ hker (Nat.pos_of_neZero m) hε P hϖP hf) hunr hπe ψ
 
 /-- **The ramification indices of `covNR` divide `M'`.** -/
-theorem covNR_e_dvd [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+theorem covNR_e_dvd [Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
@@ -200,7 +201,7 @@ theorem covNR_e_dvd [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (hπe : θ (ϖ ^ m) = 0)

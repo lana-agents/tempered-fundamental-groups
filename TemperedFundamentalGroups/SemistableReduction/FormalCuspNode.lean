@@ -253,6 +253,40 @@ def PointCuspFormData.mono {s : R} {e e' : ℕ} (hee' : e ∣ e') {𝔪 : Ideal 
     (D : PointCuspFormData (θ := θ) (B := B) s e 𝔪) : PointCuspFormData (θ := θ) (B := B) s e' 𝔪 :=
   { D with hde := fun i ↦ (D.hde i).trans hee' }
 
+/-- **`IsCuspNormAt` over an étale neighbourhood with trivial residue field extension** (S5.7):
+as `IsCuspNormAt`, and moreover `R → N₁/𝔫` is surjective. It follows from `IsCuspNormAt` when the
+residue field at `𝔪` is separably closed (`Cusp.IsCuspNormAt.isCuspNormAtRes`), and over a finite
+residue field after a finite unramified base change. -/
+def _root_.SemistableReduction.Cusp.IsCuspNormAtRes (O : Type u) [CommRing O] (e : ℕ)
+    {N : Type u} [CommRing N] (t : N) (B : Type u) [CommRing B] [Algebra N B] [Algebra O N]
+    (𝔪 : Ideal N) : Prop :=
+  ∃ (N₁ : Type u) (_ : CommRing N₁) (_ : Algebra N N₁) (_ : Algebra.Etale N N₁) (𝔫 : Ideal N₁)
+    (_ : 𝔫.IsPrime) (_ : 𝔫.comap (algebraMap N N₁) = 𝔪),
+    Function.Surjective ((Ideal.Quotient.mk 𝔫).comp (algebraMap N N₁)) ∧
+      CuspNormData O e t B N₁ 𝔫 ((algebraMap N N₁).comp (algebraMap O N))
+
+lemma _root_.SemistableReduction.Cusp.IsCuspNormAtRes.isCuspNormAt {s : R} {e : ℕ}
+    {𝔪 : Ideal R} (h : IsCuspNormAtRes O e s B 𝔪) : IsCuspNormAt O e s B 𝔪 := by
+  obtain ⟨N₁, i₁, i₂, i₃, 𝔫, i₄, h𝔫, -, hd⟩ := h
+  exact ⟨N₁, i₁, i₂, i₃, 𝔫, i₄, h𝔫, hd⟩
+
+/-- **At a point with separably closed residue field** (a quotient of a separably closed `K'`),
+`IsCuspNormAt` gives `IsCuspNormAtRes` (`EtaleResidue.surjective_of_isSepClosed'`). -/
+lemma _root_.SemistableReduction.Cusp.IsCuspNormAt.isCuspNormAtRes {s : R} {e : ℕ}
+    {𝔪 : Ideal R} [𝔪.IsMaximal] {K' : Type*} [Field K'] [IsSepClosed K'] (ρ : K' →+* R ⧸ 𝔪)
+    (hρ : Function.Surjective ρ) (h : IsCuspNormAt O e s B 𝔪) : IsCuspNormAtRes O e s B 𝔪 := by
+  obtain ⟨N₁, i₁, i₂, i₃, 𝔫, i₄, h𝔫, hd⟩ := h
+  exact ⟨N₁, i₁, i₂, i₃, 𝔫, i₄, h𝔫, EtaleResidue.surjective_of_isSepClosed' 𝔪 𝔫 h𝔫 ρ hρ, hd⟩
+
+/-- **`IsCuspNormAt` ⇒ `IsCuspNormAtRes` at a `k`-rational point `𝔪 ⊇ J`** (`k` separably
+closed). -/
+lemma isCuspNormAtRes_of_isSepClosed [IsSepClosed k] {s : R} {e : ℕ} {𝔪 : Ideal R}
+    [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
+    (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R)))
+    (h : IsCuspNormAt O e s B 𝔪) : IsCuspNormAtRes O e s B 𝔪 :=
+  h.isCuspNormAtRes ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R)))
+    (factor_comp_surjective hJ hres)
+
 /-- **The data of `IsCuspNormAt` as a type** (refactor R1): an étale neighbourhood `N₁ ⊇ 𝔫` of
 `𝔪`, an étale cusp chart `O[X] → N₁`, `X ↦ s`, and the splitting `Φ` of `N₁ ⊗_R B` into
 normalised cusp Kummer factors. -/
@@ -291,19 +325,24 @@ structure CuspNormAtData (O : Type u) [CommRing O] {R : Type u} [CommRing R] [Al
 attribute [instance] CuspNormAtData.commRing CuspNormAtData.algebra CuspNormAtData.etale
   CuspNormAtData.isPrime
 
-/-- **The chosen data of `IsCuspNormAt`**, at a point `𝔪` whose residue field is a quotient of a
-separably closed field `K'` (`ρ`), so that the residue field extension of the étale neighbourhood
-is trivial (`EtaleResidue.surjective_of_isSepClosed'`). -/
-def CuspNormAtData.ofIsCuspNormAt {s : R} {e : ℕ} {𝔪 : Ideal R} [𝔪.IsMaximal] {K' : Type*}
-    [Field K'] [IsSepClosed K'] (ρ : K' →+* R ⧸ 𝔪) (hρ : Function.Surjective ρ)
-    (h : IsCuspNormAt O e s B 𝔪) : CuspNormAtData O B s e 𝔪 :=
+/-- **The chosen data of `IsCuspNormAtRes`** (an étale neighbourhood with trivial residue field
+extension; no assumption on the residue field). -/
+def CuspNormAtData.ofIsCuspNormAtRes {s : R} {e : ℕ} {𝔪 : Ideal R}
+    (h : IsCuspNormAtRes O e s B 𝔪) : CuspNormAtData O B s e 𝔪 :=
   Classical.choice (by
-    obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, hdata⟩ := h
+    obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, hsurj, hdata⟩ := h
     letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
     obtain ⟨palg, hT, hX, -, -, r, d, hd, hde, ⟨Φ⟩⟩ := hdata
     exact ⟨{ N₁ := N₁, 𝔫 := 𝔫, comap_eq := h𝔫, polyAlg := palg, tower := hT, hX := hX, r := r,
-             d := d, hd := hd, hde := hde,
-             resSurj := EtaleResidue.surjective_of_isSepClosed' 𝔪 𝔫 h𝔫 ρ hρ, Φ := Φ }⟩)
+             d := d, hd := hd, hde := hde, resSurj := hsurj, Φ := Φ }⟩)
+
+/-- **The chosen data of `IsCuspNormAt`**, at a point `𝔪` whose residue field is a quotient of a
+separably closed field `K'` (`ρ`), so that the residue field extension of the étale neighbourhood
+is trivial (`Cusp.IsCuspNormAt.isCuspNormAtRes`). -/
+def CuspNormAtData.ofIsCuspNormAt {s : R} {e : ℕ} {𝔪 : Ideal R} [𝔪.IsMaximal] {K' : Type*}
+    [Field K'] [IsSepClosed K'] (ρ : K' →+* R ⧸ 𝔪) (hρ : Function.Surjective ρ)
+    (h : IsCuspNormAt O e s B 𝔪) : CuspNormAtData O B s e 𝔪 :=
+  ofIsCuspNormAtRes (h.isCuspNormAtRes ρ hρ)
 
 /-- **The chosen data of `IsCuspNormAt` at a `k`-rational point `𝔪 ⊇ J`** (`k` separably closed;
 `ofIsCuspNormAt` for the residue map `k → R/𝔪`). -/
@@ -351,6 +390,14 @@ def pointCuspFormDataOf {s : R} {e : ℕ}
     exact Ideal.mem_map_of_mem _ ha
   { r := D.r, d := D.d, hd := D.hd, hde := D.hde,
     Ψ := cuspEquiv (sIdeal 𝔪) _ hcomap hsurj D.hX D.Φ }
+
+/-- **The local formal cusp form at a marked point**, from étale-local data with trivial residue
+field extension (`IsCuspNormAtRes`; no assumption on `k`). -/
+theorem pointCuspForm_of_isCuspNormAtRes {s : R} {e : ℕ}
+    (𝔪 : Ideal R) [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
+    (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R)))
+    (h : IsCuspNormAtRes O e s B 𝔪) : PointCuspForm (θ := θ) (B := B) s e 𝔪 :=
+  (pointCuspFormDataOf 𝔪 hJ hres (CuspNormAtData.ofIsCuspNormAtRes h)).pointCuspForm
 
 /-- **The local formal cusp form at a marked point with separably closed residue field**, from
 the normalisation-level tame cusp predicate. -/

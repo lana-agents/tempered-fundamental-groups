@@ -42,6 +42,39 @@ namespace SemistableReduction
 
 open KummerEtale AdmissibleLift
 
+section Res
+
+variable {O : Type u} [CommRing O] (ϖ : O) (n M' : ℕ) {N : Type u} [CommRing N] (u v : N)
+  (B : Type u) [CommRing B] [Algebra N B]
+
+/-- **`IsKummerNormAt` over an étale neighbourhood with trivial residue field extension** (S5.7):
+as `IsKummerNormAt`, and moreover `N → N₁/𝔫` is surjective. This is the form in which the formal
+Kummer forms use the étale-local Kummer data; it follows from `IsKummerNormAt` when the residue
+field at `𝔪` is separably closed (`IsKummerNormAt.isKummerNormAtRes`), and over a finite residue
+field after a finite unramified base change. -/
+def IsKummerNormAtRes [Algebra O N] (𝔪 : Ideal N) : Prop :=
+  ∃ (N₁ : Type u) (_ : CommRing N₁) (_ : Algebra N N₁) (_ : Algebra.Etale N N₁) (𝔫 : Ideal N₁)
+    (_ : 𝔫.IsPrime) (_ : 𝔫.comap (algebraMap N N₁) = 𝔪),
+    Function.Surjective ((Ideal.Quotient.mk 𝔫).comp (algebraMap N N₁)) ∧
+      KummerNormData ϖ n M' u v B N₁ 𝔫 ((algebraMap N N₁).comp (algebraMap O N))
+
+variable {ϖ n M' u v B}
+
+lemma IsKummerNormAtRes.isKummerNormAt [Algebra O N] {𝔪 : Ideal N}
+    (h : IsKummerNormAtRes ϖ n M' u v B 𝔪) : IsKummerNormAt ϖ n M' u v B 𝔪 := by
+  obtain ⟨N₁, i₁, i₂, i₃, 𝔫, i₄, h𝔫, -, hd⟩ := h
+  exact ⟨N₁, i₁, i₂, i₃, 𝔫, i₄, h𝔫, hd⟩
+
+/-- **At a point with separably closed residue field** (a quotient of a separably closed `K'`),
+`IsKummerNormAt` gives `IsKummerNormAtRes` (`EtaleResidue.surjective_of_isSepClosed'`). -/
+lemma IsKummerNormAt.isKummerNormAtRes [Algebra O N] {𝔪 : Ideal N} [𝔪.IsMaximal] {K' : Type*}
+    [Field K'] [IsSepClosed K'] (ρ : K' →+* N ⧸ 𝔪) (hρ : Function.Surjective ρ)
+    (h : IsKummerNormAt ϖ n M' u v B 𝔪) : IsKummerNormAtRes ϖ n M' u v B 𝔪 := by
+  obtain ⟨N₁, i₁, i₂, i₃, 𝔫, i₄, h𝔫, hd⟩ := h
+  exact ⟨N₁, i₁, i₂, i₃, 𝔫, i₄, h𝔫, EtaleResidue.surjective_of_isSepClosed' 𝔪 𝔫 h𝔫 ρ hρ, hd⟩
+
+end Res
+
 namespace FormalKummer
 
 noncomputable section
@@ -105,19 +138,24 @@ abbrev KummerNormAtData.m {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R}
     (D : KummerNormAtData ϖ n M' x y B 𝔪) (i : Fin D.r) : ℕ :=
   n / D.d i
 
-/-- **The chosen data of `IsKummerNormAt`**, at a point `𝔪` whose residue field is a quotient of
-a separably closed field `K'` (`ρ`), so that the residue field extension of the étale
-neighbourhood is trivial (`EtaleResidue.surjective_of_isSepClosed'`). -/
-def KummerNormAtData.ofIsKummerNormAt {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R} [𝔪.IsMaximal]
-    {K' : Type*} [Field K'] [IsSepClosed K'] (ρ : K' →+* R ⧸ 𝔪) (hρ : Function.Surjective ρ)
-    (h : IsKummerNormAt ϖ n M' x y B 𝔪) : KummerNormAtData ϖ n M' x y B 𝔪 :=
+/-- **The chosen data of `IsKummerNormAtRes`** (an étale neighbourhood with trivial residue field
+extension; no assumption on the residue field). -/
+def KummerNormAtData.ofIsKummerNormAtRes {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R}
+    (h : IsKummerNormAtRes ϖ n M' x y B 𝔪) : KummerNormAtData ϖ n M' x y B 𝔪 :=
   Classical.choice (by
-    obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, huv, het, -, -, r, m, d, hd, hdM, hmd, ⟨Φ⟩⟩ := h
+    obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, hsurj, huv, het, -, -, r, m, d, hd, hdM, hmd, ⟨Φ⟩⟩ := h
     obtain rfl : m = fun i ↦ n / d i :=
       funext fun i ↦ (Nat.div_eq_of_eq_mul_left (hd i) (hmd i).symm).symm
     exact ⟨{ N₁ := N₁, 𝔫 := 𝔫, comap_eq := h𝔫, r := r, d := d, hd := hd,
-             hdM := hdM, hmd := hmd, huv := huv, het := het,
-             resSurj := EtaleResidue.surjective_of_isSepClosed' 𝔪 𝔫 h𝔫 ρ hρ, Φ := Φ }⟩)
+             hdM := hdM, hmd := hmd, huv := huv, het := het, resSurj := hsurj, Φ := Φ }⟩)
+
+/-- **The chosen data of `IsKummerNormAt`**, at a point `𝔪` whose residue field is a quotient of
+a separably closed field `K'` (`ρ`), so that the residue field extension of the étale
+neighbourhood is trivial (`IsKummerNormAt.isKummerNormAtRes`). -/
+def KummerNormAtData.ofIsKummerNormAt {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R} [𝔪.IsMaximal]
+    {K' : Type*} [Field K'] [IsSepClosed K'] (ρ : K' →+* R ⧸ 𝔪) (hρ : Function.Surjective ρ)
+    (h : IsKummerNormAt ϖ n M' x y B 𝔪) : KummerNormAtData ϖ n M' x y B 𝔪 :=
+  ofIsKummerNormAtRes (h.isKummerNormAtRes ρ hρ)
 
 /-- The residue map `k → R/𝔪` at a `k`-rational point `𝔪 ⊇ J` is surjective. -/
 lemma factor_comp_surjective {𝔪 : Ideal R} (hJ : J θ (R := R) ≤ 𝔪)
@@ -231,6 +269,39 @@ def kummerEquivOf [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
   assembleEquiv hinj hf hrad (xy_bar (θ := θ) hxy (by rw [map_pow, hϖ, zero_pow hn0.ne'])) φ
     hφu hφv (fun j ↦ (D j).hd) fun j ↦ nodeEquivOf hxy hϖ hn0 (𝔪 j) (hJ j) (hres j) (D j)
 
+/-- **The formal Kummer form of the special fibre of a chart along its nodes**, from étale-local
+Kummer data with trivial residue field extensions (`IsKummerNormAtRes`; no assumption on `k`). -/
+theorem exists_kummer_of_res [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
+    (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
+    {ι : Type} [Finite ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
+    (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j)
+    (hres : ∀ j, Function.Surjective ((Ideal.Quotient.mk (𝔪 j)).comp (algebraMap O R)))
+    (hK : ∀ j, IsKummerNormAtRes ϖ n M' x y B (𝔪 j)) {f : Rs θ R}
+    (hinj : Function.Injective fun j ↦ sIdeal (θ := θ) (𝔪 j))
+    (hf : ∀ j, f ∈ sIdeal (θ := θ) (𝔪 j))
+    (hrad : ⨅ j, sIdeal (θ := θ) (𝔪 j) ≤ (Ideal.span {f}).radical)
+    (φ : Node k (0 : k) →ₐ[k] Admissible.Hat f)
+    (hφu : φ (Node.u _) = algebraMap (Rs θ R) _ (Ideal.Quotient.mk _ x))
+    (hφv : φ (Node.v _) = algebraMap (Rs θ R) _ (Ideal.Quotient.mk _ y)) :
+    haveI := fun j ↦ isMaximal_sIdeal (θ := θ) (𝔪 j) (hJ j)
+    ∃ (r : ι → ℕ) (d : ∀ j, Fin (r j) → ℕ) (hd : ∀ j i, 0 < d j i), (∀ j i, d j i ∣ M') ∧
+      Nonempty (Admissible.Hat f ⊗[Rs θ R] Cs θ R B ≃ₐ[Admissible.Hat f]
+        ∀ p : (Σ j, Fin (r j)), Admissible.KummerPiece φ
+          (CompletionProd.idem hinj hf hrad p.1) (hd p.1 p.2)) := by
+  haveI := Fintype.ofFinite ι
+  let D := fun j ↦ KummerNormAtData.ofIsKummerNormAtRes (hK j)
+  exact ⟨fun j ↦ (D j).r, fun j ↦ (D j).d, fun j ↦ (D j).hd, fun j ↦ (D j).hdM,
+    ⟨kummerEquivOf hxy hϖ hn0 𝔪 hJ hres D hinj hf hrad φ hφu hφv⟩⟩
+
+/-- **`IsKummerNormAt` ⇒ `IsKummerNormAtRes` at a `k`-rational point `𝔪 ⊇ J`** (`k` separably
+closed). -/
+lemma isKummerNormAtRes_of_isSepClosed [IsSepClosed k] {ϖ : O} {n M' : ℕ} {x y : R}
+    {𝔪 : Ideal R} [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
+    (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R)))
+    (h : IsKummerNormAt ϖ n M' x y B 𝔪) : IsKummerNormAtRes ϖ n M' x y B 𝔪 :=
+  h.isKummerNormAtRes ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R)))
+    (factor_comp_surjective hJ hres)
+
 /-- **The formal Kummer form of the special fibre of a chart along its nodes** (separably closed
 residue field). -/
 theorem exists_kummer [IsSepClosed k] [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
@@ -249,11 +320,9 @@ theorem exists_kummer [IsSepClosed k] [IsNoetherianRing R] {ϖ : O} {n M' : ℕ}
     ∃ (r : ι → ℕ) (d : ∀ j, Fin (r j) → ℕ) (hd : ∀ j i, 0 < d j i), (∀ j i, d j i ∣ M') ∧
       Nonempty (Admissible.Hat f ⊗[Rs θ R] Cs θ R B ≃ₐ[Admissible.Hat f]
         ∀ p : (Σ j, Fin (r j)), Admissible.KummerPiece φ
-          (CompletionProd.idem hinj hf hrad p.1) (hd p.1 p.2)) := by
-  haveI := Fintype.ofFinite ι
-  let D := fun j ↦ KummerNormAtData.ofIsKummerNormAtK (hJ j) (hres j) (hK j)
-  exact ⟨fun j ↦ (D j).r, fun j ↦ (D j).d, fun j ↦ (D j).hd, fun j ↦ (D j).hdM,
-    ⟨kummerEquivOf hxy hϖ hn0 𝔪 hJ hres D hinj hf hrad φ hφu hφv⟩⟩
+          (CompletionProd.idem hinj hf hrad p.1) (hd p.1 p.2)) :=
+  exists_kummer_of_res hxy hϖ hn0 𝔪 hJ hres
+    (fun j ↦ isKummerNormAtRes_of_isSepClosed (hJ j) (hres j) (hK j)) hinj hf hrad φ hφu hφv
 
 end
 

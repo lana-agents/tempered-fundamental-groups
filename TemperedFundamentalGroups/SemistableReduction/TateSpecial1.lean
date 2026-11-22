@@ -12,7 +12,7 @@ import TemperedFundamentalGroups.SemistableReduction.TateGlue1
 /-!
 # The special-fibre covering over `V₁` from a tame cover (MR12 S5.6, `TateGlue1.Special1`)
 
-Let `O` be a discrete valuation ring (uniformizer `ϖ`, residue field `k` separably closed,
+Let `O` be a discrete valuation ring (uniformizer `ϖ`, residue field `k`,
 `ker θ = (ϖ)`), `π = ε ϖᵐ` (`ε` a unit, `m = q M' ≥ 1`, `M'` invertible in `k`), `T1` the
 chart `u ≠ 0` of the Tate model with fraction field `K`, `L / K` finite Galois of degree prime to
 `q`
@@ -64,7 +64,7 @@ local notation "𝒯" => T1 (ε * ϖ ^ m) b₄ t κ
 
 local notation "𝒩" => NR b₄ b₆ ϖ m ε
 
-variable [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k]
+variable [IsDomain O] [IsDiscreteValuationRing O]
   [hθ : Fact (Function.Surjective θ)]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) [NeZero m]
   (hκ : κ * (t ^ 2 - b₆) = 1) (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
@@ -88,6 +88,7 @@ variable [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k]
     (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁ (DT (ε * ϖ ^ m) b₄ t κ)) B]
   (hB : ∀ x, algebraMap (NR b₄ b₆ ϖ m ε) B (toNode b₄ hκ rfl x) =
     algebraMap B₁ B (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁ x))
+  [hresN : Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
   (hunr : ∀ (P : Ideal (T1 (ε * ϖ ^ m) b₄ t κ)) [P.IsMaximal],
     algebraMap O (T1 (ε * ϖ ^ m) b₄ t κ) ϖ ∈ P → ∀ (Q : Ideal B₁) [Q.IsPrime],
       Q.comap (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁) < P →
@@ -106,7 +107,6 @@ lemma isDomain_T1' : IsDomain 𝒯 := by
   have hεu : IsUnit ε := .of_mul_eq_one_right εi hε
   exact isDomain_T1 hϖ hκ h3 (mul_ne_zero hεu.ne_zero (pow_ne_zero _ hϖ.ne_zero)) hE
 
-omit [IsSepClosed k] in
 include hϖ hker hκ hε h3 hE in
 /-- `T1` is integrally closed. -/
 lemma isIntegrallyClosed_T1' : IsIntegrallyClosed 𝒯 := by
@@ -192,7 +192,7 @@ lemma covTate_C :
 /-- The `T1`-algebra structure on `B` (through `B₁`). -/
 abbrev algTB : Algebra 𝒯 B := ((algebraMap B₁ B).comp (algebraMap 𝒯 B₁)).toAlgebra
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hθ [NeZero m] in
+omit [IsDomain O] [IsDiscreteValuationRing O] hθ [NeZero m] in
 lemma J_NR_eq : letI := algTN (b₄ := b₄) (ε := ε) (ϖ := ϖ) (m := m) hκ
     J θ (R := 𝒩) = (J θ (R := 𝒯)).map (algebraMap 𝒯 𝒩) := by
   letI := algT1NR (b₆ := b₆) (ε := ε) (ϖ := ϖ) (m := m) (t := t) (κ := κ) b₄ hκ rfl

@@ -67,7 +67,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
 local notation "𝒩" => NR b₄ b₆ ϖ m ε
 
 /-- `covNR` has no cusp factors. -/
-instance instIsEmptyCovNRκ [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+instance instIsEmptyCovNRκ [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
@@ -77,7 +77,7 @@ instance instIsEmptyCovNRκ [hθ : Fact (Function.Surjective θ)] [IsSepClosed k
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (hπe : θ (ϖ ^ m) = 0)
@@ -86,7 +86,7 @@ instance instIsEmptyCovNRκ [hθ : Fact (Function.Surjective θ)] [IsSepClosed k
   inferInstanceAs (IsEmpty Empty)
 
 /-- The index set of `covNR` has decidable equality. -/
-instance instDecidableEqCovNRι [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+instance instDecidableEqCovNRι [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
@@ -96,7 +96,7 @@ instance instDecidableEqCovNRι [hθ : Fact (Function.Surjective θ)] [IsSepClos
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (hπe : θ (ϖ ^ m) = 0)
@@ -107,7 +107,7 @@ instance instDecidableEqCovNRι [hθ : Fact (Function.Surjective θ)] [IsSepClos
 
 set_option maxRecDepth 8000 in
 /-- **`nodePhiK` of the reduction of `g : B → B'` is `kummerHom g`.** -/
-lemma nodePhiK_covNR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+lemma nodePhiK_covNR [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
@@ -117,13 +117,13 @@ lemma nodePhiK_covNR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDo
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (L' : Type u) [Field L'] [Algebra K L'] [FiniteDimensional K L'] [IsGalois K L']
     (hL' : (finrank K L').Coprime q) [Algebra 𝒩 L'] [IsScalarTower 𝒩 K L']
     (B' : Type u) [CommRing B'] [Algebra 𝒩 B'] [Algebra B' L'] [IsScalarTower 𝒩 B' L']
-    [IsIntegralClosure B' 𝒩 L']
+    [IsIntegralClosure B' 𝒩 L'] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B')]
     (hunr' : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B') [Q.IsPrime], Q.comap (algebraMap 𝒩 B') < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (hπe : θ (ϖ ^ m) = 0)
@@ -157,7 +157,7 @@ set_option maxRecDepth 8000 in
 /-- **Maps of tame covers of the Tate node chart are balanced at the nodes** (I5(b), node chart):
 the map of node factors of `covNR` induced by an `NR`-algebra map `g : B → B'` of normalisations
 is balanced at the special chart, with node parameters `ϖ^(m / e)`. -/
-theorem covNR_balancedK [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+theorem covNR_balancedK [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
@@ -167,13 +167,13 @@ theorem covNR_balancedK [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [I
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (L' : Type u) [Field L'] [Algebra K L'] [FiniteDimensional K L'] [IsGalois K L']
     (hL' : (finrank K L').Coprime q) [Algebra 𝒩 L'] [IsScalarTower 𝒩 K L']
     (B' : Type u) [CommRing B'] [Algebra 𝒩 B'] [Algebra B' L'] [IsScalarTower 𝒩 B' L']
-    [IsIntegralClosure B' 𝒩 L']
+    [IsIntegralClosure B' 𝒩 L'] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B')]
     (hunr' : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B') [Q.IsPrime], Q.comap (algebraMap 𝒩 B') < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (hπe : θ (ϖ ^ m) = 0)

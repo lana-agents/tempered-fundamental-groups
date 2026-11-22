@@ -35,7 +35,7 @@ section Data
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
   {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
 
 
@@ -78,6 +78,8 @@ variable (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
   [IsLocalization.Away (algebraMap (T0 (ε * ϖ ^ m) b₄ t κ) B₀ (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ)) Bc]
   (hBc : ∀ x, algebraMap (RcT (ε * ϖ ^ m) b₄ t κ) Bc (algebraMap (T0 (ε * ϖ ^ m) b₄ t κ) (RcT (ε *
       ϖ ^ m) b₄ t κ) x) = algebraMap B₀ Bc (algebraMap (T0 (ε * ϖ ^ m) b₄ t κ) B₀ x))
+  [hresN : Fact (TateTwoChartNode.NodeNbhdRational θ b₄ b₆ ϖ m ε M' Bn)]
+  [hresC : Fact (TateCuspCov.CuspNbhdRational θ (ε * ϖ ^ m) b₄ t κ e Bc)]
   (hunr₁ : ∀ (P : Ideal (T1 (ε * ϖ ^ m) b₄ t κ)) [P.IsMaximal], algebraMap O (T1 (ε * ϖ ^ m) b₄ t
       κ) ϖ ∈ P → ∀ (Q : Ideal B₁) [Q.IsPrime],
     Q.comap (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁) < P → Algebra.IsUnramifiedAt (T1 (ε * ϖ ^ m) b₄

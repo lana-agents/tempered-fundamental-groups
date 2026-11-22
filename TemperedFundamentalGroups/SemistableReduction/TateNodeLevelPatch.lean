@@ -130,7 +130,7 @@ theorem formallyEtale_Rn [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     (QuadNodeTower.IRb ϖ ϖ m (cN b₄ b₆ ϖ m ε) (DN b₄ ϖ m) l) (NodeChart.fR (π := ϖ) (e := m) 𝒩)
 /-- The covering `cov₀ = covNR_of_regular …` of the special fibre of the node chart (with the
 coordinate `ψb τ` at the marked points). -/
-abbrev covS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
+abbrev covS6 [hθ : Fact (Function.Surjective θ)]
     [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ)
     (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
@@ -141,7 +141,7 @@ abbrev covS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hreg : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       NodeChart.fR (π := ϖ) (e := m) 𝒩 ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧
@@ -156,7 +156,7 @@ abbrev covS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
   covNR_of_regular hϖ hker hε h3 hE hqM hq hM' hM'k K hζ L hL B hreg hunr hπe _
 
 /-- The deformation parameters `ϖ^(m / e j)` of the Kummer factors (`FormalLevel.πK`). -/
-abbrev piS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
+abbrev piS6 [hθ : Fact (Function.Surjective θ)]
     [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ)
     (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
@@ -167,7 +167,7 @@ abbrev piS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hreg : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       NodeChart.fR (π := ϖ) (e := m) 𝒩 ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧
@@ -179,7 +179,7 @@ abbrev piS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
     (p : (covS6 hϖ hker hε h3 hE hqM hq hM' hM'k K hζ L hL B hreg hunr hπe τ).ι) : O :=
   ϖ ^ (m / (covS6 hϖ hker hε h3 hE hqM hq hM' hM'k K hζ L hL B hreg hunr hπe τ).e p)
 
-lemma piS6_pow [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
+lemma piS6_pow [hθ : Fact (Function.Surjective θ)]
     [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ)
     (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
@@ -190,7 +190,7 @@ lemma piS6_pow [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hreg : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       NodeChart.fR (π := ϖ) (e := m) 𝒩 ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧
@@ -208,7 +208,7 @@ lemma piS6_pow [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
 
 /-- **The tower of patched algebras of the Tate node chart** (`QuadNodeTower.tower` for
 `cov₀ = covNR_of_regular …`, deformation parameters `piS6`). -/
-abbrev towerS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
+abbrev towerS6 [hθ : Fact (Function.Surjective θ)]
     [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ)
     (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
@@ -219,7 +219,7 @@ abbrev towerS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hreg : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       NodeChart.fR (π := ϖ) (e := m) 𝒩 ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧
@@ -269,7 +269,7 @@ set_option maxHeartbeats 1000000 in
 -- unfolding the level datum of the tower
 /-- **The node coordinates of the level data of `towerS6` are the chart coordinates** (the
 hypothesis `hχL` of `FormalLevel.levelPatchEquiv`). -/
-lemma hχL_S6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
+lemma hχL_S6 [hθ : Fact (Function.Surjective θ)]
     [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ)
     (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
@@ -280,7 +280,7 @@ lemma hχL_S6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hreg : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       NodeChart.fR (π := ϖ) (e := m) 𝒩 ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧
@@ -308,7 +308,7 @@ set_option maxHeartbeats 1000000 in
 cover `L` (hypotheses of `covNR_of_regular`), the level-`l` patched algebra of the tower
 `towerS6` of `cov₀ = covNR_of_regular …` is `(NR/ϖˡ⁺¹) ⊗_{NR} B`
 (`FormalLevel.levelPatchEquiv`). -/
-def levelPatchEquiv_NR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
+def levelPatchEquiv_NR [hθ : Fact (Function.Surjective θ)]
     [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ)
     (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
@@ -319,7 +319,7 @@ def levelPatchEquiv_NR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hreg : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       NodeChart.fR (π := ϖ) (e := m) 𝒩 ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧

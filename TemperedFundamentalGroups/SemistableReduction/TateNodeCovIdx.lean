@@ -14,8 +14,8 @@ For the admissible covering `covNR` of the Tate node chart `NR` defined by the n
 of `NR` in a tame cover, the index set of the Kummer factors over the two nodes is
 `Σ j : Fin 2, Fin (kummerDataNR … j).r`; **`TateTwoChartNode.covNRIdx`** identifies it with
 `Σ j : Fin 2, {Q : Ideal B // Q.IsPrime ∧ Q ∩ NR = 𝔪ⱼ}` (the node points of the special fibre of
-`Spec B`), via `FormalKummer.KummerNormAtData.primesEquiv` (`k` separably closed, so the étale
-neighbourhoods of the nodes have trivial residue field extensions).
+`Spec B`), via `FormalKummer.KummerNormAtData.primesEquiv` (the chosen étale neighbourhoods of
+the nodes have trivial residue field extensions, `NodeNbhdRational`).
 -/
 
 universe u
@@ -56,7 +56,7 @@ def nodePrimesEquiv [hθ : Fact (Function.Surjective θ)]
 
 /-- **I5(a) at the Tate node chart: the Kummer factors of `covNR` are the points of the
 normalisation `B` over the two nodes.** -/
-def covNRIdx [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+def covNRIdx [Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0)
@@ -66,7 +66,7 @@ def covNRIdx [Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hunr : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       ∀ (Q : Ideal B) [Q.IsPrime], Q.comap (algebraMap 𝒩 B) < P → Algebra.IsUnramifiedAt 𝒩 Q)
     (hπe : θ (ϖ ^ m) = 0)

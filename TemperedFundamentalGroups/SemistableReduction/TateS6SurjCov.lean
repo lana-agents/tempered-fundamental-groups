@@ -89,7 +89,7 @@ section Functor
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
   {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
   {hκ : κ * (t ^ 2 - b₆) = 1} (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
@@ -138,7 +138,8 @@ local notation "𝔇" C:max => datum hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he
 
 /-- **Balanced morphisms of special-fibre data of covers**: `f₁` is balanced at the nodes
 (`TateGlue1.Balanced`, with the node parameters `π' j = ϖ^(m / e j)` of `TateS5.piP`). -/
-def CovBalanced {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} (F : Datum.Hom (𝔇 C) (𝔇 C')) : Prop := by
+def CovBalanced {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} [CovRational θ M' C]
+    [CovRational θ M' C'] (F : Datum.Hom (𝔇 C) (𝔇 C')) : Prop := by
   cov_inst C
   cov_inst C'
   exact TateGlue1.Balanced hκ rfl hε
@@ -152,7 +153,8 @@ set_option maxHeartbeats 1000000 in
 /-- **I3, surjectivity: every balanced morphism of special-fibre data comes from a map of
 covers.** -/
 theorem exists_datumHom_eq [IsAdicComplete (Ideal.span {ϖ}) O] (h2 : (2 : k) ≠ 0)
-    {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} (F : Datum.Hom (𝔇 C) (𝔇 C'))
+    {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} [CovRational θ M' C]
+    [CovRational θ M' C'] (F : Datum.Hom (𝔇 C) (𝔇 C'))
     (hbal : CovBalanced hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ F) :
     ∃ f : C.L →ₐ[K] C'.L, 𝔥 f = F := by
   cov_inst C
@@ -185,7 +187,7 @@ theorem exists_datumHom_eq [IsAdicComplete (Ideal.span {ϖ}) O] (h2 : (2 : k) �
 cover comes from `Gal(C.L/K)`** (`exists_datumHom_eq`; an endomorphism of the finite extension
 `C.L/K` is an automorphism). -/
 theorem mem_mrange_galHom [IsAdicComplete (Ideal.span {ϖ}) O] (h2 : (2 : k) ≠ 0)
-    (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) (F : Datum.Hom (𝔇 C) (𝔇 C))
+    (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] (F : Datum.Hom (𝔇 C) (𝔇 C))
     (hbal : CovBalanced hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ F) :
     F ∈ MonoidHom.mrange (galHom hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C) := by
   have ex := exists_datumHom_eq hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ h2 (C := C)

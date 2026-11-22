@@ -33,7 +33,7 @@ noncomputable section
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ}
-  [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k]
+  [IsDomain O] [IsDiscreteValuationRing O]
   [hθ : Fact (Function.Surjective θ)]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) [NeZero m]
   (hκ : κ * (t ^ 2 - b₆) = 1) (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
@@ -57,6 +57,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
     (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁ (DT (ε * ϖ ^ m) b₄ t κ)) B]
   (hB : ∀ x, algebraMap (NR b₄ b₆ ϖ m ε) B (toNode b₄ hκ rfl x) =
     algebraMap B₁ B (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁ x))
+  [hresN : Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
   (hunr : ∀ (P : Ideal (T1 (ε * ϖ ^ m) b₄ t κ)) [P.IsMaximal],
     algebraMap O (T1 (ε * ϖ ^ m) b₄ t κ) ϖ ∈ P → ∀ (Q : Ideal B₁) [Q.IsPrime],
       Q.comap (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁) < P →
@@ -86,7 +87,7 @@ noncomputable section
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
   {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
   {hκ : κ * (t ^ 2 - b₆) = 1} (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
@@ -117,7 +118,7 @@ local macro "cov_inst1 " C:term : tactic => `(tactic| (
 
 /-- **I5(a): the Kummer factors of the node covering of a tame cover `C` are the points of
 `C.Bn = C.B₁[1/D]` over the two nodes of the node chart.** -/
-def covIdx (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
+def covIdx (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] :
     (datum hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C).cov₀.ι ≃
       Σ j : Fin 2,
         PrimesOver C.Bn (nodeIdeal b₄ b₆ ϖ m ε (θ_ϖ hker) (Nat.pos_of_neZero m) j) := by
@@ -127,7 +128,7 @@ def covIdx (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
 
 /-- **I5(a), on `B₁`: the Kummer factors of the node covering of `C` are the points of the
 normalisation `C.B₁` of `T1` over the two node points `𝔪ⱼ ∩ T1` of `T1`.** -/
-def covIdx₁ (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
+def covIdx₁ (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] :
     (datum hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C).cov₀.ι ≃
       Σ j : Fin 2, PrimesOver C.B₁
         ((nodeIdeal b₄ b₆ ϖ m ε (θ_ϖ hker) (Nat.pos_of_neZero m) j).comap

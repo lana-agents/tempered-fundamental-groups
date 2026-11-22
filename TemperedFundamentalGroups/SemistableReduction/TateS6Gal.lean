@@ -70,7 +70,7 @@ section Functor
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
   {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
   {hκ : κ * (t ^ 2 - b₆) = 1} (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
@@ -118,7 +118,8 @@ set_option hygiene false in
 local notation "𝔇" C:max => datum hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C
 
 /-- **The Galois group of a tame cover acting on its special-fibre datum**: `σ ↦ datumHom σ`. -/
-def galHom (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) : (C.L ≃ₐ[K] C.L) →* Datum.Hom (𝔇 C) (𝔇 C) where
+def galHom (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] :
+    (C.L ≃ₐ[K] C.L) →* Datum.Hom (𝔇 C) (𝔇 C) where
   toFun σ := 𝔥 (σ : C.L →ₐ[K] C.L)
   map_one' := datumHom_id hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C
   map_mul' σ σ' :=
@@ -126,7 +127,7 @@ def galHom (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) : (C.L ≃ₐ[K] C.L) →*
       (σ' : C.L →ₐ[K] C.L) (σ : C.L →ₐ[K] C.L)
 
 /-- **`galHom` is injective** (`datumHom_injective`). -/
-theorem galHom_injective (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
+theorem galHom_injective (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] :
     Function.Injective (galHom hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C) :=
   fun _ _ h ↦ AlgEquiv.coe_toAlgHom_injective
     (datumHom_injective hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ h)
@@ -134,7 +135,7 @@ theorem galHom_injective (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
 
 /-- **The Galois group of a tame cover is isomorphic to the image of `galHom`** in the
 endomorphisms of its special-fibre datum (`galHom_injective`). -/
-def galEquiv (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
+def galEquiv (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] :
     (C.L ≃ₐ[K] C.L) ≃* MonoidHom.mrange
       (galHom hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C) :=
   mulEquivMrange _ (galHom_injective hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C)

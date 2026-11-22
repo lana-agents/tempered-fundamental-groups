@@ -12,7 +12,7 @@ import TemperedFundamentalGroups.SemistableReduction.TateNodeNormal
 # The formal Kummer form of a tame cover of the Tate node chart (MR12 T2 S5, `kummer` field)
 
 Let `NR` be the quadratic node chart of the Tate model over a discrete valuation ring `O`
-(uniformiser `ϖ`, residue map `θ : O → k` onto a separably closed field, `ker θ = (ϖ)`), with node
+(uniformiser `ϖ`, residue map `θ : O → k` onto a field, `ker θ = (ϖ)`), with node
 coordinates `uR vR = ϖᵐ`, `m = q M'`. Let `L` be a finite Galois extension of `K = Frac NR` of
 degree prime to `q`, with `μ_{M'} ⊆ K`, and `B` the normalisation of `NR` in `L`. If the
 normalisation is unramified over `NR` at every prime lying over a prime strictly inside one of the
@@ -29,7 +29,14 @@ admissible covering `cov₀` of the node chart.
 
 Proof: `isTameKummerAt_NR` at the two nodes `nodeIdeal j` (S5.3), with its local unramifiedness
 hypothesis from `hunr` by `NormLocal.isUnramifiedAt`, then `IsTameKummerAt.isKummerNormAt` and
-`FormalKummer.exists_kummer`.
+`FormalKummer.exists_kummer_of_res`.
+
+**Residue hypothesis (S5.7 (b)).** The formal Kummer form needs étale-local Kummer data with
+trivial residue field extension (`IsKummerNormAtRes`). This is the hypothesis
+**`TateTwoChartNode.NodeNbhdRational`** (as a `Fact`): wherever `B` is Kummer at a node, it is so
+over an étale neighbourhood with trivial residue field extension. It holds for separably closed `k`
+(`nodeNbhdRational_of_isSepClosed`) and, for finite `k`, after a finite unramified base change
+(the finite-`k` route of the plan); no assumption on `k` is made here.
 -/
 
 universe u
@@ -59,9 +66,28 @@ instance isMaximal_sIdeal_nodeIdeal [hθ : Fact (Function.Surjective θ)] (hϖ :
   haveI := isMaximal_nodeIdeal (b₄ := b₄) (b₆ := b₆) (ε := ε) hθ.out hϖ hm j
   isMaximal_sIdeal _ (J_le_nodeIdeal hϖ hm j)
 
+variable (θ) in
+/-- **The residue hypothesis at the nodes** (S5.7 (b)): at each node `nodeIdeal j`, if `B` is
+tamely Kummer there (`IsKummerNormAt`, from S3), then over an étale neighbourhood with trivial
+residue field extension (`IsKummerNormAtRes`). -/
+def NodeNbhdRational (b₄ b₆ ϖ : O) (m : ℕ) (ε : O) (M' : ℕ) (B : Type u) [CommRing B]
+    [Algebra (NR b₄ b₆ ϖ m ε) B] : Prop :=
+  ∀ (hϖ : θ ϖ = 0) (hm : 1 ≤ m) (j : Fin 2),
+    IsKummerNormAt ϖ m M' (uR b₄ b₆ ϖ m ε) (vR b₄ b₆ ϖ m ε) B (nodeIdeal b₄ b₆ ϖ m ε hϖ hm j) →
+      IsKummerNormAtRes ϖ m M' (uR b₄ b₆ ϖ m ε) (vR b₄ b₆ ϖ m ε) B
+        (nodeIdeal b₄ b₆ ϖ m ε hϖ hm j)
+
+/-- **`NodeNbhdRational` for separably closed `k`** (the nodes are `k`-rational). -/
+theorem nodeNbhdRational_of_isSepClosed [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
+    (M' : ℕ) (B : Type u) [CommRing B] [Algebra 𝒩 B] :
+    NodeNbhdRational θ b₄ b₆ ϖ m ε M' B := fun hϖ hm j h ↦
+  haveI := isMaximal_nodeIdeal (b₄ := b₄) (b₆ := b₆) (ε := ε) hθ.out hϖ hm j
+  FormalKummer.isKummerNormAtRes_of_isSepClosed (J_le_nodeIdeal hϖ hm j)
+    (surjective_mk_comp_algebraMap hθ.out hϖ hm j) h
+
 /-- **The normalisation of a tame cover of the Tate node chart is tamely Kummer at the nodes**
 (`isTameKummerAt_NR` + `IsTameKummerAt.isKummerNormAt`). -/
-theorem isKummerNormAt_NR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+theorem isKummerNormAt_NR [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) {q M' : ℕ} (hqM : q * M' = m) (hq : 0 < q) (hM' : 0 < M')
     (K : Type u) [Field K] [Algebra 𝒩 K] [IsFractionRing 𝒩 K]
@@ -93,7 +119,7 @@ theorem isKummerNormAt_NR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] 
 
 /-- **The special fibre of a tame cover of the Tate node chart is formally Kummer along the
 nodes.** -/
-theorem exists_kummer_NR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+theorem exists_kummer_NR [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) {q M' : ℕ} (hqM : q * M' = m) (hq : 0 < q) (hM' : 0 < M')
     (K : Type u) [Field K] [Algebra 𝒩 K] [IsFractionRing 𝒩 K]
@@ -105,7 +131,8 @@ theorem exists_kummer_NR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [
         nodeIdeal b₄ b₆ ϖ m ε (θ_ϖ hker) (Nat.pos_of_neZero m) j →
       Algebra.IsUnramifiedAt 𝒩 Q)
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L] (hπe : θ (ϖ ^ m) = 0) :
+    [IsIntegralClosure B 𝒩 L] [hresN : Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
+    (hπe : θ (ϖ ^ m) = 0) :
     ∃ (r : Fin 2 → ℕ) (d : ∀ j, Fin (r j) → ℕ) (hd : ∀ j i, 0 < d j i), (∀ j i, d j i ∣ M') ∧
       Nonempty (Admissible.Hat (fbar θ (NodeChart.fR (π := ϖ) (e := m) 𝒩)) ⊗[Rs θ 𝒩] Cs θ 𝒩 B
         ≃ₐ[Admissible.Hat (fbar θ (NodeChart.fR (π := ϖ) (e := m) 𝒩))]
@@ -119,14 +146,14 @@ theorem exists_kummer_NR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [
     rw [uR_mul_vR]; exact (map_pow _ _ _).symm
   haveI : ∀ j, (nodeIdeal b₄ b₆ ϖ m ε hϖ0 hm j).IsMaximal :=
     isMaximal_nodeIdeal hθ.out hϖ0 hm
-  exact exists_kummer (B := B) hxy hϖ0 hm (nodeIdeal b₄ b₆ ϖ m ε hϖ0 hm)
+  exact exists_kummer_of_res (B := B) hxy hϖ0 hm (nodeIdeal b₄ b₆ ϖ m ε hϖ0 hm)
     (J_le_nodeIdeal hϖ0 hm) (surjective_mk_comp_algebraMap hθ.out hϖ0 hm)
-    (isKummerNormAt_NR hϖ hker hε hqM hq hM' K hζ L hL hunr B)
+    (fun j ↦ hresN.out hϖ0 hm j (isKummerNormAt_NR hϖ hker hε hqM hq hM' K hζ L hL hunr B j))
     (sIdeal_injective hϖ0 hm) (fbar_mem_sIdeal hϖ0 hm) (iInf_sIdeal_le_radical hϖ0 hm)
     (NodeChart.φ 𝒩 hπe) (NodeChart.φ_u hπe) (NodeChart.φ_v hπe)
 
 /-- **The chosen Kummer data at the nodes** of the Tate node chart (refactor R1). -/
-def kummerDataNR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+def kummerDataNR [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) {q M' : ℕ} (hqM : q * M' = m) (hq : 0 < q) (hM' : 0 < M')
     (K : Type u) [Field K] [Algebra 𝒩 K] [IsFractionRing 𝒩 K]
@@ -138,18 +165,16 @@ def kummerDataNR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain
         nodeIdeal b₄ b₆ ϖ m ε (θ_ϖ hker) (Nat.pos_of_neZero m) j →
       Algebra.IsUnramifiedAt 𝒩 Q)
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L] (j : Fin 2) :
+    [IsIntegralClosure B 𝒩 L] [hresN : Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
+    (j : Fin 2) :
     KummerNormAtData ϖ m M' (uR b₄ b₆ ϖ m ε) (vR b₄ b₆ ϖ m ε) B
       (nodeIdeal b₄ b₆ ϖ m ε (θ_ϖ hker) (Nat.pos_of_neZero m) j) :=
-  haveI := isMaximal_nodeIdeal (b₄ := b₄) (b₆ := b₆) (ε := ε) hθ.out (θ_ϖ hker)
-    (Nat.pos_of_neZero m) j
-  KummerNormAtData.ofIsKummerNormAtK (J_le_nodeIdeal (θ_ϖ hker) (Nat.pos_of_neZero m) j)
-    (surjective_mk_comp_algebraMap hθ.out (θ_ϖ hker) (Nat.pos_of_neZero m) j)
-    (isKummerNormAt_NR hϖ hker hε hqM hq hM' K hζ L hL hunr B j)
+  KummerNormAtData.ofIsKummerNormAtRes (hresN.out (θ_ϖ hker) (Nat.pos_of_neZero m) j
+    (isKummerNormAt_NR hϖ hker hε hqM hq hM' K hζ L hL hunr B j))
 
 /-- **The formal Kummer form of the special fibre of a tame cover of the Tate node chart along the
 nodes**, defined from the chosen data `kummerDataNR` (refactor R1). -/
-def kummerEquivNR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain O]
+def kummerEquivNR [hθ : Fact (Function.Surjective θ)] [IsDomain O]
     [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) {q M' : ℕ} (hqM : q * M' = m) (hq : 0 < q) (hM' : 0 < M')
     (K : Type u) [Field K] [Algebra 𝒩 K] [IsFractionRing 𝒩 K]
@@ -161,7 +186,8 @@ def kummerEquivNR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomai
         nodeIdeal b₄ b₆ ϖ m ε (θ_ϖ hker) (Nat.pos_of_neZero m) j →
       Algebra.IsUnramifiedAt 𝒩 Q)
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L] (hπe : θ (ϖ ^ m) = 0) :
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
+    (hπe : θ (ϖ ^ m) = 0) :
     Admissible.Hat (fbar θ (NodeChart.fR (π := ϖ) (e := m) 𝒩)) ⊗[Rs θ 𝒩] Cs θ 𝒩 B
       ≃ₐ[Admissible.Hat (fbar θ (NodeChart.fR (π := ϖ) (e := m) 𝒩))]
       ∀ p : (Σ j, Fin (kummerDataNR hϖ hker hε hqM hq hM' K hζ L hL hunr B j).r),

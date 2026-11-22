@@ -12,8 +12,8 @@ import TemperedFundamentalGroups.SemistableReduction.TateEtaleCusp
 # The special-fibre covering over the cusp chart from a tame cover (MR12 S5.6, `CuspSpecial`)
 
 Let `O` be a discrete valuation ring of characteristic zero (uniformizer `ϖ`, `ker θ = (ϖ)`,
-residue field `k` separably closed, `b̄₆` a square in `k` — S5.7: this replaces the algebraically
-closed `k` of c31; the points of `h̄ = 0` are then `k`-rational, `surjective_mk_comp_cuspPt`),
+residue field `k`, `b̄₆` a square in `k` — S5.7: this replaces the algebraically closed `k` of c31;
+the points of `h̄ = 0` are then `k`-rational, `surjective_mk_comp_cuspPt`),
 `π = ε ϖᵐ` (`m ≥ 1`, `ε`, `b₆` units),
 `Rc = T0[1/(1 + h)]` the cusp chart of the Tate model with fraction field `K`, `e ≥ 1` invertible
 in `k` with `ζ_e ∈ K`, `L / K` finite Galois of degree dividing `e`, and `B` the normalisation of
@@ -26,9 +26,12 @@ prime `Q` lying over a prime `𝔮` strictly inside a maximal ideal `P ∋ ϖ`, 
   `𝔪` of `V(h̄)` (`FormalPoints.Pts`, finite by `isArtinianRing_cusp`) and each factor of its local
   formal cusp form: at the cusp (`z ∈ 𝔪`) by S3 for the étale chart `Rc[1/G₀'(z)]`
   (`TateCuspCov.isTameCuspKummerAt_cusp`), indices dividing `e`; at the other points (`z ∉ 𝔪`)
-  by purity on `D(z̄)` (`pointCuspForm_of_etale_special`), indices `1`; S5.7:
-  `pointCuspForm_etale_of_surjective` is the version with an explicit residue hypothesis on `C`
-  instead of a separably closed `k`.
+  by purity on `D(z̄)` (`pointCuspForm_etale_of_surjective`), indices `1`.
+* **Residue hypothesis (S5.7 (b))**: no assumption on `k` beyond `b̄₆` being a square; instead
+  **`TateCuspCov.CuspNbhdRational`** (as a `Fact`): at the cusp, the étale-local Kummer data can be
+  chosen with trivial residue field extension (`Cusp.IsCuspNormAtRes`), and at the other points of
+  `h̄ = 0` the residue fields of `C = B/JB` are those of the points. For finite `k` this holds after
+  a finite unramified base change (finite-`k` route of the plan).
 * **`TateCuspCov.cuspSpecial : CuspTower.CuspSpecial (T0 ..) (c0 ..) (h0 ..)`**: with
   `C0 = B₀/JB₀` (`B₀` the normalisation of `T0`, `B = B₀[1/(1 + h)]`) and `ι₀` the localization
   map (`NormAway`).
@@ -156,8 +159,28 @@ lemma map_ne_span {R : Type*} [CommRing R] (P : Ideal R) [P.IsPrime] {q : Ideal 
     exact Ideal.map_mono hq (h ▸ Ideal.mem_span_singleton_self _)
   exact hs ((IsLocalization.AtPrime.to_map_mem_maximal_iff _ P s).1 h1)
 
+/-- **The residue hypothesis on the cusp chart** (S5.7 (b)): at every point `𝔪` of `h̄ = 0`, if
+`z ∈ 𝔪` (the cusp) and `B` is tamely Kummer there (`IsCuspNormAt`, from S3), then over an étale
+neighbourhood with trivial residue field extension (`IsCuspNormAtRes`); if `z ∉ 𝔪`, the residue
+fields of `C = B/JB` at the points over `𝔪` are the residue field of `𝔪`. -/
+def CuspNbhdRational {O : Type u} [CommRing O] {k : Type u} [Field k] (θ : O →+* k)
+    (π b₄ t κ : O) (e : ℕ) (B : Type u) [CommRing B] [Algebra (RcT π b₄ t κ) B] : Prop :=
+  ∀ (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaximal], J θ (R := RcT π b₄ t κ) ≤ 𝔪 →
+    CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ) ∈ 𝔪 →
+    (algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π b₄ t κ) ∈ 𝔪 →
+        Cusp.IsCuspNormAt O e (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ))
+          B 𝔪 →
+        Cusp.IsCuspNormAtRes O e
+          (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ)) B 𝔪) ∧
+      (algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π b₄ t κ) ∉ 𝔪 →
+        ∀ P : Ideal (Cs θ (RcT π b₄ t κ) B), P.IsPrime →
+          P.comap (algebraMap (Rs θ (RcT π b₄ t κ)) (Cs θ (RcT π b₄ t κ) B)) =
+              sIdeal (θ := θ) 𝔪 →
+            Function.Surjective ((Ideal.Quotient.mk P).comp
+              (algebraMap (Rs θ (RcT π b₄ t κ)) (Cs θ (RcT π b₄ t κ) B))))
+
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
   {ϖ π b₄ b₆ t κ ε : O} {m : ℕ} [hsq : Fact (IsSquare (θ b₆))]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
   (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
@@ -178,23 +201,24 @@ variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k :
           Ideal.span {algebraMap (RcT π b₄ t κ) (Localization.AtPrime P)
             (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ))}) →
       Algebra.IsUnramifiedAt (RcT π b₄ t κ) Q)
+  [hresC : Fact (CuspNbhdRational θ π b₄ t κ e B)]
 
 omit [CharZero O] in
 include hϖ hπ hε hκ h3 hE in
 lemma isDomain_Rc' : IsDomain (RcT π b₄ t κ) :=
   isDomain_Rc hϖ hκ h3 (by rw [hπ]; exact mul_ne_zero hε.ne_zero (pow_ne_zero _ hϖ.ne_zero)) hE
 
-omit [IsSepClosed k] hsq [CharZero O] in
+omit hsq [CharZero O] in
 include hϖ hker hπ hm hε hκ h3 hE hb₆ in
 lemma isIntegrallyClosed_Rc' : IsIntegrallyClosed (RcT π b₄ t κ) :=
   isIntegrallyClosed_Rc hϖ hθ.out hker hπ hm hε h3 hE hκ hb₆
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hsq hθ [CharZero O] in
+omit [IsDomain O] [IsDiscreteValuationRing O] hsq hθ [CharZero O] in
 include hker in
 lemma ϖ_mem_J : algebraMap O (RcT π b₄ t κ) ϖ ∈ J θ (R := RcT π b₄ t κ) :=
   Ideal.mem_map_of_mem _ (by rw [hker]; exact Ideal.mem_span_singleton_self ϖ)
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hsq hθ [CharZero O] in
+omit [IsDomain O] [IsDiscreteValuationRing O] hsq hθ [CharZero O] in
 lemma finiteType_Rc : Algebra.FiniteType O (RcT π b₄ t κ) := by
   haveI : Algebra.FiniteType O (T0 π b₄ t κ) :=
     Algebra.FiniteType.trans (S := O[X]) inferInstance inferInstance
@@ -202,7 +226,7 @@ lemma finiteType_Rc : Algebra.FiniteType O (RcT π b₄ t κ) := by
     IsLocalization.Away.finitePresentation (TateGlue0.c0 π b₄ t κ)
   exact Algebra.FiniteType.trans (S := T0 π b₄ t κ) inferInstance inferInstance
 
-omit [IsSepClosed k] hsq [CharZero O] [NeZero e] in
+omit hsq [CharZero O] [NeZero e] in
 include hϖ hker hπ hm hε hκ h3 hE hb₆ K L in
 /-- `C = B/JB` is finite over the special fibre of `Rc`. -/
 theorem finite_Cs : Module.Finite (Rs θ (RcT π b₄ t κ)) (Cs θ (RcT π b₄ t κ) B) := by
@@ -215,7 +239,7 @@ theorem finite_Cs : Module.Finite (Rs θ (RcT π b₄ t κ)) (Cs θ (RcT π b₄
   exact Module.Finite.of_restrictScalars_finite (RcT π b₄ t κ) (Rs θ (RcT π b₄ t κ))
     (Cs θ (RcT π b₄ t κ) B)
 
-omit [IsSepClosed k] hsq [CharZero O] [NeZero e] in
+omit hsq [CharZero O] [NeZero e] in
 include hϖ hker hπ hm hε hκ h3 hE hb₆ K L hunr in
 /-- **Purity**: `C = B/JB` is étale over the special fibre of `Rc` on `D(ḡ)` for any `g` with
 `g ∉ P` whenever `z ∈ P` and `s ∈ P`. -/
@@ -235,7 +259,7 @@ theorem etale_away (g : RcT π b₄ t κ)
     (fun P _ hJP hgP Q _ hQ ↦ hunr P (hJP hϖJ) Q hQ fun hz ↦
       map_ne_span P hQ.le (hg P hgP hz))
 
-omit [IsSepClosed k] hsq [CharZero O] [NeZero e] in
+omit hsq [CharZero O] [NeZero e] in
 include hϖ hker hπ hm hε hκ h3 hE hb₆ K L hunr in
 /-- **`C` is étale over `D(s̄)`** (the `etale` field of the covering). -/
 theorem etale_s : (Localization.awayMap (algebraMap (Rs θ (RcT π b₄ t κ))
@@ -243,7 +267,7 @@ theorem etale_s : (Localization.awayMap (algebraMap (Rs θ (RcT π b₄ t κ))
       (CuspTower.sC (T0 π b₄ t κ) (TateGlue0.c0 π b₄ t κ) (h0 π b₄ t κ)))).Etale :=
   etale_away hϖ hker hπ hm hε h3 hE hκ hb₆ K L B hunr _ fun _ _ hs _ ↦ hs
 
-omit [IsSepClosed k] hsq hθ in
+omit hsq hθ hresC in
 include hϖ hker hπ hε hκ h3 hE hζ hd hunr in
 /-- **The normalisation is tamely Kummer at the cusp** (`z ∈ 𝔪`, `s ∈ 𝔪`). -/
 theorem isCuspNormAt_cusp (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaximal]
@@ -283,7 +307,7 @@ theorem isCuspNormAt_cusp (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaximal]
           IsLocalization.map_under 𝔪.primeCompl _ _])
   exact h.isCuspNormAt (B := B)
 
-omit [IsSepClosed k] hsq [CharZero O] [NeZero e] in
+omit hsq [CharZero O] [NeZero e] in
 include hϖ hker hπ hm hε hκ h3 hE hb₆ K L hunr in
 /-- **The local formal cusp form at a point of `h̄ = 0` off the cusp** (`z ∉ 𝔪`): index `1`, by
 purity. -/
@@ -297,7 +321,7 @@ theorem pointCuspForm_etale [IsSepClosed k] (𝔪 : Ideal (RcT π b₄ t κ)) [�
   exact FormalKummer.pointCuspForm_of_etale_special 𝔪 hJ hres hz
     (etale_away hϖ hker hπ hm hε h3 hE hκ hb₆ K L B hunr _ fun _ _ hzP hz ↦ absurd hz hzP) _
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [CharZero O] [NeZero e] in
+omit [IsDomain O] [IsDiscreteValuationRing O] [CharZero O] [NeZero e] in
 include hker hπ hm hκ in
 /-- **The points of `h̄ = 0` are `k`-rational** (`b̄₆` is a square, `hsq`;
 `TateTwoChart.surjective_mk_comp_cusp`). -/
@@ -312,7 +336,7 @@ lemma surjective_mk_comp_cuspPt (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaxima
     rw [hπ, map_mul, map_pow, h0, zero_pow (by omega : m ≠ 0), mul_zero]
   exact surjective_mk_comp_cusp hκ hπ0 (r := r) (by rw [hx, sq]) 𝔪 hJ hs
 
-omit [IsSepClosed k] hsq [CharZero O] [NeZero e] in
+omit hsq [CharZero O] [NeZero e] in
 include hϖ hker hπ hm hε hκ h3 hE hb₆ K L hunr in
 /-- **The local formal cusp form at a point of `h̄ = 0` off the cusp, with an explicit residue
 hypothesis** (S5.7; no separably closed `k`): if the residue fields of `C = B/JB` at the points
@@ -342,13 +366,12 @@ def pointCuspData (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaximal]
   haveI := finiteType_Rc (O := O) (π := π) (b₄ := b₄) (t := t) (κ := κ)
   if hz : algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π b₄ t κ) ∈ 𝔪 then
     (pointCuspFormDataOf 𝔪 hJ (surjective_mk_comp_cuspPt hker hπ hm hκ 𝔪 hJ hs)
-      (CuspNormAtData.ofIsCuspNormAtK hJ
-        (surjective_mk_comp_cuspPt hker hπ hm hκ 𝔪 hJ hs)
-        (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd B hunr 𝔪 hJ hs hz))).mono
+      (CuspNormAtData.ofIsCuspNormAtRes ((hresC.out 𝔪 hJ hs).1 hz
+        (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd B hunr 𝔪 hJ hs hz)))).mono
       (dvd_of_eq (eP_of_mem hz).symm)
   else
-    (PointCuspFormData.ofPointCuspForm (pointCuspForm_etale hϖ hker hπ hm hε h3 hE hκ hb₆ K L B
-      hunr 𝔪 hJ (surjective_mk_comp_cuspPt hker hπ hm hκ 𝔪 hJ hs) hz)).mono
+    (PointCuspFormData.ofPointCuspForm (pointCuspForm_etale_of_surjective hϖ hker hπ hm hε h3 hE
+      hκ hb₆ K L B hunr 𝔪 hJ hz ((hresC.out 𝔪 hJ hs).2 hz))).mono
       (one_dvd _)
 
 include hϖ hker hπ hm hε hκ h3 hE hb₆ hζ hd hunr in

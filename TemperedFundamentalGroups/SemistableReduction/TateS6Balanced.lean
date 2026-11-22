@@ -124,7 +124,7 @@ set_option maxHeartbeats 1000000 in
 /-- **The node map of the reduction of an `NR`-algebra map `g` of normalisations is balanced**
 (I5(b) at `special1`): `covMap f₁` is the reduction of `g` (`covMap_eq`), balanced at the special
 chart by `covNR_balancedK`, hence at every level. -/
-theorem balanced_of_quotHom [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k]
+theorem balanced_of_quotHom [IsDomain O] [IsDiscreteValuationRing O]
     [hθ : Fact (Function.Surjective θ)]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) [NeZero m]
     (hκ : κ * (t ^ 2 - b₆) = 1) (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
@@ -148,6 +148,7 @@ theorem balanced_of_quotHom [IsDomain O] [IsDiscreteValuationRing O] [IsSepClose
       (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁ (DT (ε * ϖ ^ m) b₄ t κ)) B]
     (hB : ∀ x, algebraMap (NR b₄ b₆ ϖ m ε) B (toNode b₄ hκ rfl x) =
       algebraMap B₁ B (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁ x))
+    [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hunr : ∀ (P : Ideal (T1 (ε * ϖ ^ m) b₄ t κ)) [P.IsMaximal],
       algebraMap O (T1 (ε * ϖ ^ m) b₄ t κ) ϖ ∈ P → ∀ (Q : Ideal B₁) [Q.IsPrime],
         Q.comap (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁) < P →
@@ -165,6 +166,7 @@ theorem balanced_of_quotHom [IsDomain O] [IsDiscreteValuationRing O] [IsSepClose
       (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁' (DT (ε * ϖ ^ m) b₄ t κ)) B']
     (hB' : ∀ x, algebraMap (NR b₄ b₆ ϖ m ε) B' (toNode b₄ hκ rfl x) =
       algebraMap B₁' B' (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁' x))
+    [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B')]
     (hunr' : ∀ (P : Ideal (T1 (ε * ϖ ^ m) b₄ t κ)) [P.IsMaximal],
       algebraMap O (T1 (ε * ϖ ^ m) b₄ t κ) ϖ ∈ P → ∀ (Q : Ideal B₁') [Q.IsPrime],
         Q.comap (algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) B₁') < P →
@@ -218,7 +220,7 @@ section Functor
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
   {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
   {hκ : κ * (t ^ 2 - b₆) = 1} (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
@@ -268,7 +270,8 @@ local notation "𝔇" C:max => datum hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he
 set_option maxHeartbeats 1000000 in
 -- the node chart data of two covers
 /-- **I5(b): the special-fibre datum of a map of covers is balanced at the nodes.** -/
-theorem covBalanced_datumHom {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} (f : C.L →ₐ[K] C'.L) :
+theorem covBalanced_datumHom {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} [CovRational θ M' C]
+    [CovRational θ M' C'] (f : C.L →ₐ[K] C'.L) :
     CovBalanced hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ (C := C) (C' := C')
       (𝔥 f) := by
   cov_inst C
@@ -290,7 +293,8 @@ theorem covBalanced_datumHom {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} (f : 
 /-- **An endomorphism of the special-fibre datum of a tame cover comes from `Gal(C.L/K)` iff it
 is balanced** (I3 surjectivity `mem_mrange_galHom` and I5(b) `covBalanced_datumHom`). -/
 theorem mem_mrange_galHom_iff [IsAdicComplete (Ideal.span {ϖ}) O] (h2 : (2 : k) ≠ 0)
-    (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) (F : Datum.Hom (𝔇 C) (𝔇 C)) :
+    (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C]
+    (F : Datum.Hom (𝔇 C) (𝔇 C)) :
     F ∈ MonoidHom.mrange (galHom hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C) ↔
       CovBalanced hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ F := by
   refine ⟨fun h ↦ ?_, mem_mrange_galHom hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀
@@ -302,18 +306,20 @@ theorem mem_mrange_galHom_iff [IsAdicComplete (Ideal.span {ϖ}) O] (h2 : (2 : k)
 
 /-- **The balanced automorphisms of the special-fibre datum of a tame cover**: the image of
 `galHom`, which consists exactly of the balanced endomorphisms (`mem_autBal_iff`). -/
-abbrev autBal (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) : Submonoid (Datum.Hom (𝔇 C) (𝔇 C)) :=
+abbrev autBal (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] :
+    Submonoid (Datum.Hom (𝔇 C) (𝔇 C)) :=
   MonoidHom.mrange (galHom hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C)
 
 theorem mem_autBal_iff [IsAdicComplete (Ideal.span {ϖ}) O] (h2 : (2 : k) ≠ 0)
-    (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) (F : Datum.Hom (𝔇 C) (𝔇 C)) :
+    (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C]
+    (F : Datum.Hom (𝔇 C) (𝔇 C)) :
     F ∈ autBal hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C ↔
       CovBalanced hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ F :=
   mem_mrange_galHom_iff hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ h2 C F
 
 /-- **`Gal(C.L/K) ≃* Aut_bal(datum C)`** (`galEquiv`; the image of `galHom` is the set of balanced
 endomorphisms, `mem_autBal_iff`). -/
-def galEquivBal (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
+def galEquivBal (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] :
     (C.L ≃ₐ[K] C.L) ≃* autBal hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C :=
   galEquiv hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ C
 

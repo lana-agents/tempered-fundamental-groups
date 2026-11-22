@@ -153,12 +153,43 @@ lemma map1_comp {C'' : CovData K D Rn Rc toN dT c0 ϖ1 ϖ0 I0 q e} (f : C.L →�
 
 end CovData
 
+/-- **The residue hypotheses of S5.7 (b) for a Tate cover `C`**:
+`TateTwoChartNode.NodeNbhdRational` for the node chart `C.Bn` and
+`TateCuspCov.CuspNbhdRational` for the cusp chart `C.Bc` (the étale-local Kummer data at the
+nodes and the cusp can be chosen with trivial residue field extensions, and the residue fields of
+`C.Bc / J` over the other points of `h̄ = 0` are trivial). They replace the separably closed
+residue field; for finite `k` they hold after a finite unramified base change. -/
+class CovRational {O : Type u} [CommRing O] {k : Type u} [Field k] (θ : O →+* k)
+    {ϖ b₄ b₆ t κ ε : O} {m : ℕ} {hκ : κ * (t ^ 2 - b₆) = 1} {q e : ℕ} {K : Type u} [Field K]
+    [Algebra (T1 (ε * ϖ ^ m) b₄ t κ) K] [Algebra (NR b₄ b₆ ϖ m ε) K]
+    [Algebra (RcT (ε * ϖ ^ m) b₄ t κ) K] (M' : outParam ℕ) (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
+    Prop where
+  node : NodeNbhdRational θ b₄ b₆ ϖ m ε M' C.Bn
+  cusp : TateCuspCov.CuspNbhdRational θ (ε * ϖ ^ m) b₄ t κ e C.Bc
+
+instance CovRational.factNode {O : Type u} [CommRing O] {k : Type u} [Field k]
+    (θ : O →+* k)
+    {ϖ b₄ b₆ t κ ε : O} {m : ℕ} {hκ : κ * (t ^ 2 - b₆) = 1} {q e : ℕ} {K : Type u} [Field K]
+    [Algebra (T1 (ε * ϖ ^ m) b₄ t κ) K] [Algebra (NR b₄ b₆ ϖ m ε) K]
+    [Algebra (RcT (ε * ϖ ^ m) b₄ t κ) K] (M' : ℕ) (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K)
+    [h : CovRational θ M' C] : Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' C.Bn) :=
+  ⟨h.node⟩
+
+instance CovRational.factCusp {O : Type u} [CommRing O] {k : Type u} [Field k]
+    (θ : O →+* k)
+    {ϖ b₄ b₆ t κ ε : O} {m : ℕ} {hκ : κ * (t ^ 2 - b₆) = 1} {q e : ℕ} {K : Type u} [Field K]
+    [Algebra (T1 (ε * ϖ ^ m) b₄ t κ) K] [Algebra (NR b₄ b₆ ϖ m ε) K]
+    [Algebra (RcT (ε * ϖ ^ m) b₄ t κ) K] (M' : ℕ) (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K)
+    [h : CovRational θ M' C] :
+    Fact (TateCuspCov.CuspNbhdRational θ (ε * ϖ ^ m) b₄ t κ e C.Bc) :=
+  ⟨h.cusp⟩
+
 section Functor
 
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
   {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
   {hκ : κ * (t ^ 2 - b₆) = 1} (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
@@ -198,7 +229,7 @@ local macro "cov_inst " C:term : tactic => `(tactic| (
     (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ)) ($C).Bc := ($C).locBc))
 
 /-- **I2: the special-fibre datum of a tame cover** `C` (`TateS5.cov`, `sp`, `sc`, `om`). -/
-def datum (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
+def datum (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] :
     Datum θ ϖ b₄ b₆ t κ ε m hκ (TateS5.θ_pow hker) τ := by
   cov_inst C
   exact ⟨TateS5.cov hϖ hker hκ hε h3 hE hqM hq hM' hM'k hK hζ C.hL C.hBn C.hunr₁ τ,
@@ -213,7 +244,8 @@ local notation "𝔇" C:max => datum hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he
 
 /-- **I2: the morphism of special-fibre data induced by a `K`-algebra map of covers**: the
 reductions modulo `J` of the maps of normalisations `(chartMap f).f1`, `(chartMap f).f0`. -/
-def datumHom {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} (f : C.L →ₐ[K] C'.L) :
+def datumHom {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} [CovRational θ M' C]
+    [CovRational θ M' C'] (f : C.L →ₐ[K] C'.L) :
     Datum.Hom (𝔇 C) (𝔇 C') := by
   cov_inst C
   cov_inst C'
@@ -235,19 +267,21 @@ set_option hygiene false in
 local notation "𝔥" f:max => datumHom hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k he hK hζ hζe τ φ₀ f
 
 /-- `datumHom f` on the residues of `B₁`. -/
-lemma datumHom_f₁ {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} (f : C.L →ₐ[K] C'.L) :
+lemma datumHom_f₁ {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} [CovRational θ M' C]
+    [CovRational θ M' C'] (f : C.L →ₐ[K] C'.L) :
     (𝔥 f).f₁ = OmegaPair.csMap (J θ (R := (twoChart (ε * ϖ ^ m) b₄ t κ).R1)) (CovData.map1 f)
       (CovData.map1_algebraMap f) :=
   rfl
 
 /-- `datumHom f` on the residues of `B₀`. -/
-lemma datumHom_f₀ {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} (f : C.L →ₐ[K] C'.L) :
+lemma datumHom_f₀ {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} [CovRational θ M' C]
+    [CovRational θ M' C'] (f : C.L →ₐ[K] C'.L) :
     (𝔥 f).f₀ = OmegaPair.csMap (J θ (R := (twoChart (ε * ϖ ^ m) b₄ t κ).R0)) (CovData.map0 f)
       (CovData.map0_algebraMap f) :=
   rfl
 
 /-- **`datumHom` of the identity.** -/
-theorem datumHom_id (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
+theorem datumHom_id (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) [CovRational θ M' C] :
     (𝔥 (AlgHom.id K C.L)) = Datum.Hom.id (𝔇 C) :=
   OmegaPair.Hom.ext
     (OmegaPair.csMap_eq_id (J θ (R := (twoChart (ε * ϖ ^ m) b₄ t κ).R1)) (CovData.map1 _)
@@ -256,7 +290,8 @@ theorem datumHom_id (C : Cov ϖ b₄ b₆ t κ ε m hκ q e K) :
       (CovData.map0_algebraMap _) CovData.map0_id)
 
 /-- **`datumHom` of a composition.** -/
-theorem datumHom_comp {C C' C'' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} (f : C.L →ₐ[K] C'.L)
+theorem datumHom_comp {C C' C'' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} [CovRational θ M' C]
+    [CovRational θ M' C'] [CovRational θ M' C''] (f : C.L →ₐ[K] C'.L)
     (g : C'.L →ₐ[K] C''.L) : (𝔥 (g.comp f)) = Datum.Hom.comp (𝔥 g) (𝔥 f) :=
   OmegaPair.Hom.ext
     (OmegaPair.csMap_eq_comp (J θ (R := (twoChart (ε * ϖ ^ m) b₄ t κ).R1)) (CovData.map1 f)

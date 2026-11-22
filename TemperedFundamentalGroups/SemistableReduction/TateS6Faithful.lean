@@ -161,7 +161,7 @@ section Functor
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
   {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
   {hκ : κ * (t ^ 2 - b₆) = 1} (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
@@ -206,7 +206,8 @@ local notation "𝔥" f:max => datumHom hϖ hker hε h3 hE hb₆ hqM hq hM' hM'k
 
 /-- **I3, injectivity: the special-fibre datum functor is faithful.** Two `K`-algebra maps of
 tame covers with the same morphism of special-fibre data are equal. -/
-theorem datumHom_injective {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} :
+theorem datumHom_injective {C C' : Cov ϖ b₄ b₆ t κ ε m hκ q e K} [CovRational θ M' C]
+    [CovRational θ M' C'] :
     Function.Injective (fun f : C.L →ₐ[K] C'.L ↦ 𝔥 f) := by
   intro f g hfg
   obtain ⟨P, hPm, hϖP, hJP, y₁, y₂, hx, hy, hm⟩ :=

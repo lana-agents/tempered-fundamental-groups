@@ -58,7 +58,7 @@ set_option maxHeartbeats 4000000 in
 /-- **The level data of the M2 lift over the Tate node chart** (`FormalLevel.NodeLevels` for the
 tower `towerS6`): level nodes `(sIdeal 𝔪ⱼ).comap red`, residue maps `resMap`, node coordinates
 `hχL_S6`, lifted idempotents (uniqueness of idempotents), étaleness `formallyEtale_Rn`. -/
-def levelsS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
+def levelsS6 [hθ : Fact (Function.Surjective θ)]
     [IsDomain O] [IsDiscreteValuationRing O] (hϖ : Irreducible ϖ)
     (hker : RingHom.ker θ = Ideal.span {ϖ})
     [NeZero m] (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
@@ -69,7 +69,7 @@ def levelsS6 [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
     (L : Type u) [Field L] [Algebra K L] [FiniteDimensional K L] [IsGalois K L]
     (hL : (finrank K L).Coprime q) [Algebra 𝒩 L] [IsScalarTower 𝒩 K L]
     (B : Type u) [CommRing B] [Algebra 𝒩 B] [Algebra B L] [IsScalarTower 𝒩 B L]
-    [IsIntegralClosure B 𝒩 L]
+    [IsIntegralClosure B 𝒩 L] [Fact (NodeNbhdRational θ b₄ b₆ ϖ m ε M' B)]
     (hreg : ∀ (P : Ideal 𝒩) [P.IsMaximal], algebraMap O 𝒩 ϖ ∈ P →
       NodeChart.fR (π := ϖ) (e := m) 𝒩 ∉ P →
       ∃ x y : Localization.AtPrime P, Prime x ∧ y ∉ Ideal.span {x} ∧
