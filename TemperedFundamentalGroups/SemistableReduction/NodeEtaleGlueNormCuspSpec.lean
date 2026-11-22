@@ -45,7 +45,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {cov₁ : Admissible.Covering φ₁ ψ₁} {πL₁ : cov₁.ι → O}
   {I : Input θ cov₁ πL₁} (V : Overlap I) (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
   {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]
   {hJ : ∀ j, J θ (R := R) ≤ 𝔪 j} {s : R} {E : ι → ℕ}
   {D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)} {g : R}
@@ -129,7 +129,7 @@ variable (q0 : ∀ n, P.R0 →+* X0 n)
   (hk1 : ∀ n, RingHom.ker (q1 n) = (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O P.R1))
 
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **The reduction of `algOfCuspLevelsW` at level `1` on the second chart** is
 `yEquiv ∘ ρX1 0 ∘ q1 0` (if `e1 0 = yEquiv ∘ ρX1 0`). -/
 theorem algOfCuspLevelsW_f1_one [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]
@@ -141,7 +141,7 @@ theorem algOfCuspLevelsW_f1_one [Module.Finite O[X] (Module.AEval' P.chartModule
       I.yEquiv hθ.out hO hJ0 (ρX1 0 (q1 0 b)) :=
   he1 (q1 0 b)
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **The reduction of `algOfCuspLevelsW` at level `1` on the first chart** is
 `r0Equiv' ∘ ρX0 0 ∘ q0 0` for the bottom identification `bot` of the cusp patch (if
 `e1 0 = yEquiv ∘ ρX1 0`; L3). -/
@@ -158,7 +158,7 @@ theorem algOfCuspLevelsW_f0_one [Module.Finite O[X] (Module.AEval' P.chartModule
   V.r0Equiv'_symm_levelEquiv0P hO Dp Vc hkI hT hP0 0 (e1.equiv 0) (ωn 0) (t 0) (ht 0) (htloc 0)
     (ρX1 0) (ρX0 0) (hρ 0) (hJm 0) (hψ1 0) (hx1 0) (hω 0) hJ0 hJ0' bot hbot he1 (q0 0 b)
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **Maps of the base into the second chart compatible with the reductions reduce to the
 structure maps** `B0 → Y n` under `algOfCuspLevelsW`. -/
 theorem algOfCuspLevelsW_base [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]
@@ -176,7 +176,7 @@ set_option hygiene false in
 local notation "𝒜" => V.algOfCuspLevelsW hO Dp Vc hkI hT hP0 P e1 μ0 ωn t ht htloc ρX1 ρX0 hρ hJm
   hψ1 hx1 hω q0 hq0O q1 hq1O hx hy hW hμt hμ0 hμ1 ϖ h hs0 hs1 hk0 hk1
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 include hk1 in
 /-- **The hypotheses `hsep`, `hψ1`, `hA1`, `hA0` of `mapH_spec` for `A = algOfCuspLevelsW …`**
 (`algOfCuspLevelsW_sep1`, `_base`, `_f1_one`, `_f0_one`), for one instantiation at concrete data. -/

@@ -43,7 +43,7 @@ def LevelPointForm.cast {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
   (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j) {s : R} {E : ι → ℕ}
   (D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)) {g : R}
@@ -64,7 +64,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   (T : LevelTower.Data (θ := θ) Rt (cov₀ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk) πL)
   (he : ∀ l (r : R), T.e l (Ideal.Quotient.mk _ r) = Ideal.Quotient.mk _ (algebraMap R (Rt l) r))
 
-omit [IsSepClosed k] [∀ l, IsNoetherianRing (Rt l)] [∀ l, IsScalarTower O R (Rt l)]
+omit [∀ l, IsNoetherianRing (Rt l)] [∀ l, IsScalarTower O R (Rt l)]
   [∀ l, IsScalarTower O (Rt (l + 1)) (Rt l)] in
 /-- The reductions `ρ` of consecutive levels are compatible with `levelMap`. -/
 lemma ρ_levelMap (l : ℕ) (z : Rt (l + 1) ⊗[R] B) :
@@ -141,7 +141,7 @@ def φ₁ (l : ℕ) : Rt l ⊗[R] B →ₐ[Rt l] (T.level l).P :=
   haveI := V.etale l
   (exists_φ₁ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt T.hfe he πL (T.level l)).choose
 
-omit [IsSepClosed k] [∀ l, IsScalarTower O (Rt (l + 1)) (Rt l)]
+omit [∀ l, IsScalarTower O (Rt (l + 1)) (Rt l)]
   [∀ l, IsScalarTower R (Rt (l + 1)) (Rt l)] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 lemma isLocalization_φ₁ (l : ℕ) : letI := (V.φ₁ l).toRingHom.toAlgebra
     IsLocalization.Away (algebraMap (Rt l) (Rt l ⊗[R] B) (T.f l)) (T.level l).P :=
@@ -149,7 +149,7 @@ lemma isLocalization_φ₁ (l : ℕ) : letI := (V.φ₁ l).toRingHom.toAlgebra
   (exists_φ₁ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt T.hfe he πL
     (T.level l)).choose_spec.1
 
-omit [IsSepClosed k] [∀ l, IsScalarTower O (Rt (l + 1)) (Rt l)]
+omit [∀ l, IsScalarTower O (Rt (l + 1)) (Rt l)]
   [∀ l, IsScalarTower R (Rt (l + 1)) (Rt l)] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 lemma σP_φ₁ (l : ℕ) (z : Rt l ⊗[R] B) :
     (T.level l).σP (Ideal.Quotient.mk _ (V.φ₁ l z)) = algebraMap _ _
@@ -167,12 +167,12 @@ def equiv (l : ℕ) : Rt l ⊗[R] B ≃ₐ[Rt l] T.G hθ.out l :=
   levelPatchEquiv 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt T.hfe he πL (T.level l)
     (V.hinj l) (V.hf l) (V.hrad l) (V.hm l) (V.Ψ l) (V.htL l) (V.hδL l) hO
 
-omit [IsSepClosed k] [∀ l, IsScalarTower O (Rt (l + 1)) (Rt l)]
+omit [∀ l, IsScalarTower O (Rt (l + 1)) (Rt l)]
   [∀ l, IsScalarTower R (Rt (l + 1)) (Rt l)] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 lemma equiv_fst (l : ℕ) (z : Rt l ⊗[R] B) : (V.equiv hO l z).1.1 = V.φ₁ l z := rfl
 
 set_option maxRecDepth 20000 in
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **The level patches of the M2 lift form a tower**: `equiv` commutes with the transition maps
 `tr` of the tower and the maps `Rt (l+1) ⊗_R B → Rt l ⊗_R B`. -/
 theorem equiv_tr (l : ℕ) (z : Rt (l + 1) ⊗[R] B) :
@@ -189,7 +189,7 @@ theorem equiv_tr (l : ℕ) (z : Rt (l + 1) ⊗[R] B) :
     (ρ_levelMap 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt T he l) z
     _ _ rfl rfl
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- `equiv_tr` in the form `FormalCuspLevel.TrCompat` (a predicate on the family of level
 identifications). -/
 theorem trCompat : TrCompat T hO (V.equiv hO) :=

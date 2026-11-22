@@ -193,8 +193,10 @@ lemma pointCuspData_of_mem
     (𝔪 : Ideal ℛ) [𝔪.IsMaximal] (hJ : J θ (R := ℛ) ≤ 𝔪) (hs : 𝓈 ∈ 𝔪) (hz : 𝓏 ∈ 𝔪) :
     haveI := finiteType_Rc (O := O) (π := π) (b₄ := b₄) (t := t) (κ := κ)
     (pointCuspFormDataOf 𝔪 hJ (FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ)
-      (CuspNormAtData.ofIsCuspNormAt (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd B
-        hunr 𝔪 hJ hs hz))).mono (dvd_of_eq (eP_of_mem hz).symm) =
+      (CuspNormAtData.ofIsCuspNormAtK hJ
+        (FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ)
+        (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd B hunr 𝔪 hJ hs hz))).mono
+      (dvd_of_eq (eP_of_mem hz).symm) =
       pointCuspData hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr 𝔪 hJ hs := by
   rw [pointCuspData, dif_pos hz]
 
@@ -416,7 +418,8 @@ def ΨC
   by_cases hz : 𝓏 ∈ mC θ π b₄ t κ j
   · haveI := finiteType_Rc (O := O) (π := π) (b₄ := b₄) (t := t) (κ := κ)
     have hres := FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) _ (J_le_mC θ π b₄ t κ j)
-    let CN := CuspNormAtData.ofIsCuspNormAt (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd
+    let CN := CuspNormAtData.ofIsCuspNormAtK (J_le_mC θ π b₄ t κ j) hres
+      (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd
       B hunr _ (J_le_mC θ π b₄ t κ j) (sC_mem_mC θ π b₄ t κ j) hz)
     let r : CN.N₁ →ₐ[ℛ] EtaleTower.Tn ϖ ℛ l ⧸
         (sIdeal (θ := θ) (mC θ π b₄ t κ j)).comap (red θ ((𝒯).e l)) :=

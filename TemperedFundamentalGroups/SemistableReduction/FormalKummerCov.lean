@@ -34,7 +34,7 @@ open KummerEtale AdmissibleLift
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ϖ : O} {n M' : ℕ} {x y : R}
 
 /-- **The admissible covering of the special fibre defined by `B`** (see the module docstring). -/

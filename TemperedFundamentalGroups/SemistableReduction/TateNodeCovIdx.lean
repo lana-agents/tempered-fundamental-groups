@@ -41,8 +41,8 @@ def nodeResidue (hθ : Function.Surjective θ) (hϖ : θ ϖ = 0) (hm : 1 ≤ m) 
   (RingHom.quotientKerEquivOfSurjective (evNode_surjective hθ hϖ hm j)).symm
 
 /-- **The node points of `B` ↔ the Kummer factors at the node `j`**, for any choice of the
-Kummer data `D` at `j` (`k` separably closed). -/
-def nodePrimesEquiv [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
+Kummer data `D` at `j` (whose residue field extension is trivial, `D.resSurj`). -/
+def nodePrimesEquiv [hθ : Fact (Function.Surjective θ)]
     (hker : RingHom.ker θ = Ideal.span {ϖ}) [NeZero m] {M' : ℕ} {B : Type u} [CommRing B]
     [Algebra 𝒩 B] (j : Fin 2)
     (D : FormalKummer.KummerNormAtData ϖ m M' (uR b₄ b₆ ϖ m ε) (vR b₄ b₆ ϖ m ε) B
@@ -50,10 +50,7 @@ def nodePrimesEquiv [hθ : Fact (Function.Surjective θ)] [IsSepClosed k]
     PrimesOver B (nodeIdeal b₄ b₆ ϖ m ε (θ_ϖ hker) (Nat.pos_of_neZero m) j) ≃ Fin D.r :=
   haveI := isMaximal_nodeIdeal (b₄ := b₄) (b₆ := b₆) (ε := ε) hθ.out (θ_ϖ hker)
     (Nat.pos_of_neZero m) j
-  D.primesEquiv
-    (EtaleResidue.surjective_of_isSepClosed' _ D.𝔫 D.comap_eq
-      (nodeResidue hθ.out (θ_ϖ hker) (Nat.pos_of_neZero m) j).toRingHom
-      (nodeResidue hθ.out (θ_ϖ hker) (Nat.pos_of_neZero m) j).surjective)
+  D.primesEquiv D.resSurj
     (genIdeal_le_nodeIdeal _ _ j (uR_mem j)) (genIdeal_le_nodeIdeal _ _ j (vR_mem j))
     (ϖ_mem_nodeIdeal hker (Nat.pos_of_neZero m) j) (Nat.pos_of_neZero m)
 

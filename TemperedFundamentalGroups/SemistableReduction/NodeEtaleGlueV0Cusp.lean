@@ -41,7 +41,7 @@ open FormalKummer AdmissibleLift FormalLevel NodeEtaleGlue
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]
   {hJ : ∀ j, J θ (R := R) ≤ 𝔪 j} {s : R} {E : ι → ℕ}
   {D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)} {g : R}
@@ -110,7 +110,7 @@ namespace CuspLevels
 def inputEquivP (l : ℕ) : Dp.R l ⊗[R] B ≃ₐ[Dp.R l] Dp.G hθ.out l :=
   (V.equiv hO l).trans (LevelTower.Data.GEquivOfInst _ Dp.algkR hkI T' Dp.T hT hθ.out l)
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 set_option maxRecDepth 20000 in
 /-- **The level patches of `V` as the patches of `Dp` form a tower.** -/
 theorem inputEquivP_tr (l : ℕ) (z : Dp.R (l + 1) ⊗[R] B) :
@@ -136,10 +136,10 @@ def φPX : letI := ((algebraMap (B' l) (Dp.G hθ.out l)).comp (algebraMap B0' (B
       rw [ht, AlgEquiv.commutes]
       rfl }
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 lemma φPX_apply (x : X) : V.φPX Dp hO hkI hT t ht x = V.inputEquivP Dp hO hkI hT l (t x) := rfl
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 include ht in
 /-- The patch side of `X` is a localization away from `c₀`. -/
 theorem isLocalization_φPX (htloc : letI := t.toAlgebra
@@ -149,7 +149,7 @@ theorem isLocalization_φPX (htloc : letI := t.toAlgebra
     IsLocalization.Away (algebraMap B0' X c0) (Dp.G hθ.out l) :=
   RingHomAway.equiv _ (V.inputEquivP Dp hO hkI hT l).toRingEquiv _ htloc
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 set_option maxRecDepth 20000 in
 /-- **The patch sides form a tower**: for `μ : X' → X` (levels `l + 1`, `l`) compatible with the
 maps `t` and `levelMap`, `φPX` commutes with the transition maps `trG` of the patch. -/
@@ -165,7 +165,7 @@ variable (ρX : X →+* C0)
   (hρ : letI := fun l ↦ QuadNodeTower.algK (θ := θ) (Dp.R l)
     ∀ x, ρ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Dp.R T'.hfe he l (t x) = Dp.ι₀ (ρX x))
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII [Algebra B0' X] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII [Algebra B0' X] in
 set_option maxRecDepth 20000 in
 include hρ in
 /-- **The special fibre of the patch side on `D(x₀)` is `ℓ0 ∘ ρX`** (the hypothesis `hPℓ` of
@@ -180,7 +180,7 @@ theorem mk_Loc_φPX (x : X) :
   exact LevelTower.Data.GEquivOfInst_σP _ Dp.algkR hkI T' Dp.T hT hθ.out l
     (V.equiv hO l (t x)) (Dp.ι₀ (ρX x)) h
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 set_option linter.unusedSectionVars false in
 -- `V` is included for field notation at the instances
 include V in

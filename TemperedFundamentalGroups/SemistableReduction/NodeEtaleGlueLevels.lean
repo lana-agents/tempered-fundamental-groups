@@ -117,7 +117,7 @@ attribute [local instance] KummerNormAtData.algO
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ϖ : O} {n M' : ℕ} {x y : R}
   {hxy : x * y = algebraMap O R (ϖ ^ n)} {hϖ : θ ϖ = 0} {hn0 : 0 < n}
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]
@@ -136,7 +136,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {hk : ∀ j i, ((D j).d i : k) ≠ 0}
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal]
 
-omit [IsSepClosed k] [IsNoetherianRing R] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [IsNoetherianRing R] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- `levelMap` on `1 ⊗ b`. -/
 lemma levelMap_one_tmul {Rt : ℕ → Type u} [∀ l, CommRing (Rt l)] [∀ l, Algebra R (Rt l)]
     [∀ l, Algebra (Rt (l + 1)) (Rt l)] [∀ l, IsScalarTower R (Rt (l + 1)) (Rt l)] (l : ℕ)

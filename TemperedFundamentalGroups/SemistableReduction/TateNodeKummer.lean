@@ -141,7 +141,11 @@ def kummerDataNR [hθ : Fact (Function.Surjective θ)] [IsSepClosed k] [IsDomain
     [IsIntegralClosure B 𝒩 L] (j : Fin 2) :
     KummerNormAtData ϖ m M' (uR b₄ b₆ ϖ m ε) (vR b₄ b₆ ϖ m ε) B
       (nodeIdeal b₄ b₆ ϖ m ε (θ_ϖ hker) (Nat.pos_of_neZero m) j) :=
-  KummerNormAtData.ofIsKummerNormAt (isKummerNormAt_NR hϖ hker hε hqM hq hM' K hζ L hL hunr B j)
+  haveI := isMaximal_nodeIdeal (b₄ := b₄) (b₆ := b₆) (ε := ε) hθ.out (θ_ϖ hker)
+    (Nat.pos_of_neZero m) j
+  KummerNormAtData.ofIsKummerNormAtK (J_le_nodeIdeal (θ_ϖ hker) (Nat.pos_of_neZero m) j)
+    (surjective_mk_comp_algebraMap hθ.out (θ_ϖ hker) (Nat.pos_of_neZero m) j)
+    (isKummerNormAt_NR hϖ hker hε hqM hq hM' K hζ L hL hunr B j)
 
 /-- **The formal Kummer form of the special fibre of a tame cover of the Tate node chart along the
 nodes**, defined from the chosen data `kummerDataNR` (refactor R1). -/

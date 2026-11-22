@@ -212,24 +212,24 @@ instance KummerNormAtData.isScalarTower_algO {ϖ : O} {n M' : ℕ} {x y : R} {�
     (D : KummerNormAtData ϖ n M' x y B 𝔪) : IsScalarTower O R D.N₁ :=
   IsScalarTower.of_algebraMap_eq' rfl
 
-variable [IsSepClosed k] {ϖ : O} {n M' : ℕ} {x y : R}
+variable {ϖ : O} {n M' : ℕ} {x y : R}
   (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
   (𝔪 : Ideal R) [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
   (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R)))
   (D : KummerNormAtData ϖ n M' x y B 𝔪)
 
-omit hθ [IsSepClosed k] in
+omit hθ in
 include hϖ hn0 in
 lemma hn_of : θ (ϖ ^ n) = 0 := by rw [map_pow, hϖ, zero_pow hn0.ne']
 
-omit hθ [IsSepClosed k] [𝔪.IsMaximal] in
+omit hθ [𝔪.IsMaximal] in
 include hϖ hn0 in
 lemma hc_of (i : Fin D.r) : θ (ϖ ^ D.m i) = 0 := by
   have : 0 < D.m i := Nat.pos_of_ne_zero fun h0 ↦ hn0.ne' (by
     rw [← D.hmd i]; exact (congrArg (· * D.d i) h0).trans (zero_mul _))
   rw [map_pow, hϖ, zero_pow this.ne']
 
-omit hθ [IsSepClosed k] [𝔪.IsMaximal] in
+omit hθ [𝔪.IsMaximal] in
 include hJ in
 lemma hcomap_of : (D.𝔫.map (Ideal.Quotient.mk (J θ (R := D.N₁)))).comap
     (algebraMap (Rs θ R) (Ns θ D.N₁)) = sIdeal (θ := θ) 𝔪 := by
@@ -241,17 +241,13 @@ lemma hcomap_of : (D.𝔫.map (Ideal.Quotient.mk (J θ (R := D.N₁)))).comap
   rw [Ideal.mem_comap, algebraMap_RN, Ideal.mem_quotient_iff_mem hJ𝔫,
     Ideal.mem_quotient_iff_mem hJ, ← Ideal.mem_comap, D.comap_eq]
 
+set_option linter.unusedSectionVars false in
+-- `hJ`, `hres` are no longer used (S5.7: `D.resSurj`); kept so that the downstream spellings
+-- `hsurj0_of 𝔪 hJ hres D` are unchanged
 include hJ hres in
-/-- The residue field extension of the étale neighbourhood is trivial (`k` separably closed). -/
-lemma hsurj0_of : Function.Surjective ((Ideal.Quotient.mk D.𝔫).comp (algebraMap R D.N₁)) := by
-  have hρ : Function.Surjective ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R))) := by
-    intro z
-    obtain ⟨o, ho⟩ := hres z
-    refine ⟨θ o, ?_⟩
-    rw [RingHom.comp_apply, QuadNodeTower.algK_θ, Ideal.Quotient.factor_mk]
-    exact ho
-  exact EtaleResidue.surjective_of_isSepClosed' 𝔪 D.𝔫 D.comap_eq
-    ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R))) hρ
+/-- The residue field extension of the étale neighbourhood is trivial (`D.resSurj`). -/
+lemma hsurj0_of : Function.Surjective ((Ideal.Quotient.mk D.𝔫).comp (algebraMap R D.N₁)) :=
+  D.resSurj
 
 include hJ hres in
 lemma hsurj_of : Function.Surjective
@@ -316,7 +312,7 @@ theorem nodeEquivOf_one_tmul (b : B) (i : Fin D.r) :
     ← map_one (Ideal.Quotient.mk (J θ (R := D.N₁))), redSplitEquiv_mk_tmul, map_redTensorMap]
   rfl
 
-omit hθ [IsSepClosed k] [𝔪.IsMaximal] in
+omit hθ [𝔪.IsMaximal] in
 lemma le_comap_sIdeal : 𝔪 ≤ (sIdeal (θ := θ) 𝔪).comap (algebraMap R (Rs θ R)) :=
   fun _ ha ↦ Ideal.mem_map_of_mem _ ha
 
@@ -380,7 +376,7 @@ attribute [local instance] algRN KummerNormAtData.algO
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
   {B : Type u} [CommRing B] [Algebra R B]
-  [IsSepClosed k] [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
+  [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
   (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
   {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
   (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j)

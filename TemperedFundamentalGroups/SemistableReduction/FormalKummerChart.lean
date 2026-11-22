@@ -26,6 +26,12 @@ the étale neighbourhoods of `IsKummerNormAt` have trivial residue field extensi
 `EtaleResidue.surjective_of_isSepClosed'`).
 
 Proof: `FormalKummer.nodeEquiv` at every node, assembled by `FormalKummer.assembleEquiv`.
+
+**Residue hypothesis (S5.7, refactor of `[IsSepClosed k]`):** the chosen data
+`KummerNormAtData` carry the triviality of the residue field extension of the étale
+neighbourhood (`resSurj`); the formal Kummer forms `nodeEquivOf`, `kummerEquivOf` and everything
+built on them need no assumption on `k`. Separable closedness enters only where the data are
+chosen (`KummerNormAtData.ofIsKummerNormAt`, `ofIsKummerNormAtK`; same for `CuspNormAtData`).
 -/
 
 universe u
@@ -82,6 +88,9 @@ structure KummerNormAtData (ϖ : O) (n M' : ℕ) (x y : R) (B : Type u) [CommRin
   /-- The node chart `O[u, v]/(uv − ϖⁿ) → N₁` is étale. -/
   het : letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
     (Node.lift _ _ huv).toRingHom.Etale
+  /-- The residue field extension at `𝔫` is trivial (S5.7: the only residue hypothesis of the
+  formal Kummer forms; from a separably closed residue field, `ofIsKummerNormAt`). -/
+  resSurj : Function.Surjective ((Ideal.Quotient.mk 𝔫).comp (algebraMap R N₁))
   /-- The Kummer splitting. -/
   Φ : letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
     N₁ ⊗[R] B ≃ₐ[N₁] ∀ i, @KummerNodeFactor O _ (ϖ ^ (n / d i)) (d i) N₁ _
@@ -96,19 +105,45 @@ abbrev KummerNormAtData.m {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R}
     (D : KummerNormAtData ϖ n M' x y B 𝔪) (i : Fin D.r) : ℕ :=
   n / D.d i
 
-/-- **The chosen data of `IsKummerNormAt`.** -/
-def KummerNormAtData.ofIsKummerNormAt {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R}
+/-- **The chosen data of `IsKummerNormAt`**, at a point `𝔪` whose residue field is a quotient of
+a separably closed field `K'` (`ρ`), so that the residue field extension of the étale
+neighbourhood is trivial (`EtaleResidue.surjective_of_isSepClosed'`). -/
+def KummerNormAtData.ofIsKummerNormAt {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R} [𝔪.IsMaximal]
+    {K' : Type*} [Field K'] [IsSepClosed K'] (ρ : K' →+* R ⧸ 𝔪) (hρ : Function.Surjective ρ)
     (h : IsKummerNormAt ϖ n M' x y B 𝔪) : KummerNormAtData ϖ n M' x y B 𝔪 :=
   Classical.choice (by
     obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, huv, het, -, -, r, m, d, hd, hdM, hmd, ⟨Φ⟩⟩ := h
     obtain rfl : m = fun i ↦ n / d i :=
       funext fun i ↦ (Nat.div_eq_of_eq_mul_left (hd i) (hmd i).symm).symm
     exact ⟨{ N₁ := N₁, 𝔫 := 𝔫, comap_eq := h𝔫, r := r, d := d, hd := hd,
-             hdM := hdM, hmd := hmd, huv := huv, het := het, Φ := Φ }⟩)
+             hdM := hdM, hmd := hmd, huv := huv, het := het,
+             resSurj := EtaleResidue.surjective_of_isSepClosed' 𝔪 𝔫 h𝔫 ρ hρ, Φ := Φ }⟩)
 
-/-- **The local formal Kummer form at a node with separably closed residue field**, defined from
-the data `D` (`nodeEquiv` for the splitting `D.Φ`). -/
-def nodeEquivOf [IsSepClosed k] {ϖ : O} {n M' : ℕ} {x y : R}
+/-- The residue map `k → R/𝔪` at a `k`-rational point `𝔪 ⊇ J` is surjective. -/
+lemma factor_comp_surjective {𝔪 : Ideal R} (hJ : J θ (R := R) ≤ 𝔪)
+    (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R))) :
+    Function.Surjective ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R))) := by
+  intro z
+  obtain ⟨o, ho⟩ := hres z
+  refine ⟨θ o, ?_⟩
+  rw [RingHom.comp_apply, QuadNodeTower.algK_θ, Ideal.Quotient.factor_mk]
+  exact ho
+
+/-- **The chosen data of `IsKummerNormAt` at a `k`-rational point `𝔪 ⊇ J`** (`k` separably
+closed; `ofIsKummerNormAt` for the residue map `k → R/𝔪`). -/
+def KummerNormAtData.ofIsKummerNormAtK [IsSepClosed k] {ϖ : O} {n M' : ℕ} {x y : R}
+    {𝔪 : Ideal R} [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
+    (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R)))
+    (h : IsKummerNormAt ϖ n M' x y B 𝔪) : KummerNormAtData ϖ n M' x y B 𝔪 :=
+  ofIsKummerNormAt ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R)))
+    (factor_comp_surjective hJ hres) h
+
+set_option linter.unusedVariables false in
+-- `hres` is no longer used (S5.7: the residue hypothesis is `D.resSurj`); it is kept so that the
+-- downstream spellings `nodeEquivOf … 𝔪 hJ hres D` are unchanged
+/-- **The local formal Kummer form at a node**, defined from the data `D` (`nodeEquiv` for the
+splitting `D.Φ`; the residue field extension of `D` is trivial, `D.resSurj`). -/
+def nodeEquivOf {ϖ : O} {n M' : ℕ} {x y : R}
     (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
     (𝔪 : Ideal R) [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
     (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R)))
@@ -134,14 +169,7 @@ def nodeEquivOf [IsSepClosed k] {ϖ : O} {n M' : ℕ} {x y : R}
     obtain ⟨a, rfl⟩ := Ideal.Quotient.mk_surjective z
     rw [Ideal.mem_comap, algebraMap_RN, Ideal.mem_quotient_iff_mem hJ𝔫,
       Ideal.mem_quotient_iff_mem hJ, ← Ideal.mem_comap, D.comap_eq]
-  have hρ : Function.Surjective ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R))) := by
-    intro z
-    obtain ⟨o, ho⟩ := hres z
-    refine ⟨θ o, ?_⟩
-    rw [RingHom.comp_apply, QuadNodeTower.algK_θ, Ideal.Quotient.factor_mk]
-    exact ho
-  have hsurj0 := EtaleResidue.surjective_of_isSepClosed' 𝔪 D.𝔫 D.comap_eq
-    ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R))) hρ
+  have hsurj0 := D.resSurj
   have hsurj : Function.Surjective
       ((Ideal.Quotient.mk (D.𝔫.map (Ideal.Quotient.mk (J θ (R := D.N₁))))).comp
         (algebraMap (Rs θ R) (Ns θ D.N₁))) := by
@@ -168,7 +196,7 @@ theorem exists_nodeEquiv [IsSepClosed k] {ϖ : O} {n M' : ℕ} {x y : R}
             (xy_bar (θ := θ) hxy (by rw [map_pow, hϖ, zero_pow hn0.ne'])) (hd i) _)
         Tn θ 𝔪 ⊗[Rs θ R] Cs θ R B ≃ₐ[Tn θ 𝔪]
           ∀ i, Tn θ 𝔪 ⊗[A (0 : k) (d i)] KummerEtale.B (0 : k)) :=
-  let D := KummerNormAtData.ofIsKummerNormAt h
+  let D := KummerNormAtData.ofIsKummerNormAtK hJ hres h
   ⟨D.r, D.d, D.hd, D.hdM, ⟨nodeEquivOf hxy hϖ hn0 𝔪 hJ hres D⟩⟩
 
 omit hθ in
@@ -181,9 +209,9 @@ lemma isMaximal_sIdeal (𝔪 : Ideal R) [𝔪.IsMaximal] (hJ : J θ (R := R) ≤
   rw [Ideal.mem_quotient_iff_mem hJ] at h1
   exact Ideal.IsMaximal.ne_top ‹_› ((Ideal.eq_top_iff_one _).2 h1)
 
-/-- **The formal Kummer form of the special fibre of a chart along its nodes** (separably closed
-residue field), defined from chosen data `D j` at the nodes (`assembleEquiv` of `nodeEquivOf`). -/
-def kummerEquivOf [IsSepClosed k] [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
+/-- **The formal Kummer form of the special fibre of a chart along its nodes**, defined from chosen
+data `D j` at the nodes (`assembleEquiv` of `nodeEquivOf`). -/
+def kummerEquivOf [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
     (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
     {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
     (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j)
@@ -223,7 +251,7 @@ theorem exists_kummer [IsSepClosed k] [IsNoetherianRing R] {ϖ : O} {n M' : ℕ}
         ∀ p : (Σ j, Fin (r j)), Admissible.KummerPiece φ
           (CompletionProd.idem hinj hf hrad p.1) (hd p.1 p.2)) := by
   haveI := Fintype.ofFinite ι
-  let D := fun j ↦ KummerNormAtData.ofIsKummerNormAt (hK j)
+  let D := fun j ↦ KummerNormAtData.ofIsKummerNormAtK (hJ j) (hres j) (hK j)
   exact ⟨fun j ↦ (D j).r, fun j ↦ (D j).d, fun j ↦ (D j).hd, fun j ↦ (D j).hdM,
     ⟨kummerEquivOf hxy hϖ hn0 𝔪 hJ hres D hinj hf hrad φ hφu hφv⟩⟩
 

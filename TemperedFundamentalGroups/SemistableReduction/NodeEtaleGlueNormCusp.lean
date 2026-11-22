@@ -47,7 +47,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {cov₁ : Admissible.Covering φ₁ ψ₁} {πL₁ : cov₁.ι → O}
   {I : Input θ cov₁ πL₁} (V : Overlap I) (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
   {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]
   {hJ : ∀ j, J θ (R := R) ≤ 𝔪 j} {s : R} {E : ι → ℕ}
   {D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)} {g : R}
@@ -129,7 +129,7 @@ variable (q0 : ∀ n, P.R0 →+* X0 n)
         algebraMap (X1 n) (Localization.Away (algebraMap I.B0 (X1 n) V.x1))
           (algebraMap I.B0 (X1 n) V.x1) ^ k = algebraMap (X1 n) _ (q1 n m)))
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 include hW in
 /-- The hypothesis `hρ` of `βOf` for `e0Cusp` from witnesses of `ωn` on the overlap of `P`. -/
 theorem hρ_e0Cusp (n : ℕ) (a : P.R0) (m : P.R1) (k : ℕ) (h : P.ρ0 a * P.ρ1 P.y ^ k = P.ρ1 m) :
@@ -140,7 +140,7 @@ theorem hρ_e0Cusp (n : ℕ) (a : P.R0) (m : P.R1) (k : ℕ) (h : P.ρ0 a * P.ρ
   V.hρ_of_fst hθ.out hO P e1 q1 hq1O _ q0 hq0O (fun n a m k h ↦
     V.φQn_mul_pow hθ.out n (e1.equiv n) (ωn n) (q0 n a) (q1 n m) k (hW n a m k h)) n a m k h
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 include Vc hkI hT hP0 e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω q0 hq0O q1 hq1O hx hy hW in
 /-- **G5 with the patch over `D(c₀)` from cusp level data: the covering is the algebraization of
 `P`**: every algebraization `(N, BN, α)` of a system `S = V.system` is isomorphic to `P` as a chart
@@ -190,7 +190,7 @@ theorem exists_iso_of_cuspLevels [IsNoetherianRing O] [IsAdicComplete (Ideal.spa
       (hω2 n) x)
     hμ0 hμ1 hs0 hs1 hk0 hk1 hS hα hαc hBN
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 include Vc hkI hT hP0 e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω q0 hq0O q1 hq1O hx hy hW in
 /-- **`exists_iso_of_cuspLevels` with the common witnesses `hω2` from `hW`** (for `b ∈ P.R0` a
 witness `ρ0 b · ρ1 yᵏ = ρ1 m` exists in every two-chart ring, `TwoChartRings.exists1`; `hW` at the
@@ -230,7 +230,7 @@ variable {D : TwoChartRings O} (b : BaseMap V D) (ψP : TwoChartMap D P)
   (hq0B : ∀ n r, q0 n (ψP.f0 r) = algebraMap V.B0' (X0 n) (b.a0 r))
   (hq1B : ∀ n r, q1 n (ψP.f1 r) = algebraMap I.B0 (X1 n) (b.a1 r))
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 include Vc hkI hT hP0 e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω q0 hq0O q1 hq1O hx hy hW
   hq0B hq1B in
 /-- **`exists_iso_of_cuspLevels` with the structure maps**: the isomorphism `γ : P ≅ N` sends the
@@ -284,7 +284,7 @@ theorem exists_iso_of_cuspLevels_base [IsNoetherianRing O]
       (hω2 n) x)
     hμ0 hμ1 b ψP hq0B hq1B hs0 hs1 hk0 hk1 hS hα hαc hBN hψ
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 include Vc hkI hT hP0 e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω q0 hq0O q1 hq1O hx hy hW
   hq0B hq1B in
 /-- **`exists_iso_of_cuspLevelsW` with the structure maps**: the isomorphism `γ : P ≅ N` sends the

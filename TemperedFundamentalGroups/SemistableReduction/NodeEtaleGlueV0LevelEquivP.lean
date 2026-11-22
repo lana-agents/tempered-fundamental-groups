@@ -47,7 +47,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {cov₁ : Admissible.Covering φ₁ ψ₁} {πL₁ : cov₁.ι → O}
   {I : Input θ cov₁ πL₁} (V : Overlap I) (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
   {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]
   {hJ : ∀ j, J θ (R := R) ≤ 𝔪 j} {s : R} {E : ι → ℕ}
   {D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)} {g : R}
@@ -88,7 +88,7 @@ def φPof : letI := ((algebraMap (V.B' l) (P.P l)).comp (algebraMap V.B0' (V.B' 
   subst hP
   exact Vc.φPX Dp hO hkI hT t ht
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 /-- The patch side is a localization away from `c₀`. -/
 theorem hPof (htloc : letI := t.toAlgebra
     IsLocalization.Away (algebraMap V.B0' X V.c0) (Dp.R l ⊗[R] B)) :
@@ -98,7 +98,7 @@ theorem hPof (htloc : letI := t.toAlgebra
   subst hP
   exact Vc.isLocalization_φPX Dp hO hkI hT t ht htloc
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 /-- **The special fibre of the patch side on `D(x₀)` is `ℓ0 ∘ ρX`.** -/
 theorem hPℓof (ρX : X →+* V.C0)
     (hρ : letI := fun l ↦ QuadNodeTower.algK (θ := θ) (Dp.R l)
@@ -110,7 +110,7 @@ theorem hPℓof (ρX : X →+* V.C0)
   subst hP
   exact Vc.mk_Loc_φPX Dp hO hkI hT t ρX hρ x
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **The patch sides commute with the successor maps of the piece.** -/
 theorem sP_φPof {X' : Type u} [CommRing X'] [Algebra V.B0' X']
     (t' : X' →+* Dp.R (l + 1) ⊗[R] B)
@@ -155,7 +155,7 @@ variable (hP0 : V.P0 = Dp.piece hθ.out hO) (n : ℕ)
         algebraMap I.C1 (Localization.Away (algebraMap I.Bs I.C1 V.x1s))
           (algebraMap I.Bs I.C1 V.x1s) ^ k = algebraMap I.C1 _ (ρX1 y))
 
-omit hθ [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit hθ [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **The hypothesis `hx1`** for a reduction `ρX1` over `I.B n` (`x₁` comes from `I.B n`). -/
 theorem hx1_of_algHom [towerB : IsScalarTower I.B0 (I.B n) X1] :
     ρX1 (algebraMap I.B0 X1 V.x1) = algebraMap I.Bs I.C1 V.x1s := by
@@ -163,7 +163,7 @@ theorem hx1_of_algHom [towerB : IsScalarTower I.B0 (I.B n) X1] :
   rw [IsScalarTower.algebraMap_apply I.B0 (I.B n) X1, AlgHom.commutes]
   exact congrArg (algebraMap I.Bs I.C1) (V.hx1 n)
 
-omit hθ [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit hθ [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **The hypothesis `hω` from generators** (`hω_of_mk` with `ω' = V.ω` and the reduction `ρX1`
 over `I.B n`). -/
 theorem hω_of_mkA {Z Z1 : Type u} (q0 : Z → X0) (hq0 : Function.Surjective q0) (q1 : Z1 → X1)
@@ -194,7 +194,7 @@ theorem hω_of_mkA {Z Z1 : Type u} (q0 : Z → X0) (hq0 : Function.Surjective q0
   obtain ⟨y, k, h⟩ := H b
   exact ⟨q1 y, k, h⟩
 
-omit hθ [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit hθ [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **The hypothesis `hω` from generators with choice functions** (`hω_of_mkA` with the
 witness `(yf b, kf b)` of each generator `b` given by functions, so that at concrete data no
 existential statement over the projections of `V` is formed). -/
@@ -237,12 +237,12 @@ def levelEquiv0P : letI := V.alg0'Q hθ.out n; letI := V.alg0'E n; letI := V.alg
     (V.hPof hO Dp Vc hkI hT V.P0 hP0 t ht htloc) hJm hψ1 hx1 hω
     (V.hPℓof hO Dp Vc hkI hT V.P0 hP0 t ht ρX0 hρ)
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 lemma levelEquiv0P_fst (x : X0) :
     (V.levelEquiv0P hO Dp Vc hkI hT hP0 n e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω x).1.1 =
       V.φQn hθ.out n e1 ωn x := rfl
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 lemma levelEquiv0P_snd (x : X0) :
     (V.levelEquiv0P hO Dp Vc hkI hT hP0 n e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω x).1.2 =
       V.φPof hO Dp Vc hkI hT V.P0 hP0 t ht x := rfl
@@ -283,7 +283,7 @@ variable {X1' : Type u} [CommRing X1'] [Algebra I.B0 X1'] [Algebra (I.B (n + 1))
   (he1 : ∀ y, I.Ymap hθ.out hO n (e1' y) = e1 (μ1 y))
   (hμt : ∀ x, t (μ0 x) = levelMap Dp.R n (t' x))
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 include he1 hμt in
 /-- **The levels over `V₀` form a tower** (`f0_levelEquiv0X`, with the patch sides compatible by
 `sP_φPof`). -/

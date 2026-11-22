@@ -40,7 +40,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {cov₁ : Admissible.Covering φ₁ ψ₁} {πL₁ : cov₁.ι → O}
   {I : Input θ cov₁ πL₁} (V : Overlap I) (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
   {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]
   {hJ : ∀ j, J θ (R := R) ≤ 𝔪 j} {s : R} {E : ι → ℕ}
   {D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)} {g : R}
@@ -123,7 +123,7 @@ variable (q0 : ∀ n, P.R0 →+* X0 n)
   (hk0 : ∀ n, RingHom.ker (q0 n) = (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O P.R0))
   (hk1 : ∀ n, RingHom.ker (q1 n) = (Ideal.span {ϖ} ^ (n + 1)).map (algebraMap O P.R1))
 
-omit hθ [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII
+omit hθ [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII
   [∀ n, Algebra (I.B n) (X1 n)] in
 include hW hs0 hμ0 hμ1 in
 /-- The common witnesses of consecutive levels (the hypothesis `hω2` of
@@ -164,7 +164,7 @@ def algOfCuspLevelsW [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]
       (V.hω2_of_hW P μ0 ωn q0 q1 hW hμ0 hμ1 hs0 n) x)
     hμ0 hμ1 ϖ h hs0 hs1 hk0 hk1
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- The reductions of `algOfCuspLevelsW` on the second chart: `e1 n ∘ q1 n`. -/
 lemma algOfCuspLevelsW_f1_succ [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]
     [Module.Finite O[X] (Module.AEval' P.chartModule.x1)] (n : ℕ) (b : P.R1) :
@@ -172,7 +172,7 @@ lemma algOfCuspLevelsW_f1_succ [Module.Finite O[X] (Module.AEval' P.chartModule.
       hq0O q1 hq1O hx hy hW hμt hμ0 hμ1 ϖ h hs0 hs1 hk0 hk1).α (n + 1)).f1 b =
       e1.equiv n (q1 n b) := rfl
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- The reductions of `algOfCuspLevelsW` on the first chart: `e0Cusp n ∘ q0 n`. -/
 lemma algOfCuspLevelsW_f0_succ [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]
     [Module.Finite O[X] (Module.AEval' P.chartModule.x1)] (n : ℕ) (b : P.R0) :
@@ -180,7 +180,7 @@ lemma algOfCuspLevelsW_f0_succ [Module.Finite O[X] (Module.AEval' P.chartModule.
       hq0O q1 hq1O hx hy hW hμt hμ0 hμ1 ϖ h hs0 hs1 hk0 hk1).α (n + 1)).f0 b =
       V.e0Cusp hO Dp Vc hkI hT hP0 e1 ωn t ht htloc ρX1 ρX0 hρ hJm hψ1 hx1 hω n (q0 n b) := rfl
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 include hk1 in
 /-- **The second chart of `algOfCuspLevelsW` is separated** if `⋂ₙ ϖⁿ⁺¹ P.R1 = 0`. -/
 theorem algOfCuspLevelsW_sep1 [Module.Finite O[X] (Module.AEval' P.chartModule.x0)]

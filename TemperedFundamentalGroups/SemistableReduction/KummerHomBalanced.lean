@@ -300,7 +300,7 @@ attribute [local instance] algRN KummerNormAtData.algO
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
   {B : Type u} [CommRing B] [Algebra R B]
-  [IsSepClosed k] [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
+  [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
   (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
   {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
   (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j)
@@ -413,7 +413,7 @@ attribute [local instance] algRN KummerNormAtData.algO
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
   {B B' : Type u} [CommRing B] [Algebra R B] [CommRing B'] [Algebra R B']
-  [IsSepClosed k] [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
+  [IsNoetherianRing R] {ϖ : O} {n M' : ℕ} {x y : R}
   (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
   {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
   (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j)

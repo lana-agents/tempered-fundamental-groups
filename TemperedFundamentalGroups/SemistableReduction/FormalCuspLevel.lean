@@ -258,18 +258,14 @@ lemma cHcomap : (D.𝔫.map (Ideal.Quotient.mk (J θ (R := D.N₁)))).comap
   rw [Ideal.mem_comap, algebraMap_RN, Ideal.mem_quotient_iff_mem hJ𝔫,
     Ideal.mem_quotient_iff_mem hJ, ← Ideal.mem_comap, D.comap_eq]
 
-variable [IsSepClosed k]
 
+set_option linter.unusedSectionVars false in
+-- `hJ`, `hres` are no longer used (S5.7: `D.resSurj`); kept so that the downstream spellings
+-- `cHsurj0 𝔪 hJ hres D` are unchanged
 include hJ hres in
-lemma cHsurj0 : Function.Surjective ((Ideal.Quotient.mk D.𝔫).comp (algebraMap R D.N₁)) := by
-  have hρ : Function.Surjective ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R))) := by
-    intro z
-    obtain ⟨o, ho⟩ := hres z
-    refine ⟨θ o, ?_⟩
-    rw [RingHom.comp_apply, QuadNodeTower.algK_θ, Ideal.Quotient.factor_mk]
-    exact ho
-  exact EtaleResidue.surjective_of_isSepClosed' 𝔪 D.𝔫 D.comap_eq
-    ((Ideal.Quotient.factor hJ).comp (algebraMap k (Rs θ R))) hρ
+/-- The residue field extension of the étale neighbourhood is trivial (`D.resSurj`). -/
+lemma cHsurj0 : Function.Surjective ((Ideal.Quotient.mk D.𝔫).comp (algebraMap R D.N₁)) :=
+  D.resSurj
 
 include hJ hres in
 lemma cHsurj : Function.Surjective
@@ -320,7 +316,7 @@ def hatCₐ : D.N₁ →ₐ[R] Tn θ 𝔪 :=
 lemma hatCₐ_apply (z : D.N₁) :
     hatCₐ 𝔪 hJ hres D z = toHatC 𝔪 hJ hres D (Ideal.Quotient.mk _ z) := rfl
 
-omit hθ [IsSepClosed k] [𝔪.IsMaximal] in
+omit hθ [𝔪.IsMaximal] in
 lemma le_comap_sIdeal' : 𝔪 ≤ (sIdeal (θ := θ) 𝔪).comap (algebraMap R (Rs θ R)) :=
   fun _ ha ↦ Ideal.mem_map_of_mem _ ha
 
@@ -524,7 +520,7 @@ lemma adjMap_kpoly (red : T' →ₐ[R] Tn θ 𝔪) {d : ℕ} :
       rw [eval₂_X, eval₂_X, adjMap_root, adjMap_root])
   exact RingHom.congr_fun h q
 
-variable [IsSepClosed k] (𝔪) [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
+variable (𝔪) [𝔪.IsMaximal] (hJ : J θ (R := R) ≤ 𝔪)
   (hres : Function.Surjective ((Ideal.Quotient.mk 𝔪).comp (algebraMap O R)))
   {e : ℕ} (D : CuspNormAtData O B s e 𝔪)
 
@@ -681,7 +677,7 @@ attribute [local instance] cuspAlgO
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
   (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j) {s : R} {E : ι → ℕ}
   (D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)) {fk : Rs θ R}
@@ -709,7 +705,7 @@ def baseIsoC (p : Σ j, Fin (D j).r) :
     AdicCompletion (𝔪' p.1) R' ≃+* CBase f (δ p) :=
   (CompletionProd.quotEquiv hinj hf hrad p.1).symm.trans (Ideal.quotEquivOfEq (by rw [hδ]))
 
-omit hθ [IsSepClosed k] [IsNoetherianRing R] [∀ j, (𝔪 j).IsMaximal] [Algebra O R']
+omit hθ [IsNoetherianRing R] [∀ j, (𝔪 j).IsMaximal] [Algebra O R']
   [IsScalarTower O R R'] [Algebra k (R' ⧸ J θ (R := R'))]
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 include ht in
@@ -761,7 +757,7 @@ def levelCuspEquiv :
       RingEquiv.coe_toRingHom, baseIsoC, RingEquiv.trans_apply, h2, Ideal.quotEquivOfEq_mk]
     rfl)
 
-omit [IsSepClosed k] [IsNoetherianRing R] [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R']
+omit [IsNoetherianRing R] [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R']
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **`levelCuspEquiv` on `1 ⊗ b`**: the level piece of the level form `Ψ j` on `1 ⊗ b`. -/
 theorem levelCuspEquiv_one_tmul (b : B) (p : Σ j, Fin (D j).r) :
@@ -775,7 +771,6 @@ theorem levelCuspEquiv_one_tmul (b : B) (p : Σ j, Fin (D j).r) :
     ((Ψ j).Ψ (hatEquivR (R := R) hinj hf hrad 1 j ⊗ₜ b) i) = _
   rw [h1]
 
-omit [IsSepClosed k] in
 /-- `cuspEquivOf` on `1 ⊗ c`. -/
 lemma cuspEquivOf_one_tmul (c : Cs θ R B) (p : Σ j, Fin (D j).r) :
     cuspEquivOf 𝔪 hJ D hinjk hfk hradk ψk hψ ((1 : Admissible.Hat fk) ⊗ₜ c) p =
@@ -788,7 +783,7 @@ lemma cuspEquivOf_one_tmul (c : Cs θ R B) (p : Σ j, Fin (D j).r) :
     ((D j).Ψ (FormalKummer.hatEquiv hinjk hfk hradk 1 j ⊗ₜ c) i) = _
   rw [h1]
 
-omit [IsSepClosed k] [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
+omit [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
 include he hm in
 /-- **The reduction of the level bases**: `R̂'_{𝔪' j} ≅ R̂'/(1 − δ_p) → (R̂'/J)/(1 − Ê εⱼ) ≅
 R̄^_{𝔪 j}` is `redHat`. -/
@@ -818,7 +813,7 @@ theorem quotEquiv_σc_baseIsoC (p : Σ j, Fin (D j).r)
     CompletionMap.map_comp, CompletionMap.map_comp]
   exact CompletionMap.map_congr (by ext; rfl) _ _ _
 
-omit hθ [IsSepClosed k] [IsNoetherianRing R] [IsScalarTower O R R'] in
+omit hθ [IsNoetherianRing R] [IsScalarTower O R R'] in
 /-- `cuspEquiv` on representatives: reduce the coefficients. -/
 lemma cuspEquiv_mk_mk' {ψc : Polynomial k →ₐ[k] Admissible.Hat (fbar θ f)}
     (δ t : FormalPatchLevel.Hat f) (δb : Admissible.Hat (fbar θ f)) (hδ : ψ θ f δ = δb)
@@ -833,7 +828,7 @@ lemma cuspEquiv_mk_mk' {ψc : Polynomial k →ₐ[k] Admissible.Hat (fbar θ f)}
 
 set_option maxHeartbeats 2000000 in
 -- unifying the quotient ideals unfolds the completion isomorphism `hatEquiv`
-omit [IsSepClosed k] [IsNoetherianRing R] [Algebra R R'] [IsScalarTower O R R']
+omit [IsNoetherianRing R] [Algebra R R'] [IsScalarTower O R R']
   [IsNoetherianRing R'] in
 lemma admCuspPieceEquiv_mk (δb : Admissible.Hat fk) (m : ℕ)
     (q : (Admissible.Hat fk ⧸ Ideal.span {1 - δb})[X]) :
@@ -844,7 +839,7 @@ lemma admCuspPieceEquiv_mk (δb : Admissible.Hat fk) (m : ℕ)
 
 set_option maxHeartbeats 1000000 in
 -- the statement unfolds the transported cusp pieces
-omit [IsSepClosed k] [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
+omit [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
 include he hm in
 /-- **The reduction of the level pieces**: the reduction of `pieceIsoC p` is the transported
 special-fibre piece of the reduction `adjMap redHat`. -/
@@ -870,7 +865,7 @@ theorem cuspEquiv_pieceIsoC (p : Σ j, Fin (D j).r)
 
 set_option maxHeartbeats 1000000 in
 -- the statement unfolds the transported cusp pieces
-omit [IsSepClosed k] [IsScalarTower O R R'] in
+omit [IsScalarTower O R R'] in
 include he hm in
 /-- **Compatibility of the level formal cusp form with the special-fibre one** (S6 G2c): on
 `1 ⊗ b`, the reduction (`AdmissibleLift.cuspEquiv`, for the covering transported to the level) of
@@ -889,7 +884,7 @@ theorem levelCuspEquiv_compat (b : B) (p : Σ j, Fin (D j).r)
   rw [levelCuspEquiv_one_tmul, cuspEquiv_pieceIsoC 𝔪 D hinjk hfk hradk ψk hψ e he hfe hinj hf hrad
     hm t ht δ hδ p hδψ ht', (Ψ p.1).compat, cuspEquivOf_one_tmul]
 
-omit [IsSepClosed k] [Fintype ι] [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
+omit [Fintype ι] [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
 include he hm in
 /-- The reduction of the level completion at the `j`-th point is `σc` (the completion maps of the
 M2 lift) under `R̂'_{𝔪' j} ≅ R̂'/(1 − εⱼ)`, `R̄^_{𝔪 j} ≅ (R̂'/J)/(1 − Ê εⱼ)`. -/
@@ -916,7 +911,7 @@ theorem quotEquiv_σc_point [Finite ι] (j : ι)
     CompletionMap.map_comp, CompletionMap.map_comp]
   exact CompletionMap.map_congr (by ext; rfl) _ _ _
 
-omit [IsSepClosed k] [Fintype ι] [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
+omit [Fintype ι] [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
 include he hm in
 /-- **`redHat` is surjective with kernel `J R̂'_{𝔪' j}`.** -/
 theorem redHat_surjective_ker [Finite ι] (j : ι)
@@ -963,7 +958,7 @@ def tensorCsEquiv (𝔪₀ : Ideal R) :
     (Algebra.TensorProduct.quotIdealMapEquivQuotTensor B (J θ (R := R)))).trans
     (Algebra.TensorProduct.cancelBaseChange R (Rs θ R) (Tn θ 𝔪₀) (Tn θ 𝔪₀) B)
 
-omit hθ [IsSepClosed k] [IsNoetherianRing R] in
+omit hθ [IsNoetherianRing R] in
 lemma tensorCsEquiv_tmul (𝔪₀ : Ideal R) (x : Tn θ 𝔪₀) (b : B) :
     tensorCsEquiv (θ := θ) (B := B) 𝔪₀ (x ⊗ₜ Ideal.Quotient.mk _ b) = x ⊗ₜ b := by
   rw [tensorCsEquiv, AlgEquiv.trans_apply, Algebra.TensorProduct.congr_apply,
@@ -972,7 +967,7 @@ lemma tensorCsEquiv_tmul (𝔪₀ : Ideal R) (x : Tn θ 𝔪₀) (b : B) :
   rw [Algebra.TensorProduct.cancelBaseChange_tmul, one_smul]
   rfl
 
-omit hθ [IsSepClosed k] in
+omit hθ in
 /-- `g ∉ 𝔪` is a unit in the completion `R̄^_𝔪`. -/
 lemma isUnit_Tn (𝔪₀ : Ideal R) [𝔪₀.IsMaximal] (hJ₀ : J θ (R := R) ≤ 𝔪₀) {g : R}
     (hg : g ∉ 𝔪₀) : IsUnit (algebraMap R (Tn θ 𝔪₀) g) := by
@@ -1013,7 +1008,7 @@ def ρYe (j : ι) : (∀ i : Fin (D j).r,
   RingHom.pi fun i ↦ (adjMap (redHat 𝔪 e he hm j).toRingHom ((D j).d i) (red_s _ s)).comp
     (Pi.evalRingHom _ i)
 
-omit [IsSepClosed k] [IsNoetherianRing R] [Fintype ι] [DecidableEq ι] [∀ j, (𝔪 j).IsMaximal]
+omit [IsNoetherianRing R] [Fintype ι] [DecidableEq ι] [∀ j, (𝔪 j).IsMaximal]
   [IsScalarTower O R R'] [IsNoetherianRing R'] [∀ j, (𝔪' j).IsMaximal]
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 lemma ρXe_one_tmul (j : ι) (b : B) :
@@ -1026,7 +1021,7 @@ lemma ρXe_one_tmul (j : ι) (b : B) :
   congr 1
   rw [AlgEquiv.symm_apply_eq, tensorCsEquiv_tmul]
 
-omit [IsSepClosed k] [Fintype ι] [IsScalarTower O R R'] in
+omit [Fintype ι] [IsScalarTower O R R'] in
 include he hm hJ in
 /-- **The level form at a point where the cover is étale** (all indices `1`): the étale lift
 (`exists_equiv_of_red`) of the special-fibre form `D j`, for `(R' ⊗_R B)_g` formally étale over

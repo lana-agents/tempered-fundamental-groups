@@ -164,7 +164,7 @@ attribute [local instance] KummerNormAtData.algO
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ϖ : O} {n M' : ℕ} {x y : R}
   (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
   {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
@@ -346,7 +346,7 @@ def NCongr {R' : Type u} [CommRing R'] [Algebra O R'] {f' : R'} {π : O} {d : �
     AdmissibleLift.N f' χ ε₁ ≃ₐ[FormalPatchLevel.Hat f'] AdmissibleLift.N f' χ ε₂ := by
   subst h; exact AlgEquiv.refl
 
-omit hθ [IsSepClosed k] in
+omit hθ in
 lemma pieceEquiv_NCongr {R' : Type u} [CommRing R'] [Algebra O R'] [IsNoetherianRing R']
     [Algebra k (R' ⧸ J θ (R := R'))] {f' : R'}
     (φ' : Node k (0 : k) →ₐ[k] Admissible.Hat (fbar θ f')) {π : O} {d : ℕ} (hd : 0 < d)

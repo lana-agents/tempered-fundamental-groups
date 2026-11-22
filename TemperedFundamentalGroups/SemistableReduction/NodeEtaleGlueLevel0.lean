@@ -148,7 +148,7 @@ attribute [local instance] KummerNormAtData.algO
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ϖ : O} {n M' : ℕ} {x y : R}
   {hxy : x * y = algebraMap O R (ϖ ^ n)} {hϖ : θ ϖ = 0} {hn0 : 0 < n}
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]
@@ -229,7 +229,7 @@ open FormalKummer AdmissibleLift FormalLevel NodeEtaleGlue
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]
   {hJ : ∀ j, J θ (R := R) ≤ 𝔪 j} {s : R} {E : ι → ℕ}
   {D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)} {g : R}
@@ -275,7 +275,7 @@ variable (ρX : X →+* C0)
     ∀ x, ρ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Dp.R T'.hfe he l (t x) = Dp.ι₀ (ρX x))
 
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 set_option maxRecDepth 20000 in
 include hρ in
 /-- **At a level with `J = 0` the patch side of `X` is `toG ∘ ρX`** (`LevelTower.Level.eq_cEquiv`
@@ -356,7 +356,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {cov₁ : Admissible.Covering φ₁ ψ₁} {πL₁ : cov₁.ι → O}
   {I : Input θ cov₁ πL₁} (V : Overlap I) (hO : ∀ x : O, θ x ≠ 0 → IsUnit x)
   {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]
   {hJ : ∀ j, J θ (R := R) ≤ 𝔪 j} {s : R} {E : ι → ℕ}
   {D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)} {g : R}
@@ -389,12 +389,12 @@ def bottomOf (hP0 : V.P0 = Dp.piece hθ.out hO) {n : ℕ} (hJ0' : J θ (R := Dp.
     V.P0.Bottom n :=
   cast (congrArg (fun P ↦ Piece0.Bottom P n) hP0.symm) (Dp.bottom hθ.out hO hJ0')
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] algRI towerORI towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] algRI towerORI towerRII in
 lemma bottomOf_heq (hP0 : V.P0 = Dp.piece hθ.out hO) {n : ℕ} (hJ0' : J θ (R := Dp.R n) = ⊥) :
     HEq (V.bottomOf hO Dp hP0 hJ0') (Dp.bottom hθ.out hO hJ0') :=
   cast_heq _ _
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 /-- **At a level with `J = 0` the patch side `φPof` is the bottom identification** `bot.toP ∘ ρX`,
 for any bottom identification `bot` of `P` equal (heterogeneously, along `hP`) to `Dp.bottom`. -/
 theorem φPof_eq_bottom (P : Piece0 θ V.B' V.qB' V.C0 V.x0 V.c0 V.x0s V.c0s V.ϖ)
@@ -445,7 +445,7 @@ variable (hP0 : V.P0 = Dp.piece hθ.out hO) (n : ℕ)
           (algebraMap I.Bs I.C1 V.x1s) ^ k = algebraMap I.C1 _ (ρX1 y))
 
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 /-- **L3: at a level with `J = 0` the identification `levelEquiv0P` over `V₀` is the
 special-fibre identification** `r0Equiv ∘ ρX0`, if the identification `e1` over `V₁` is canonical
 (`e1 = yEquiv ∘ ρX1`, L2) and `bot` is the bottom identification of the cusp patch. -/
@@ -461,7 +461,7 @@ theorem levelEquiv0P_eq_r0Equiv (hJ0 : J θ (R := I.B n) = ⊥) (hJ0' : J θ (R 
   · exact V.φQn_eq_φQ hθ.out hO hJ0 e1 ωn ρX1.toRingHom ρX0 he1 x y k h1 h2
   · exact V.φPof_eq_bottom hO Dp Vc hkI hT V.P0 hP0 t ht ρX0 hρ hJ0' bot hbot x
 
-omit [IsSepClosed k] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
+omit [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] towerRII in
 /-- **L3, the form of `r0Equiv'_symm_map`**: `r0Equiv'⁻¹ (levelEquiv0P x) = ρX0 x`. -/
 theorem r0Equiv'_symm_levelEquiv0P (hJ0 : J θ (R := I.B n) = ⊥)
     (hJ0' : J θ (R := Dp.R n) = ⊥) (bot : V.P0.Bottom n)
@@ -489,7 +489,7 @@ section Fam
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ϖ : O} {n M' : ℕ} {x y : R}
   {hxy : x * y = algebraMap O R (ϖ ^ n)} {hϖ : θ ϖ = 0} {hn0 : 0 < n}
   {ι : Type} [Fintype ι] [DecidableEq ι] {𝔪 : ι → Ideal R} [∀ j, (𝔪 j).IsMaximal]

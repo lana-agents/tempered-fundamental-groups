@@ -151,7 +151,7 @@ attribute [local instance] KummerNormAtData.algO algRN
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ϖ : O} {n M' : ℕ} {x y : R}
   (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
   {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
@@ -174,7 +174,7 @@ variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   (hm : ∀ j, (𝔪' j).map (red θ e) ≤ sIdeal (θ := θ) (𝔪 j))
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal]
 
-omit [IsSepClosed k] [IsNoetherianRing R] [IsScalarTower O R R'] [IsNoetherianRing R'] in
+omit [IsNoetherianRing R] [IsScalarTower O R R'] [IsNoetherianRing R'] in
 include he in
 lemma red_algebraMap (r : R) : red θ e (algebraMap R R' r) = Ideal.Quotient.mk _ r := by
   change e.symm (Ideal.Quotient.mk _ (algebraMap R R' r)) = _
@@ -193,7 +193,7 @@ variable (χ : ∀ p : (Σ j, Fin (D j).r),
   (hχ : ∀ p a, χ p a = algebraMap R (FormalPatchLevel.Hat f) (chart hxy (D p.1) p.2 a))
   (ε : ι → FormalPatchLevel.Hat f) (hε : ∀ j, ε j = CompletionProd.idem hinj hf hrad j)
 
-omit [IsSepClosed k] [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
+omit [∀ j, (𝔪 j).IsMaximal] [IsScalarTower O R R'] in
 include hm he in
 /-- **The reduction of the level pieces**: `R̂'_{𝔪' j} ≅ R̂'/(1 − εⱼ) → (R̂'/J)/(1 − Ê εⱼ) ≅
 R̂/(1 − εⱼ) ≅ R̄^_{𝔪 j}` is the map of completions `redHat`. -/
@@ -310,7 +310,7 @@ attribute [local instance] KummerNormAtData.algO algRN
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ϖ : O} {n M' : ℕ} {x y : R}
   (hxy : x * y = algebraMap O R (ϖ ^ n)) (hϖ : θ ϖ = 0) (hn0 : 0 < n)
   {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]

@@ -77,7 +77,7 @@ def covCuspOf {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
 
 variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   [hθ : Fact (Function.Surjective θ)] {R : Type u} [CommRing R] [Algebra O R]
-  {B : Type u} [CommRing B] [Algebra R B] [IsSepClosed k] [IsNoetherianRing R]
+  {B : Type u} [CommRing B] [Algebra R B] [IsNoetherianRing R]
   {ι : Type} [Fintype ι] [DecidableEq ι] (𝔪 : ι → Ideal R) [∀ j, (𝔪 j).IsMaximal]
   (hJ : ∀ j, J θ (R := R) ≤ 𝔪 j) {s : R} {E : ι → ℕ}
   (D : ∀ j, PointCuspFormData (θ := θ) (B := B) s (E j) (𝔪 j)) {g : R}
@@ -131,7 +131,7 @@ def ρ : Rt l ⊗[R] B →ₐ[Rt l] (covL 𝔪 hJ D hinjk hfk hradk φ₀ ψk h�
   Algebra.TensorProduct.lift (Algebra.ofId _ _)
     (mkC 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt hfe he l) fun _ _ ↦ Commute.all _ _
 
-omit [IsSepClosed k] [∀ l, IsNoetherianRing (Rt l)] [∀ l, IsScalarTower O R (Rt l)] in
+omit [∀ l, IsNoetherianRing (Rt l)] [∀ l, IsScalarTower O R (Rt l)] in
 lemma ρ_tmul (r : Rt l) (b : B) :
     ρ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt hfe he l (r ⊗ₜ b) =
       algebraMap (Rt l) _ r * (@id (covL 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt hfe l).C
@@ -142,7 +142,7 @@ lemma ρ_tmul (r : Rt l) (b : B) :
     IsScalarTower.of_algebraMap_eq fun _ ↦ rfl
   exact Algebra.TensorProduct.lift_tmul _ _ _ _ _
 
-omit [IsSepClosed k] [∀ l, IsNoetherianRing (Rt l)] [∀ l, IsScalarTower O R (Rt l)] in
+omit [∀ l, IsNoetherianRing (Rt l)] [∀ l, IsScalarTower O R (Rt l)] in
 lemma ρ_surjective :
     Function.Surjective (ρ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt hfe he l) := by
   intro c
@@ -151,7 +151,7 @@ lemma ρ_surjective :
   rw [ρ_tmul, map_one, one_mul]
   exact hb
 
-omit [IsSepClosed k] [∀ l, IsNoetherianRing (Rt l)] in
+omit [∀ l, IsNoetherianRing (Rt l)] in
 lemma ker_ρ : RingHom.ker (ρ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt hfe he l) =
     (J θ (R := Rt l)).map (algebraMap (Rt l) (Rt l ⊗[R] B)) := by
   have hJR : ∀ r ∈ J θ (R := R), algebraMap R (Rt l) r ∈ J θ (R := Rt l) := by
@@ -218,7 +218,7 @@ lemma ker_ρ : RingHom.ker (ρ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het 
 
 variable (πL : (cov₀ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk).ι → O)
 
-omit [IsSepClosed k] [∀ l, IsNoetherianRing (Rt l)] in
+omit [∀ l, IsNoetherianRing (Rt l)] in
 variable {l} in
 /-- **The étale side of the level-`l` patch**: if `(Rt l ⊗_R B)[1/f]` is formally étale over
 `Rt l`, it maps isomorphically onto the étale lift `P` of the level datum, compatibly with `σP`
@@ -298,7 +298,7 @@ def φ₂ : Rt l ⊗[R] B →ₐ[Rt l] NFall lv.L lv.M where
     rw [h1, AlgEquiv.commutes]
     rfl
 
-omit [IsSepClosed k] [∀ l, IsScalarTower O R (Rt l)]
+omit [∀ l, IsScalarTower O R (Rt l)]
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 theorem isBaseChange_φ₂ : IsBaseChange (FormalPatchLevel.Hat (f l))
     (φ₂ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt hfe he πL lv hinj hf hrad hm Ψ htL
@@ -306,7 +306,7 @@ theorem isBaseChange_φ₂ : IsBaseChange (FormalPatchLevel.Hat (f l))
   IsBaseChange.of_equiv (PhiT 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt hfe he πL lv hinj hf
     hrad hm Ψ htL hδL).toLinearEquiv fun _ ↦ rfl
 
-omit [IsSepClosed k] [∀ l, IsScalarTower O R (Rt l)]
+omit [∀ l, IsScalarTower O R (Rt l)]
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 lemma φ₂_one_tmul (b : B) :
     φ₂ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt hfe he πL lv hinj hf hrad hm Ψ htL hδL
@@ -322,7 +322,7 @@ lemma φ₂_one_tmul (b : B) :
 set_option maxHeartbeats 1000000 in
 -- the comparison unfolds the transported covering `covCuspOf … |>.transport`
 set_option maxRecDepth 20000 in
-omit [IsSepClosed k] [∀ l, IsScalarTower O R (Rt l)] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ l, IsScalarTower O R (Rt l)] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **`κ` on `1 ⊗ b̄`** (the hypothesis `hκ` of `patchEquivOfCompat` on generators). -/
 theorem kappaF_one_tmul (b : B) :
     kappaF lv.L lv.M hθ.out ((1 : FormalPatchLevel.Hat (f l)) ⊗ₜ
@@ -342,7 +342,7 @@ theorem kappaF_one_tmul (b : B) :
     hm Ψ lv.M.t htL lv.M.δ hδL b p (lv.M.hδ p) lv.M.ht
   exact h1.symm
 
-omit [IsSepClosed k] [∀ l, IsNoetherianRing (Rt l)] [∀ l, IsScalarTower O R (Rt l)]
+omit [∀ l, IsNoetherianRing (Rt l)] [∀ l, IsScalarTower O R (Rt l)]
   [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 lemma ρ_one_tmul (b : B) :
     ρ 𝔪 hJ D hinjk hfk hradk φ₀ ψk hψ hfin het hk Rt hfe he (l := l) ((1 : Rt l) ⊗ₜ b) =
@@ -353,7 +353,7 @@ lemma ρ_one_tmul (b : B) :
 set_option maxHeartbeats 1000000 in
 -- the comparison unfolds the transported covering `covCuspOf … |>.transport`
 set_option maxRecDepth 20000 in
-omit [IsSepClosed k] [∀ l, IsScalarTower O R (Rt l)] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
+omit [∀ l, IsScalarTower O R (Rt l)] [∀ j, (sIdeal (θ := θ) (𝔪 j)).IsMaximal] in
 /-- **The hypothesis `hκ` of `patchEquivOfCompat`**: `κ (1 ⊗ ρ z) = φ₂ z mod J`. -/
 theorem kappaF_one_tmul_ρ (z : Rt l ⊗[R] B) :
     kappaF lv.L lv.M hθ.out ((1 : FormalPatchLevel.Hat (f l)) ⊗ₜ

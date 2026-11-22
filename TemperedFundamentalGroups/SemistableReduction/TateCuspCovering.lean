@@ -298,8 +298,10 @@ def pointCuspData (𝔪 : Ideal (RcT π b₄ t κ)) [𝔪.IsMaximal]
   haveI := finiteType_Rc (O := O) (π := π) (b₄ := b₄) (t := t) (κ := κ)
   if hz : algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π b₄ t κ) ∈ 𝔪 then
     (pointCuspFormDataOf 𝔪 hJ (FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ)
-      (CuspNormAtData.ofIsCuspNormAt (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd B
-        hunr 𝔪 hJ hs hz))).mono (dvd_of_eq (eP_of_mem hz).symm)
+      (CuspNormAtData.ofIsCuspNormAtK hJ
+        (FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ)
+        (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd B hunr 𝔪 hJ hs hz))).mono
+      (dvd_of_eq (eP_of_mem hz).symm)
   else
     (PointCuspFormData.ofPointCuspForm (pointCuspForm_etale hϖ hker hπ hm hε h3 hE hκ hb₆ K L B
       hunr 𝔪 hJ (FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ) hz)).mono
