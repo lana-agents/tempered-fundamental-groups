@@ -21,7 +21,7 @@ import TemperedFundamentalGroups.SemistableReduction.TateS6Gal
 * **`TateS6.mem_mrange_galHom`**: every balanced endomorphism of the datum of `C` comes from
   `Gal(C.L/K)` (`galHom`, `TateS6Gal`); with `galEquiv`, `Gal(C.L/K)` is isomorphic to a
   submonoid of the endomorphisms of the datum containing all balanced ones. The converse (I5(b):
-  `datumHom f` is balanced) is not formalised yet.
+  `datumHom f` is balanced) is `TateS6.covBalanced_datumHom` (`TateS6Balanced`).
 -/
 
 universe u

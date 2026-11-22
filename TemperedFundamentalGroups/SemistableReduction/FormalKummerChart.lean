@@ -79,6 +79,9 @@ structure KummerNormAtData (ϖ : O) (n M' : ℕ) (x y : R) (B : Type u) [CommRin
   hmd : ∀ i, n / d i * d i = n
   huv : letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
     algebraMap R N₁ x * algebraMap R N₁ y = algebraMap O N₁ (ϖ ^ n)
+  /-- The node chart `O[u, v]/(uv − ϖⁿ) → N₁` is étale. -/
+  het : letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
+    (Node.lift _ _ huv).toRingHom.Etale
   /-- The Kummer splitting. -/
   Φ : letI : Algebra O N₁ := ((algebraMap R N₁).comp (algebraMap O R)).toAlgebra
     N₁ ⊗[R] B ≃ₐ[N₁] ∀ i, @KummerNodeFactor O _ (ϖ ^ (n / d i)) (d i) N₁ _
@@ -97,11 +100,11 @@ abbrev KummerNormAtData.m {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R}
 def KummerNormAtData.ofIsKummerNormAt {ϖ : O} {n M' : ℕ} {x y : R} {𝔪 : Ideal R}
     (h : IsKummerNormAt ϖ n M' x y B 𝔪) : KummerNormAtData ϖ n M' x y B 𝔪 :=
   Classical.choice (by
-    obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, huv, -, -, -, r, m, d, hd, hdM, hmd, ⟨Φ⟩⟩ := h
+    obtain ⟨N₁, _, _, _, 𝔫, _, h𝔫, huv, het, -, -, r, m, d, hd, hdM, hmd, ⟨Φ⟩⟩ := h
     obtain rfl : m = fun i ↦ n / d i :=
       funext fun i ↦ (Nat.div_eq_of_eq_mul_left (hd i) (hmd i).symm).symm
     exact ⟨{ N₁ := N₁, 𝔫 := 𝔫, comap_eq := h𝔫, r := r, d := d, hd := hd,
-             hdM := hdM, hmd := hmd, huv := huv, Φ := Φ }⟩)
+             hdM := hdM, hmd := hmd, huv := huv, het := het, Φ := Φ }⟩)
 
 /-- **The local formal Kummer form at a node with separably closed residue field**, defined from
 the data `D` (`nodeEquiv` for the splitting `D.Φ`). -/
