@@ -194,10 +194,12 @@ lemma eR_x0 :
     eR (a := a) (θ := θ) (Ideal.Quotient.mk _ (x0 O a)) = fbar θ (sC (R0 O a) 1 (x0 O a)) := by
   rw [eR_apply, φsC, Ideal.quotientMap_mk]
 
+omit [IsNoetherianRing O] in
 lemma isSMulRegular_fbar :
     IsSMulRegular (Ts θ (Rc (R0 O a) 1)) (fbar θ (sC (R0 O a) 1 (x0 O a))) :=
   isSMulRegular_transport (eR (a := a) (θ := θ)) eR_x0 (isSMulRegular_x0bar a)
 
+omit [IsNoetherianRing O] in
 /-- `x̄` is a uniformizer of the cusp chart at every prime containing it (`ā ≠ 0, 1`). -/
 lemma exists_uniformizer (ha0 : θ a ≠ 0) (ha1 : θ a ≠ 1) (𝔭 : Ideal (Ts θ (Rc (R0 O a) 1)))
     [𝔭.IsPrime] (h : fbar θ (sC (R0 O a) 1 (x0 O a)) ∈ 𝔭) :
@@ -236,6 +238,7 @@ lemma bijective_ι₀ : Function.Bijective S0.ι₀ := by
 /-- `C0 ≃ cov.C`. -/
 def e0 : S0.C0 ≃+* S0.cov.C := RingEquiv.ofBijective S0.ι₀ (bijective_ι₀ S0)
 
+omit [IsNoetherianRing O] in
 lemma e0_x0 : e0 S0 (algebraMap (Ts θ (R0 O a)) S0.C0 (Ideal.Quotient.mk _ (x0 O a))) =
     algebraMap (Ts θ (Rc (R0 O a) 1)) S0.cov.C (fbar θ (sC (R0 O a) 1 (x0 O a))) := by
   change S0.ι₀ _ = _
