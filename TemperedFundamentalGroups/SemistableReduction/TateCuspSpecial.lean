@@ -32,8 +32,8 @@ open FormalKummer (Cs Rs sIdeal)
 noncomputable section
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsAlgClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
-  {ϖ π b₄ b₆ t κ ε : O} {m : ℕ}
+  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {ϖ π b₄ b₆ t κ ε : O} {m : ℕ} [hsq : Fact (IsSquare (θ b₆))]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
   (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
   (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -46,7 +46,7 @@ variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k :
 
 /-! ### `z̄ = 0` in the completion at the cusp -/
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] hθ [CharZero O] in
+omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hsq hθ [CharZero O] in
 include hker hπ hm hκ in
 /-- **`z̄ = 0` in the completion of the special fibre at a point `𝔪 ∋ z`**: `z q₀ ∈ (π)` and `q₀`
 is a unit at `𝔪`. -/
@@ -144,7 +144,7 @@ variable [Algebra (T0 π b₄ t κ) L] [IsScalarTower (T0 π b₄ t κ) (RcT π 
   (hB : ∀ x, algebraMap (RcT π b₄ t κ) B (algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) x) =
     algebraMap B₀ B (algebraMap (T0 π b₄ t κ) B₀ x))
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] hθ [CharZero O] [NeZero e]
+omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hsq hθ [CharZero O] [NeZero e]
   [IsGalois K L] [FiniteDimensional K L] [Algebra (RcT π b₄ t κ) B]
   [IsScalarTower (RcT π b₄ t κ) B L] in
 include B₀ in
@@ -155,7 +155,7 @@ lemma isIntegralClosure_B [Algebra (RcT π b₄ t κ) B] [IsScalarTower (RcT π 
   rw [IsScalarTower.algebraMap_apply (T0 π b₄ t κ) (RcT π b₄ t κ) L]
   exact ((IsLocalization.Away.algebraMap_isUnit (TateGlue0.c0 π b₄ t κ)).map _).ne_zero
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] hθ [CharZero O] in
+omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hsq hθ [CharZero O] in
 lemma J_Rc_eq : J θ (R := RcT π b₄ t κ) =
     (J θ (R := T0 π b₄ t κ)).map (algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ)) := by
   change (RingHom.ker θ).map _ = ((RingHom.ker θ).map _).map _

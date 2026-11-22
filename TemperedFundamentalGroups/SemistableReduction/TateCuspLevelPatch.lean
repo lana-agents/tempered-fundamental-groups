@@ -53,7 +53,8 @@ local notation "𝓏" => algebraMap (T0 π b₄ t κ) (RcT π b₄ t κ) (z0 π 
 /-- **`covCusp` is the generic covering `FormalCuspLevel.covCuspOf`** of the chosen local forms
 `pointCuspData` (definitional). -/
 theorem covCusp_eq_covCuspOf
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -86,7 +87,8 @@ theorem covCusp_eq_covCuspOf
 implies `s ∉ P` at the points `P ∋ z` (purity at the closed points of the special fibre off the
 cusp divisor). -/
 theorem etale_Pn_Rc
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -123,7 +125,8 @@ theorem etale_Pn_Rc
 
 /-- **`(Rc/ϖˡ⁺¹ ⊗ B)[1/g]` is formally étale over `Rc/ϖˡ⁺¹`** (hypotheses of `etale_Pn_Rc`). -/
 theorem formallyEtale_Tn_Rc
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -148,7 +151,8 @@ theorem formallyEtale_Tn_Rc
 
 /-- `formallyEtale_Tn_Rc` with `algebraMap` (the form of `FormalCuspLevel.levelEtaleForm`). -/
 theorem formallyEtale_Tn_Rc'
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -173,7 +177,8 @@ theorem formallyEtale_Tn_Rc'
 /-- At a point `𝔪 ∋ z` (the cusp) the chosen local form `pointCuspData` is the one of the chosen
 étale-local Kummer data `isCuspNormAt_cusp`. -/
 lemma pointCuspData_of_mem
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -192,9 +197,9 @@ lemma pointCuspData_of_mem
         Algebra.IsUnramifiedAt ℛ Q)
     (𝔪 : Ideal ℛ) [𝔪.IsMaximal] (hJ : J θ (R := ℛ) ≤ 𝔪) (hs : 𝓈 ∈ 𝔪) (hz : 𝓏 ∈ 𝔪) :
     haveI := finiteType_Rc (O := O) (π := π) (b₄ := b₄) (t := t) (κ := κ)
-    (pointCuspFormDataOf 𝔪 hJ (FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ)
+    (pointCuspFormDataOf 𝔪 hJ (surjective_mk_comp_cuspPt hker hπ hm hκ 𝔪 hJ hs)
       (CuspNormAtData.ofIsCuspNormAtK hJ
-        (FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) 𝔪 hJ)
+        (surjective_mk_comp_cuspPt hker hπ hm hκ 𝔪 hJ hs)
         (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd B hunr 𝔪 hJ hs hz))).mono
       (dvd_of_eq (eP_of_mem hz).symm) =
       pointCuspData hϖ hker hπ hm hε h3 hE hκ hb₆ K hζ L hd B hunr 𝔪 hJ hs := by
@@ -202,7 +207,8 @@ lemma pointCuspData_of_mem
 
 /-- The cusp indices are invertible in `k` (they divide `e`). -/
 lemma hk_C
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -232,7 +238,8 @@ lemma hk_C
 /-- **The tower of patched algebras of the cusp chart** (`CuspTower.cuspTower` of
 `cuspSpecial …`). -/
 abbrev towerC
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -269,7 +276,8 @@ local notation "𝒟" => fun j ↦ pointCuspData hϖ hker hπ hm hε h3 hE hκ h
 /-- **The cusp coordinate of the levels of `towerC` is the chart coordinate `s`** (the
 hypothesis `htL` of `FormalCuspLevel.levelPatchEquiv`). -/
 lemma htL_C
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -308,7 +316,8 @@ lemma hJnil_Tn {T : Type u} [CommRing T] [Algebra O T] (hker : RingHom.ker θ �
 
 /-- The level points `red⁻¹(𝔪ⱼ)` of `towerC` are maximal. -/
 lemma isMaximal_mL
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -341,7 +350,8 @@ lemma isMaximal_mL
 
 /-- The points `𝔪ⱼ` of `Rc` map into the level points. -/
 lemma le_comap_mL
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -381,7 +391,8 @@ set_option maxHeartbeats 1000000 in
 /-- **The level forms of `towerC`**: at the cusp (`z ∈ 𝔪ⱼ`) `levelCuspForm` (base change of the
 chosen splitting along `hatLift` of the residue map), elsewhere `levelEtaleForm` (étale lift). -/
 def ΨC
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -417,7 +428,8 @@ def ΨC
   haveI := fun j ↦ isMaximal_mL hϖ hker hπ hm hε h3 hE hκ hb₆ he K hζ L hd B hunr φ₀ B₀ hB l j
   by_cases hz : 𝓏 ∈ mC θ π b₄ t κ j
   · haveI := finiteType_Rc (O := O) (π := π) (b₄ := b₄) (t := t) (κ := κ)
-    have hres := FormalKummer.surjective_mk_comp_of_isAlgClosed (θ := θ) _ (J_le_mC θ π b₄ t κ j)
+    have hres := surjective_mk_comp_cuspPt hker hπ hm hκ _ (J_le_mC θ π b₄ t κ j)
+      (sC_mem_mC θ π b₄ t κ j)
     let CN := CuspNormAtData.ofIsCuspNormAtK (J_le_mC θ π b₄ t κ j) hres
       (isCuspNormAt_cusp hϖ hker hπ hε h3 hE hκ K hζ L hd
       B hunr _ (J_le_mC θ π b₄ t κ j) (sC_mem_mC θ π b₄ t κ j) hz)
@@ -462,7 +474,8 @@ set_option maxHeartbeats 1000000 in
 /-- **The lifted idempotents of `towerC` are the Lemma F idempotents of the level points**
 (uniqueness of idempotents lifting `Ê εⱼ`). -/
 lemma hδL_C
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -516,7 +529,8 @@ set_option maxHeartbeats 1000000 in
 the tower `towerC`): level points `(sIdeal 𝔪ⱼ).comap red`, level forms `ΨC`, cusp coordinate
 `htL_C`, lifted idempotents `hδL_C`, étaleness `formallyEtale_Tn_Rc`. -/
 def cuspLevelsS6
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)
@@ -575,7 +589,8 @@ Galois cover `L` (hypotheses of `cuspSpecial`), the level-`l` patched algebra of
 `Tn ϖ Rc l ⊗[Rc] B ≃ₐ[Tn ϖ Rc l] (towerC …).G hθ.out l` (`FormalCuspLevel.levelPatchEquiv` at
 the level data `cuspLevelsS6`). -/
 def levelPatchEquiv_Rc
-    [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [hθ : Fact (Function.Surjective θ)]
+    [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] [hθ : Fact (Function.Surjective θ)]
+    [Fact (IsSquare (θ b₆))]
     (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ}) (hπ : π = ε * ϖ ^ m)
     (hm : 1 ≤ m) (hε : IsUnit ε) (h3 : (3 : O) ≠ 0)
     (hE : TemperedFundamentalGroups.TateNormal.tateE π b₄ b₆ ≠ 0)

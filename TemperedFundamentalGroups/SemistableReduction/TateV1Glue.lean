@@ -46,8 +46,8 @@ section Data
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsAlgClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
-  {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m]
+  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
 
 
 variable (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})

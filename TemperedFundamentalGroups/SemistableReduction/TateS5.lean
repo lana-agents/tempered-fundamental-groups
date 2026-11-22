@@ -256,8 +256,8 @@ section Data
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsAlgClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
-  {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m]
+  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
 
 
 variable (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
@@ -314,17 +314,17 @@ variable (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
       (CuspTower.sC (T0 (ε * ϖ ^ m) b₄ t κ) (TateGlue0.c0 (ε * ϖ ^ m) b₄ t κ) (h0 (ε * ϖ ^ m) b₄ t
         κ))))
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] in
+omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hsq in
 include hker in
 lemma θ_pow : θ (ϖ ^ m) = 0 := by
   rw [map_pow, RingHom.mem_ker.1 (hker ▸ Ideal.mem_span_singleton_self ϖ),
     zero_pow (NeZero.ne m)]
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] in
+omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hsq in
 include hker in
 lemma θ_ϖ : θ ϖ = 0 := RingHom.mem_ker.1 (hker ▸ Ideal.mem_span_singleton_self ϖ)
 
-omit [IsAlgClosed k] in
+omit [IsSepClosed k] hsq in
 include hϖ hker in
 /-- Elements of `O` outside `ker θ` are units. -/
 lemma isUnit_of_θ_ne_zero (x : O) (hx : θ x ≠ 0) : IsUnit x := by
@@ -382,13 +382,13 @@ theorem sc_cuspOverOrigin :
     (.of_mul_eq_one_right εi hε) h3 hE hκ hb₆ he K hζe L hd Bc
     (fun P _ hϖP Q _ hQ hz ↦ hunr_Bc hκ hBc hunr₀ P hϖP Q hQ hz) φ₀ B₀ hBc
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [NeZero m] in
+omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hsq [NeZero m] in
 include hρ in
 lemma h0_ne_zero : algebraMap (T0 (ε * ϖ ^ m) b₄ t κ) L (h0 (ε * ϖ ^ m) b₄ t κ) ≠ 0 := by
   rw [← hρ]
   exact ((isUnit_rho0_h0 _ _ _ _).map (algebraMap (T01 (ε * ϖ ^ m) b₄ t κ) L)).ne_zero
 
-omit [IsDomain O] [IsDiscreteValuationRing O] [IsAlgClosed k] [NeZero m] in
+omit [IsDomain O] [IsDiscreteValuationRing O] [IsSepClosed k] hsq [NeZero m] in
 lemma h1_ne_zero : algebraMap (T1 (ε * ϖ ^ m) b₄ t κ) L (h1 (ε * ϖ ^ m) b₄ t κ) ≠ 0 := by
   rw [IsScalarTower.algebraMap_apply (T1 (ε * ϖ ^ m) b₄ t κ) (T01 (ε * ϖ ^ m) b₄ t κ) L]
   exact ((IsLocalization.Away.algebraMap_isUnit _).map _).ne_zero

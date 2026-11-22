@@ -25,6 +25,11 @@ finite étale algebra over a complete ring with separably closed residue field i
 (**`exists_algEquiv_pi_of_isSepClosed`**): its reduction is split
 (`Algebra.FormallyEtale.equivPiOfIsSepClosed`) and étale lifts are unique
 (`EtaleLift.algEquivOfQuot`).
+
+S5.7 (residue hypotheses instead of separably closed residue fields):
+**`equivPiOfSurjective`** (a finite étale algebra over a field all of whose residue fields are
+reached from the field is split), **`exists_algEquiv_pi_of_surjective`** (the complete version),
+**`surjective_mk_comp_tensor`** (trivial residue extensions pass to a base change `A' ⊗_A C`).
 -/
 
 universe u
@@ -101,6 +106,98 @@ theorem exists_algEquiv_pi_of_isSepClosed [IsAdicComplete I A] [I.IsMaximal] {K 
       (PrimeSpectrum (C ⧸ I.map (algebraMap A C)))) → A) :=
     (Algebra.FormallyEtale.pi_iff _).2 inferInstance
   exact ⟨_, ⟨EtaleLift.algEquivOfQuot I (e₂.trans (quotPiEquiv I _).symm)⟩⟩
+
+/-- **A finite étale algebra over a field with trivial residue field extensions splits** (S5.7:
+the residue-hypothesis form of `Algebra.FormallyEtale.equivPiOfIsSepClosed`): if every residue
+field `A ⧸ 𝔐` is reached from `K`, then `A ≃ₐ[K] Kᵐᵃˣ⁻ˢᵖᵉᶜ`. -/
+def equivPiOfSurjective {K A : Type*} [Field K] [CommRing A] [Algebra K A] [Module.Finite K A]
+    [Algebra.FormallyEtale K A]
+    (h : ∀ m : MaximalSpectrum A, Function.Surjective (algebraMap K (A ⧸ m.asIdeal))) :
+    A ≃ₐ[K] (MaximalSpectrum A → K) :=
+  haveI : IsArtinianRing A := IsArtinianRing.of_finite K A
+  haveI := Algebra.FormallyUnramified.isReduced_of_field K A
+  letI (m : MaximalSpectrum A) : Field (A ⧸ m.asIdeal) := Ideal.Quotient.field m.asIdeal
+  ((IsArtinianRing.equivPi A).restrictScalars K).trans <|
+    AlgEquiv.piCongrRight fun m ↦ (AlgEquiv.ofBijective (Algebra.ofId K (A ⧸ m.asIdeal))
+      ⟨(algebraMap K (A ⧸ m.asIdeal)).injective, h m⟩).symm
+
+/-- **A finite étale algebra over a complete ring with trivial residue field extensions splits**
+(S5.7: the residue-hypothesis form of `exists_algEquiv_pi_of_isSepClosed`): if `A` is
+`I`-adically complete, `I` maximal, and `C` is a finite formally étale `A`-algebra which is
+`IC`-adically complete and every residue field `C ⧸ Q` (`Q` maximal) is reached from `A`, then
+`C ≃ Aᵐ`. -/
+theorem exists_algEquiv_pi_of_surjective [IsAdicComplete I A] [I.IsMaximal]
+    (C : Type*) [CommRing C] [Algebra A C] [Module.Finite A C] [Algebra.FormallyEtale A C]
+    [IsAdicComplete (I.map (algebraMap A C)) C]
+    (hres : ∀ Q : Ideal C, Q.IsMaximal →
+      Function.Surjective ((Ideal.Quotient.mk Q).comp (algebraMap A C))) :
+    ∃ m : ℕ, Nonempty (C ≃ₐ[A] (Fin m → A)) := by
+  letI := Ideal.Quotient.field I
+  haveI : Module.Finite A (C ⧸ I.map (algebraMap A C)) :=
+    Module.Finite.of_surjective (Ideal.Quotient.mkₐ A _).toLinearMap Ideal.Quotient.mk_surjective
+  haveI : Module.Finite (A ⧸ I) (C ⧸ I.map (algebraMap A C)) :=
+    Module.Finite.of_restrictScalars_finite A (A ⧸ I) _
+  haveI : Algebra.FormallyEtale (A ⧸ I) (C ⧸ I.map (algebraMap A C)) :=
+    .of_equiv (Algebra.TensorProduct.quotIdealMapEquivQuotTensor C I).symm
+  have h : ∀ m : MaximalSpectrum (C ⧸ I.map (algebraMap A C)),
+      Function.Surjective (algebraMap (A ⧸ I) ((C ⧸ I.map (algebraMap A C)) ⧸ m.asIdeal)) := by
+    intro m z
+    obtain ⟨z, rfl⟩ := Ideal.Quotient.mk_surjective z
+    obtain ⟨c, rfl⟩ := Ideal.Quotient.mk_surjective z
+    haveI : (m.asIdeal.comap (Ideal.Quotient.mk (I.map (algebraMap A C)))).IsMaximal :=
+      Ideal.comap_isMaximal_of_surjective _ Ideal.Quotient.mk_surjective
+    obtain ⟨a, ha⟩ := hres _ this c
+    refine ⟨Ideal.Quotient.mk I a, ?_⟩
+    rw [RingHom.comp_apply, Ideal.Quotient.eq, Ideal.mem_comap] at ha
+    change Ideal.Quotient.mk m.asIdeal (Ideal.Quotient.mk _ (algebraMap A C a)) = _
+    rw [Ideal.Quotient.eq, ← map_sub]
+    exact ha
+  haveI : IsArtinianRing (C ⧸ I.map (algebraMap A C)) := IsArtinianRing.of_finite (A ⧸ I) _
+  haveI := Fintype.ofFinite (MaximalSpectrum (C ⧸ I.map (algebraMap A C)))
+  let σ := Fintype.equivFin (MaximalSpectrum (C ⧸ I.map (algebraMap A C)))
+  let e₂ : (C ⧸ I.map (algebraMap A C)) ≃ₐ[A] (Fin _ → A ⧸ I) :=
+    ((equivPiOfSurjective h).restrictScalars A).trans
+      (AlgEquiv.piCongrLeft A (fun _ ↦ A ⧸ I) σ.symm).symm
+  haveI : IsAdicComplete (I.map (algebraMap A (Fin (Fintype.card
+      (MaximalSpectrum (C ⧸ I.map (algebraMap A C)))) → A))) _ :=
+    CompleteFree.isAdicComplete_map I (Pi.basisFun A _)
+  haveI : Algebra.FormallyEtale A (Fin (Fintype.card
+      (MaximalSpectrum (C ⧸ I.map (algebraMap A C)))) → A) :=
+    (Algebra.FormallyEtale.pi_iff _).2 inferInstance
+  exact ⟨_, ⟨EtaleLift.algEquivOfQuot I (e₂.trans (quotPiEquiv I _).symm)⟩⟩
+
+/-- **Residue fields of a base change**: if the residue field of `C` at `Q ∩ C` is reached from
+`A`, then the residue field of `A' ⊗_A C` at `Q` is reached from `A'`. -/
+theorem surjective_mk_comp_tensor {A A' C : Type*} [CommRing A] [CommRing A'] [CommRing C]
+    [Algebra A A'] [Algebra A C] (Q : Ideal (A' ⊗[A] C))
+    (h : Function.Surjective ((Ideal.Quotient.mk
+      (Q.comap (Algebra.TensorProduct.includeRight : C →ₐ[A] A' ⊗[A] C))).comp (algebraMap A C))) :
+    Function.Surjective ((Ideal.Quotient.mk Q).comp (algebraMap A' (A' ⊗[A] C))) := by
+  have key (x : A' ⊗[A] C) : ∃ a : A',
+      Ideal.Quotient.mk Q (algebraMap A' (A' ⊗[A] C) a) = Ideal.Quotient.mk Q x := by
+    induction x using TensorProduct.induction_on with
+    | zero => exact ⟨0, by rw [map_zero, map_zero]⟩
+    | tmul a c =>
+      obtain ⟨r, hr⟩ := h (Ideal.Quotient.mk _ c)
+      rw [RingHom.comp_apply, Ideal.Quotient.eq, Ideal.mem_comap] at hr
+      refine ⟨a * algebraMap A A' r, Ideal.Quotient.eq.2 ?_⟩
+      have : algebraMap A' (A' ⊗[A] C) (a * algebraMap A A' r) - a ⊗ₜ[A] c =
+          algebraMap A' (A' ⊗[A] C) a *
+            Algebra.TensorProduct.includeRight (algebraMap A C r - c) := by
+        rw [Algebra.TensorProduct.algebraMap_apply, Algebra.TensorProduct.algebraMap_apply,
+          Algebra.algebraMap_self, RingHom.id_apply, RingHom.id_apply,
+          Algebra.TensorProduct.includeRight_apply, Algebra.TensorProduct.tmul_mul_tmul, mul_one,
+          one_mul, tmul_sub, Algebra.algebraMap_eq_smul_one (A := C) r, ← smul_tmul,
+          Algebra.smul_def, mul_comm (algebraMap A A' r) a]
+      rw [this]
+      exact Q.mul_mem_left _ hr
+    | add x y hx hy =>
+      obtain ⟨a, ha⟩ := hx
+      obtain ⟨b, hb⟩ := hy
+      exact ⟨a + b, by rw [map_add, map_add, ha, hb, map_add]⟩
+  intro z
+  obtain ⟨x, rfl⟩ := Ideal.Quotient.mk_surjective z
+  exact key x
 
 /-- Base change kills a localization at an element which becomes a unit:
 `S ⊗[R] B ≃ S ⊗[R] B_f` if `f` is a unit in `S`. -/

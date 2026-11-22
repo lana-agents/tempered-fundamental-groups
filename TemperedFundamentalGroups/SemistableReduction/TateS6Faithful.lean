@@ -15,7 +15,8 @@ equality of the components over `V₁` suffices) are equal.
 
 Proof: the maps of normalisations `C.B₁ → C'.B₁` agree modulo `J`; at a closed point `P` of the
 special fibre of `T1` with `w ∉ P` (**`TateTwoChart.exists_point_T1`**: `w = 1`,
-`κ (h'² + (2t + 1) h' + t) = -1`, solvable as `k` is algebraically closed) the chart is regular
+`κ (h'² + (2t + 1) h' + t) = -1`, solvable as `k` is separably closed:
+`exists_quadratic_root_of_isSepClosed`) the chart is regular
 (`exists_regular_pair_T1`), so `C.B₁` is étale over `T1` at every point over `P` (purity, from
 `hunr₁`), and `UnramifiedHomExt.eq_of_normalisation_sub_mem` applies (generic form for covers
 over abstract two-chart rings: **`TateS6.CovData.eq_of_map1_sub_mem`**; the point:
@@ -30,7 +31,27 @@ namespace SemistableReduction
 
 namespace TateTwoChart
 
-variable {O : Type u} [CommRing O] {k : Type u} [Field k] [IsAlgClosed k] {θ : O →+* k}
+/-- **A quadratic equation over a separably closed field has a root** if it is not purely
+inseparable (`b ≠ 0` in characteristic `2`). -/
+theorem exists_quadratic_root_of_isSepClosed {k : Type*} [Field k] [IsSepClosed k] {a b c : k}
+    (ha : a ≠ 0) (hb : (2 : k) = 0 → b ≠ 0) : ∃ x, a * x ^ 2 + b * x + c = 0 := by
+  by_cases h2 : (2 : k) = 0
+  · have hd : derivative (C a * X ^ 2 + C b * X + C c) = C b := by
+      rw [derivative_add, derivative_add, derivative_C_mul_X_pow, derivative_C_mul_X,
+        derivative_C, Nat.cast_ofNat, h2, mul_zero, C_0, zero_mul, zero_add, add_zero]
+    have hsep : (C a * X ^ 2 + C b * X + C c).Separable := by
+      rw [Polynomial.separable_def, hd]
+      exact ⟨0, C b⁻¹, by rw [zero_mul, zero_add, ← C_mul, inv_mul_cancel₀ (hb h2), C_1]⟩
+    obtain ⟨x, hx⟩ := IsSepClosed.exists_root _ (by rw [degree_quadratic ha]; decide) hsep
+    refine ⟨x, ?_⟩
+    simpa only [IsRoot, eval_add, eval_mul, eval_C, eval_pow, eval_X] using hx
+  · haveI : NeZero ((2 : ℕ) : k) := ⟨by exact_mod_cast h2⟩
+    obtain ⟨s, hs⟩ := IsSepClosed.exists_pow_nat_eq (discrim a b c) 2
+    haveI : NeZero (2 : k) := ⟨h2⟩
+    obtain ⟨x, hx⟩ := exists_quadratic_eq_zero ha ⟨s, by rw [← hs, sq]⟩
+    exact ⟨x, by linear_combination hx⟩
+
+variable {O : Type u} [CommRing O] {k : Type u} [Field k] [IsSepClosed k] {θ : O →+* k}
   {π b₄ t κ ϖ : O}
 
 /-- The point `(h', w) = (h₀, 1)` of the special fibre of `T1`. -/
@@ -47,13 +68,10 @@ include θ in
 theorem exists_point_T1 (hθ : Function.Surjective θ) (hπ : θ π = 0) (hϖ : θ ϖ = 0)
     (hκ : θ κ ≠ 0) :
     ∃ P : Ideal (T1 π b₄ t κ), P.IsMaximal ∧ algebraMap O _ ϖ ∈ P ∧ w1 π b₄ t κ ∉ P := by
-  obtain ⟨h₀, hh₀⟩ := IsAlgClosed.exists_root
-    (C (θ κ) * X ^ 2 + C (θ κ * (2 * θ t + 1)) * X + C (θ κ * θ t + 1)) (by
-      rw [Polynomial.degree_quadratic hκ]; decide)
+  obtain ⟨h₀, hh₀⟩ := exists_quadratic_root_of_isSepClosed (a := θ κ) (b := θ κ * (2 * θ t + 1))
+    (c := θ κ * θ t + 1) hκ fun h2 ↦ by rw [h2, zero_mul, zero_add, mul_one]; exact hκ
   have h : 1 + θ κ * (2 * θ t * h₀ + (θ t - θ π * θ b₄)) + θ κ * (h₀ ^ 2 + h₀) -
       θ κ * θ π = 0 := by
-    rw [IsRoot, eval_add, eval_add, eval_mul, eval_mul, eval_C, eval_C, eval_C, eval_pow,
-      eval_X] at hh₀
     rw [hπ]
     linear_combination hh₀
   have hev : ∀ o : O,
@@ -137,8 +155,8 @@ section Functor
 set_option linter.unusedSectionVars false
 
 variable {O : Type u} [CommRing O] [IsDomain O] [IsDiscreteValuationRing O] {k : Type u} [Field k]
-  [IsAlgClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
-  {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m]
+  [IsSepClosed k] {θ : O →+* k} [hθ : Fact (Function.Surjective θ)]
+  {ϖ b₄ b₆ t κ ε εi : O} {m : ℕ} [NeZero m] [hsq : Fact (IsSquare (θ b₆))]
   (hϖ : Irreducible ϖ) (hker : RingHom.ker θ = Ideal.span {ϖ})
   {hκ : κ * (t ^ 2 - b₆) = 1} (hε : εi * ε = 1) (h3 : (3 : O) ≠ 0)
   (hE : TemperedFundamentalGroups.TateNormal.tateE (ε * ϖ ^ m) b₄ b₆ ≠ 0) (hb₆ : IsUnit b₆)
