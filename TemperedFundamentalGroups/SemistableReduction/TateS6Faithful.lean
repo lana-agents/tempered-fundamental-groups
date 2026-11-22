@@ -15,8 +15,8 @@ equality of the components over `V₁` suffices) are equal.
 
 Proof: the maps of normalisations `C.B₁ → C'.B₁` agree modulo `J`; at a closed point `P` of the
 special fibre of `T1` with `w ∉ P` (**`TateTwoChart.exists_point_T1`**: `w = 1`,
-`κ (h'² + (2t + 1) h' + t) = -1`, solvable as `k` is separably closed:
-`exists_quadratic_root_of_isSepClosed`) the chart is regular
+`κ (h'² + (2t + 1) h' + t) = -1`, a point with values in `k[h'] ⧸ (quadratic)`, any residue
+field `k`) the chart is regular
 (`exists_regular_pair_T1`), so `C.B₁` is étale over `T1` at every point over `P` (purity, from
 `hunr₁`), and `UnramifiedHomExt.eq_of_normalisation_sub_mem` applies (generic form for covers
 over abstract two-chart rings: **`TateS6.CovData.eq_of_map1_sub_mem`**; the point:
@@ -51,45 +51,51 @@ theorem exists_quadratic_root_of_isSepClosed {k : Type*} [Field k] [IsSepClosed 
     obtain ⟨x, hx⟩ := exists_quadratic_eq_zero ha ⟨s, by rw [← hs, sq]⟩
     exact ⟨x, by linear_combination hx⟩
 
-variable {O : Type u} [CommRing O] {k : Type u} [Field k] [IsSepClosed k] {θ : O →+* k}
+variable {O : Type u} [CommRing O] {k : Type u} [Field k] {θ : O →+* k}
   {π b₄ t κ ϖ : O}
 
-/-- The point `(h', w) = (h₀, 1)` of the special fibre of `T1`. -/
-noncomputable def evPoint (h₀ : k)
-    (h : 1 + θ κ * (2 * θ t * h₀ + (θ t - θ π * θ b₄)) + θ κ * (h₀ ^ 2 + h₀) - θ κ * θ π = 0) :
-    T1 π b₄ t κ →+* k :=
-  AdjoinRoot.lift (Polynomial.eval₂RingHom θ h₀) 1 (by
+/-- The point `(h', w) = (h₀, 1)` of the special fibre of `T1`, with values in any ring `A`. -/
+noncomputable def evPoint {A : Type*} [CommRing A] (ι : O →+* A) (h₀ : A)
+    (h : 1 + ι κ * (2 * ι t * h₀ + (ι t - ι π * ι b₄)) + ι κ * (h₀ ^ 2 + h₀) - ι κ * ι π = 0) :
+    T1 π b₄ t κ →+* A :=
+  AdjoinRoot.lift (Polynomial.eval₂RingHom ι h₀) 1 (by
     simp only [G1, eval₂_sub, eval₂_add, eval₂_mul, eval₂_pow, eval₂_X, eval₂_C,
       coe_eval₂RingHom, map_mul, map_add, map_pow, eval₂_X, eval₂_C, one_pow, mul_one]
     rw [← h, map_ofNat, map_sub, map_mul])
 
 include θ in
-/-- **A closed point of the special fibre of `T1` where `w` is a unit.** -/
-theorem exists_point_T1 (hθ : Function.Surjective θ) (hπ : θ π = 0) (hϖ : θ ϖ = 0)
-    (hκ : θ κ ≠ 0) :
+/-- **A closed point of the special fibre of `T1` where `w` is a unit** (any residue field: the
+point `w = 1`, `κ (h'² + (2t + 1) h' + t) = -1` with values in `k[h'] ⧸ (quadratic)`; the
+maximal ideal is any one containing the kernel). -/
+theorem exists_point_T1 (hπ : θ π = 0) (hϖ : θ ϖ = 0) (hκ : θ κ ≠ 0) :
     ∃ P : Ideal (T1 π b₄ t κ), P.IsMaximal ∧ algebraMap O _ ϖ ∈ P ∧ w1 π b₄ t κ ∉ P := by
-  obtain ⟨h₀, hh₀⟩ := exists_quadratic_root_of_isSepClosed (a := θ κ) (b := θ κ * (2 * θ t + 1))
-    (c := θ κ * θ t + 1) hκ fun h2 ↦ by rw [h2, zero_mul, zero_add, mul_one]; exact hκ
-  have h : 1 + θ κ * (2 * θ t * h₀ + (θ t - θ π * θ b₄)) + θ κ * (h₀ ^ 2 + h₀) -
-      θ κ * θ π = 0 := by
-    rw [hπ]
-    linear_combination hh₀
-  have hev : ∀ o : O,
-      evPoint (π := π) (b₄ := b₄) (t := t) (κ := κ) h₀ h (algebraMap O _ o) = θ o :=
-    fun o ↦ by
+  set q : k[X] := C (θ κ) * X ^ 2 + C (θ κ * (2 * θ t + 1)) * X + C (θ κ * θ t + 1) with hq
+  haveI : Nontrivial (AdjoinRoot q) :=
+    AdjoinRoot.nontrivial q (by rw [hq, degree_quadratic hκ]; decide)
+  set ι : O →+* AdjoinRoot q := (AdjoinRoot.of q).comp θ with hι
+  have hroot := AdjoinRoot.eval₂_root q
+  rw [hq, eval₂_add, eval₂_add, eval₂_mul, eval₂_mul, eval₂_C, eval₂_C, eval₂_C, eval₂_pow,
+    eval₂_X] at hroot
+  simp only [map_mul, map_add, map_one, map_ofNat] at hroot
+  have h : 1 + ι κ * (2 * ι t * AdjoinRoot.root q + (ι t - ι π * ι b₄)) +
+      ι κ * (AdjoinRoot.root q ^ 2 + AdjoinRoot.root q) - ι κ * ι π = 0 := by
+    simp only [hι, RingHom.comp_apply, hπ, map_zero]
+    linear_combination hroot
+  have hev (o : O) :
+      evPoint (π := π) (b₄ := b₄) (t := t) (κ := κ) ι _ h (algebraMap O _ o) = ι o := by
     rw [← of_C]
     unfold evPoint
     rw [AdjoinRoot.lift_of]
     simp
-  refine ⟨RingHom.ker (evPoint (π := π) (b₄ := b₄) (t := t) (κ := κ) h₀ h),
-    RingHom.ker_isMaximal_of_surjective _ fun x ↦ ?_, ?_, ?_⟩
-  · obtain ⟨o, rfl⟩ := hθ x
-    exact ⟨_, hev o⟩
-  · rw [RingHom.mem_ker, hev, hϖ]
-  · rw [RingHom.mem_ker, w1]
-    unfold evPoint
-    rw [AdjoinRoot.lift_root]
-    exact one_ne_zero
+  obtain ⟨P, hP, hle⟩ := Ideal.exists_le_maximal _
+    (RingHom.ker_ne_top (evPoint (π := π) (b₄ := b₄) (t := t) (κ := κ) ι _ h))
+  refine ⟨P, hP, hle ?_, fun hw ↦ hP.ne_top ((Ideal.eq_top_iff_one _).2 ?_)⟩
+  · rw [RingHom.mem_ker, hev, hι, RingHom.comp_apply, hϖ, map_zero]
+  · have h1 : w1 π b₄ t κ - 1 ∈ P := hle (by
+      rw [RingHom.mem_ker, map_sub, map_one, w1]
+      unfold evPoint
+      rw [AdjoinRoot.lift_root, sub_self])
+    simpa using P.sub_mem hw h1
 
 /-- **A regular closed point of the special fibre of the Tate chart `T1`**: a maximal ideal `P`
 containing `ϖ` (hence `J`) at which `T1` is regular (`w ∉ P`, `exists_regular_pair_T1`). -/
@@ -111,7 +117,7 @@ theorem exists_regular_point_T1 [IsDomain O] [IsDiscreteValuationRing O]
     rw [map_mul, h0, zero_mul, map_one] at this
     exact zero_ne_one this
   obtain ⟨P, hPm, hϖP, hwP⟩ := exists_point_T1 (π := ε * ϖ ^ m) (b₄ := b₄) (t := t) (κ := κ)
-    hθ.out hθπ hθϖ hθκ
+    hθπ hθϖ hθκ
   obtain ⟨y, hx, hy, hm⟩ := exists_regular_pair_T1 hϖ hθ.out hker rfl (Nat.pos_of_neZero m) hκ
     P hϖP hwP
   refine ⟨P, hPm, hϖP, ?_, _, y, hx, hy, hm⟩
